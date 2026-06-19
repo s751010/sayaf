@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+/* ── CloudMenu design tokens (brand) ───────────────────────────── */
+@theme {
+  --color-charcoal: #141210;
+  --color-charcoal-2: #1e1b14;
+  --color-charcoal-3: #252018;
+  --color-gold: #d4a843;
+  --color-gold-light: #f0c96a;
+  --color-gold-dark: #a8842f;
+  --color-cream: #faf6ee;
+  --color-warm: #8a8070;
+  --color-muted: #6b6458;
+  --color-line: rgba(212, 168, 67, 0.18);
+  --color-line-dim: rgba(255, 255, 255, 0.06);
+  --color-success: #4caf50;
+  --color-danger: #ef5350;
+
+  --font-sans: var(--font-cairo), system-ui, sans-serif;
+  --font-display: var(--font-tajawal), var(--font-cairo), sans-serif;
+
+  --animate-fade-in: fade-in 0.4s both;
+  --animate-float: float 6s ease-in-out infinite;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* ── Base ───────────────────────────────────────────────────────── */
+:root { color-scheme: dark; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--color-charcoal);
+  color: var(--color-cream);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+::selection { background: var(--color-gold); color: var(--color-charcoal); }
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--color-charcoal-2); }
+::-webkit-scrollbar-thumb { background: var(--color-gold-dark); border-radius: 3px; }
+
+/* Subtle grain texture, matching the original brand feel */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.35;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+}
+
+@utility text-gradient {
+  background: linear-gradient(135deg, var(--color-gold-light), var(--color-gold));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
