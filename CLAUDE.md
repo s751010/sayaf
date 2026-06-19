@@ -7,7 +7,7 @@
 
 ## 1. البنية الأساسية (Architecture)
 
-- **المشروع كله ملف HTML واحد مصغّر**: `cloudmenu_v43_security_storage.html` (~1.48MB، سطر واحد عملياً).
+- **المشروع كله ملف HTML واحد مصغّر**: `public/index.html` (~1.49MB، سطر واحد عملياً). كان اسمه `cloudmenu_v43_security_storage.html` ونُقل إلى `public/index.html` ليُقدَّم على `/` في Netlify.
 - **لا يوجد كود مصدري غير مصغّر.** الملف المصغّر **هو المصدر الأصلي (canonical source)** — تم تأكيد هذا مع المالك. لا تبحث عن `src/` أو مشروع Vite منفصل؛ غير موجود.
 - بُني أصلاً بـ **Vite + React 18** (علامة `/*$vite$:1*/` في الـ`<style>`، وبنية React المصغّرة، و helper الـ async المُولِّد). لكن مخرجات Vite لم تعد متوفرة كمصدر — نتعامل مع الناتج النهائي مباشرة.
 - **كل تعديل يتم عبر استبدال نصوص (string replacement) يستهدف توقيعات مصغّرة**، مثل:
@@ -129,17 +129,23 @@
 - المفاتيح المضمّنة (anon JWT, Moyasar pk) عامة بطبيعتها للواجهة، لكن **`cm_fsecret` و `founder-admin`** حسّاسة — لا تكشفها في logs أو commits.
 - عند لمس المدفوعات/الجلسة/سر المؤسس: راجع المالك قبل الدفع.
 
-## 6. ملفات مساعدة في المستودع (Auxiliary files)
-أُضيفت بجانب الـHTML لتحسين SEO/PWA/الأداء. **يجب أن تُنشر في جذر موقع Netlify** (نفس مستوى `index.html`) لتعمل روابط `/manifest.json` و `/sw.js` و `/icon.svg`:
+## 6. بنية المستودع وملفات النشر (Repo & deploy layout)
+كل ما يُنشر يعيش في **`public/`** (يُسحب بالكامل إلى Netlify — نشر يدوي):
 
 | الملف | الغرض |
 |------|-------|
-| `scripts/check_html_js.mjs` | أداة القاعدة (ب): يستخرج كل `<script>` من الـHTML ويفحص صياغته. الاستخدام: `node scripts/check_html_js.mjs cloudmenu_v43_security_storage.html` |
-| `manifest.json` + `icon.svg` | PWA (قابلية التثبيت). |
-| `sw.js` | Service worker: shell offline + كاش الخطوط. **لا يكاش Supabase/Moyasar** (بيانات المنيو تبقى طازجة). مُسجّل عبر سكربت صغير قبل `</body>`. |
-| `robots.txt` + `sitemap.xml` | فهرسة محركات البحث. |
+| `public/index.html` | التطبيق المصغّر (المصدر الأصلي). يُقدَّم على `/`. |
+| `public/manifest.json` + `public/icon.svg` | PWA (قابلية التثبيت). |
+| `public/sw.js` | Service worker: shell offline + كاش الخطوط. **لا يكاش Supabase/Moyasar** (بيانات المنيو تبقى طازجة). مُسجّل عبر سكربت صغير قبل `</body>`. |
+| `public/robots.txt` + `public/sitemap.xml` | فهرسة محركات البحث. |
+| `public/_headers` | headers أمان (CSP يسمح بـ Supabase/Moyasar/Google Fonts) + سياسة كاش (HTML/sw.js بلا كاش). |
+| `public/_redirects` | SPA fallback `/* /index.html 200` — **ضروري** لأن slug المطعم يُقرأ من `location.pathname`؛ بدونه أي زيارة مباشرة لـ`/<slug>` تعطي 404. |
+| `netlify.toml` (الجذر) | `publish = "public"` عند ربط Netlify بـ Git. |
+| `scripts/check_html_js.mjs` | أداة القاعدة (ب). الاستخدام: `node scripts/check_html_js.mjs public/index.html` |
 
-**تنبيه نشر:** لو كان ملف الـHTML يُنشر باسم غير `index.html`، أضِف في Netlify إعادة توجيه/إعداد نشر لتقديمه على `/` وإتاحة الملفات أعلاه على الجذر.
+**نشر يدوي:** اسحب مجلد `public/` كاملاً إلى Netlify؛ `_headers` و`_redirects` تُطبَّق تلقائياً.
+
+> ⚠️ **هيكلة الكود:** لا يمكن "تنظيف"/تفكيك كود `index.html` المصغّر إلى مكوّنات بدون مصدر Vite الأصلي (غير موجود). التنظيم يقتصر على مستوى المستودع/النشر، لا على كود البندل.
 
 ### تحسينات تُطبَّق على الملف المصغّر (مرجع)
 - **عرض روابط التواصل (إصلاح):** حقول `social_instagram/twitter/tiktok/snapchat/maps` على مستوى المطعم كانت تُحفظ لكن **لا تُعرض** للزبون؛ أُضيف عرضها كشرائح (chips) بعد زر تقييم قوقل في صفحة المنيو العامة. (تذكير قاعدة أ: الحقل لا يكفي حفظه — لازم يُعرض أيضاً.)

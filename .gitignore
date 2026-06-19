@@ -1,0 +1,15 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+
+# Logs / temp
+*.log
+*.tmp
+tmp/
+*.tmp.js
+
+# Dependencies / build (not used today, but guards future tooling)
+node_modules/
+.netlify/
+dist/

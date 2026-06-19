@@ -1,0 +1,7 @@
+# Netlify configuration for CloudMenu.
+# Used when the site is deployed from this Git repo. For manual (drag-and-drop)
+# deploys, drag the `public/` folder — its `_headers` and `_redirects` files
+# are applied automatically.
+[build]
+  publish = "public"
+  command = ""
