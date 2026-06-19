@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { Logo } from "./logo";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 
 const links = [
   { href: "#features", label: "المميزات" },
@@ -32,10 +33,12 @@ export function Navbar() {
         </div>
 
         <div className="hidden items-center gap-2 md:flex">
-          <Button variant="ghost" size="sm">
+          <Link href="/login" className={buttonVariants({ variant: "ghost", size: "sm" })}>
             دخول
-          </Button>
-          <Button size="sm">ابدأ مجاناً</Button>
+          </Link>
+          <Link href="/login" className={buttonVariants({ size: "sm" })}>
+            ابدأ مجاناً
+          </Link>
         </div>
 
         <button
@@ -61,12 +64,20 @@ export function Navbar() {
             </a>
           ))}
           <div className="mt-2 flex gap-2">
-            <Button variant="outline" size="sm" className="flex-1">
+            <Link
+              href="/login"
+              onClick={() => setOpen(false)}
+              className={`${buttonVariants({ variant: "outline", size: "sm" })} flex-1`}
+            >
               دخول
-            </Button>
-            <Button size="sm" className="flex-1">
+            </Link>
+            <Link
+              href="/login"
+              onClick={() => setOpen(false)}
+              className={`${buttonVariants({ size: "sm" })} flex-1`}
+            >
               ابدأ مجاناً
-            </Button>
+            </Link>
           </div>
         </div>
       )}
