@@ -1,17 +1,43 @@
-import { BookOpen, UtensilsCrossed, Eye } from "lucide-react";
+import Link from "next/link";
+import { BookOpen, UtensilsCrossed, Eye, ExternalLink } from "lucide-react";
+import { getMyRestaurant, getMyMenus, getMyDishes } from "@/lib/owner";
+import { RestaurantOnboarding } from "@/components/dashboard/restaurant-onboarding";
 import { Card } from "@/components/ui/card";
+import { buttonVariants } from "@/components/ui/button";
 
-const stats = [
-  { label: "القوائم", value: "—", icon: BookOpen },
-  { label: "الأصناف", value: "—", icon: UtensilsCrossed },
-  { label: "المشاهدات", value: "—", icon: Eye },
-];
+export default async function DashboardHome() {
+  const restaurant = await getMyRestaurant();
+  if (!restaurant) return <RestaurantOnboarding />;
 
-export default function DashboardHome() {
+  const [menus, dishes] = await Promise.all([
+    getMyMenus(restaurant.id),
+    getMyDishes(restaurant.id),
+  ]);
+  const views = dishes.reduce((sum, d) => sum + (d.views ?? 0), 0);
+
+  const stats = [
+    { label: "القوائم", value: menus.length, icon: BookOpen },
+    { label: "الأصناف", value: dishes.length, icon: UtensilsCrossed },
+    { label: "المشاهدات", value: views, icon: Eye },
+  ];
+
   return (
     <div className="mx-auto max-w-5xl">
-      <h1 className="font-display text-2xl font-bold text-cream">نظرة عامة</h1>
-      <p className="mt-1 text-warm">أهلاً بك في لوحة تحكم مطعمك.</p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="font-display text-2xl font-bold text-cream">
+            {restaurant.name}
+          </h1>
+          <p className="mt-1 text-warm">نظرة عامة على مطعمك.</p>
+        </div>
+        <Link
+          href={`/${restaurant.slug}`}
+          target="_blank"
+          className={buttonVariants({ variant: "outline", size: "sm" })}
+        >
+          <ExternalLink size={16} /> عرض المنيو العام
+        </Link>
+      </div>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-3">
         {stats.map((s) => (
@@ -29,14 +55,17 @@ export default function DashboardHome() {
         ))}
       </div>
 
-      <Card className="mt-6">
-        <h2 className="font-bold text-cream">الخطوات التالية</h2>
-        <p className="mt-2 text-sm leading-relaxed text-warm">
-          إدارة القوائم والأصناف، توليد أكواد QR، والإحصائيات قيد التطوير ضمن
-          خطة الهجرة. تابع التقدّم في{" "}
-          <code className="text-gold">web/MIGRATION.md</code>.
-        </p>
-      </Card>
+      <div className="mt-6 flex flex-wrap gap-3">
+        <Link href="/dashboard/dishes/new" className={buttonVariants()}>
+          إضافة صنف
+        </Link>
+        <Link
+          href="/dashboard/menus"
+          className={buttonVariants({ variant: "outline" })}
+        >
+          إدارة القوائم
+        </Link>
+      </div>
     </div>
   );
 }
