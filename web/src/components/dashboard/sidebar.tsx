@@ -8,6 +8,9 @@ import {
   UtensilsCrossed,
   QrCode,
   BarChart3,
+  Sparkles,
+  Gift,
+  CreditCard,
   Settings,
   LogOut,
 } from "lucide-react";
@@ -21,6 +24,9 @@ const nav = [
   { href: "/dashboard/dishes", label: "الأصناف", icon: UtensilsCrossed },
   { href: "/dashboard/qr", label: "أكواد QR", icon: QrCode },
   { href: "/dashboard/analytics", label: "الإحصائيات", icon: BarChart3 },
+  { href: "/dashboard/ai", label: "المستشار الذكي", icon: Sparkles },
+  { href: "/dashboard/loyalty", label: "الولاء", icon: Gift },
+  { href: "/dashboard/billing", label: "الاشتراك", icon: CreditCard },
   { href: "/dashboard/settings", label: "الإعدادات", icon: Settings },
 ];
 

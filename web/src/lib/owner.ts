@@ -39,6 +39,28 @@ export async function getMyDishes(restaurantId: string): Promise<Dish[]> {
   return (data as Dish[]) ?? [];
 }
 
+/** Loyalty customers (schema is partially known — typed loosely). */
+export type LoyaltyCustomer = {
+  id: string;
+  name?: string | null;
+  phone?: string | null;
+  visits?: number | null;
+  points?: number | null;
+  [key: string]: unknown;
+};
+
+export async function getLoyaltyCustomers(
+  restaurantId: string
+): Promise<LoyaltyCustomer[]> {
+  const supabase = await createServerSupabase();
+  if (!supabase) return [];
+  const { data } = await supabase
+    .from("loyalty_customers")
+    .select("*")
+    .eq("restaurant_id", restaurantId);
+  return (data as LoyaltyCustomer[]) ?? [];
+}
+
 export async function getDish(id: string): Promise<Dish | null> {
   const supabase = await createServerSupabase();
   if (!supabase) return null;

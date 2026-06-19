@@ -61,6 +61,21 @@ export interface Dish {
   views: number | null;
 }
 
+export interface BlogPost {
+  id: string;
+  slug: string;
+  title_ar: string;
+  excerpt_ar: string | null;
+  content_ar: string | null;
+  cover_image: string | null;
+  tags: string | null;
+  status: string | null;
+  seo_title: string | null;
+  seo_description: string | null;
+  published_at: string | null;
+  views: number | null;
+}
+
 /** Minimal Database shape for the typed supabase-js client (read paths in use). */
 export interface Database {
   public: {

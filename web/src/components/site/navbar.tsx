@@ -9,6 +9,7 @@ import { buttonVariants } from "@/components/ui/button";
 const links = [
   { href: "#features", label: "المميزات" },
   { href: "#pricing", label: "الأسعار" },
+  { href: "/blog", label: "المدونة" },
   { href: "#contact", label: "تواصل" },
 ];
 

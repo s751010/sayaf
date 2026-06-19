@@ -1,6 +1,29 @@
 import "server-only";
 import { createPublicServerClient } from "@/lib/supabase/server";
-import type { Dish, Menu, Restaurant } from "@/lib/types";
+import type { BlogPost, Dish, Menu, Restaurant } from "@/lib/types";
+
+// ── Blog (public, SEO) ─────────────────────────────────────────────
+export async function getPublishedPosts(): Promise<BlogPost[]> {
+  const supabase = createPublicServerClient();
+  if (!supabase) return [];
+  const { data } = await supabase
+    .from("blog_posts")
+    .select("*")
+    .eq("status", "published")
+    .order("published_at", { ascending: false });
+  return (data as BlogPost[]) ?? [];
+}
+
+export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
+  const supabase = createPublicServerClient();
+  if (!supabase) return null;
+  const { data } = await supabase
+    .from("blog_posts")
+    .select("*")
+    .eq("slug", slug)
+    .maybeSingle();
+  return (data as BlogPost | null) ?? null;
+}
 
 /** Lightweight lookup used by generateMetadata. */
 export async function getRestaurantBySlug(

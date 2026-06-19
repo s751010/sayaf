@@ -54,6 +54,44 @@ export async function createRestaurant(
   redirect("/dashboard/menus");
 }
 
+// ── Restaurant settings ────────────────────────────────────────────
+export async function updateRestaurant(
+  _prev: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const supabase = await createServerSupabase();
+  const restaurant = await getMyRestaurant();
+  if (!supabase || !restaurant) return { error: "أنشئ مطعمك أولاً." };
+
+  const fields = {
+    name: String(formData.get("name") ?? "").trim() || restaurant.name,
+    type: strOrNull(formData.get("type")),
+    logo_image: strOrNull(formData.get("logo_image")),
+    banner_image: strOrNull(formData.get("banner_image")),
+    working_hours: strOrNull(formData.get("working_hours")),
+    allergens_text: strOrNull(formData.get("allergens_text")),
+    google_review_url: strOrNull(formData.get("google_review_url")),
+    social_instagram: strOrNull(formData.get("social_instagram")),
+    social_twitter: strOrNull(formData.get("social_twitter")),
+    social_tiktok: strOrNull(formData.get("social_tiktok")),
+    social_snapchat: strOrNull(formData.get("social_snapchat")),
+    social_maps: strOrNull(formData.get("social_maps")),
+    loyalty_enabled: formData.get("loyalty_enabled") === "on",
+    loyalty_goal: numOrNull(formData.get("loyalty_goal")),
+    loyalty_reward: strOrNull(formData.get("loyalty_reward")),
+  };
+
+  const { error } = await supabase
+    .from("restaurants")
+    .update(fields)
+    .eq("id", restaurant.id);
+  if (error) return { error: "تعذّر حفظ الإعدادات." };
+
+  revalidatePath("/dashboard/settings");
+  revalidatePath(`/${restaurant.slug}`);
+  return { message: "تم حفظ الإعدادات." };
+}
+
 // ── Menus ──────────────────────────────────────────────────────────
 export async function createMenu(
   _prev: ActionState,
