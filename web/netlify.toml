@@ -1,0 +1,10 @@
+# Netlify config for the Next.js rebuild (this app lives in web/).
+# When creating the Netlify site, set Base directory = "web" so Netlify reads
+# this file and builds the app here (the repo root netlify.toml is for the
+# legacy public/ site).
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
