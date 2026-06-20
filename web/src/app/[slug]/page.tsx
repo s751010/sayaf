@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getPublicMenu, getRestaurantBySlug } from "@/lib/data";
 import { DishCard } from "@/components/menu/dish-card";
 import { SocialLinks } from "@/components/menu/social-links";
+import { ViewBeacon } from "@/components/menu/view-beacon";
 
 export const revalidate = 60;
 
@@ -27,10 +28,11 @@ export default async function MenuPage({ params }: Params) {
   const data = await getPublicMenu(slug);
   if (!data) notFound();
 
-  const { restaurant, categories, dishes } = data;
+  const { restaurant, menu, categories, dishes } = data;
 
   return (
     <main className="flex-1">
+      {menu && <ViewBeacon menuId={menu.id} ownerId={restaurant.user_id} />}
       {/* Banner */}
       <header className="relative">
         {restaurant.banner_image && (

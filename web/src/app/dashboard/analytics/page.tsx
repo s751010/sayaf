@@ -1,5 +1,5 @@
 import { Eye, TrendingUp, Layers } from "lucide-react";
-import { getMyRestaurant, getMyDishes } from "@/lib/owner";
+import { getMyRestaurant, getMyDishes, getMenuViews } from "@/lib/owner";
 import { RestaurantOnboarding } from "@/components/dashboard/restaurant-onboarding";
 import { Card } from "@/components/ui/card";
 
@@ -7,7 +7,10 @@ export default async function AnalyticsPage() {
   const restaurant = await getMyRestaurant();
   if (!restaurant) return <RestaurantOnboarding />;
 
-  const dishes = await getMyDishes(restaurant.id);
+  const [dishes, menuViews] = await Promise.all([
+    getMyDishes(restaurant.id),
+    getMenuViews(),
+  ]);
   const totalViews = dishes.reduce((s, d) => s + (d.views ?? 0), 0);
   const topDishes = [...dishes]
     .sort((a, b) => (b.views ?? 0) - (a.views ?? 0))
@@ -22,9 +25,9 @@ export default async function AnalyticsPage() {
   const categories = [...categoryMap.entries()].sort((a, b) => b[1] - a[1]);
 
   const stats = [
-    { label: "إجمالي المشاهدات", value: totalViews, icon: Eye },
+    { label: "مشاهدات المنيو", value: menuViews, icon: Eye },
+    { label: "مشاهدات الأصناف", value: totalViews, icon: TrendingUp },
     { label: "عدد الأصناف", value: dishes.length, icon: Layers },
-    { label: "المتاح للعرض", value: dishes.filter((d) => d.available).length, icon: TrendingUp },
   ];
 
   return (

@@ -61,6 +61,17 @@ export async function getLoyaltyCustomers(
   return (data as LoyaltyCustomer[]) ?? [];
 }
 
+/** Total recorded menu views for the owner (RLS scopes rows to auth.uid()). */
+export async function getMenuViews(): Promise<number> {
+  const supabase = await createServerSupabase();
+  if (!supabase) return 0;
+  const { data } = await supabase.from("analytics").select("views");
+  return ((data as { views: number | null }[]) ?? []).reduce(
+    (s, r) => s + (r.views ?? 0),
+    0
+  );
+}
+
 export async function getDish(id: string): Promise<Dish | null> {
   const supabase = await createServerSupabase();
   if (!supabase) return null;
