@@ -39,8 +39,10 @@ CLAUDE.md               ← المرجع الإلزامي للعمل على ال
    - `https://cloudsmenu.netlify.app/manifest.json`
    - `https://cloudsmenu.netlify.app/<any-slug>` (يجب أن يفتح التطبيق لا 404)
 
-> عند ربط Netlify بمستودع Git لاحقاً: `netlify.toml` يضبط `publish = "public"`
-> تلقائياً.
+> **التطبيق الجديد (web/):** عند ربط Netlify بالمستودع، يبني تلقائياً عبر
+> `netlify.toml` بالجذر (`base = "web"`) — لا تحتاج ضبط Base directory يدوياً.
+> أضِف متغيّرات البيئة من `web/.env.example`. الموقع القديم (`public/`) يبقى نشراً
+> يدوياً منفصلاً ولا يتأثّر.
 
 ## بعد أي تعديل على `public/index.html`
 

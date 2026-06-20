@@ -1,7 +1,18 @@
-# Netlify configuration for CloudMenu.
-# Used when the site is deployed from this Git repo. For manual (drag-and-drop)
-# deploys, drag the `public/` folder — its `_headers` and `_redirects` files
-# are applied automatically.
+# Netlify config for the Git-connected deploy of the NEW Next.js app (web/).
+#
+# The Next.js rebuild lives in web/, so we set base = "web" here at the repo
+# root. This makes the Git-connected Netlify site build the app correctly even
+# if no "Base directory" is set in the Netlify UI — removing the most common
+# cause of "Page not found on every route".
+#
+# Netlify auto-detects Next.js and attaches its runtime (which configures the
+# publish dir + SSR routing), so we do NOT set `publish` or pin the plugin.
+#
+# NOTE: the legacy minified site (public/) is deployed MANUALLY (drag-and-drop
+# of the public/ folder), which does NOT read this file — so this is safe.
 [build]
-  publish = "public"
-  command = ""
+  base = "web"
+  command = "npm run build"
+
+[build.environment]
+  NODE_VERSION = "22"
