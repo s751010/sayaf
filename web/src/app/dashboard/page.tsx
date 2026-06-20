@@ -31,7 +31,7 @@ export default async function DashboardHome() {
           <p className="mt-1 text-warm">نظرة عامة على مطعمك.</p>
         </div>
         <Link
-          href={`/${restaurant.slug}`}
+          href={`/${restaurant.slug ?? ""}`}
           target="_blank"
           className={buttonVariants({ variant: "outline", size: "sm" })}
         >

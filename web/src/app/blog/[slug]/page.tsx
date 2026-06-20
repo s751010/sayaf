@@ -12,13 +12,15 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { slug } = await params;
   const post = await getPostBySlug(slug);
   if (!post) return { title: "المقال غير موجود" };
+  const title = post.title_ar || post.title;
+  const excerpt = post.excerpt_ar || post.excerpt || undefined;
   return {
-    title: post.seo_title || post.title_ar,
-    description: post.seo_description || post.excerpt_ar || undefined,
+    title: post.seo_title || title,
+    description: post.seo_description || excerpt,
     alternates: { canonical: `/blog/${post.slug}` },
     openGraph: {
-      title: post.title_ar,
-      description: post.excerpt_ar || undefined,
+      title,
+      description: excerpt,
       images: post.cover_image || undefined,
       type: "article",
     },
@@ -28,7 +30,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 export default async function BlogPostPage({ params }: Params) {
   const { slug } = await params;
   const post = await getPostBySlug(slug);
-  if (!post || post.status !== "published") notFound();
+  if (!post || post.published === false) notFound();
 
   return (
     <>
@@ -36,7 +38,7 @@ export default async function BlogPostPage({ params }: Params) {
       <main className="flex-1 px-[var(--page-px,clamp(16px,5vw,60px))] pt-28 pb-20">
         <article className="mx-auto max-w-2xl">
           <h1 className="font-display text-3xl font-black leading-tight md:text-4xl">
-            {post.title_ar}
+            {post.title_ar || post.title}
           </h1>
           {post.published_at && (
             <p className="mt-3 text-sm text-muted">
@@ -47,12 +49,12 @@ export default async function BlogPostPage({ params }: Params) {
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={post.cover_image}
-              alt={post.title_ar}
+              alt={post.title_ar || post.title}
               className="mt-6 w-full rounded-2xl object-cover"
             />
           )}
           <div className="mt-8 whitespace-pre-wrap text-lg leading-loose text-cream/90">
-            {post.content_ar}
+            {post.content_ar || post.content}
           </div>
         </article>
       </main>

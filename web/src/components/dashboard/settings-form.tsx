@@ -46,6 +46,9 @@ export function SettingsForm({ restaurant }: { restaurant: Restaurant }) {
           <Field label="تقييم قوقل" htmlFor="google_review_url">
             <Input id="google_review_url" name="google_review_url" dir="ltr" defaultValue={r.google_review_url ?? ""} />
           </Field>
+          <Field label="واتساب (رقم أو رابط)" htmlFor="social_whatsapp">
+            <Input id="social_whatsapp" name="social_whatsapp" dir="ltr" defaultValue={r.social_whatsapp ?? ""} placeholder="9665xxxxxxxx" />
+          </Field>
           <Field label="إنستغرام" htmlFor="social_instagram">
             <Input id="social_instagram" name="social_instagram" dir="ltr" defaultValue={r.social_instagram ?? ""} />
           </Field>

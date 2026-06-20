@@ -13,7 +13,7 @@ export default async function QrPage() {
         اطبع كود QR لمطعمك أو لكل طاولة، وضعه على الطاولات ليتصفّح الزبائن المنيو.
       </p>
       <div className="mt-6">
-        <QrStudio slug={restaurant.slug} />
+        <QrStudio slug={restaurant.slug ?? ""} />
       </div>
     </div>
   );

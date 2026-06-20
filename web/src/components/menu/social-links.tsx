@@ -1,5 +1,10 @@
-import { AtSign, MapPin, Star } from "lucide-react";
+import { AtSign, MapPin, MessageCircle, Star } from "lucide-react";
 import type { Restaurant } from "@/lib/types";
+
+function waLink(v: string | null): string | null {
+  if (!v) return null;
+  return v.startsWith("http") ? v : `https://wa.me/${v.replace(/[^\d]/g, "")}`;
+}
 
 const chip =
   "inline-flex items-center gap-1.5 rounded-full border border-line-dim bg-white/5 px-3.5 py-1.5 text-[13px] font-semibold text-cream transition-colors hover:border-gold hover:text-gold";
@@ -11,6 +16,7 @@ export function SocialLinks({ restaurant }: { restaurant: Restaurant }) {
       label: "قيّمنا على قوقل",
       icon: <Star size={14} className="text-[#FBBC05]" />,
     },
+    { href: waLink(restaurant.social_whatsapp), label: "واتساب", icon: <MessageCircle size={14} /> },
     { href: restaurant.social_instagram, label: "Instagram", icon: <AtSign size={14} /> },
     { href: restaurant.social_twitter, label: "X" },
     { href: restaurant.social_tiktok, label: "TikTok" },

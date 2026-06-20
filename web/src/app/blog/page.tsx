@@ -35,7 +35,7 @@ export default async function BlogIndex() {
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={post.cover_image}
-                        alt={post.title_ar}
+                        alt={post.title_ar || post.title}
                         loading="lazy"
                         decoding="async"
                         className="h-44 w-full object-cover"
@@ -43,11 +43,11 @@ export default async function BlogIndex() {
                     )}
                     <div className="p-5">
                       <h2 className="font-display text-lg font-bold text-cream">
-                        {post.title_ar}
+                        {post.title_ar || post.title}
                       </h2>
-                      {post.excerpt_ar && (
+                      {(post.excerpt_ar || post.excerpt) && (
                         <p className="mt-2 line-clamp-2 text-sm text-warm">
-                          {post.excerpt_ar}
+                          {post.excerpt_ar || post.excerpt}
                         </p>
                       )}
                     </div>

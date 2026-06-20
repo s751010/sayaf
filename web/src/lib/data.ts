@@ -9,8 +9,8 @@ export async function getPublishedPosts(): Promise<BlogPost[]> {
   const { data } = await supabase
     .from("blog_posts")
     .select("*")
-    .eq("status", "published")
-    .order("published_at", { ascending: false });
+    .eq("published", true)
+    .order("created_at", { ascending: false });
   return (data as BlogPost[]) ?? [];
 }
 

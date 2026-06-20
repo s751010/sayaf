@@ -16,7 +16,13 @@ const PLANS: Plan[] = [
   { id: "premium", name: "الاحترافية", price: 949, features: ["بطاقة ولاء", "مدفوعات وطلبات", "دعم أولوية"] },
 ];
 
-export function BillingClient() {
+export function BillingClient({
+  userId,
+  userName,
+}: {
+  userId: string;
+  userName: string;
+}) {
   const [plan, setPlan] = useState<Plan | null>(null);
 
   if (plan) {
@@ -38,6 +44,12 @@ export function BillingClient() {
           <MoyasarForm
             amountHalalas={plan.price * 100}
             description={`اشتراك كلاود منيو — باقة ${plan.name}`}
+            metadata={{
+              user_id: userId,
+              user_name: userName,
+              plan_id: plan.id,
+              cycle: "monthly",
+            }}
           />
           <p className="mt-4 text-center text-xs text-muted">
             مدفوعات آمنة عبر Moyasar — مدى، بطاقات، Apple Pay، STC Pay.

@@ -20,10 +20,12 @@ const MOYASAR_VERSION = "1.14.0";
 export function MoyasarForm({
   amountHalalas,
   description,
+  metadata,
   methods = ["creditcard", "applepay", "stcpay"],
 }: {
   amountHalalas: number;
   description: string;
+  metadata: Record<string, string>;
   methods?: string[];
 }) {
   const mounted = useRef(false);
@@ -51,6 +53,7 @@ export function MoyasarForm({
         publishable_api_key: pk,
         callback_url: `${window.location.origin}/dashboard?payment=done`,
         methods,
+        metadata,
       });
     };
 
@@ -62,7 +65,7 @@ export function MoyasarForm({
       script.onload = start;
       document.body.appendChild(script);
     }
-  }, [amountHalalas, description, methods, pk]);
+  }, [amountHalalas, description, methods, metadata, pk]);
 
   if (!pk) {
     return (

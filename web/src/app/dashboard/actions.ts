@@ -71,6 +71,7 @@ export async function updateRestaurant(
     working_hours: strOrNull(formData.get("working_hours")),
     allergens_text: strOrNull(formData.get("allergens_text")),
     google_review_url: strOrNull(formData.get("google_review_url")),
+    social_whatsapp: strOrNull(formData.get("social_whatsapp")),
     social_instagram: strOrNull(formData.get("social_instagram")),
     social_twitter: strOrNull(formData.get("social_twitter")),
     social_tiktok: strOrNull(formData.get("social_tiktok")),
