@@ -1,13 +1,14 @@
-# Netlify config for the Next.js rebuild (this app lives in web/).
-# When creating the Netlify site, set Base directory = "web" so Netlify reads
-# this file and builds the app here (the repo root netlify.toml is for the
-# legacy public/ site).
+# Netlify config for the Next.js app (lives in web/).
+#
+# REQUIRED in the Netlify UI: set "Base directory" = web   (so Netlify reads
+# THIS file and builds the app here, not the legacy public/ site at the root).
+#
+# We intentionally do NOT set `publish` or pin the Next.js plugin: Netlify
+# auto-detects Next.js and attaches its runtime (which configures publish +
+# SSR routing). Forcing publish=".next" serves raw static files → 404 on every
+# route, which is exactly the failure we are fixing here.
 [build]
   command = "npm run build"
-  publish = ".next"
 
 [build.environment]
   NODE_VERSION = "22"
-
-[[plugins]]
-  package = "@netlify/plugin-nextjs"
