@@ -43,6 +43,7 @@ export interface PublicMenu {
   restaurant: Restaurant;
   menu: Menu | null;
   dishes: Dish[];
+  featured: Dish[];
   categories: { name: string; dishes: Dish[] }[];
 }
 
@@ -80,7 +81,9 @@ export async function getPublicMenu(slug: string): Promise<PublicMenu | null> {
       .from("dishes")
       .select("*")
       .eq("menu_id", menu.id)
-      .eq("available", true);
+      .eq("available", true)
+      .order("category", { ascending: true })
+      .order("created_at", { ascending: true });
     dishes = (data ?? []) as Dish[];
   }
 
@@ -90,10 +93,15 @@ export async function getPublicMenu(slug: string): Promise<PublicMenu | null> {
     if (!byCategory.has(key)) byCategory.set(key, []);
     byCategory.get(key)!.push(dish);
   }
+  // Featured dishes float to the top within each category.
   const categories = [...byCategory.entries()].map(([name, items]) => ({
     name,
-    dishes: items,
+    dishes: [...items].sort(
+      (a, b) => Number(b.featured ?? false) - Number(a.featured ?? false)
+    ),
   }));
 
-  return { restaurant, menu: menu ?? null, dishes, categories };
+  const featured = dishes.filter((d) => d.featured).slice(0, 8);
+
+  return { restaurant, menu: menu ?? null, dishes, featured, categories };
 }

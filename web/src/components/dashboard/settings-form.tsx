@@ -1,21 +1,33 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
+import { Check } from "lucide-react";
 import { updateRestaurant, type ActionState } from "@/app/dashboard/actions";
 import { Field, Input, Textarea } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { THEMES } from "@/lib/themes";
+import { cn } from "@/lib/utils";
 import type { Restaurant } from "@/lib/types";
 
-export function SettingsForm({ restaurant }: { restaurant: Restaurant }) {
+export function SettingsForm({
+  restaurant,
+  currentTheme,
+}: {
+  restaurant: Restaurant;
+  currentTheme: string;
+}) {
   const [state, action, pending] = useActionState<ActionState, FormData>(
     updateRestaurant,
     {}
   );
+  const [theme, setTheme] = useState(currentTheme);
   const r = restaurant;
 
   return (
     <form action={action} className="flex flex-col gap-6">
+      <input type="hidden" name="menu_theme" value={theme} />
+
       <Card className="flex flex-col gap-4">
         <h2 className="font-bold text-cream">معلومات المطعم</h2>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -38,6 +50,43 @@ export function SettingsForm({ restaurant }: { restaurant: Restaurant }) {
         <Field label="تنبيه مسببات الحساسية" htmlFor="allergens_text">
           <Textarea id="allergens_text" name="allergens_text" defaultValue={r.allergens_text ?? ""} />
         </Field>
+      </Card>
+
+      {/* Theme picker */}
+      <Card className="flex flex-col gap-4">
+        <div>
+          <h2 className="font-bold text-cream">ثيم المنيو</h2>
+          <p className="mt-1 text-sm text-warm">اختر هوية بصرية احترافية لصفحة منيو مطعمك.</p>
+        </div>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {THEMES.map((t) => {
+            const selected = theme === t.id;
+            return (
+              <button
+                type="button"
+                key={t.id}
+                onClick={() => setTheme(t.id)}
+                className={cn(
+                  "relative overflow-hidden rounded-xl border-2 p-0 text-right transition-all",
+                  selected ? "border-gold" : "border-transparent hover:border-line"
+                )}
+              >
+                <div
+                  className="flex h-16 items-end gap-1 p-2"
+                  style={{ background: t.vars["--m-bg"] }}
+                >
+                  <span className="h-6 w-6 rounded-full" style={{ background: t.vars["--m-accent"] }} />
+                  <span className="h-4 w-4 rounded-full" style={{ background: t.vars["--m-accent-2"] }} />
+                  <span className="h-8 flex-1 rounded-md" style={{ background: t.vars["--m-surface"] }} />
+                </div>
+                <div className="flex items-center justify-between bg-charcoal-3 px-2.5 py-1.5">
+                  <span className="text-xs font-semibold text-cream">{t.name}</span>
+                  {selected && <Check size={14} className="text-gold" />}
+                </div>
+              </button>
+            );
+          })}
+        </div>
       </Card>
 
       <Card className="flex flex-col gap-4">

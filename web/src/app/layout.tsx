@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Cairo, Tajawal } from "next/font/google";
+import { Cairo, Tajawal, Reem_Kufi, Amiri } from "next/font/google";
 import "./globals.css";
 
 const cairo = Cairo({
@@ -13,6 +13,20 @@ const tajawal = Tajawal({
   subsets: ["arabic", "latin"],
   weight: ["400", "500", "700", "900"],
   variable: "--font-tajawal",
+  display: "swap",
+});
+
+const reemKufi = Reem_Kufi({
+  subsets: ["arabic", "latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-reem",
+  display: "swap",
+});
+
+const amiri = Amiri({
+  subsets: ["arabic", "latin"],
+  weight: ["400", "700"],
+  variable: "--font-amiri",
   display: "swap",
 });
 
@@ -56,7 +70,7 @@ export default function RootLayout({
     <html
       lang="ar"
       dir="rtl"
-      className={`${cairo.variable} ${tajawal.variable} h-full antialiased`}
+      className={`${cairo.variable} ${tajawal.variable} ${reemKufi.variable} ${amiri.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-sans">{children}</body>
     </html>

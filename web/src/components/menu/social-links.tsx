@@ -6,9 +6,6 @@ function waLink(v: string | null): string | null {
   return v.startsWith("http") ? v : `https://wa.me/${v.replace(/[^\d]/g, "")}`;
 }
 
-const chip =
-  "inline-flex items-center gap-1.5 rounded-full border border-line-dim bg-white/5 px-3.5 py-1.5 text-[13px] font-semibold text-cream transition-colors hover:border-gold hover:text-gold";
-
 export function SocialLinks({ restaurant }: { restaurant: Restaurant }) {
   const items: { href: string | null; label: string; icon?: React.ReactNode }[] = [
     {
@@ -34,7 +31,12 @@ export function SocialLinks({ restaurant }: { restaurant: Restaurant }) {
           href={i.href!}
           target="_blank"
           rel="noreferrer"
-          className={chip}
+          className="inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[13px] font-semibold transition-colors hover:opacity-80"
+          style={{
+            background: "var(--m-surface)",
+            borderColor: "var(--m-border)",
+            color: "var(--m-text)",
+          }}
         >
           {i.icon}
           {i.label}

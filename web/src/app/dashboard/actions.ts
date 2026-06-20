@@ -88,8 +88,15 @@ export async function updateRestaurant(
     .eq("id", restaurant.id);
   if (error) return { error: "تعذّر حفظ الإعدادات." };
 
+  // Theme is stored per menu — apply the chosen theme to all of the
+  // restaurant's menus so the public page reflects it.
+  const theme = strOrNull(formData.get("menu_theme"));
+  if (theme) {
+    await supabase.from("menus").update({ theme }).eq("restaurant_id", restaurant.id);
+  }
+
   revalidatePath("/dashboard/settings");
-  revalidatePath(`/${restaurant.slug}`);
+  if (restaurant.slug) revalidatePath(`/${restaurant.slug}`);
   return { message: "تم حفظ الإعدادات." };
 }
 
