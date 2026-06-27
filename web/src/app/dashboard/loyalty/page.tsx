@@ -1,12 +1,27 @@
 import Link from "next/link";
 import { getMyRestaurant, getLoyaltyCustomers } from "@/lib/owner";
+import { getMyEntitlements } from "@/lib/entitlements";
 import { RestaurantOnboarding } from "@/components/dashboard/restaurant-onboarding";
+import { UpgradeGate } from "@/components/dashboard/upgrade-gate";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 export default async function LoyaltyPage() {
   const restaurant = await getMyRestaurant();
   if (!restaurant) return <RestaurantOnboarding />;
+
+  const ent = await getMyEntitlements();
+  if (!ent.loyalty) {
+    return (
+      <div className="mx-auto max-w-3xl">
+        <h1 className="font-display text-2xl font-bold text-cream">الولاء</h1>
+        <UpgradeGate
+          title="بطاقة الولاء متاحة في باقة الاحترافية"
+          desc="فعّل برنامج الولاء لمكافأة عملائك المتكررين وزيادة معدّل عودتهم لمطعمك."
+        />
+      </div>
+    );
+  }
 
   const customers = await getLoyaltyCustomers(restaurant.id);
 

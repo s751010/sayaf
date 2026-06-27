@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createServerSupabase, getCurrentUser } from "@/lib/supabase/server";
 import { getMyRestaurant } from "@/lib/owner";
+import { getMyEntitlements } from "@/lib/entitlements";
 
 export type ActionState = { error?: string; message?: string };
 
@@ -28,6 +29,14 @@ function numOrNull(v: FormDataEntryValue | null): number | null {
 function strOrNull(v: FormDataEntryValue | null): string | null {
   const s = String(v ?? "").trim();
   return s === "" ? null : s;
+}
+
+/** نص مفصول بفواصل (عربية أو إنجليزية) → مصفوفة نظيفة. */
+function csvToArray(v: FormDataEntryValue | null): string[] {
+  return String(v ?? "")
+    .split(/[,،]/)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
 }
 
 // ── Restaurant onboarding ──────────────────────────────────────────
@@ -63,9 +72,15 @@ export async function updateRestaurant(
   const restaurant = await getMyRestaurant();
   if (!supabase || !restaurant) return { error: "أنشئ مطعمك أولاً." };
 
+  // الصلاحيات: الولاء والمنيو الإنجليزي حصريّان لباقة الاحترافية —
+  // نُجبر إيقافهما لمن لا يملك الصلاحية حتى لو وصل الحقل في النموذج.
+  const ent = await getMyEntitlements();
+
   const fields = {
     name: String(formData.get("name") ?? "").trim() || restaurant.name,
     type: strOrNull(formData.get("type")),
+    phone: strOrNull(formData.get("phone")),
+    address: strOrNull(formData.get("address")),
     logo_image: strOrNull(formData.get("logo_image")),
     banner_image: strOrNull(formData.get("banner_image")),
     working_hours: strOrNull(formData.get("working_hours")),
@@ -77,7 +92,8 @@ export async function updateRestaurant(
     social_tiktok: strOrNull(formData.get("social_tiktok")),
     social_snapchat: strOrNull(formData.get("social_snapchat")),
     social_maps: strOrNull(formData.get("social_maps")),
-    loyalty_enabled: formData.get("loyalty_enabled") === "on",
+    english_enabled: ent.english && formData.get("english_enabled") === "on",
+    loyalty_enabled: ent.loyalty && formData.get("loyalty_enabled") === "on",
     loyalty_goal: numOrNull(formData.get("loyalty_goal")),
     loyalty_reward: strOrNull(formData.get("loyalty_reward")),
   };
@@ -112,6 +128,20 @@ export async function createMenu(
   const name = String(formData.get("name") ?? "").trim();
   if (!name) return { error: "أدخل اسم القائمة." };
 
+  // فرض حدّ القوائم حسب الباقة (الأساسية: قائمة واحدة، الاحترافية: غير محدود).
+  const ent = await getMyEntitlements();
+  if (ent.maxMenus !== null) {
+    const { count } = await supabase
+      .from("menus")
+      .select("id", { count: "exact", head: true })
+      .eq("restaurant_id", restaurant.id);
+    if ((count ?? 0) >= ent.maxMenus) {
+      return {
+        error: `باقتك الحالية تسمح بـ ${ent.maxMenus} قائمة. رقِّ إلى الاحترافية لقوائم غير محدودة.`,
+      };
+    }
+  }
+
   const { error } = await supabase
     .from("menus")
     .insert({ name, restaurant_id: restaurant.id });
@@ -138,6 +168,9 @@ export async function saveDish(
   if (!name) return { error: "اسم الصنف مطلوب." };
   if (!menu_id) return { error: "اختر القائمة." };
 
+  // الصلاحيات: حقول اللغة الإنجليزية حصرية لباقة الاحترافية.
+  const ent = await getMyEntitlements();
+
   // Single source of truth for the editable fields — no silent drops.
   const fields = {
     name,
@@ -151,12 +184,28 @@ export async function saveDish(
     calories: numOrNull(formData.get("calories")),
     sodium_mg: numOrNull(formData.get("sodium_mg")),
     caffeine_mg: numOrNull(formData.get("caffeine_mg")),
+    allergens: csvToArray(formData.get("allergens")),
+    name_en: ent.english ? strOrNull(formData.get("name_en")) : null,
+    description_en: ent.english ? strOrNull(formData.get("description_en")) : null,
   };
 
   if (id) {
     const { error } = await supabase.from("dishes").update(fields).eq("id", id);
     if (error) return { error: "تعذّر تحديث الصنف." };
   } else {
+    // فرض حدّ الأصناف حسب الباقة (الأساسية: 100، الاحترافية: غير محدود).
+    if (ent.maxDishes !== null) {
+      const { count } = await supabase
+        .from("dishes")
+        .select("id", { count: "exact", head: true })
+        .eq("restaurant_id", restaurant.id);
+      if ((count ?? 0) >= ent.maxDishes) {
+        return {
+          error: `باقتك الحالية تسمح بـ ${ent.maxDishes} صنف. رقِّ إلى الاحترافية لأصناف غير محدودة.`,
+        };
+      }
+    }
+
     const { error } = await supabase.from("dishes").insert({
       ...fields,
       menu_id,

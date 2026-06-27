@@ -13,24 +13,38 @@ import {
   CreditCard,
   Settings,
   LogOut,
+  Lock,
 } from "lucide-react";
 import { Logo } from "@/components/site/logo";
 import { logout } from "@/app/(auth)/actions";
 import { cn } from "@/lib/utils";
 
-const nav = [
+type Feature = "ai" | "loyalty";
+
+const nav: {
+  href: string;
+  label: string;
+  icon: typeof LayoutDashboard;
+  feature?: Feature;
+}[] = [
   { href: "/dashboard", label: "نظرة عامة", icon: LayoutDashboard },
   { href: "/dashboard/menus", label: "القوائم", icon: BookOpen },
   { href: "/dashboard/dishes", label: "الأصناف", icon: UtensilsCrossed },
   { href: "/dashboard/qr", label: "أكواد QR", icon: QrCode },
   { href: "/dashboard/analytics", label: "الإحصائيات", icon: BarChart3 },
-  { href: "/dashboard/ai", label: "المستشار الذكي", icon: Sparkles },
-  { href: "/dashboard/loyalty", label: "الولاء", icon: Gift },
+  { href: "/dashboard/ai", label: "المستشار الذكي", icon: Sparkles, feature: "ai" },
+  { href: "/dashboard/loyalty", label: "الولاء", icon: Gift, feature: "loyalty" },
   { href: "/dashboard/billing", label: "الاشتراك", icon: CreditCard },
   { href: "/dashboard/settings", label: "الإعدادات", icon: Settings },
 ];
 
-export function DashboardSidebar({ email }: { email?: string }) {
+export function DashboardSidebar({
+  email,
+  entitlements,
+}: {
+  email?: string;
+  entitlements: { ai: boolean; loyalty: boolean };
+}) {
   const pathname = usePathname();
 
   return (
@@ -45,6 +59,7 @@ export function DashboardSidebar({ email }: { email?: string }) {
             item.href === "/dashboard"
               ? pathname === item.href
               : pathname.startsWith(item.href);
+          const locked = item.feature ? !entitlements[item.feature] : false;
           return (
             <Link
               key={item.href}
@@ -57,7 +72,8 @@ export function DashboardSidebar({ email }: { email?: string }) {
               )}
             >
               <item.icon size={18} />
-              {item.label}
+              <span className="flex-1">{item.label}</span>
+              {locked && <Lock size={14} className="text-muted" />}
             </Link>
           );
         })}

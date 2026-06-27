@@ -7,7 +7,16 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import type { Dish, Menu } from "@/lib/types";
 
-export function DishForm({ menus, dish }: { menus: Menu[]; dish?: Dish }) {
+export function DishForm({
+  menus,
+  dish,
+  canEnglish = false,
+}: {
+  menus: Menu[];
+  dish?: Dish;
+  /** صلاحية حقول اللغة الإنجليزية (باقة الاحترافية). */
+  canEnglish?: boolean;
+}) {
   const [state, action, pending] = useActionState<ActionState, FormData>(
     saveDish,
     {}
@@ -81,6 +90,43 @@ export function DishForm({ menus, dish }: { menus: Menu[]; dish?: Dish }) {
         <Field label="رابط الصورة" htmlFor="image" hint="رابط صورة الصنف (اختياري)">
           <Input id="image" name="image" dir="ltr" defaultValue={dish?.image ?? ""} />
         </Field>
+
+        <Field
+          label="مسببات الحساسية"
+          htmlFor="allergens"
+          hint="افصل بينها بفاصلة، مثال: مكسرات، حليب، غلوتين"
+        >
+          <Input
+            id="allergens"
+            name="allergens"
+            defaultValue={(dish?.allergens ?? []).join("، ")}
+            placeholder="مكسرات، حليب، غلوتين"
+          />
+        </Field>
+
+        {canEnglish && (
+          <div className="grid gap-4 rounded-xl border border-line-dim p-4 sm:grid-cols-2">
+            <p className="text-xs text-gold sm:col-span-2">
+              المنيو ثنائي اللغة — الاسم والوصف بالإنجليزية (اختياري)
+            </p>
+            <Field label="الاسم (إنجليزي)" htmlFor="name_en">
+              <Input
+                id="name_en"
+                name="name_en"
+                dir="ltr"
+                defaultValue={dish?.name_en ?? ""}
+              />
+            </Field>
+            <Field label="الوصف (إنجليزي)" htmlFor="description_en">
+              <Input
+                id="description_en"
+                name="description_en"
+                dir="ltr"
+                defaultValue={dish?.description_en ?? ""}
+              />
+            </Field>
+          </div>
+        )}
 
         <div className="grid gap-4 sm:grid-cols-3">
           <Field label="السعرات" htmlFor="calories">

@@ -13,9 +13,15 @@ import type { Restaurant } from "@/lib/types";
 export function SettingsForm({
   restaurant,
   currentTheme,
+  canEnglish = false,
+  canLoyalty = false,
 }: {
   restaurant: Restaurant;
   currentTheme: string;
+  /** صلاحية المنيو ثنائي اللغة (باقة الاحترافية). */
+  canEnglish?: boolean;
+  /** صلاحية بطاقة الولاء (باقة الاحترافية). */
+  canLoyalty?: boolean;
 }) {
   const [state, action, pending] = useActionState<ActionState, FormData>(
     updateRestaurant,
@@ -36,6 +42,12 @@ export function SettingsForm({
           </Field>
           <Field label="النوع" htmlFor="type">
             <Input id="type" name="type" defaultValue={r.type ?? ""} />
+          </Field>
+          <Field label="رقم الهاتف" htmlFor="phone">
+            <Input id="phone" name="phone" dir="ltr" defaultValue={r.phone ?? ""} placeholder="9665xxxxxxxx" />
+          </Field>
+          <Field label="العنوان" htmlFor="address">
+            <Input id="address" name="address" defaultValue={r.address ?? ""} placeholder="الحي، المدينة" />
           </Field>
           <Field label="رابط الشعار" htmlFor="logo_image">
             <Input id="logo_image" name="logo_image" dir="ltr" defaultValue={r.logo_image ?? ""} />
@@ -116,14 +128,48 @@ export function SettingsForm({
         </div>
       </Card>
 
+      <Card className="flex flex-col gap-3">
+        <div className="flex items-center justify-between">
+          <h2 className="font-bold text-cream">المنيو ثنائي اللغة</h2>
+          {!canEnglish && (
+            <span className="rounded-full bg-gold/12 px-2.5 py-0.5 text-xs text-gold">
+              الاحترافية
+            </span>
+          )}
+        </div>
+        <label className="flex items-center gap-2 text-sm text-cream">
+          <input
+            type="checkbox"
+            name="english_enabled"
+            defaultChecked={r.english_enabled ?? false}
+            disabled={!canEnglish}
+            className="h-4 w-4 accent-gold disabled:opacity-40"
+          />
+          عرض المنيو بالعربية والإنجليزية
+        </label>
+        <p className="text-xs text-muted">
+          {canEnglish
+            ? "أضف الاسم والوصف بالإنجليزية لكل صنف من صفحة تعديل الصنف."
+            : "متاحة في باقة الاحترافية — تتيح للزبون التبديل بين العربية والإنجليزية."}
+        </p>
+      </Card>
+
       <Card className="flex flex-col gap-4">
-        <h2 className="font-bold text-cream">برنامج الولاء</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="font-bold text-cream">برنامج الولاء</h2>
+          {!canLoyalty && (
+            <span className="rounded-full bg-gold/12 px-2.5 py-0.5 text-xs text-gold">
+              الاحترافية
+            </span>
+          )}
+        </div>
         <label className="flex items-center gap-2 text-sm text-cream">
           <input
             type="checkbox"
             name="loyalty_enabled"
             defaultChecked={r.loyalty_enabled ?? false}
-            className="h-4 w-4 accent-gold"
+            disabled={!canLoyalty}
+            className="h-4 w-4 accent-gold disabled:opacity-40"
           />
           تفعيل بطاقة الولاء
         </label>

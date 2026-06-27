@@ -5,15 +5,13 @@ import {
   Smartphone,
   Palette,
   ShieldCheck,
-  Check,
 } from "lucide-react";
 import { Navbar } from "@/components/site/navbar";
 import { Footer } from "@/components/site/footer";
+import { PricingSection } from "@/components/site/pricing-section";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { formatPrice } from "@/lib/utils";
-import { PLANS, PRICE_UNIT_LABEL } from "@/lib/plans";
 
 const features = [
   { icon: QrCode, title: "QR كود فوري", desc: "أنشئ منيو رقمي وشاركه بكود QR لكل طاولة في دقائق." },
@@ -83,47 +81,7 @@ export default function HomePage() {
           id="pricing"
           className="px-[var(--page-px,clamp(16px,5vw,60px))] py-16"
         >
-          <div className="mx-auto max-w-5xl">
-            <h2 className="text-center font-display text-3xl font-bold md:text-4xl">
-              باقات تناسب كل مطعم
-            </h2>
-            <p className="mt-3 text-center text-warm">أسعار شهرية بالريال السعودي</p>
-            <div className="mt-12 grid gap-5 md:grid-cols-3">
-              {PLANS.map((p) => (
-                <Card
-                  key={p.id}
-                  className={
-                    p.featured
-                      ? "border-gold/40 bg-gold/[0.04] md:-translate-y-3"
-                      : ""
-                  }
-                >
-                  {p.featured && <Badge>الأكثر اختياراً</Badge>}
-                  <h3 className="mt-3 text-xl font-bold text-cream">{p.name}</h3>
-                  <div className="mt-3 flex items-baseline gap-2">
-                    <span className="font-display text-4xl font-black text-gold">
-                      {formatPrice(p.price)}
-                    </span>
-                    <span className="text-sm text-warm">{PRICE_UNIT_LABEL}</span>
-                  </div>
-                  <ul className="mt-6 flex flex-col gap-3">
-                    {p.features.map((feat) => (
-                      <li key={feat} className="flex items-center gap-2 text-sm text-cream">
-                        <Check size={16} className="shrink-0 text-success" />
-                        {feat}
-                      </li>
-                    ))}
-                  </ul>
-                  <Button
-                    variant={p.featured ? "gold" : "outline"}
-                    className="mt-7 w-full"
-                  >
-                    اختر الباقة
-                  </Button>
-                </Card>
-              ))}
-            </div>
-          </div>
+          <PricingSection />
         </section>
 
         {/* CTA */}
