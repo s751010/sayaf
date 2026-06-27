@@ -3,11 +3,9 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getPublicMenu, getRestaurantBySlug } from "@/lib/data";
 import { getTheme } from "@/lib/themes";
-import { DishCard } from "@/components/menu/dish-card";
+import { MenuBody } from "@/components/menu/menu-body";
 import { SocialLinks } from "@/components/menu/social-links";
-import { CategoryNav } from "@/components/menu/category-nav";
 import { ViewBeacon } from "@/components/menu/view-beacon";
-import { categoryId as slugId } from "@/lib/utils";
 
 export const revalidate = 60;
 
@@ -32,7 +30,7 @@ export default async function MenuPage({ params }: Params) {
   const data = await getPublicMenu(slug);
   if (!data) notFound();
 
-  const { restaurant, menu, categories, dishes, featured } = data;
+  const { restaurant, menu, categories, featured } = data;
   const theme = getTheme(menu?.theme);
   const rootStyle = { ...theme.vars, background: "var(--m-bg)", color: "var(--m-text)" } as CSSProperties;
   const display = { fontFamily: "var(--m-font)" } as CSSProperties;
@@ -85,6 +83,21 @@ export default async function MenuPage({ params }: Params) {
               🕒 {restaurant.working_hours}
             </p>
           )}
+          {restaurant.address && (
+            <p className="mt-1 text-xs" style={{ color: "var(--m-muted)" }}>
+              📍 {restaurant.address}
+            </p>
+          )}
+          {restaurant.phone && (
+            <a
+              href={`tel:${restaurant.phone.replace(/[^\d+]/g, "")}`}
+              className="mt-1 text-xs transition-opacity hover:opacity-80"
+              style={{ color: "var(--m-muted)" }}
+              dir="ltr"
+            >
+              📞 {restaurant.phone}
+            </a>
+          )}
 
           <div className="mt-5 w-full">
             <SocialLinks restaurant={restaurant} />
@@ -93,47 +106,11 @@ export default async function MenuPage({ params }: Params) {
       </header>
 
       <div className="mx-auto max-w-5xl px-4 pb-24 pt-8">
-        {dishes.length === 0 ? (
-          <p className="py-20 text-center" style={{ color: "var(--m-muted)" }}>
-            لا توجد أصناف متاحة حالياً.
-          </p>
-        ) : (
-          <>
-            {/* Featured highlights */}
-            {featured.length > 0 && (
-              <section className="mb-8">
-                <h2 className="mb-4 text-xl font-bold" style={display}>
-                  <span style={{ color: "var(--m-accent)" }}>★</span> الأكثر تميّزاً
-                </h2>
-                <div className="flex gap-4 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                  {featured.map((dish) => (
-                    <div key={dish.id} className="w-56 shrink-0">
-                      <DishCard dish={dish} />
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            <CategoryNav categories={categories.map((c) => c.name)} />
-
-            {categories.map((cat) => (
-              <section key={cat.name} id={slugId(cat.name)} className="scroll-mt-20 pt-6">
-                <h2
-                  className="mb-4 inline-block border-b-2 pb-1 text-xl font-bold"
-                  style={{ ...display, color: "var(--m-text)", borderColor: "var(--m-accent)" }}
-                >
-                  {cat.name}
-                </h2>
-                <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
-                  {cat.dishes.map((dish) => (
-                    <DishCard key={dish.id} dish={dish} />
-                  ))}
-                </div>
-              </section>
-            ))}
-          </>
-        )}
+        <MenuBody
+          featured={featured}
+          categories={categories}
+          englishEnabled={!!restaurant.english_enabled}
+        />
 
         {restaurant.allergens_text && (
           <p className="mt-12 text-center text-xs" style={{ color: "var(--m-muted)" }}>
