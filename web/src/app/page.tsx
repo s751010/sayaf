@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/lib/utils";
+import { PLANS, PRICE_UNIT_LABEL } from "@/lib/plans";
 
 const features = [
   { icon: QrCode, title: "QR كود فوري", desc: "أنشئ منيو رقمي وشاركه بكود QR لكل طاولة في دقائق." },
@@ -21,12 +22,6 @@ const features = [
   { icon: Smartphone, title: "تجربة جوال أولاً", desc: "تصميم RTL سريع ومحسّن للهواتف، يفتح حتى مع إنترنت ضعيف." },
   { icon: Palette, title: "هوية مطعمك", desc: "شعار، ألوان، وروابط تواصل تعكس علامتك التجارية." },
   { icon: ShieldCheck, title: "مدفوعات آمنة", desc: "تكامل مع مدى وآبل باي عبر بوابة Moyasar السعودية." },
-];
-
-const plans = [
-  { name: "الأساسية", price: 399, features: ["منيو رقمي + QR", "حتى 50 صنف", "إحصائيات أساسية"] },
-  { name: "المتقدمة", price: 649, featured: true, features: ["كل مزايا الأساسية", "أصناف غير محدودة", "ذكاء اصطناعي", "روابط تواصل وتقييم قوقل"] },
-  { name: "الاحترافية", price: 949, features: ["كل مزايا المتقدمة", "بطاقة ولاء", "مدفوعات وطلبات", "دعم أولوية"] },
 ];
 
 export default function HomePage() {
@@ -94,9 +89,9 @@ export default function HomePage() {
             </h2>
             <p className="mt-3 text-center text-warm">أسعار شهرية بالريال السعودي</p>
             <div className="mt-12 grid gap-5 md:grid-cols-3">
-              {plans.map((p) => (
+              {PLANS.map((p) => (
                 <Card
-                  key={p.name}
+                  key={p.id}
                   className={
                     p.featured
                       ? "border-gold/40 bg-gold/[0.04] md:-translate-y-3"
@@ -109,7 +104,7 @@ export default function HomePage() {
                     <span className="font-display text-4xl font-black text-gold">
                       {formatPrice(p.price)}
                     </span>
-                    <span className="text-sm text-warm">ريال / شهرياً</span>
+                    <span className="text-sm text-warm">{PRICE_UNIT_LABEL}</span>
                   </div>
                   <ul className="mt-6 flex flex-col gap-3">
                     {p.features.map((feat) => (

@@ -7,14 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/utils";
-
-type Plan = { id: string; name: string; price: number; featured?: boolean; features: string[] };
-
-const PLANS: Plan[] = [
-  { id: "basic", name: "الأساسية", price: 399, features: ["منيو + QR", "حتى 50 صنف", "إحصائيات أساسية"] },
-  { id: "standard", name: "المتقدمة", price: 649, featured: true, features: ["أصناف غير محدودة", "ذكاء اصطناعي", "روابط تواصل"] },
-  { id: "premium", name: "الاحترافية", price: 949, features: ["بطاقة ولاء", "مدفوعات وطلبات", "دعم أولوية"] },
-];
+import { PLANS, PRICE_UNIT_LABEL, CURRENCY, type Plan } from "@/lib/plans";
 
 export function BillingClient({
   userId,
@@ -38,7 +31,7 @@ export function BillingClient({
           <div className="mb-4 flex items-baseline justify-between">
             <h2 className="font-bold text-cream">باقة {plan.name}</h2>
             <span className="font-display text-2xl font-black text-gold">
-              {formatPrice(plan.price)} ر.س
+              {formatPrice(plan.price)} {CURRENCY}
             </span>
           </div>
           <MoyasarForm
@@ -69,7 +62,7 @@ export function BillingClient({
             <span className="font-display text-3xl font-black text-gold">
               {formatPrice(p.price)}
             </span>
-            <span className="text-sm text-warm">ر.س / شهرياً</span>
+            <span className="text-sm text-warm">{PRICE_UNIT_LABEL}</span>
           </div>
           <ul className="mt-5 flex flex-col gap-2">
             {p.features.map((f) => (
