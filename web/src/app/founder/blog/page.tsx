@@ -3,6 +3,7 @@ import { PenSquare, Plus } from "lucide-react";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { isFounder } from "@/lib/founder";
 import { deletePost, togglePublish } from "@/app/founder/blog/actions";
+import { FounderNav } from "@/components/founder/founder-nav";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -31,12 +32,11 @@ export default async function FounderBlogPage() {
   return (
     <main className="flex-1 px-[var(--page-px,clamp(16px,5vw,60px))] py-10">
       <div className="mx-auto max-w-4xl">
+        <FounderNav />
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="font-display text-2xl font-bold text-cream">إدارة المدونة</h1>
-            <p className="mt-1 text-warm">
-              {posts.length} مقال — <Link href="/founder" className="text-gold hover:underline">عودة للوحة المؤسس</Link>
-            </p>
+            <p className="mt-1 text-warm">{posts.length} مقال</p>
           </div>
           <Link
             href="/founder/blog/new"
