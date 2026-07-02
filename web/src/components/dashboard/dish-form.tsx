@@ -5,6 +5,7 @@ import { saveDish, type ActionState } from "@/app/dashboard/actions";
 import { Field, Input, Textarea, fieldClass } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { OptionsEditor } from "@/components/dashboard/options-editor";
 import type { Dish, Menu } from "@/lib/types";
 
 export function DishForm({
@@ -139,6 +140,8 @@ export function DishForm({
             <Input id="caffeine_mg" name="caffeine_mg" type="number" min="0" defaultValue={dish?.caffeine_mg ?? ""} />
           </Field>
         </div>
+
+        <OptionsEditor initial={dish?.options ?? null} />
 
         <div className="flex flex-wrap gap-6 pt-1">
           <label className="flex items-center gap-2 text-sm text-cream">

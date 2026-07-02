@@ -7,9 +7,12 @@ import type { Dish } from "@/lib/types";
 export function DishCard({
   dish,
   lang = "ar",
+  onAdd,
 }: {
   dish: Dish;
   lang?: "ar" | "en";
+  /** عند تمريرها يظهر زر «أضف للطلب» (سلة الطلبات مفعّلة). */
+  onAdd?: (dish: Dish) => void;
 }) {
   const hasImg = Boolean(dish.image);
   const en = lang === "en";
@@ -110,6 +113,17 @@ export function DishCard({
               </span>
             ))}
           </div>
+        )}
+
+        {onAdd && (
+          <button
+            type="button"
+            onClick={() => onAdd(dish)}
+            className="mt-2 w-full rounded-xl py-2 text-sm font-bold transition-opacity hover:opacity-90"
+            style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}
+          >
+            {en ? "+ Add to order" : "+ أضف للطلب"}
+          </button>
         )}
       </div>
     </article>

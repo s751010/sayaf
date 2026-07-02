@@ -1,4 +1,5 @@
-import { ShieldAlert, Wallet, Users, LifeBuoy } from "lucide-react";
+import Link from "next/link";
+import { ShieldAlert, Wallet, Users, LifeBuoy, PenSquare } from "lucide-react";
 import { createServerSupabase, getCurrentUser } from "@/lib/supabase/server";
 import { Card } from "@/components/ui/card";
 import { Logo } from "@/components/site/logo";
@@ -75,6 +76,15 @@ export default async function FounderPage() {
               </div>
             </Card>
           ))}
+        </div>
+
+        <div className="mt-6">
+          <Link
+            href="/founder/blog"
+            className="inline-flex items-center gap-2 rounded-xl border border-line px-4 py-2.5 text-sm font-bold text-cream transition-colors hover:border-gold hover:text-gold"
+          >
+            <PenSquare size={16} /> إدارة المدونة
+          </Link>
         </div>
       </div>
     </main>

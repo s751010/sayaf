@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Cairo, Tajawal, Reem_Kufi, Amiri } from "next/font/google";
+import { RegisterSW } from "@/components/site/register-sw";
 import "./globals.css";
 
 const cairo = Cairo({
@@ -72,7 +73,10 @@ export default function RootLayout({
       dir="rtl"
       className={`${cairo.variable} ${tajawal.variable} ${reemKufi.variable} ${amiri.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col font-sans">{children}</body>
+      <body className="min-h-full flex flex-col font-sans">
+        {children}
+        <RegisterSW />
+      </body>
     </html>
   );
 }

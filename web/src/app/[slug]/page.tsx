@@ -110,6 +110,9 @@ export default async function MenuPage({ params }: Params) {
           featured={featured}
           categories={categories}
           englishEnabled={!!restaurant.english_enabled}
+          orderingEnabled
+          whatsapp={restaurant.social_whatsapp}
+          phone={restaurant.phone}
         />
 
         {restaurant.allergens_text && (

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { createServerSupabase, getCurrentUser } from "@/lib/supabase/server";
 import { getMyRestaurant } from "@/lib/owner";
 import { getMyEntitlements } from "@/lib/entitlements";
+import { parseDishOptions, serializeDishOptions } from "@/lib/options";
 
 export type ActionState = { error?: string; message?: string };
 
@@ -187,6 +188,10 @@ export async function saveDish(
     allergens: csvToArray(formData.get("allergens")),
     name_en: ent.english ? strOrNull(formData.get("name_en")) : null,
     description_en: ent.english ? strOrNull(formData.get("description_en")) : null,
+    // خيارات الطبق: نعيد تحليلها وتنظيفها على الخادم — لا نثق بنص العميل كما هو.
+    options: serializeDishOptions(
+      parseDishOptions(strOrNull(formData.get("options")))
+    ),
   };
 
   if (id) {

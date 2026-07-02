@@ -12,6 +12,7 @@ import {
   Gift,
   CreditCard,
   Settings,
+  LifeBuoy,
   LogOut,
   Lock,
 } from "lucide-react";
@@ -35,6 +36,7 @@ const nav: {
   { href: "/dashboard/ai", label: "المستشار الذكي", icon: Sparkles, feature: "ai" },
   { href: "/dashboard/loyalty", label: "الولاء", icon: Gift, feature: "loyalty" },
   { href: "/dashboard/billing", label: "الاشتراك", icon: CreditCard },
+  { href: "/dashboard/support", label: "الدعم الفني", icon: LifeBuoy },
   { href: "/dashboard/settings", label: "الإعدادات", icon: Settings },
 ];
 

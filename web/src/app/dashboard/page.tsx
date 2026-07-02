@@ -2,6 +2,7 @@ import Link from "next/link";
 import { BookOpen, UtensilsCrossed, Eye, ExternalLink } from "lucide-react";
 import { getMyRestaurant, getMyMenus, getMyDishes } from "@/lib/owner";
 import { RestaurantOnboarding } from "@/components/dashboard/restaurant-onboarding";
+import { Announcements } from "@/components/dashboard/announcements";
 import { Card } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 
@@ -23,6 +24,8 @@ export default async function DashboardHome() {
 
   return (
     <div className="mx-auto max-w-5xl">
+      <Announcements />
+
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-display text-2xl font-bold text-cream">
