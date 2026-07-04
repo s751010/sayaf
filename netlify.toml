@@ -1,12 +1,14 @@
-# إعداد نشر CloudMenu على Netlify.
+# إعداد نشر CloudMenu على Netlify — تطبيق Next.js (SSR) في مجلد web/.
 #
-# المصدر الوحيد للموقع الحيّ هو تطبيق Next.js في مجلد web/، لذلك نضبط
-# base = "web" هنا بجذر المستودع. هذا يجعل موقع Netlify المربوط بـ Git يبني
-# التطبيق بشكل صحيح حتى لو لم يُضبط "Base directory" في واجهة Netlify —
-# وهو أشهر سبب لخطأ "Page not found on every route".
+# مهم جداً: هذا التطبيق SSR (توجيه ديناميكي + server actions + جلسات)، فلا
+# يعمل بالسحب والإفلات (drag & drop). يجب أن يُبنى عبر Netlify المربوط بـ Git
+# حتى يُركَّب runtime الخاص بـ Next الذي يتولّى التوجيه؛ وإلا تظهر 404 على كل مسار.
 #
-# Netlify يكتشف Next.js تلقائياً ويربط runtime الخاص به (يضبط publish dir
-# وتوجيه SSR)، لذلك لا نضبط publish أو نثبّت plugin يدوياً.
+# base = "web": المشروع في web/، فيبني Netlify هناك دون الحاجة لضبط
+# "Base directory" في الواجهة.
+#
+# نثبّت @netlify/plugin-nextjs صراحةً لضمان تركيب الـruntime حتى لو فشل
+# الاكتشاف التلقائي (هذا هو إصلاح "Page not found on every route").
 #
 # ملاحظة: الموقع المصغّر القديم أُرشِف في legacy/public/ ولم يعد يُنشر.
 [build]
@@ -15,3 +17,6 @@
 
 [build.environment]
   NODE_VERSION = "22"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
