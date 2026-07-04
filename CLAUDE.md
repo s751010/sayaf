@@ -7,147 +7,102 @@
 
 ## 1. البنية الأساسية (Architecture)
 
-- **المشروع كله ملف HTML واحد مصغّر**: `public/index.html` (~1.49MB، سطر واحد عملياً). كان اسمه `cloudmenu_v43_security_storage.html` ونُقل إلى `public/index.html` ليُقدَّم على `/` في Netlify.
-- **لا يوجد كود مصدري غير مصغّر.** الملف المصغّر **هو المصدر الأصلي (canonical source)** — تم تأكيد هذا مع المالك. لا تبحث عن `src/` أو مشروع Vite منفصل؛ غير موجود.
-- بُني أصلاً بـ **Vite + React 18** (علامة `/*$vite$:1*/` في الـ`<style>`، وبنية React المصغّرة، و helper الـ async المُولِّد). لكن مخرجات Vite لم تعد متوفرة كمصدر — نتعامل مع الناتج النهائي مباشرة.
-- **كل تعديل يتم عبر استبدال نصوص (string replacement) يستهدف توقيعات مصغّرة**، مثل:
-  - `nR=`, `aR=`, `iR=`, `yL=`, `bR=` — أسماء دوال/متغيرات مصغّرة (حرف واحد أو حرفين).
-  - `XL` = رابط Supabase الأساسي، `ZL`/`BL`/`NL`/`ke`/`le` = مفتاح anon (JWT).
-  - عند الاستبدال: اجعل النص المستهدَف **فريداً قدر الإمكان** (خذ سياقاً قبله وبعده) لأن الأسماء المصغّرة تتكرر.
-- اللغة: عربية RTL (`<html lang="ar" dir="rtl">`)، خطوط Google (Cairo, Tajawal, …).
-- استضافة: **Netlify** → `https://cloudsmenu.netlify.app/`.
+- **المصدر الحيّ الوحيد هو تطبيق Next.js في `web/`.** مبني بـ **Next.js 16 + React 19 +
+  Tailwind 4 + Supabase SSR**، منظّم بمكوّنات وصفحات وserver actions قابلة للقراءة والتطوير.
+- **النشر:** Netlify مربوط بـ Git، يبني من `web/` تلقائياً (`netlify.toml` بالجذر: `base="web"`).
+  الدومين: `https://cloudsmenu.netlify.app/`.
+- **الأرشيف:** النسخة القديمة كانت ملف HTML واحد مصغّر (~1.49MB) يُنشر يدوياً. أُرشِف في
+  `legacy/public/index.html` ولم يعد يُطوَّر أو يُنشر. لا تعدّله؛ استخدمه للمرجع فقط.
+- اللغة: عربية RTL، خطوط Google (Cairo, Tajawal, …).
 
 ### قاعدة ذهبية للعمل اليومي
-> أي تعديل = إيجاد التوقيع المصغّر الصحيح → استبدال دقيق وفريد → فحص الصياغة (انظر القسم 4) → عدم كسر أي توقيع آخر.
+> كل تطوير يتم في `web/` بكود مصدري نظيف. أي حقل/جدول جديد يجب أن يتوافق مع مخطط
+> Supabase الحقيقي (تحقّق عبر Supabase MCP)، وأي عملية مؤسس محميّة بحارسين: `isFounder()`
+> في التطبيق **و** قفل RLS في قاعدة البيانات.
 
 ---
 
-## 2. الـBackend
+## 2. الـBackend (Supabase)
 
-### Supabase (PostgREST مباشرة عبر fetch — لا يوجد SDK / لا `.from()`)
-- Project ref: `wjqpsbpebpntpeinqccl`
-- URL: `https://wjqpsbpebpntpeinqccl.supabase.co` (في الكود = `XL`)
-- مفتاح anon (JWT, role=anon) مضمّن في الملف (`ZL`/`le`/…). يُرسل في `apikey` و `Authorization: Bearer`.
-- النداءات عبر `fetch(`${XL}/rest/v1/<table>...`)` مع `Prefer: return=representation` للكتابة.
+- Project ref: `wjqpsbpebpntpeinqccl` — URL: `https://wjqpsbpebpntpeinqccl.supabase.co`
+- **Supabase Auth حقيقي** (جلسات عبر cookies، `@supabase/ssr`) — لا localStorage session.
+- الوصول عبر **Supabase JS SDK** (`.from(...).select/insert/update/delete`) لا fetch يدوي.
+  - عميل عام للقراءة: `createPublicServerClient()` — `web/src/lib/supabase/server.ts`
+  - عميل مصادَق مربوط بالكوكيز: `createServerSupabase()` — نفس الملف
+- تحديث الجلسة عبر proxy: `web/src/proxy.ts` + `web/src/lib/supabase/proxy.ts`
 
-**الجداول المعروفة:**
-`restaurants`, `menus`, `dishes`, `analytics`, `announcements`, `blog_posts`,
-`loyalty_customers`, `site_settings`, `support_tickets`, `survey_responses`.
+**الجداول الحقيقية (12، مؤكّدة من قاعدة البيانات):**
+`restaurants`, `menus`, `dishes`, `analytics`, `subscriptions`, `announcements`,
+`promo_codes`, `support_tickets`, `revenue_log`, `site_settings`, `blog_posts`,
+`loyalty_customers`. (ملاحظة: لا يوجد جدول `survey_responses`.)
 
-أمثلة على الاستعلامات الفعلية في الكود:
-- `rest/v1/dishes?menu_id=eq.<id>&available=eq.true&select=*`
-- `rest/v1/restaurants?slug=eq.<slug>`
-- `rest/v1/site_settings?key=eq.features&select=value` (مفاتيح: `features`, `footer`)
-- الكتابة: `method:POST` (إضافة) و `method:PATCH` (تحديث) مع `body:JSON.stringify(payload)`.
+### الأمان (RLS)
+- كل الجداول عليها RLS مفعّل. جداول المؤسس (`announcements`, `promo_codes`, `revenue_log`,
+  `support_tickets`, `blog_posts`) مقفولة للكتابة/القراءة الحسّاسة عبر دالة
+  `public.is_founder()` التي تقارن `auth.jwt()->>'email'` ببريد المؤسس.
+- بيانات المطعم (`restaurants/menus/dishes/analytics/subscriptions/loyalty_customers`)
+  مقيّدة بـ `auth.uid() = user_id` (كل تاجر يرى بياناته فقط)، مع قراءة عامة لصفحة المنيو.
+- عند أي تعديل DDL: شغّل `get_advisors(security)` عبر Supabase MCP وتأكّد من عدم ظهور
+  تحذيرات `rls_policy_always_true`.
 
-### Edge Functions (Supabase Functions)
-- `functions/v1/ai-proxy` — بروكسي نداءات الذكاء الاصطناعي (يخفي مفاتيح المزوّد). كل استدعاءات الـAI تمر عبره.
-- `functions/v1/founder-admin` — عمليات لوحة المؤسس (admin)، محميّة بـ `cm_fsecret`.
+### حارس المؤسس
+- بريد المؤسس: `seeaf2013@gmail.com` (متغيّر `FOUNDER_EMAIL`).
+- في التطبيق: `isFounder()` — `web/src/lib/founder.ts`، يُستخدم في كل صفحات وactions `/founder`.
+- في قاعدة البيانات: دالة `is_founder()` في سياسات RLS. الحارسان معاً = دفاع بعمق.
 
-### المدفوعات
-- **Moyasar**. مفتاح النشر للاختبار: `pk_test_...` (placeholder للإنتاج: `pk_live_xxxxxxxxxxxxxxxx` — يجب استبداله بمفتاح حقيقي عند الإطلاق).
-- التسعير: شهري `{basic:399, standard:649, premium:949}` / سنوي `YR` — والمبلغ يُحوَّل لهللات (`*100`).
-
-### التخزين المحلي (سبب تسمية الإصدار `security_storage`)
-- `localStorage`: `cm_session` (الجلسة)، `cm_admin_notes` (`T.ADMIN_NOTES`)، `cm_fsecret` (سر المؤسس)، `cm_loyalty_*`، وأكواد الخصم (`T.PROMO_CODES`).
-- `sessionStorage`: `cm_table` (رقم الطاولة من `?table=` في الرابط).
-- يوجد خريطة مفاتيح `T` ودالة قراءة موحّدة `E(T.KEY)`. استخدمها بدل الوصول المباشر.
+### المدفوعات (Moyasar)
+- مفتاح النشر يُقرأ من `NEXT_PUBLIC_MOYASAR_PK` — `web/src/components/billing/moyasar-form.tsx`.
+- لا يزال `pk_test` (بطلب المالك). عند الإطلاق ضع `pk_live_...` في متغيّر البيئة.
+- التسعير مصدره الوحيد `web/src/lib/plans.ts` (`PLANS`) — معرّفات الباقات `standard`/`premium`
+  يجب أن تطابق `PRICES` في دالة webhook حتى يُفعَّل الاشتراك ويُسجَّل الإيراد.
 
 ---
 
 ## 3. القواعد الإلزامية (Mandatory Rules)
 
-### (أ) أي حقل جديد لازم يُضاف في **ثلاثة** أماكن وإلا يُحذف صامتاً ⚠️
-لأن الكتابة تتم بكائن payload صريح (whitelist)، أي مفتاح غير مذكور **يُسقَط بصمت** ولا يُحفظ في Supabase.
-الأماكن الثلاثة (مثال مؤكّد من جدول `dishes`):
+### (أ) أي حقل جديد لأي جدول = مصدر واحد صريح للحقول
+الكتابة تتم بكائن `fields` صريح في server action (مثال: `saveDish` في
+`web/src/app/dashboard/actions.ts`). أضِف الحقل في: (1) كائن `fields`، (2) نموذج الإدخال،
+(3) العرض للزبون إن كان يظهر له، (4) تأكّد من وجود العمود في Supabase. حقل غير مذكور في
+`fields` يُسقَط بصمت.
 
-1. **تهيئة الفورم (form init state)** — الحالة الابتدائية:
-   ```
-   {name:``, description:``, price:``, category:``, emoji:`🍔`,
-    featured:!1, image:``, calories:``, sodium_mg:``, caffeine_mg:``}
-   ```
-2. **whitelist الإضافة (POST)** — الكائن المُرسل عند الإنشاء:
-   ```
-   {name, description:…||null, price:parseFloat(...), category:…||null,
-    emoji:…||`🍽`, image:…||null, featured:…||!1, available:!0,
-    menu_id, restaurant_id, user_id, views:0,
-    calories:…?parseInt:null, sodium_mg:…?parseInt:null,
-    caffeine_mg:…?parseInt:null, options:…||null}
-   ```
-3. **whitelist التحديث (PATCH)** — الكائن المُرسل عند التعديل (لاحظ:
-   ```
-   Object.keys(o).forEach(e=>o[e]===void 0&&delete o[e]);
-   ```
-   يحذف أي مفتاح `undefined` — فلا يكفي وضع الحقل في الفورم فقط).
+### (ب) عمليات المؤسس محميّة بحارسين
+أي server action للمؤسس يبدأ بـ `founderClient()` (يتحقق من `isFounder()`)، وأي جدول
+مؤسس مقفول في RLS بـ `is_founder()`. لا تكتفِ بحارس التطبيق — RLS مفتوح = ثغرة.
 
-> **القاعدة:** عند إضافة حقل جديد لأي جدول، أضِفه في (1) تهيئة الفورم + (2) كائن الإضافة + (3) كائن التحديث. إن نسيت أحدها → الحقل لن يُحفظ/يُحدَّث ولن تظهر أي رسالة خطأ. تأكد أيضاً من وجود العمود في جدول Supabase.
-
-### (ب) فحص صياغة بعد كل تعديل (`node --check`)
-الملف HTML، و `node --check` يفحص JS فقط. الطريقة العملية (لا يوجد سكربت بناء رسمي):
-1. استخرج محتوى وسم(وسوم) `<script>` الرئيسي إلى ملف `.js` مؤقت.
-2. شغّل `node --check tmp.js` للتأكد من سلامة الصياغة (أقواس/علامات اقتباس متوازنة) — أكثر خطأ شائع بعد الاستبدال هو قوس أو backtick غير متوازن.
-3. لا تترك ملفات مؤقتة في المستودع.
-
-> الهدف: لا تدفع أبداً تعديلاً يكسر تحليل (parse) السكربت. الفحص إلزامي بعد **كل** استبدال نصّي.
-
-### (ج) `await` داخل `z(function*(){})` يكسر التطبيق — استخدم `yield` ⚠️
-- الكود يستخدم helper الـ async المُولّد من regenerator: `z(function*(){ ... })` (موجود 37 مرة).
-- داخل `function*` لا يوجد `await` — الانتظار يتم بـ **`yield`**.
-- كتابة `await` داخل `z(function*(){...})` خطأ صياغة يكسر التطبيق بالكامل.
-- ✅ صحيح: `let r = yield fetch(...)`
-- ❌ خطأ: `let r = await fetch(...)`
+### (ج) التحقق قبل الدفع
+شغّل من داخل `web/`: `npm run build && npx tsc --noEmit && npm run lint` — يجب أن تمرّ كلها.
 
 ### (د) خريطة الوكلاء (AI Advisory Personas)
-هذه شخصيات "المجلس الاستشاري بالذكاء الاصطناعي" داخل التطبيق (ميزة فعلية في الكود، تمر عبر `ai-proxy`).
-الخريطة **مطابقة لما في الكود** (لا يوجد وكيل اسمه "راشد"؛ والأدوار كالتالي):
-
-| id      | الاسم   | الدور                | إيموجي | اللون     |
-|---------|---------|----------------------|--------|-----------|
-| `all`   | الفريق كاملاً | جميع الأعضاء    | 👥     | `#D4A843` |
-| `ceo`   | أحمد    | المدير التنفيذي       | 👔     | `#D4A843` |
-| `cmo`   | نورة    | مديرة التسويق         | 📣     | `#F472B6` |
-| `cto`   | فارس    | مدير التقنية          | 💻     | `#60A5FA` |
-| `cfo`   | ريم     | مديرة المالية         | 💰     | `#34D399` |
-| `cs`    | خالد    | مدير نجاح العملاء     | 🤝     | `#A78BFA` |
-| `growth`| سلمى    | محللة النمو           | 📊     | `#F97316` |
-
-- كل شخصية لها `sys` (system prompt) يبدأ بنص أساس مشترك `bR` ثم تخصيص الدور.
-- **مهم:** الخريطة التي وردت في طلبات سابقة (راشد=المنيو، خالد=الدفع، نورة=محرر المنيو) **غير صحيحة** وتم تصحيحها لتطابق الكود. اعتمد الجدول أعلاه. أي تعديل على شخصية يجب أن يبقى الـ`id` ثابتاً.
+المصدر: `web/src/lib/personas.ts`. أي تعديل على شخصية يبقي `id` ثابتاً (يمر عبر `ai-proxy`).
 
 ---
 
 ## 4. سير العمل الموصى به (Workflow) قبل أي push
-1. حدّد التوقيع المصغّر المستهدَف بدقة (سياق فريد).
-2. نفّذ الاستبدال.
-3. تأكد من القاعدة (ج): لا `await` داخل `z(function*(){})`.
-4. إن أضفت حقلاً: طبّق القاعدة (أ) في الأماكن الثلاثة.
-5. نفّذ فحص الصياغة — القاعدة (ب).
-6. commit برسالة واضحة ثم push على الفرع المخصّص فقط.
+1. طوّر في `web/` بكود مصدري.
+2. إن أضفت حقلاً: طبّق القاعدة (أ).
+3. إن كانت عملية مؤسس: طبّق القاعدة (ب) (حارس تطبيق + RLS).
+4. نفّذ التحقق — القاعدة (ج) — وشغّل `get_advisors` بعد أي DDL.
+5. commit برسالة واضحة ثم push على الفرع المخصّص فقط.
 
 ## 5. ملاحظات وتحذيرات
-- لا تفترض وجود مصدر غير مصغّر؛ كل العمل على الملف الناتج.
-- المفاتيح المضمّنة (anon JWT, Moyasar pk) عامة بطبيعتها للواجهة، لكن **`cm_fsecret` و `founder-admin`** حسّاسة — لا تكشفها في logs أو commits.
-- عند لمس المدفوعات/الجلسة/سر المؤسس: راجع المالك قبل الدفع.
+- لا تعدّل `legacy/` — أرشيف فقط.
+- المفاتيح العامة (anon JWT, Moyasar pk) آمنة للواجهة. لا تكشف أسراراً في logs/commits.
+- عند لمس المدفوعات/الجلسة/سياسات RLS: راجع المالك قبل الدفع.
 
-## 6. بنية المستودع وملفات النشر (Repo & deploy layout)
-كل ما يُنشر يعيش في **`public/`** (يُسحب بالكامل إلى Netlify — نشر يدوي):
+## 6. بنية المستودع (Repo layout)
 
-| الملف | الغرض |
+| المسار | الغرض |
 |------|-------|
-| `public/index.html` | التطبيق المصغّر (المصدر الأصلي). يُقدَّم على `/`. |
-| `public/manifest.json` + `public/icon.svg` | PWA (قابلية التثبيت). |
-| `public/sw.js` | Service worker: shell offline + كاش الخطوط. **لا يكاش Supabase/Moyasar** (بيانات المنيو تبقى طازجة). مُسجّل عبر سكربت صغير قبل `</body>`. |
-| `public/robots.txt` + `public/sitemap.xml` | فهرسة محركات البحث. |
-| `public/_headers` | headers أمان (CSP يسمح بـ Supabase/Moyasar/Google Fonts) + سياسة كاش (HTML/sw.js بلا كاش). |
-| `public/_redirects` | SPA fallback `/* /index.html 200` — **ضروري** لأن slug المطعم يُقرأ من `location.pathname`؛ بدونه أي زيارة مباشرة لـ`/<slug>` تعطي 404. |
-| `netlify.toml` (الجذر) | `publish = "public"` عند ربط Netlify بـ Git. |
-| `scripts/check_html_js.mjs` | أداة القاعدة (ب). الاستخدام: `node scripts/check_html_js.mjs public/index.html` |
+| `web/` | تطبيق Next.js — **المصدر الحيّ الوحيد** |
+| `web/src/app/` | الصفحات وserver actions (`/`, `/[slug]`, `/dashboard`, `/founder`, `/blog`) |
+| `web/src/components/` | مكوّنات (site, menu, dashboard, founder, billing, ui) |
+| `web/src/lib/` | منطق مشترك (supabase, founder, entitlements, plans, personas, themes) |
+| `web/.env.example` | متغيّرات البيئة المطلوبة على Netlify |
+| `netlify.toml` | إعداد النشر (`base="web"`) |
+| `legacy/public/` | الموقع المصغّر القديم (أرشيف، لا يُنشر) |
+| `legacy/check_html_js.mjs` | أداة فحص الملف المصغّر القديم (أرشيف) |
 
-**نشر يدوي:** اسحب مجلد `public/` كاملاً إلى Netlify؛ `_headers` و`_redirects` تُطبَّق تلقائياً.
-
-> ⚠️ **هيكلة الكود:** لا يمكن "تنظيف"/تفكيك كود `index.html` المصغّر إلى مكوّنات بدون مصدر Vite الأصلي (غير موجود). التنظيم يقتصر على مستوى المستودع/النشر، لا على كود البندل.
-
-### تحسينات تُطبَّق على الملف المصغّر (مرجع)
-- **عرض روابط التواصل (إصلاح):** حقول `social_instagram/twitter/tiktok/snapchat/maps` على مستوى المطعم كانت تُحفظ لكن **لا تُعرض** للزبون؛ أُضيف عرضها كشرائح (chips) بعد زر تقييم قوقل في صفحة المنيو العامة. (تذكير قاعدة أ: الحقل لا يكفي حفظه — لازم يُعرض أيضاً.)
-- **lazy images:** أُضيف `loading="lazy"` + `decoding="async"` للصور البعيدة (أغلفة المدونة/صور القوائم). ملاحظة: صور **base64 المدمجة لا تستفيد** من lazy لأنها محمّلة ضمن الـHTML أصلاً — الحل الجذري لها هو فصلها لملفات.
-- **Moyasar:** لا يزال مفتاح الاختبار `pk_test` (بطلب المالك) مع تعليق `TODO(production)` قبله.
+### متغيّرات البيئة (Netlify → Environment variables)
+`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `FOUNDER_EMAIL`,
+`NEXT_PUBLIC_MOYASAR_PK`. انظر `web/.env.example`.

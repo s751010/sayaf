@@ -9,6 +9,7 @@ import {
   Ticket,
   LifeBuoy,
   PenSquare,
+  Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -19,6 +20,7 @@ const nav = [
   { href: "/founder/promos", label: "أكواد الخصم", icon: Ticket },
   { href: "/founder/support", label: "الدعم", icon: LifeBuoy },
   { href: "/founder/blog", label: "المدونة", icon: PenSquare },
+  { href: "/founder/settings", label: "الإعدادات", icon: Settings },
 ];
 
 export function FounderNav() {

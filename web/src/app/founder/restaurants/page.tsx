@@ -1,9 +1,11 @@
+import Link from "next/link";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { isFounder } from "@/lib/founder";
 import { FounderNav } from "@/components/founder/founder-nav";
 import { FounderDenied } from "@/components/founder/denied";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { resolvePlan } from "@/lib/plans";
 
 export const dynamic = "force-dynamic";
@@ -120,6 +122,11 @@ export default async function FounderRestaurantsPage() {
                 <span className="text-xs text-muted">
                   انضم {new Date(r.created_at).toLocaleDateString("ar-SA")}
                 </span>
+                <Link href={`/founder/restaurants/${r.id}`}>
+                  <Button variant="outline" size="sm">
+                    إدارة
+                  </Button>
+                </Link>
               </Card>
             );
           })}

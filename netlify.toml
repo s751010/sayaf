@@ -1,15 +1,14 @@
-# Netlify config for the Git-connected deploy of the NEW Next.js app (web/).
+# إعداد نشر CloudMenu على Netlify.
 #
-# The Next.js rebuild lives in web/, so we set base = "web" here at the repo
-# root. This makes the Git-connected Netlify site build the app correctly even
-# if no "Base directory" is set in the Netlify UI — removing the most common
-# cause of "Page not found on every route".
+# المصدر الوحيد للموقع الحيّ هو تطبيق Next.js في مجلد web/، لذلك نضبط
+# base = "web" هنا بجذر المستودع. هذا يجعل موقع Netlify المربوط بـ Git يبني
+# التطبيق بشكل صحيح حتى لو لم يُضبط "Base directory" في واجهة Netlify —
+# وهو أشهر سبب لخطأ "Page not found on every route".
 #
-# Netlify auto-detects Next.js and attaches its runtime (which configures the
-# publish dir + SSR routing), so we do NOT set `publish` or pin the plugin.
+# Netlify يكتشف Next.js تلقائياً ويربط runtime الخاص به (يضبط publish dir
+# وتوجيه SSR)، لذلك لا نضبط publish أو نثبّت plugin يدوياً.
 #
-# NOTE: the legacy minified site (public/) is deployed MANUALLY (drag-and-drop
-# of the public/ folder), which does NOT read this file — so this is safe.
+# ملاحظة: الموقع المصغّر القديم أُرشِف في legacy/public/ ولم يعد يُنشر.
 [build]
   base = "web"
   command = "npm run build"

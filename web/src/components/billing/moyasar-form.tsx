@@ -75,5 +75,17 @@ export function MoyasarForm({
     );
   }
 
-  return <div className="moyasar-form" />;
+  // TODO(production): استبدل pk_test بمفتاح pk_live في متغيّر البيئة قبل الإطلاق.
+  const isTest = pk.startsWith("pk_test");
+
+  return (
+    <div>
+      {isTest && (
+        <p className="mb-3 rounded-xl border border-gold/30 bg-gold/10 p-3 text-center text-xs text-gold">
+          وضع تجريبي — لن يُخصم أي مبلغ فعلي. للإطلاق الحقيقي استبدل المفتاح بـ pk_live.
+        </p>
+      )}
+      <div className="moyasar-form" />
+    </div>
+  );
 }

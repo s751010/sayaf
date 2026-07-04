@@ -1,63 +1,58 @@
 # CloudMenu — كلاود منيو
 
-منيو رقمي QR للمطاعم السعودية. تطبيق ويب (React/Vite) يُسلَّم كملف HTML واحد،
-مع backend على Supabase ومدفوعات Moyasar، ويُستضاف على Netlify.
+منيو رقمي QR للمطاعم السعودية. تطبيق **Next.js 16 + React 19 + Tailwind 4** مع backend
+على **Supabase** (Auth + PostgREST + RLS) ومدفوعات **Moyasar**، ويُستضاف على **Netlify**.
 
-> ⚠️ **اقرأ [`CLAUDE.md`](./CLAUDE.md) قبل أي تعديل.** الملف المُسلَّم مصغّر وهو
-> المصدر الأصلي (لا يوجد مصدر غير مصغّر)، وكل تعديل يتم عبر استبدال نصّي دقيق.
-
-> 🚧 **إعادة بناء جارية:** يجري بناء نسخة احترافية حديثة على **Next.js + Tailwind
-> + Supabase** في مجلد [`web/`](./web). الموقع الحالي (`public/`) يبقى هو الإنتاج
-> حتى يكتمل البديل. انظر [`web/MIGRATION.md`](./web/MIGRATION.md) لحالة الهجرة.
+> ⚠️ **اقرأ [`CLAUDE.md`](./CLAUDE.md) قبل أي تعديل.** المصدر الحيّ الوحيد هو مجلد
+> [`web/`](./web). النسخة المصغّرة القديمة أُرشِفت في `legacy/` ولم تعد تُطوَّر أو تُنشر.
 
 ## بنية المستودع
 
 ```
-public/                 ← مجلد النشر (هذا ما يُرفع إلى Netlify)
-  index.html            ← التطبيق (ملف HTML مصغّر، ~1.49MB)
-  manifest.json         ← PWA
-  sw.js                 ← Service worker (offline shell + كاش الخطوط)
-  icon.svg              ← أيقونة PWA / apple-touch-icon
-  robots.txt            ← فهرسة
-  sitemap.xml           ← خريطة الموقع
-  _headers              ← Netlify: headers أمان + سياسة كاش
-  _redirects            ← Netlify: SPA fallback (مهم: روابط /<slug>)
-netlify.toml            ← إعداد النشر عند الربط بـ Git
-scripts/
-  check_html_js.mjs     ← فحص صياغة JS داخل الـHTML (إلزامي بعد كل تعديل)
+web/                    ← تطبيق Next.js (المصدر الحيّ الوحيد)
+  src/app/              ← الصفحات وserver actions (/، /[slug]، /dashboard، /founder، /blog)
+  src/components/       ← المكوّنات (site, menu, dashboard, founder, billing, ui)
+  src/lib/              ← منطق مشترك (supabase, founder, entitlements, plans, themes)
+  .env.example          ← متغيّرات البيئة المطلوبة
+netlify.toml            ← إعداد النشر (base = "web")
 CLAUDE.md               ← المرجع الإلزامي للعمل على المشروع
+legacy/                 ← أرشيف الموقع المصغّر القديم (لا يُنشر)
+  public/index.html
+  check_html_js.mjs
+```
+
+## التطوير المحلي
+
+```bash
+cd web
+npm install
+cp .env.example .env.local   # ثم املأ المفاتيح
+npm run dev
 ```
 
 ## النشر (Deployment)
 
-**الطريقة الحالية: نشر يدوي (drag-and-drop).**
+**Netlify مربوط بـ Git.** عند الدفع للفرع المرتبط، يبني Netlify التطبيق تلقائياً عبر
+`netlify.toml` بالجذر (`base = "web"`) — لا حاجة لضبط Base directory يدوياً.
 
-1. اسحب مجلد **`public/`** بالكامل إلى لوحة Netlify (Deploys → drag & drop).
-2. ملفات `_headers` و `_redirects` داخل المجلد تُطبَّق تلقائياً.
-3. تحقق بعد النشر أن هذه الروابط تعمل (ليست 404):
-   - `https://cloudsmenu.netlify.app/robots.txt`
-   - `https://cloudsmenu.netlify.app/manifest.json`
-   - `https://cloudsmenu.netlify.app/<any-slug>` (يجب أن يفتح التطبيق لا 404)
+1. أضِف متغيّرات البيئة من [`web/.env.example`](./web/.env.example) في
+   Netlify → Site settings → Environment variables:
+   `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `FOUNDER_EMAIL`,
+   `NEXT_PUBLIC_MOYASAR_PK`.
+2. تأكّد أن الدومين `cloudsmenu.netlify.app` يشير إلى الموقع المبني من Git.
 
-> **التطبيق الجديد (web/):** عند ربط Netlify بالمستودع، يبني تلقائياً عبر
-> `netlify.toml` بالجذر (`base = "web"`) — لا تحتاج ضبط Base directory يدوياً.
-> أضِف متغيّرات البيئة من `web/.env.example`. الموقع القديم (`public/`) يبقى نشراً
-> يدوياً منفصلاً ولا يتأثّر.
-
-## بعد أي تعديل على `public/index.html`
+## التحقق قبل أي push
 
 ```bash
-node scripts/check_html_js.mjs public/index.html
+cd web
+npm run build && npx tsc --noEmit && npm run lint
 ```
 
-يجب أن يمر الفحص بصفر أخطاء قبل أي commit/نشر (القاعدة (ب) في CLAUDE.md).
+يجب أن تمرّ كلها بصفر أخطاء.
 
 ## ملاحظات production
 
-- **Moyasar:** لا يزال مفتاح الاختبار `pk_test` (بطلب المالك). استبدله بـ `pk_live`
-  قبل تفعيل الدفع الحقيقي — ابحث عن `TODO(production)` في `index.html`.
-- **CSP:** الـ`Content-Security-Policy` في `_headers` مضبوط للسماح بـ Supabase و
-  Moyasar و Google Fonts. لو ظهرت مشكلة في الدفع/التحميل بعد النشر، راجع رسائل
-  الـconsole وعدّل المصادر المسموحة في `_headers`.
-- **OG image:** `og:image` يشير حالياً إلى `icon.svg`؛ يُفضّل استبداله بصورة
-  PNG 1200×630 لأن بعض منصات التواصل لا تعرض SVG.
+- **Moyasar:** لا يزال مفتاح الاختبار `pk_test` (بطلب المالك). ضع `pk_live_...` في
+  المتغيّر `NEXT_PUBLIC_MOYASAR_PK` قبل تفعيل الدفع الحقيقي.
+- **الأمان:** جداول المؤسس مقفولة في RLS عبر دالة `is_founder()`. بعد أي تعديل على
+  قاعدة البيانات، شغّل advisors الأمان في Supabase للتأكد من عدم وجود سياسات مكشوفة.

@@ -2,6 +2,7 @@ import type { CSSProperties } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getPublicMenu, getRestaurantBySlug } from "@/lib/data";
+import { getSiteSettings } from "@/lib/settings";
 import { getTheme } from "@/lib/themes";
 import { MenuBody } from "@/components/menu/menu-body";
 import { SocialLinks } from "@/components/menu/social-links";
@@ -27,7 +28,10 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 
 export default async function MenuPage({ params }: Params) {
   const { slug } = await params;
-  const data = await getPublicMenu(slug);
+  const [data, { features }] = await Promise.all([
+    getPublicMenu(slug),
+    getSiteSettings(),
+  ]);
   if (!data) notFound();
 
   const { restaurant, menu, categories, featured } = data;
@@ -110,7 +114,7 @@ export default async function MenuPage({ params }: Params) {
           featured={featured}
           categories={categories}
           englishEnabled={!!restaurant.english_enabled}
-          orderingEnabled
+          orderingEnabled={features.orders_enabled}
           whatsapp={restaurant.social_whatsapp}
           phone={restaurant.phone}
         />
