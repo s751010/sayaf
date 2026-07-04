@@ -147,6 +147,29 @@
 
 > ⚠️ **هيكلة الكود:** لا يمكن "تنظيف"/تفكيك كود `index.html` المصغّر إلى مكوّنات بدون مصدر Vite الأصلي (غير موجود). التنظيم يقتصر على مستوى المستودع/النشر، لا على كود البندل.
 
+## 7. النسخة الجديدة v2 — `app/` (المصدر) + `deploy/` (الناتج للسحب)
+
+إعادة بناء كاملة للمنصة بـ **Vite + React 18 + TypeScript + Tailwind v4** — SPA ثابتة
+تُنشر **بالسحب المباشر** على Netlify (بعكس `web/` التي تتطلب ربط Git وبناء SSR):
+
+- **`app/`** — الكود المصدري. `npm run build` داخلها يبني إلى `deploy/` بجذر المستودع.
+- **`deploy/`** — الناتج الجاهز (ملتزَم في git): اسحب المجلد كاملاً إلى Netlify وانتهى.
+  يحتوي `_redirects` (SPA fallback للـ slug) و`_headers` (CSP بدون Google Fonts —
+  الخطوط ذاتية الاستضافة عبر @fontsource) وPWA (manifest + sw + أيقونات) وSEO.
+- **نفس الخلفية تماماً**: Supabase نفسه (anon key مضمّن في `app/src/lib/config.ts`)،
+  نفس آلية GoTrue (`token?grant_type=password`)، نفس عقود `ai-proxy`
+  (body `{system,messages,temperature}` → `{text}`) و`founder-admin`
+  (ترويسة `x-founder-secret` + body `{table,method,query,body}`)، ونفس عقد الولاء
+  (`loyalty_customers`: `card_code/stamps/total_visits/rewards_used`).
+- **القاعدة (أ) مطبقة هيكلياً**: whitelists الكتابة في `app/src/lib/data.ts`
+  (`DishPayload`, `RestaurantSettingsPayload`) هي مصدر الحقول الوحيد للإضافة
+  والتحديث معاً — حقل جديد يُضاف هناك + في فورم `Dishes.tsx`/`Settings.tsx` + عمود Supabase.
+- **التسعير**: من `app/src/lib/plans.ts` — باقتان (99/199) مطابقة لـ `web/src/lib/plans.ts`
+  ولمفاتيح دالة moyasar-webhook. Moyasar لا يزال `pk_test` مع `TODO(production)` في `config.ts`.
+- جلسة v2 بمفتاح `cm2_session` (لا تتعارض مع `cm_session` القديمة). سر المؤسس يبقى
+  `cm_fsecret` في sessionStorage — لا يُضمَّن في الكود أبداً.
+- قواعد `web/` (Next.js) و`public/` (القديم) لم تتغير — النسخ الثلاث تتعايش في المستودع.
+
 ### تحسينات تُطبَّق على الملف المصغّر (مرجع)
 - **عرض روابط التواصل (إصلاح):** حقول `social_instagram/twitter/tiktok/snapchat/maps` على مستوى المطعم كانت تُحفظ لكن **لا تُعرض** للزبون؛ أُضيف عرضها كشرائح (chips) بعد زر تقييم قوقل في صفحة المنيو العامة. (تذكير قاعدة أ: الحقل لا يكفي حفظه — لازم يُعرض أيضاً.)
 - **lazy images:** أُضيف `loading="lazy"` + `decoding="async"` للصور البعيدة (أغلفة المدونة/صور القوائم). ملاحظة: صور **base64 المدمجة لا تستفيد** من lazy لأنها محمّلة ضمن الـHTML أصلاً — الحل الجذري لها هو فصلها لملفات.

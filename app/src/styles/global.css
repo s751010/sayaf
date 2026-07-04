@@ -1,0 +1,213 @@
+@import "tailwindcss";
+
+/* ── رموز التصميم (semantic tokens) — تنقلب مع data-theme ─────────── */
+:root {
+  --font-cairo: "Cairo Variable", "Segoe UI", system-ui, sans-serif;
+  --font-tajawal: "Tajawal", "Segoe UI", system-ui, sans-serif;
+  --font-reem: "Reem Kufi Variable", "Segoe UI", system-ui, sans-serif;
+  --font-amiri: "Amiri", "Times New Roman", serif;
+
+  /* الوضع الداكن (الافتراضي) — أسود دافئ + ذهبي */
+  --c-page: #0e0c09;
+  --c-panel: #16130f;
+  --c-panel2: #1e1a14;
+  --c-ink: #f5efe3;
+  --c-dim: #a99f8c;
+  --c-faint: #746c5d;
+  --c-line: rgba(245, 239, 227, 0.09);
+  --c-line-gold: rgba(212, 168, 67, 0.22);
+  --c-gold: #d4a843;
+  --c-gold2: #f0c96a;
+  --c-on-gold: #1a1508;
+  --c-good: #34d399;
+  --c-bad: #f87171;
+  --c-glow: rgba(212, 168, 67, 0.13);
+  /* لون علامات الرسوم البيانية — مُدقَّق (dataviz validator) على سطح اللوحة */
+  --c-chart: #b8860b;
+}
+
+[data-theme="light"] {
+  --c-page: #faf6ee;
+  --c-panel: #ffffff;
+  --c-panel2: #f2ecdf;
+  --c-ink: #241d12;
+  --c-dim: #746a58;
+  --c-faint: #a49a86;
+  --c-line: rgba(36, 29, 18, 0.1);
+  --c-line-gold: rgba(150, 114, 31, 0.3);
+  --c-gold: #a8821f;
+  --c-gold2: #8a6a15;
+  --c-on-gold: #fffbf2;
+  --c-good: #0d9459;
+  --c-bad: #d92d20;
+  --c-glow: rgba(184, 144, 47, 0.12);
+  --c-chart: #a8821f;
+}
+
+/* ── ربط الرموز بأدوات Tailwind ────────────────────────────────────── */
+@theme inline {
+  --color-page: var(--c-page);
+  --color-panel: var(--c-panel);
+  --color-panel2: var(--c-panel2);
+  --color-ink: var(--c-ink);
+  --color-dim: var(--c-dim);
+  --color-faint: var(--c-faint);
+  --color-line: var(--c-line);
+  --color-line-gold: var(--c-line-gold);
+  --color-gold: var(--c-gold);
+  --color-gold2: var(--c-gold2);
+  --color-on-gold: var(--c-on-gold);
+  --color-good: var(--c-good);
+  --color-bad: var(--c-bad);
+
+  --font-display: var(--font-cairo);
+  --font-body: var(--font-tajawal);
+}
+
+/* ── الأساس ────────────────────────────────────────────────────────── */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--c-page);
+  color: var(--c-ink);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  min-height: 100dvh;
+}
+
+::selection {
+  background: var(--c-gold);
+  color: var(--c-on-gold);
+}
+
+:focus-visible {
+  outline: 2px solid var(--c-gold);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* شريط تمرير رفيع متناسق */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--c-line-gold) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--c-line-gold);
+  border-radius: 8px;
+}
+
+/* ── حركات ─────────────────────────────────────────────────────────── */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes float-y {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-9px);
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.anim-fade-up {
+  animation: fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.anim-float {
+  animation: float-y 5s ease-in-out infinite;
+}
+
+/* هيكل تحميل (skeleton) */
+.skeleton {
+  border-radius: 0.75rem;
+  background: linear-gradient(
+    90deg,
+    var(--c-panel2) 25%,
+    var(--c-panel) 50%,
+    var(--c-panel2) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+/* نص متدرّج ذهبي للعناوين البارزة */
+.text-gold-grad {
+  background: linear-gradient(120deg, var(--c-gold2), var(--c-gold) 45%, var(--c-gold2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* توهّج خلفي ناعم للأقسام البطلة */
+.glow-bg {
+  background:
+    radial-gradient(60rem 28rem at 85% -10%, var(--c-glow), transparent 60%),
+    radial-gradient(40rem 22rem at 10% 110%, var(--c-glow), transparent 65%);
+}
+
+/* محتوى المقالات (يأتي من قاعدة البيانات كنص/HTML بسيط) */
+.prose-ar {
+  line-height: 1.9;
+  font-size: 1.05rem;
+}
+.prose-ar h2,
+.prose-ar h3 {
+  font-family: var(--font-display);
+  font-weight: 800;
+  margin: 1.6em 0 0.6em;
+}
+.prose-ar p {
+  margin: 0.9em 0;
+}
+.prose-ar a {
+  color: var(--c-gold);
+  text-decoration: underline;
+}
+.prose-ar img {
+  max-width: 100%;
+  border-radius: 0.9rem;
+  margin: 1.2em 0;
+}
+.prose-ar ul,
+.prose-ar ol {
+  padding-inline-start: 1.4em;
+  margin: 0.9em 0;
+  list-style: disc;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

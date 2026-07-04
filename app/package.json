@@ -1,0 +1,32 @@
+{
+  "name": "cloudmenu-app",
+  "private": true,
+  "version": "2.0.0",
+  "type": "module",
+  "description": "كلاود منيو — منيو رقمي QR للمطاعم السعودية (SPA قابلة للنشر بالسحب على Netlify)",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@fontsource-variable/cairo": "^5.2.5",
+    "@fontsource/amiri": "^5.2.5",
+    "@fontsource/reem-kufi": "^5.2.5",
+    "@fontsource/tajawal": "^5.2.5",
+    "qrcode": "^1.5.4",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.30.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.10",
+    "@types/qrcode": "^1.5.5",
+    "@types/react": "^18.3.23",
+    "@types/react-dom": "^18.3.7",
+    "@vitejs/plugin-react": "^4.5.2",
+    "tailwindcss": "^4.1.10",
+    "typescript": "~5.8.3",
+    "vite": "^6.3.5"
+  }
+}
