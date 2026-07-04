@@ -1,18 +1,18 @@
-# Netlify config for the Git-connected deploy of the NEW Next.js app (web/).
+# إعداد Netlify للنسخة الجديدة v2 (app/ → deploy/).
 #
-# The Next.js rebuild lives in web/, so we set base = "web" here at the repo
-# root. This makes the Git-connected Netlify site build the app correctly even
-# if no "Base directory" is set in the Netlify UI — removing the most common
-# cause of "Page not found on every route".
+# عند ربط المستودع بـ Netlify (استيراد من GitHub) يُبنى تطبيق Vite في app/
+# ويُنشر ناتجه من deploy/ — بلا أي متغيرات بيئة (المفاتيح العامة مضمّنة).
 #
-# Netlify auto-detects Next.js and attaches its runtime (which configures the
-# publish dir + SSR routing), so we do NOT set `publish` or pin the plugin.
+# ⚠️ مهم: اختر الفرع الصحيح في إعدادات Netlify (Branch to deploy) —
+# الفرع الذي يحتوي app/ و deploy/.
 #
-# NOTE: the legacy minified site (public/) is deployed MANUALLY (drag-and-drop
-# of the public/ folder), which does NOT read this file — so this is safe.
+# ملاحظات:
+# - النشر اليدوي بالسحب لا يقرأ هذا الملف إطلاقاً: اسحب مجلد deploy/ كاملاً وينتهي.
+# - نسخة web/ (Next.js) لم تعد هدف البناء الافتراضي؛ لنشرها أنشئ موقعاً منفصلاً
+#   واضبط Base directory = web يدوياً في واجهة Netlify (مع متغيرات البيئة).
 [build]
-  base = "web"
-  command = "npm run build"
+  command = "cd app && npm ci && npm run build"
+  publish = "deploy"
 
 [build.environment]
   NODE_VERSION = "22"
