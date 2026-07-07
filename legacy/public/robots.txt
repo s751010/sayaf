@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://cloudsmenu.netlify.app/sitemap.xml

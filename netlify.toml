@@ -1,0 +1,20 @@
+# إعداد نشر CloudMenu على Netlify — تطبيق Next.js (SSR) في مجلد web/.
+#
+# مهم جداً: هذا التطبيق SSR (توجيه ديناميكي + server actions + جلسات)، فلا
+# يعمل بالسحب والإفلات (drag & drop). يجب أن يُبنى عبر Netlify المربوط بـ Git
+# حتى يُركَّب محوّل Next تلقائياً؛ وإلا تظهر 404 على كل مسار.
+#
+# base = "web": المشروع في web/، فيبني Netlify هناك دون الحاجة لضبط
+# "Base directory" في الواجهة.
+#
+# لا نثبّت الـplugin يدوياً: Netlify يكتشف Next.js (بما فيه 16) ويركّب أحدث
+# محوّل OpenNext تلقائياً بصفر إعداد. التثبيت الصريح يسبّب تعارضاً مع
+# الاكتشاف التلقائي وقد يفشل البناء.
+#
+# ملاحظة: الموقع المصغّر القديم أُرشِف في legacy/public/ ولم يعد يُنشر.
+[build]
+  base = "web"
+  command = "npm run build"
+
+[build.environment]
+  NODE_VERSION = "22"
