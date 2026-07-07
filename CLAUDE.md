@@ -50,11 +50,33 @@
 - في التطبيق: `isFounder()` — `web/src/lib/founder.ts`، يُستخدم في كل صفحات وactions `/founder`.
 - في قاعدة البيانات: دالة `is_founder()` في سياسات RLS. الحارسان معاً = دفاع بعمق.
 
-### المدفوعات (Moyasar)
-- مفتاح النشر يُقرأ من `NEXT_PUBLIC_MOYASAR_PK` — `web/src/components/billing/moyasar-form.tsx`.
-- لا يزال `pk_test` (بطلب المالك). عند الإطلاق ضع `pk_live_...` في متغيّر البيئة.
-- التسعير مصدره الوحيد `web/src/lib/plans.ts` (`PLANS`) — معرّفات الباقات `standard`/`premium`
-  يجب أن تطابق `PRICES` في دالة webhook حتى يُفعَّل الاشتراك ويُسجَّل الإيراد.
+### المدفوعات (4 بوابات — ميسر، Paylink، PayTabs، MyFatoorah)
+- **البوابة النشطة** يختارها المؤسس من `/founder/settings` وتُخزَّن في
+  `site_settings.features.payment_provider` (الافتراضي `moyasar`). تعريف البوابات في
+  `web/src/lib/payments.ts`.
+- **مسار التفعيل الوحيد هو edge function `payments`** (المصدر في `supabase/functions/payments/`):
+  - `op=create`: ينشئ صفحة دفع مستضافة لدى البوابة النشطة (السعر يُحسب سيرفرياً) ويرجع
+    رابط التحويل. ميسر مستثناة (نموذج مدمج في المتصفح عبر `moyasar-form.tsx`).
+  - `op=verify`: تحقق سيرفر-لسيرفر بالمفتاح السرّي ثم تفعيل idempotent (فهرس فريد جزئي
+    على `subscriptions.payment_ref`) + تسجيل `revenue_log`. تُستدعى من صفحة الرجوع
+    `web/src/app/dashboard/billing/callback/page.tsx`.
+  - **لا شيء يُرسل من العميل يفعّل اشتراكاً** — الخطة/المستخدم/الدورة تُقرأ من `orderRef`
+    المرمّز سيرفرياً وترجعه البوابة، أو من metadata ميسر المؤكدة من API ميسر.
+- `moyasar-webhook` (v3، المصدر في `supabase/functions/moyasar-webhook/`) شبكة أمان فقط:
+  مصادقة `secret_token` + إعادة جلب الدفعة من API ميسر + نفس التفعيل الـidempotent.
+  منشورة بـ `verify_jwt=false` (المصادقة عبر السرّ — النمط القياسي للـwebhooks).
+- **أسرار البوابات في Supabase → Edge Functions → Secrets حصراً** (لا Netlify ولا الكود):
+  `MOYASAR_SK`, `MOYASAR_WEBHOOK_SECRET`, `PAYLINK_API_ID`, `PAYLINK_SECRET_KEY`,
+  `PAYTABS_PROFILE_ID`, `PAYTABS_SERVER_KEY`, `MYFATOORAH_API_KEY`, `APP_BASE_URL`
+  (+ `*_BASE_URL` اختيارية للبيئات التجريبية). غياب سر البوابة النشطة = رد
+  `provider_unconfigured` ورسالة عربية للتاجر (تدهور آمن).
+- مفتاح النشر العام لميسر يُقرأ من `NEXT_PUBLIC_MOYASAR_PK`. لا يزال `pk_test`
+  (بطلب المالك). عند الإطلاق ضع `pk_live_...` في Netlify.
+- **قاعدة إلزامية:** `PRICES` في `supabase/functions/payments/index.ts` و
+  `supabase/functions/moyasar-webhook/index.ts` يجب أن تطابق `PLANS` في
+  `web/src/lib/plans.ts` حرفياً (standard 99/1089، premium 199/2189، سنوي = شهري × 11).
+  أي تغيير سعر يُطبَّق في الملفات الثلاثة معاً ثم يُعاد نشر الدالتين عبر MCP.
+- قائمة الإطلاق الكاملة (حسابات التجار، ضبط الأسرار، webhook ميسر): `docs/LAUNCH_CHECKLIST.md`.
 
 ---
 
@@ -99,6 +121,9 @@
 | `web/src/components/` | مكوّنات (site, menu, dashboard, founder, billing, ui) |
 | `web/src/lib/` | منطق مشترك (supabase, founder, entitlements, plans, personas, themes) |
 | `web/.env.example` | متغيّرات البيئة المطلوبة على Netlify |
+| `supabase/functions/` | مصادر edge functions المُدارة من المستودع (`payments`, `moyasar-webhook`) — تُنشر عبر Supabase MCP |
+| `supabase/migrations/` | نسخ migrations المطبّقة عبر MCP (سجل مرجعي) |
+| `docs/LAUNCH_CHECKLIST.md` | قائمة ما قبل الإطلاق (أسرار، حسابات بوابات، إعدادات) |
 | `netlify.toml` | إعداد النشر (`base="web"`) |
 | `legacy/public/` | الموقع المصغّر القديم (أرشيف، لا يُنشر) |
 | `legacy/check_html_js.mjs` | أداة فحص الملف المصغّر القديم (أرشيف) |

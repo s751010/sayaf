@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { saveSiteSettings } from "@/app/founder/actions";
 import type { ActionState } from "@/app/dashboard/actions";
 import type { SiteSettings } from "@/lib/settings";
+import { PAYMENT_PROVIDERS } from "@/lib/payments";
 import { Field, Input, Textarea } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -60,6 +61,30 @@ export function SettingsForm({ settings }: { settings: SiteSettings }) {
               hint="إظهار أزرار الدفع/الاشتراك للتجار."
               defaultChecked={settings.features.payment_enabled}
             />
+          </div>
+        </div>
+
+        <div className="border-t border-line-dim pt-6">
+          <h2 className="font-display text-lg font-bold text-cream">بوابة الدفع</h2>
+          <p className="mt-1 text-sm text-warm">
+            البوابة المستخدمة لاشتراكات التجار. تأكد من ضبط مفاتيح البوابة في
+            أسرار Supabase (Edge Functions → Secrets) قبل التفعيل.
+          </p>
+          <div className="mt-4">
+            <Field label="البوابة النشطة" htmlFor="payment_provider">
+              <select
+                id="payment_provider"
+                name="payment_provider"
+                defaultValue={settings.features.payment_provider}
+                className="w-full rounded-xl border border-line-dim bg-white/5 px-4 py-2.5 text-sm text-cream focus:border-gold focus:outline-none"
+              >
+                {PAYMENT_PROVIDERS.map((p) => (
+                  <option key={p.id} value={p.id} className="bg-charcoal">
+                    {p.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
           </div>
         </div>
 

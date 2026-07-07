@@ -16,7 +16,11 @@ export default async function BillingPage() {
       <p className="mt-1 text-warm">اختر باقتك وادفع بالطريقة التي تناسبك.</p>
       <div className="mt-8">
         {features.payment_enabled ? (
-          <BillingClient userId={user.id} userName={user.email ?? ""} />
+          <BillingClient
+            userId={user.id}
+            userName={user.email ?? ""}
+            provider={features.payment_provider}
+          />
         ) : (
           <Card className="text-center text-warm">
             الدفع الإلكتروني معطّل مؤقتاً. تواصل معنا لتفعيل اشتراكك.

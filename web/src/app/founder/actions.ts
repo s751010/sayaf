@@ -4,6 +4,10 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { isFounder } from "@/lib/founder";
+import {
+  DEFAULT_PAYMENT_PROVIDER,
+  isPaymentProvider,
+} from "@/lib/payments";
 import type { ActionState } from "@/app/dashboard/actions";
 
 function strOrNull(v: FormDataEntryValue | null): string | null {
@@ -168,9 +172,13 @@ export async function saveSiteSettings(
   const supabase = await founderClient();
   if (!supabase) return { error: "هذه العملية للمؤسس فقط." };
 
+  const providerRaw = strOrNull(formData.get("payment_provider"));
   const features = {
     orders_enabled: formData.get("orders_enabled") === "on",
     payment_enabled: formData.get("payment_enabled") === "on",
+    payment_provider: isPaymentProvider(providerRaw)
+      ? providerRaw
+      : DEFAULT_PAYMENT_PROVIDER,
   };
   const footer = {
     about: strOrNull(formData.get("about")) ?? "",

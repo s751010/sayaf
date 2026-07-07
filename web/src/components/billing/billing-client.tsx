@@ -3,10 +3,12 @@
 import { useState } from "react";
 import { Check } from "lucide-react";
 import { MoyasarForm } from "./moyasar-form";
+import { RedirectCheckout } from "./redirect-checkout";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatPrice, cn } from "@/lib/utils";
+import { providerInfo, type PaymentProvider } from "@/lib/payments";
 import {
   PLANS,
   CURRENCY,
@@ -19,9 +21,12 @@ import {
 export function BillingClient({
   userId,
   userName,
+  provider,
 }: {
   userId: string;
   userName: string;
+  /** البوابة النشطة من إعدادات المؤسس (site_settings.features.payment_provider). */
+  provider: PaymentProvider;
 }) {
   const [cycle, setCycle] = useState<BillingCycle>("monthly");
   const [plan, setPlan] = useState<Plan | null>(null);
@@ -49,20 +54,29 @@ export function BillingClient({
               {formatPrice(amount)} {CURRENCY}
             </span>
           </div>
-          <MoyasarForm
-            amountHalalas={amount * 100}
-            description={`اشتراك كلاود منيو — باقة ${plan.name} (${
-              yearly ? "سنوي" : "شهري"
-            })`}
-            metadata={{
-              user_id: userId,
-              user_name: userName,
-              plan_id: plan.id,
-              cycle,
-            }}
-          />
+          {provider === "moyasar" ? (
+            <MoyasarForm
+              amountHalalas={amount * 100}
+              description={`اشتراك كلاود منيو — باقة ${plan.name} (${
+                yearly ? "سنوي" : "شهري"
+              })`}
+              metadata={{
+                user_id: userId,
+                user_name: userName,
+                plan_id: plan.id,
+                cycle,
+              }}
+            />
+          ) : (
+            <RedirectCheckout
+              provider={provider}
+              planId={plan.id}
+              cycle={cycle}
+            />
+          )}
           <p className="mt-4 text-center text-xs text-muted">
-            مدفوعات آمنة عبر Moyasar — مدى، بطاقات، Apple Pay، STC Pay.
+            مدفوعات آمنة عبر {providerInfo(provider).label} — مدى، بطاقات،
+            Apple Pay.
           </p>
         </Card>
       </div>

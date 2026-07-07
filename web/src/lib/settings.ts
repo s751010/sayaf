@@ -1,8 +1,12 @@
 import { createPublicServerClient } from "@/lib/supabase/server";
+import {
+  DEFAULT_PAYMENT_PROVIDER,
+  type PaymentProvider,
+} from "@/lib/payments";
 
 /**
  * إعدادات الموقع القابلة للتعديل من لوحة المؤسس (`site_settings`).
- * تُقرأ قراءة عامة (settings_read) وتُكتب من المؤسس فقط (site_settings_founder_all).
+ * تُقرأ قراءة عامة (settings_select) وتُكتب من المؤسس فقط.
  */
 
 /** أعلام ميزات عامّة على مستوى المنصّة كلها. */
@@ -11,6 +15,8 @@ export interface SiteFeatures {
   orders_enabled: boolean;
   /** تفعيل تدفّق الدفع/الترقية. عند الإيقاف تُخفى أزرار الدفع. */
   payment_enabled: boolean;
+  /** بوابة الدفع النشطة لاشتراكات التجار (تتطلب ضبط أسرارها في Supabase). */
+  payment_provider: PaymentProvider;
 }
 
 /** محتوى تذييل الموقع القابل للتحرير. */
@@ -23,6 +29,7 @@ export interface SiteFooter {
 export const DEFAULT_FEATURES: SiteFeatures = {
   orders_enabled: true,
   payment_enabled: true,
+  payment_provider: DEFAULT_PAYMENT_PROVIDER,
 };
 
 export const DEFAULT_FOOTER: SiteFooter = {

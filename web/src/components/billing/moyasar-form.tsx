@@ -51,7 +51,8 @@ export function MoyasarForm({
         currency: "SAR",
         description,
         publishable_api_key: pk,
-        callback_url: `${window.location.origin}/dashboard?payment=done`,
+        // صفحة الرجوع الموحّدة: تتحقق من الدفعة سيرفرياً وتفعّل الاشتراك
+        callback_url: `${window.location.origin}/dashboard/billing/callback?provider=moyasar`,
         methods,
         metadata,
       });
