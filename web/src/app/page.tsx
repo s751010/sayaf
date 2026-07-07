@@ -49,9 +49,13 @@ export default function HomePage() {
               <Link href="/login" className={buttonVariants({ size: "lg" })}>
                 ابدأ مجاناً الآن
               </Link>
-              <a href="#features" className={buttonVariants({ variant: "outline", size: "lg" })}>
-                اكتشف المميزات
-              </a>
+              <Link
+                href="/demo"
+                target="_blank"
+                className={buttonVariants({ variant: "outline", size: "lg" })}
+              >
+                شاهد منيو تجريبياً حياً
+              </Link>
             </div>
           </div>
         </section>
