@@ -15,8 +15,6 @@ export interface Restaurant {
   logo_image: string | null;
   banner_image: string | null;
   slug: string | null;
-  payment_gateway: string | null;
-  payment_key: string | null;
   google_review_url: string | null;
   allergens_text: string | null;
   working_hours: string | null;
