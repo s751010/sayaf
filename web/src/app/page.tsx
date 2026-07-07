@@ -6,10 +6,11 @@ import {
   Palette,
   ShieldCheck,
 } from "lucide-react";
+import Link from "next/link";
 import { Navbar } from "@/components/site/navbar";
 import { Footer } from "@/components/site/footer";
 import { PricingSection } from "@/components/site/pricing-section";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
@@ -45,10 +46,12 @@ export default function HomePage() {
               أداء مطعمك لحظياً — بدون أي خبرة تقنية.
             </p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-              <Button size="lg">ابدأ مجاناً الآن</Button>
-              <Button variant="outline" size="lg">
-                شاهد عرضاً حياً
-              </Button>
+              <Link href="/login" className={buttonVariants({ size: "lg" })}>
+                ابدأ مجاناً الآن
+              </Link>
+              <a href="#features" className={buttonVariants({ variant: "outline", size: "lg" })}>
+                اكتشف المميزات
+              </a>
             </div>
           </div>
         </section>
@@ -93,9 +96,9 @@ export default function HomePage() {
             <p className="mx-auto mt-4 max-w-lg text-warm">
               انضم لمئات المطاعم السعودية التي تدير قوائمها رقمياً مع كلاود منيو.
             </p>
-            <Button size="lg" className="mt-8">
+            <Link href="/login" className={`${buttonVariants({ size: "lg" })} mt-8`}>
               أنشئ حسابك المجاني
-            </Button>
+            </Link>
           </div>
         </section>
       </main>
