@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getPublicMenu, getRestaurantBySlug } from "@/lib/data";
 import { getSiteSettings } from "@/lib/settings";
+import { SITE_URL } from "@/lib/site";
 import { getTheme } from "@/lib/themes";
 import { MenuBody } from "@/components/menu/menu-body";
 import { SocialLinks } from "@/components/menu/social-links";
@@ -129,7 +130,7 @@ export default async function MenuPage({ params }: Params) {
       {/* Footer */}
       <footer className="border-t py-6 text-center" style={{ borderColor: "var(--m-border)" }}>
         <a
-          href="https://cloudsmenu.netlify.app"
+          href={SITE_URL}
           target="_blank"
           rel="noreferrer"
           className="text-xs font-semibold opacity-70 transition-opacity hover:opacity-100"
