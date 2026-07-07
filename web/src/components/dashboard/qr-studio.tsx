@@ -6,6 +6,7 @@ import { Download } from "lucide-react";
 import { Field, Input } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { SITE_URL } from "@/lib/site";
 
 export function QrStudio({ slug }: { slug: string }) {
   const [table, setTable] = useState("");
@@ -13,9 +14,7 @@ export function QrStudio({ slug }: { slug: string }) {
 
   const url = useMemo(() => {
     const origin =
-      typeof window !== "undefined"
-        ? window.location.origin
-        : "https://cloudsmenu.netlify.app";
+      typeof window !== "undefined" ? window.location.origin : SITE_URL;
     const base = `${origin}/${slug}`;
     return table.trim() ? `${base}?table=${encodeURIComponent(table.trim())}` : base;
   }, [slug, table]);

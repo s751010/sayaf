@@ -1,9 +1,10 @@
 import type { MetadataRoute } from "next";
+import { SITE_URL } from "@/lib/site";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     {
-      url: "https://cloudsmenu.netlify.app/",
+      url: `${SITE_URL}/`,
       changeFrequency: "weekly",
       priority: 1,
     },

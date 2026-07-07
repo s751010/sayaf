@@ -5,6 +5,9 @@ import { createRestaurant, type ActionState } from "@/app/dashboard/actions";
 import { Field, Input } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { SITE_URL } from "@/lib/site";
+
+const SITE_HOST = SITE_URL.replace(/^https?:\/\//, "");
 
 export function RestaurantOnboarding() {
   const [state, action, pending] = useActionState<ActionState, FormData>(
@@ -29,7 +32,7 @@ export function RestaurantOnboarding() {
           <Field
             label="رابط المطعم (slug)"
             htmlFor="slug"
-            hint="سيظهر في الرابط: cloudsmenu.netlify.app/your-slug"
+            hint={`سيظهر في الرابط: ${SITE_HOST}/your-slug`}
           >
             <Input id="slug" name="slug" dir="ltr" placeholder="al-thawaqa" />
           </Field>

@@ -39,7 +39,9 @@ npm run dev
    Netlify → Site settings → Environment variables:
    `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `FOUNDER_EMAIL`,
    `NEXT_PUBLIC_MOYASAR_PK`.
-2. تأكّد أن الدومين `cloudsmenu.netlify.app` يشير إلى الموقع المبني من Git.
+2. الدومين الحالي: `cloudmenuy.netlify.app` (مؤقت حتى شراء دومين رسمي).
+   عند تغيير الدومين مستقبلاً: عدّل `SITE_URL` في `web/src/lib/site.ts` فقط —
+   كل شيء (metadata، sitemap، robots، أكواد QR، الروابط) يشتق منه.
 
 ## التحقق قبل أي push
 

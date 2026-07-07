@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Cairo, Tajawal, Reem_Kufi, Amiri } from "next/font/google";
 import { RegisterSW } from "@/components/site/register-sw";
+import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 const cairo = Cairo({
@@ -30,8 +31,6 @@ const amiri = Amiri({
   variable: "--font-amiri",
   display: "swap",
 });
-
-const SITE_URL = "https://cloudsmenu.netlify.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

@@ -10,7 +10,8 @@
 - **المصدر الحيّ الوحيد هو تطبيق Next.js في `web/`.** مبني بـ **Next.js 16 + React 19 +
   Tailwind 4 + Supabase SSR**، منظّم بمكوّنات وصفحات وserver actions قابلة للقراءة والتطوير.
 - **النشر:** Netlify مربوط بـ Git، يبني من `web/` تلقائياً (`netlify.toml` بالجذر: `base="web"`).
-  الدومين: `https://cloudsmenu.netlify.app/`.
+  الدومين الحالي: `https://cloudmenuy.netlify.app/` (مؤقت حتى شراء دومين رسمي —
+  عند التغيير عدّل `SITE_URL` في `web/src/lib/site.ts` فقط).
 - **الأرشيف:** النسخة القديمة كانت ملف HTML واحد مصغّر (~1.49MB) يُنشر يدوياً. أُرشِف في
   `legacy/public/index.html` ولم يعد يُطوَّر أو يُنشر. لا تعدّله؛ استخدمه للمرجع فقط.
 - اللغة: عربية RTL، خطوط Google (Cairo, Tajawal, …).
