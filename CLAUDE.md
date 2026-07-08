@@ -104,6 +104,33 @@
 | `legacy/public/` | الموقع المصغّر القديم (أرشيف، لا يُنشر) |
 | `legacy/check_html_js.mjs` | أداة فحص الملف المصغّر القديم (أرشيف) |
 
-### متغيّرات البيئة (Netlify → Environment variables)
+### متغيّرات البيئة (Netlify → Environment variables) — تخص نشر `web/` فقط
 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `FOUNDER_EMAIL`,
-`NEXT_PUBLIC_MOYASAR_PK`. انظر `web/.env.example`.
+`NEXT_PUBLIC_MOYASAR_PK`. انظر `web/.env.example`. (نسخة v2 في `app/` لا تحتاج أياً منها.)
+
+---
+
+## 7. النسخة v2 — `app/` (المصدر) + `deploy/` (الناتج) = الهدف الافتراضي للنشر
+
+إعادة بناء المنصة كـ **SPA ثابتة** بـ **Vite + React 18 + TypeScript + Tailwind v4**،
+تُنشر **بالسحب المباشر أو بربط Git بلا متغيّرات بيئة** (بعكس `web/` التي تتطلب SSR + متغيّرات).
+**`netlify.toml` بالجذر يبني هذه النسخة** (`cd app && npm ci && npm run build` → نشر `deploy/`).
+
+- **`app/`** — الكود المصدري. `npm run build` داخلها يبني إلى `deploy/` بجذر المستودع.
+- **`deploy/`** — الناتج الجاهز (ملتزَم في git): اسحب المجلد كاملاً إلى Netlify وانتهى.
+  يحتوي `_redirects` (SPA fallback للـ slug) و`_headers` (CSP، خطوط ذاتية الاستضافة عبر
+  @fontsource) وPWA (manifest + sw + أيقونات) وSEO.
+- **نفس خلفية Supabase تماماً** لكن **بدون SDK** — نداءات `fetch` مباشرة لـ PostgREST/GoTrue
+  في `app/src/lib/api.ts` + `session.ts`. المفاتيح العامة مضمّنة في `app/src/lib/config.ts`.
+  نفس عقود `ai-proxy` (body `{system,messages,temperature}` → `{text}`) و`founder-admin`
+  (ترويسة `x-founder-secret` + body `{table,method,query,body}`)، ونفس عقد الولاء
+  (`loyalty_customers`: `card_code/stamps/total_visits/rewards_used`).
+- **القاعدة (أ) مطبقة هيكلياً**: whitelists الكتابة في `app/src/lib/data.ts`
+  (`DishPayload`, `RestaurantSettingsPayload`) هي مصدر الحقول الوحيد للإضافة والتحديث معاً —
+  حقل جديد يُضاف هناك + في فورم `Dishes.tsx`/`Settings.tsx` + عمود Supabase.
+- **التسعير**: من `app/src/lib/plans.ts` — باقتان (99/199) مطابقة لـ `web/src/lib/plans.ts`
+  ولمفاتيح دالة moyasar-webhook. Moyasar لا يزال `pk_test` مع `TODO(production)` في `config.ts`.
+- جلسة v2 بمفتاح `cm2_session`. سر المؤسس يبقى `cm_fsecret` في sessionStorage — لا يُضمَّن أبداً.
+- **التحقق قبل الدفع (v2)**: من داخل `app/`: `npm run build` (يشمل `tsc --noEmit`) يجب أن يمرّ.
+- `web/` (Next.js) تبقى في المستودع كمرجع/بديل؛ إن أردت نشرها اضبط موقع Netlify منفصلاً
+  بـ Base directory = web + متغيّرات البيئة أعلاه.

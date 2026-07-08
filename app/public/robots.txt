@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /founder
+
+Sitemap: https://cloudsmenu.netlify.app/sitemap.xml

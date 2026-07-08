@@ -1,27 +1,16 @@
-# إعداد نشر CloudMenu على Netlify — تطبيق Next.js (SSR) في مجلد web/.
+# إعداد Netlify للنسخة الجديدة v2 (app/ → deploy/) — SPA ثابتة تُنشر بالسحب أو بربط Git.
 #
-# مهم جداً: هذا التطبيق SSR (توجيه ديناميكي + server actions + جلسات)، فلا
-# يعمل بالسحب والإفلات (drag & drop). يجب أن يُبنى عبر Netlify المربوط بـ Git
-# حتى يُركَّب محوّل Next تلقائياً؛ وإلا تظهر 404 على كل مسار.
+# عند ربط المستودع بـ Netlify (استيراد من GitHub) يُبنى تطبيق Vite في app/
+# ويُنشر ناتجه من deploy/ — بلا أي متغيرات بيئة (المفاتيح العامة مضمّنة في
+# app/src/lib/config.ts). هذا يجعل النشر يعمل مباشرة دون إعداد إضافي.
 #
-# base = "web": المشروع في web/، فيبني Netlify هناك دون الحاجة لضبط
-# "Base directory" في الواجهة.
-#
-# publish = ".next" (نسبةً إلى base) هي القيمة القياسية لمشاريع Next.js،
-# ونثبّتها صراحةً لتتجاوز أي قيمة خاطئة عالقة في إعدادات الواجهة.
-#
-# نفرض plugin محوّل Next صراحةً: الاكتشاف التلقائي لا يعمل في هذا الموقع
-# (الـAPI العام أظهر plugin_state = none على نشرات ناجحة ظاهرياً لكنها تخدم
-# 404 على كل مسار). بدون المحوّل يُنشر .next كملفات خام بلا خادم SSR.
-#
-# ملاحظة: الموقع المصغّر القديم أُرشِف في legacy/public/ ولم يعد يُنشر.
+# ملاحظات:
+# - النشر اليدوي بالسحب لا يقرأ هذا الملف إطلاقاً: اسحب مجلد deploy/ كاملاً وينتهي.
+# - نسخة web/ (Next.js SSR) لا تزال في المستودع كمرجع؛ لنشرها أنشئ موقع Netlify
+#   منفصلاً واضبط Base directory = web + متغيرات البيئة في واجهة Netlify.
 [build]
-  base = "web"
-  command = "npm run build"
-  publish = ".next"
+  command = "cd app && npm ci && npm run build"
+  publish = "deploy"
 
 [build.environment]
   NODE_VERSION = "22"
-
-[[plugins]]
-  package = "@netlify/plugin-nextjs"

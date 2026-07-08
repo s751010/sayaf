@@ -1,0 +1,27 @@
+/*
+  X-Frame-Options: SAMEORIGIN
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: microphone=(), camera=(), geolocation=()
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' https://cdn.moyasar.com; style-src 'self' 'unsafe-inline' https://cdn.moyasar.com; font-src 'self' data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co https://api.moyasar.com https://cdn.moyasar.com; frame-src https://*.moyasar.com; worker-src 'self'; manifest-src 'self'
+
+/index.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+/sw.js
+  Cache-Control: public, max-age=0, must-revalidate
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/manifest.webmanifest
+  Cache-Control: public, max-age=3600
+
+/robots.txt
+  Cache-Control: public, max-age=3600
+
+/sitemap.xml
+  Cache-Control: public, max-age=3600
+
+/icon.svg
+  Cache-Control: public, max-age=86400
