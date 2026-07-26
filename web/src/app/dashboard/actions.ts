@@ -6,6 +6,7 @@ import { createServerSupabase, getCurrentUser } from "@/lib/supabase/server";
 import { getMyRestaurant } from "@/lib/owner";
 import { getMyEntitlements } from "@/lib/entitlements";
 import { parseDishOptions, serializeDishOptions } from "@/lib/options";
+import type { Dish, Menu } from "@/lib/types";
 
 export type ActionState = { error?: string; message?: string };
 
@@ -97,6 +98,7 @@ export async function updateRestaurant(
     loyalty_enabled: ent.loyalty && formData.get("loyalty_enabled") === "on",
     loyalty_goal: numOrNull(formData.get("loyalty_goal")),
     loyalty_reward: strOrNull(formData.get("loyalty_reward")),
+    reviews_enabled: formData.get("reviews_enabled") === "on",
   };
 
   const { error } = await supabase
@@ -150,6 +152,110 @@ export async function createMenu(
 
   revalidatePath("/dashboard/menus");
   return { message: "تمت إضافة القائمة." };
+}
+
+/**
+ * نسخ قائمة كاملة بأصنافها.
+ *
+ * يحترم حدّ القوائم في الباقة تماماً كإنشاء قائمة جديدة، ويعيد بناء كل صنف من
+ * قائمة حقول صريحة (القاعدة أ) بدل نسخ الصف كما هو — فلا تُنسخ `id` أو
+ * `created_at` أو عدّاد المشاهدات، والصنف الجديد يبدأ بمشاهدات صفر.
+ */
+export async function duplicateMenu(
+  _prev: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const supabase = await createServerSupabase();
+  const user = await getCurrentUser();
+  const restaurant = await getMyRestaurant();
+  if (!supabase || !user || !restaurant) return { error: "أنشئ مطعمك أولاً." };
+
+  const menuId = String(formData.get("menu_id") ?? "").trim();
+  if (!menuId) return { error: "قائمة غير معروفة." };
+
+  const ent = await getMyEntitlements();
+  if (ent.maxMenus !== null) {
+    const { count } = await supabase
+      .from("menus")
+      .select("id", { count: "exact", head: true })
+      .eq("restaurant_id", restaurant.id);
+    if ((count ?? 0) >= ent.maxMenus) {
+      return {
+        error: `باقتك الحالية تسمح بـ ${ent.maxMenus} قائمة. رقِّ إلى الاحترافية لقوائم غير محدودة.`,
+      };
+    }
+  }
+
+  // RLS تضمن أن القائمة تخص هذا المستخدم؛ نتأكد كذلك من المطعم.
+  const { data: sourceRow } = await supabase
+    .from("menus")
+    .select("*")
+    .eq("id", menuId)
+    .eq("restaurant_id", restaurant.id)
+    .maybeSingle();
+
+  const source = sourceRow as Menu | null;
+  if (!source) return { error: "القائمة غير موجودة." };
+
+  const { data: created, error: menuError } = await supabase
+    .from("menus")
+    .insert({
+      name: `${source.name} (نسخة)`,
+      description: source.description,
+      theme: source.theme,
+      language: source.language,
+      cover_image: source.cover_image,
+      active: false, // النسخة تبدأ معطّلة حتى يراجعها التاجر قبل نشرها.
+      restaurant_id: restaurant.id,
+      user_id: user.id,
+    })
+    .select("id")
+    .single();
+
+  if (menuError || !created) return { error: "تعذّر نسخ القائمة." };
+
+  const { data: dishRows } = await supabase
+    .from("dishes")
+    .select("*")
+    .eq("menu_id", menuId);
+
+  const dishes = (dishRows ?? []) as Dish[];
+  if (dishes.length > 0) {
+    const copies = dishes.map((d) => ({
+      name: d.name,
+      description: d.description,
+      price: d.price,
+      category: d.category,
+      emoji: d.emoji,
+      image: d.image,
+      featured: d.featured,
+      available: d.available,
+      calories: d.calories,
+      sodium_mg: d.sodium_mg,
+      caffeine_mg: d.caffeine_mg,
+      burn_minutes: d.burn_minutes,
+      allergens: d.allergens,
+      name_en: d.name_en,
+      description_en: d.description_en,
+      options: d.options,
+      views: 0,
+      menu_id: created.id as string,
+      restaurant_id: restaurant.id,
+      user_id: user.id,
+    }));
+
+    const { error: dishError } = await supabase.from("dishes").insert(copies);
+    if (dishError) {
+      // لا نترك قائمة نصف منسوخة خلفنا.
+      await supabase.from("menus").delete().eq("id", created.id);
+      return { error: "تعذّر نسخ أصناف القائمة." };
+    }
+  }
+
+  revalidatePath("/dashboard/menus");
+  return {
+    message: `نُسخت القائمة مع ${dishes.length} صنفاً. النسخة معطّلة — فعّلها بعد المراجعة.`,
+  };
 }
 
 // ── Dishes (create + update share one typed payload) ───────────────

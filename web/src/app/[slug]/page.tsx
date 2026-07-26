@@ -8,6 +8,7 @@ import { getTheme } from "@/lib/themes";
 import { MenuBody } from "@/components/menu/menu-body";
 import { SocialLinks } from "@/components/menu/social-links";
 import { ViewBeacon } from "@/components/menu/view-beacon";
+import { SurveyModal } from "@/components/menu/survey-modal";
 
 export const revalidate = 60;
 
@@ -44,6 +45,9 @@ export default async function MenuPage({ params }: Params) {
   if (!data) notFound();
 
   const { restaurant, menu, categories, featured } = data;
+  // علم عام على صف المطعم يزامنه مُشغِّل في قاعدة البيانات — لا تصل أي بيانات
+  // اعتماد لهذه الصفحة ولا للمتصفح.
+  const onlinePayment = restaurant.online_payment_enabled === true;
   const theme = getTheme(menu?.theme);
   const rootStyle = { ...theme.vars, background: "var(--m-bg)", color: "var(--m-text)" } as CSSProperties;
   const display = { fontFamily: "var(--m-font)" } as CSSProperties;
@@ -115,6 +119,12 @@ export default async function MenuPage({ params }: Params) {
           <div className="mt-5 w-full">
             <SocialLinks restaurant={restaurant} />
           </div>
+
+          {restaurant.reviews_enabled !== false && (
+            <div className="mt-3">
+              <SurveyModal restaurantId={restaurant.id} accent={theme.vars["--m-accent"]} />
+            </div>
+          )}
         </div>
       </header>
 
@@ -126,6 +136,8 @@ export default async function MenuPage({ params }: Params) {
           orderingEnabled={features.orders_enabled}
           whatsapp={restaurant.social_whatsapp}
           phone={restaurant.phone}
+          restaurantId={restaurant.id}
+          onlinePayment={features.orders_enabled && onlinePayment}
         />
 
         {restaurant.allergens_text && (

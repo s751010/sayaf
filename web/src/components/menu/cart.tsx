@@ -1,16 +1,20 @@
 "use client";
 
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { ShoppingCart } from "lucide-react";
+import { CreditCard, ShoppingCart } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 
 /** سطر في سلة الطلب — الطبق نفسه بخيارات مختلفة يظهر كسطرين مستقلين. */
 export interface CartLine {
   key: string;
+  /** معرّف الطبق — يُرسل للخادم ليعيد حساب السعر من قاعدة البيانات. */
+  dishId: string;
   name: string;
   label?: string;
   unitPrice: number;
   qty: number;
+  /** معرّفات الإضافات المختارة (فارغة لطبق بلا خيارات). */
+  optionIds?: string[];
 }
 
 /** يطبّع رقم الجوال السعودي لصيغة wa.me (مطابق لمنطق النسخة القديمة). */
@@ -52,6 +56,8 @@ export function CartBar({
   lang = "ar",
   whatsapp,
   phone,
+  restaurantId,
+  onlinePayment = false,
   onChangeQty,
 }: {
   lines: CartLine[];
@@ -59,11 +65,53 @@ export function CartBar({
   /** رقم واتساب المطعم (أولوية) ثم الهاتف. */
   whatsapp?: string | null;
   phone?: string | null;
+  restaurantId: string;
+  /** يظهر زر «ادفع الآن» فقط عندما يربط المطعم حساب PayLink ويفعّله. */
+  onlinePayment?: boolean;
   onChangeQty: (key: string, delta: number) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [paying, setPaying] = useState(false);
+  const [payError, setPayError] = useState("");
   const table = useTableNumber();
   const en = lang === "en";
+
+  /**
+   * لا يُرسل أي سعر — الخادم يعيد حساب الإجمالي من جدول الأصناف وخياراتها.
+   * أي تلاعب بالسلة في المتصفح لا يغيّر المبلغ المطلوب.
+   */
+  async function payOnline() {
+    setPaying(true);
+    setPayError("");
+    try {
+      const res = await fetch("/api/order/pay", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          restaurant_id: restaurantId,
+          table,
+          items: lines.map((l) => ({
+            dish_id: l.dishId,
+            qty: l.qty,
+            option_ids: l.optionIds ?? [],
+          })),
+        }),
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        url?: string;
+        error?: string;
+      };
+      if (!res.ok || !data.url) {
+        setPayError(data.error ?? (en ? "Payment failed to start." : "تعذّر بدء الدفع."));
+        setPaying(false);
+        return;
+      }
+      window.location.href = data.url;
+    } catch {
+      setPayError(en ? "Connection problem." : "تعذّر الاتصال.");
+      setPaying(false);
+    }
+  }
 
   const count = lines.reduce((s, l) => s + l.qty, 0);
   const total = lines.reduce((s, l) => s + l.unitPrice * l.qty, 0);
@@ -184,21 +232,49 @@ export function CartBar({
               </span>
             </div>
 
+            {onlinePayment && (
+              <>
+                <button
+                  type="button"
+                  onClick={payOnline}
+                  disabled={paying}
+                  className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl py-3.5 text-[15px] font-bold shadow-lg transition-opacity hover:opacity-90 disabled:opacity-50"
+                  style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}
+                >
+                  <CreditCard size={17} />
+                  {paying
+                    ? en
+                      ? "Redirecting…"
+                      : "جارٍ التحويل…"
+                    : en
+                      ? "Pay now"
+                      : "ادفع الآن"}
+                </button>
+                {payError && (
+                  <p className="mt-2 text-center text-xs" style={{ color: "#ef5350" }}>
+                    {payError}
+                  </p>
+                )}
+              </>
+            )}
+
             {waHref ? (
               <a
                 href={waHref}
                 target="_blank"
                 rel="noreferrer"
-                className="mt-4 block w-full rounded-2xl bg-[#25D366] py-3.5 text-center text-[15px] font-bold text-white shadow-lg transition-opacity hover:opacity-90"
+                className="mt-3 block w-full rounded-2xl bg-[#25D366] py-3.5 text-center text-[15px] font-bold text-white shadow-lg transition-opacity hover:opacity-90"
               >
                 📲 {en ? "Send order on WhatsApp" : "أرسل الطلب على واتساب"}
               </a>
             ) : (
-              <p className="mt-4 text-center text-xs" style={{ color: "var(--m-muted)" }}>
-                {en
-                  ? "Show this order to the staff to confirm."
-                  : "أظهر هذا الطلب للموظف لتأكيده."}
-              </p>
+              !onlinePayment && (
+                <p className="mt-4 text-center text-xs" style={{ color: "var(--m-muted)" }}>
+                  {en
+                    ? "Show this order to the staff to confirm."
+                    : "أظهر هذا الطلب للموظف لتأكيده."}
+                </p>
+              )
             )}
           </div>
         </div>

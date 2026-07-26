@@ -15,8 +15,6 @@ export interface Restaurant {
   logo_image: string | null;
   banner_image: string | null;
   slug: string | null;
-  payment_gateway: string | null;
-  payment_key: string | null;
   google_review_url: string | null;
   allergens_text: string | null;
   working_hours: string | null;
@@ -30,7 +28,40 @@ export interface Restaurant {
   loyalty_enabled: boolean | null;
   loyalty_goal: number | null;
   loyalty_reward: string | null;
+  reviews_enabled: boolean | null;
+  /**
+   * علم للقراءة فقط تزامنه قاعدة البيانات من `restaurant_payment_settings`.
+   * وجوده هنا يتيح لصفحة المنيو العامة معرفة توفّر الدفع دون لمس جدول الأسرار.
+   */
+  online_payment_enabled: boolean | null;
   created_at: string;
+}
+
+/**
+ * تقييم زبون. `avg_score` يُحسب على الخادم من `answers` ويُقيَّد بـ CHECK في
+ * قاعدة البيانات — لا يُقبل من المتصفح.
+ */
+export interface SurveyResponse {
+  id: string;
+  restaurant_id: string;
+  answers: Record<string, number>;
+  note: string | null;
+  avg_score: number | null;
+  created_at: string;
+}
+
+/**
+ * بيانات اعتماد بوابة الدفع الخاصة بالمطعم (جدول منفصل بلا أي قراءة للزائر).
+ * `secret_key` لا يُرسل للمتصفح إطلاقاً — تقرأه دالة الحافة بمفتاح الخدمة.
+ */
+export interface RestaurantPaymentSettings {
+  restaurant_id: string;
+  user_id: string;
+  provider: "paylink";
+  api_id: string | null;
+  secret_key: string | null;
+  enabled: boolean;
+  updated_at: string;
 }
 
 export interface Menu {

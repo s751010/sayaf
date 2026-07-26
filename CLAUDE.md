@@ -9,12 +9,15 @@
 
 - **المصدر الحيّ الوحيد هو تطبيق Next.js في `web/`.** مبني بـ **Next.js 16 + React 19 +
   Tailwind 4 + Supabase SSR**، منظّم بمكوّنات وصفحات وserver actions قابلة للقراءة والتطوير.
-- **النشر:** Netlify مربوط بـ Git، يبني من `web/` تلقائياً (`netlify.toml` بالجذر: `base="web"`).
+- **النشر:** Netlify مربوط بـ Git، يبني من `web/` تلقائياً (`netlify.toml` بالجذر:
+  `base="web"` + `publish=".next"` + plugin محوّل Next مثبَّت صراحةً — الاكتشاف
+  التلقائي معطّل في هذا الموقع وبدونه تظهر 404 على كل مسار).
   الدومين الحالي: `https://cloudsmenu.netlify.app/` (مؤقت حتى شراء دومين رسمي —
   عند التغيير عدّل `SITE_URL` في `web/src/lib/site.ts` و`app/src/lib/config.ts`،
   وهو موحّد الآن بين النسختين بعد أن كانت `web/` تستخدم دومين `cloudmenuy` مختلفاً).
-- **الأرشيف:** النسخة القديمة كانت ملف HTML واحد مصغّر (~1.49MB) يُنشر يدوياً. أُرشِف في
-  `legacy/public/index.html` ولم يعد يُطوَّر أو يُنشر. لا تعدّله؛ استخدمه للمرجع فقط.
+- **الأرشيف:** النسخة القديمة ملف HTML واحد مصغّر (~1.49MB) كان يُنشر يدوياً وكان
+  هو الموقع الرسمي حتى استُبدل بـ`web/`. أُرشِف في `legacy/public/index.html`.
+  لا تعدّله؛ استخدمه للمرجع فقط. أخطاؤه موثّقة في `ANALYSIS-COMPARISON.md`.
 - اللغة: عربية RTL، خطوط Google (Cairo, Tajawal, …).
 
 ### قاعدة ذهبية للعمل اليومي
@@ -33,10 +36,18 @@
   - عميل مصادَق مربوط بالكوكيز: `createServerSupabase()` — نفس الملف
 - تحديث الجلسة عبر proxy: `web/src/proxy.ts` + `web/src/lib/supabase/proxy.ts`
 
-**الجداول الحقيقية (12، مؤكّدة من قاعدة البيانات):**
+**الجداول الحقيقية (14، مؤكّدة من قاعدة البيانات):**
 `restaurants`, `menus`, `dishes`, `analytics`, `subscriptions`, `announcements`,
 `promo_codes`, `support_tickets`, `revenue_log`, `site_settings`, `blog_posts`,
-`loyalty_customers`. (ملاحظة: لا يوجد جدول `survey_responses`.)
+`loyalty_customers`, `survey_responses`, `restaurant_payment_settings`.
+
+- `survey_responses` — تقييمات الزبائن. الكتابة للزائر، والقراءة لصاحب المطعم
+  أو المؤسس فقط. `avg_score` مقيَّد بـ CHECK بين ١ و٥ فلا يُزوَّر من المتصفح.
+- `restaurant_payment_settings` — بيانات اعتماد PayLink لكل مطعم. **بلا أي
+  سياسة قراءة لدور `anon`**؛ تقرأها دالة الحافة بمفتاح الخدمة فقط. لا تنقل هذه
+  الحقول إلى `restaurants` أبداً — قراءته عامّة (`qual = true`) فيتسرّب السرّ.
+- عمودان مشتقّان على `restaurants` تزامنهما قاعدة البيانات ولا تُكتب يدوياً:
+  `online_payment_enabled` (بمُشغِّل من جدول الدفع) و`has_secret` (عمود محسوب).
 
 ### الأمان (RLS)
 - كل الجداول عليها RLS مفعّل. جداول المؤسس (`announcements`, `promo_codes`, `revenue_log`,
@@ -115,6 +126,7 @@
 | `web/src/lib/` | منطق مشترك (supabase, founder, entitlements, plans, personas, themes) |
 | `web/.env.example` | متغيّرات البيئة المطلوبة على Netlify |
 | `supabase/functions/` | مصدر دوال الحافة (PayLink + founder-admin) — **تُنشر يدوياً** |
+| `app/` + `deploy/` | نسخة SPA ثابتة — خطة رجوع سريعة، تُنشر بسحب `deploy/` يدوياً |
 | `netlify.toml` | إعداد النشر (`base="web"`) |
 | `legacy/public/` | الموقع المصغّر القديم (أرشيف، لا يُنشر) |
 | `legacy/check_html_js.mjs` | أداة فحص الملف المصغّر القديم (أرشيف) |
@@ -126,11 +138,14 @@
 
 ---
 
-## 7. النسخة v2 — `app/` (المصدر) + `deploy/` (الناتج) = الهدف الافتراضي للنشر
+## 7. النسخة v2 — `app/` (المصدر) + `deploy/` (الناتج) = **خطة رجوع**، لا هدف النشر
 
-إعادة بناء المنصة كـ **SPA ثابتة** بـ **Vite + React 18 + TypeScript + Tailwind v4**،
-تُنشر **بالسحب المباشر أو بربط Git بلا متغيّرات بيئة** (بعكس `web/` التي تتطلب SSR + متغيّرات).
-**`netlify.toml` بالجذر يبني هذه النسخة** (`cd app && npm ci && npm run build` → نشر `deploy/`).
+SPA ثابتة بـ **Vite + React 18 + TypeScript + Tailwind v4**، تُنشر بالسحب المباشر
+بلا متغيّرات بيئة. **لم تعد هدف البناء**: `netlify.toml` يبني `web/`.
+
+تُستخدم كخطة رجوع سريعة إن تعطّل نشر SSR — اسحب مجلد `deploy/` يدوياً إلى Netlify
+(السحب اليدوي لا يقرأ `netlify.toml`). انتبه أنها **تفتقد**: التقييمات، السلة
+والطلب عبر واتساب، الإعلانات، تذاكر الدعم، إدارة أكواد الخصم، ولوحة مؤسس كاملة.
 
 - **`app/`** — الكود المصدري. `npm run build` داخلها يبني إلى `deploy/` بجذر المستودع.
 - **`deploy/`** — الناتج الجاهز (ملتزَم في git): اسحب المجلد كاملاً إلى Netlify وانتهى.

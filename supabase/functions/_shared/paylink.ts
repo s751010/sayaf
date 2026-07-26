@@ -27,14 +27,20 @@ export function isProduction(): boolean {
 }
 
 /**
+ * بيانات اعتماد PayLink. تُترك فارغة لاستخدام حساب المنصّة (من أسرار الدالة)،
+ * وتُمرَّر صراحةً عند الدفع لحساب مطعم بعينه (طلبات الزبائن).
+ */
+export type PaylinkCredentials = { apiId: string; secretKey: string };
+
+/**
  * يجلب رمز وصول قصير العمر (30 دقيقة) — نطلبه لكل نداء بدل تخزينه،
  * فالدالة قصيرة العمر أصلاً و`persistToken:false` أضيق نطاقاً.
  */
-async function authToken(): Promise<string> {
-  const apiId = Deno.env.get("PAYLINK_API_ID");
-  const secretKey = Deno.env.get("PAYLINK_SECRET_KEY");
+async function authToken(creds?: PaylinkCredentials): Promise<string> {
+  const apiId = creds?.apiId ?? Deno.env.get("PAYLINK_API_ID");
+  const secretKey = creds?.secretKey ?? Deno.env.get("PAYLINK_SECRET_KEY");
   if (!apiId || !secretKey) {
-    throw new Error("PAYLINK_API_ID / PAYLINK_SECRET_KEY غير مضبوطين في أسرار الدالة.");
+    throw new Error("بيانات اعتماد PayLink غير مضبوطة.");
   }
 
   const res = await fetch(`${paylinkBase()}/api/auth`, {
@@ -78,8 +84,11 @@ export type AddInvoiceResult = {
   success?: boolean;
 };
 
-export async function addInvoice(input: AddInvoiceInput): Promise<AddInvoiceResult> {
-  const token = await authToken();
+export async function addInvoice(
+  input: AddInvoiceInput,
+  creds?: PaylinkCredentials
+): Promise<AddInvoiceResult> {
+  const token = await authToken(creds);
   const res = await fetch(`${paylinkBase()}/api/addInvoice`, {
     method: "POST",
     headers: {

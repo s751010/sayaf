@@ -1,16 +1,32 @@
-# إعداد Netlify للنسخة الجديدة v2 (app/ → deploy/) — SPA ثابتة تُنشر بالسحب أو بربط Git.
+# ═══════════════════════════════════════════════════════════════════
+#  إعداد Netlify — النسخة الرسمية هي تطبيق Next.js في web/
+# ═══════════════════════════════════════════════════════════════════
 #
-# عند ربط المستودع بـ Netlify (استيراد من GitHub) يُبنى تطبيق Vite في app/
-# ويُنشر ناتجه من deploy/ — بلا أي متغيرات بيئة (المفاتيح العامة مضمّنة في
-# app/src/lib/config.ts). هذا يجعل النشر يعمل مباشرة دون إعداد إضافي.
+# base = "web" يجعل الموقع المربوط بـ Git يبني التطبيق الصحيح حتى لو كانت
+# خانة "Base directory" في واجهة Netlify فارغة أو خاطئة.
 #
-# ملاحظات:
-# - النشر اليدوي بالسحب لا يقرأ هذا الملف إطلاقاً: اسحب مجلد deploy/ كاملاً وينتهي.
-# - نسخة web/ (Next.js SSR) لا تزال في المستودع كمرجع؛ لنشرها أنشئ موقع Netlify
-#   منفصلاً واضبط Base directory = web + متغيرات البيئة في واجهة Netlify.
+# publish = ".next" (نسبةً إلى base) مثبَّتة صراحةً لتتجاوز أي قيمة عالقة في
+# إعدادات الواجهة — محوّل Next يحوّلها إلى نشر SSR كامل أثناء البناء.
+#
+# ⚠️ plugin محوّل Next مثبَّت صراحةً عمداً: الاكتشاف التلقائي لا يعمل في هذا
+# الموقع (سبق أن أظهر الـAPI العام plugin_state = none على نشرات ناجحة ظاهرياً
+# لكنها تخدم 404 على كل مسار). بدون المحوّل يُنشر .next كملفات خام بلا خادم SSR.
+#
+# متغيّرات البيئة المطلوبة في واجهة Netlify (Site settings → Environment):
+#   NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, FOUNDER_EMAIL
+# انظر web/.env.example. أسرار الدفع ليست هنا — مكانها أسرار دوال Supabase.
+#
+# النسخة الثابتة v2 (app/ → deploy/) تبقى في المستودع كخطة رجوع سريعة:
+# يمكن نشرها بسحب مجلد deploy/ يدوياً إلى Netlify، والسحب اليدوي لا يقرأ هذا
+# الملف إطلاقاً.
+
 [build]
-  command = "cd app && npm ci && npm run build"
-  publish = "deploy"
+  base = "web"
+  command = "npm run build"
+  publish = ".next"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
 
 [build.environment]
   NODE_VERSION = "22"

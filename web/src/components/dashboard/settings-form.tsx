@@ -183,6 +183,23 @@ export function SettingsForm({
         </div>
       </Card>
 
+      <Card className="flex flex-col gap-3">
+        <h2 className="font-bold text-cream">تقييمات الزبائن</h2>
+        <label className="flex items-center gap-2 text-sm text-cream">
+          <input
+            type="checkbox"
+            name="reviews_enabled"
+            defaultChecked={r.reviews_enabled ?? true}
+            className="h-4 w-4 accent-gold"
+          />
+          إظهار زر «قيّم تجربتك» في المنيو العام
+        </label>
+        <p className="text-xs text-muted">
+          استبيان قصير من خمسة أسئلة يملأه الزبون بلا تسجيل. النتائج تظهر لك في
+          صفحة «تقييمات الزبائن» ولا يراها أحد غيرك.
+        </p>
+      </Card>
+
       <div className="flex items-center gap-3">
         <Button type="submit" disabled={pending}>
           {pending ? "جارٍ الحفظ..." : "حفظ الإعدادات"}

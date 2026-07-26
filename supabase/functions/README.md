@@ -5,8 +5,9 @@
 
 | الدالة | `verify_jwt` | الغرض |
 |---|---|---|
-| `paylink-create` | **true** | إنشاء فاتورة PayLink وإرجاع رابط الدفع |
+| `paylink-create` | **true** | اشتراك التاجر: فاتورة PayLink بحساب المنصّة |
 | `paylink-webhook` | **false** | المكان الوحيد الذي يُفعَّل فيه اشتراك |
+| `paylink-order-create` | **false** | طلب زبون: فاتورة **بحساب المطعم نفسه** |
 | `founder-admin` | **false** | وكيل PostgREST للوحة المؤسس، محمي بسرّ |
 
 ---
@@ -38,9 +39,10 @@ supabase secrets set \
 ## 2. النشر
 
 ```bash
-supabase functions deploy paylink-create                 # verify_jwt افتراضياً
-supabase functions deploy paylink-webhook --no-verify-jwt
-supabase functions deploy founder-admin  --no-verify-jwt
+supabase functions deploy paylink-create                       # verify_jwt افتراضياً
+supabase functions deploy paylink-webhook      --no-verify-jwt
+supabase functions deploy paylink-order-create --no-verify-jwt
+supabase functions deploy founder-admin        --no-verify-jwt
 ```
 
 ## 3. ربط الويبهوك
@@ -71,6 +73,12 @@ https://wjqpsbpebpntpeinqccl.supabase.co/functions/v1/paylink-webhook
 
 **تكافؤ العمليات.** تعيد PayLink إرسال الويبهوك حتى عشر مرات حتى تصلها 200،
 فتتحقق الدالة من `payment_ref` قبل إنشاء أي صف.
+
+**طلبات الزبائن تُسعَّر على الخادم أيضاً.** `paylink-order-create` يستقبل معرّفات
+الأصناف والكميات ومعرّفات الإضافات فقط، ثم يعيد قراءة الأسعار من جدول `dishes`
+ويعيد حساب فرق الإضافات من خيارات الطبق المخزَّنة. أي تلاعب بالسلة في المتصفح لا
+يغيّر المبلغ. وبيانات اعتماد المطعم تُقرأ هنا فقط بمفتاح الخدمة من جدول
+`restaurant_payment_settings` الذي لا يملك أي سياسة قراءة لدور `anon`.
 
 ## قيود معروفة
 

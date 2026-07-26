@@ -9,6 +9,11 @@ import type { Dish } from "@/lib/types";
 export interface OptionsSelection {
   label: string;
   unitPrice: number;
+  /**
+   * معرّفات الإضافات المختارة. تُرسل للخادم عند الدفع الإلكتروني ليعيد حساب
+   * فرق السعر من بيانات الطبق بنفسه — فالسعر المعروض هنا لا يُوثق به.
+   */
+  optionIds: string[];
 }
 
 /**
@@ -44,18 +49,20 @@ export function DishOptionsModal({
 
   const valid = groups.every((g) => !g.required || (sel[g.id] ?? []).length > 0);
 
-  const { total, label } = useMemo(() => {
+  const { total, label, optionIds } = useMemo(() => {
     let extra = 0;
     const parts: string[] = [];
+    const ids: string[] = [];
     for (const g of groups) {
       for (const id of sel[g.id] ?? []) {
         const it = g.items.find((i) => i.id === id);
         if (!it) continue;
         extra += it.price;
         parts.push(en && it.name_en ? it.name_en : it.name);
+        ids.push(it.id);
       }
     }
-    return { total: (dish.price ?? 0) + extra, label: parts.join("، ") };
+    return { total: (dish.price ?? 0) + extra, label: parts.join("، "), optionIds: ids };
   }, [groups, sel, dish.price, en]);
 
   return (
@@ -156,7 +163,7 @@ export function DishOptionsModal({
           <button
             type="button"
             disabled={!valid}
-            onClick={() => onAdd({ label, unitPrice: total })}
+            onClick={() => onAdd({ label, unitPrice: total, optionIds })}
             className="w-full rounded-2xl py-3.5 text-base font-extrabold transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
             style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}
           >
