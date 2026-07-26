@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import {
   QrCode,
   Sparkles,
@@ -20,8 +21,13 @@ const features = [
   { icon: BarChart3, title: "إحصائيات حية", desc: "تابع أكثر الأصناف مشاهدةً وأداء قائمتك لحظياً." },
   { icon: Smartphone, title: "تجربة جوال أولاً", desc: "تصميم RTL سريع ومحسّن للهواتف، يفتح حتى مع إنترنت ضعيف." },
   { icon: Palette, title: "هوية مطعمك", desc: "شعار، ألوان، وروابط تواصل تعكس علامتك التجارية." },
-  { icon: ShieldCheck, title: "مدفوعات آمنة", desc: "تكامل مع مدى وآبل باي عبر بوابة Moyasar السعودية." },
+  { icon: ShieldCheck, title: "مدفوعات آمنة", desc: "تكامل مع مدى وآبل باي عبر بوابة PayLink السعودية." },
 ];
+
+// انتقل من الـlayout إلى هنا: الـlayout كان يورّث canonical الرئيسية لكل صفحة.
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 export default function HomePage() {
   return (

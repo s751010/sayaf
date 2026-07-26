@@ -17,11 +17,19 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { slug } = await params;
   const restaurant = await getRestaurantBySlug(slug);
   if (!restaurant) return { title: "المطعم غير موجود" };
+  const description = `قائمة ${restaurant.name} الرقمية — تصفّح الأصناف واطلب بسهولة.`;
   return {
     title: restaurant.name,
-    description: `قائمة ${restaurant.name} الرقمية — تصفّح الأصناف واطلب بسهولة.`,
+    description,
+    // بلا هذا السطر ترث الصفحة canonical الرئيسية فلا تُفهرس أي قائمة.
+    alternates: { canonical: `/${slug}` },
     openGraph: {
+      type: "website",
+      siteName: "كلاود منيو",
+      locale: "ar_SA",
+      url: `/${slug}`,
       title: restaurant.name,
+      description,
       images: restaurant.banner_image || restaurant.logo_image || undefined,
     },
   };

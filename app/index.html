@@ -16,6 +16,17 @@
     />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="ar_SA" />
+    <meta property="og:site_name" content="كلاود منيو" />
+    <!--
+      canonical و og:url و og:image قيمها هنا للصفحة الرئيسية فقط، ويعيد
+      `applySeo()` (في src/lib/seo.ts) ضبطها لكل صفحة عند التنقّل — بلا ذلك
+      كانت كل صفحات المنيو تُعلن الرئيسية كنسختها المعيارية فلا تُفهرس.
+      og:image صورة PNG عمداً: منصات المعاينة لا تعرض SVG.
+    -->
+    <link rel="canonical" href="https://cloudsmenu.netlify.app/" />
+    <meta property="og:url" content="https://cloudsmenu.netlify.app/" />
+    <meta property="og:image" content="https://cloudsmenu.netlify.app/icon-512.png" />
+    <meta name="twitter:card" content="summary" />
     <link rel="icon" type="image/svg+xml" href="/icon.svg" />
     <link rel="apple-touch-icon" href="/icon-192.png" />
     <link rel="manifest" href="/manifest.webmanifest" />

@@ -129,3 +129,52 @@ export async function founderAdmin<T>(
   if (!res.ok) throw new ApiError(res.status, text || `founder ${res.status}`);
   return (text ? JSON.parse(text) : []) as T;
 }
+
+/* ── الدفع عبر PayLink ────────────────────────────────────────────────── */
+
+export type PaylinkInvoice = {
+  url: string;
+  transactionNo: string;
+  amount: number;
+  discount: number;
+  promo_code: string | null;
+  plan_name: string;
+};
+
+/**
+ * ينشئ فاتورة PayLink ويعيد رابط صفحة الدفع.
+ *
+ * لا يُرسل مبلغ إطلاقاً — الدالة على الخادم تشتقّ السعر من `plan_id` و`cycle`
+ * وتتحقق من كود الخصم مقابل جدول `promo_codes`. هذا ما يمنع تلاعب العميل
+ * بالمبلغ، ويمنع تكرار خلل «سعر معروض ≠ سعر مخصوم».
+ */
+export async function createPaylinkInvoice(input: {
+  planId: string;
+  cycle: "monthly" | "yearly";
+  promoCode?: string;
+}): Promise<PaylinkInvoice> {
+  const token = await getAccessToken();
+  if (!token) throw new ApiError(401, "سجّل الدخول أولاً.");
+
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/paylink-create`, {
+    method: "POST",
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      plan_id: input.planId,
+      cycle: input.cycle,
+      promo_code: input.promoCode?.trim() || undefined,
+    }),
+  });
+
+  const data = (await res.json().catch(() => ({}))) as Partial<PaylinkInvoice> & {
+    error?: string;
+  };
+  if (!res.ok || !data.url) {
+    throw new ApiError(res.status, data.error || "تعذّر بدء عملية الدفع.");
+  }
+  return data as PaylinkInvoice;
+}

@@ -7,6 +7,7 @@ import { getPostBySlug } from "@/lib/data";
 import { formatDate } from "@/lib/utils";
 import type { BlogPost } from "@/lib/types";
 import { postTitle } from "./Blog";
+import { applySeo } from "@/lib/seo";
 
 export default function BlogPostPage() {
   const { slug = "" } = useParams();
@@ -17,7 +18,7 @@ export default function BlogPostPage() {
     getPostBySlug(slug)
       .then((p) => {
         setPost(p);
-        if (p) document.title = `${postTitle(p)} — كلاود منيو`;
+        if (p) applySeo({ title: postTitle(p), path: `/blog/${slug}` });
       })
       .catch(() => setPost(null));
   }, [slug]);

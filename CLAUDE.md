@@ -10,8 +10,9 @@
 - **المصدر الحيّ الوحيد هو تطبيق Next.js في `web/`.** مبني بـ **Next.js 16 + React 19 +
   Tailwind 4 + Supabase SSR**، منظّم بمكوّنات وصفحات وserver actions قابلة للقراءة والتطوير.
 - **النشر:** Netlify مربوط بـ Git، يبني من `web/` تلقائياً (`netlify.toml` بالجذر: `base="web"`).
-  الدومين الحالي: `https://cloudmenuy.netlify.app/` (مؤقت حتى شراء دومين رسمي —
-  عند التغيير عدّل `SITE_URL` في `web/src/lib/site.ts` فقط).
+  الدومين الحالي: `https://cloudsmenu.netlify.app/` (مؤقت حتى شراء دومين رسمي —
+  عند التغيير عدّل `SITE_URL` في `web/src/lib/site.ts` و`app/src/lib/config.ts`،
+  وهو موحّد الآن بين النسختين بعد أن كانت `web/` تستخدم دومين `cloudmenuy` مختلفاً).
 - **الأرشيف:** النسخة القديمة كانت ملف HTML واحد مصغّر (~1.49MB) يُنشر يدوياً. أُرشِف في
   `legacy/public/index.html` ولم يعد يُطوَّر أو يُنشر. لا تعدّله؛ استخدمه للمرجع فقط.
 - اللغة: عربية RTL، خطوط Google (Cairo, Tajawal, …).
@@ -51,11 +52,23 @@
 - في التطبيق: `isFounder()` — `web/src/lib/founder.ts`، يُستخدم في كل صفحات وactions `/founder`.
 - في قاعدة البيانات: دالة `is_founder()` في سياسات RLS. الحارسان معاً = دفاع بعمق.
 
-### المدفوعات (Moyasar)
-- مفتاح النشر يُقرأ من `NEXT_PUBLIC_MOYASAR_PK` — `web/src/components/billing/moyasar-form.tsx`.
-- لا يزال `pk_test` (بطلب المالك). عند الإطلاق ضع `pk_live_...` في متغيّر البيئة.
-- التسعير مصدره الوحيد `web/src/lib/plans.ts` (`PLANS`) — معرّفات الباقات `standard`/`premium`
-  يجب أن تطابق `PRICES` في دالة webhook حتى يُفعَّل الاشتراك ويُسجَّل الإيراد.
+### المدفوعات (PayLink)
+البوابة **PayLink** (`paylink.sa`) — حلّت محل Moyasar في `web/` و`app/` معاً.
+
+- **لا يوجد أي مفتاح دفع في المتصفح.** `PAYLINK_API_ID` و`PAYLINK_SECRET_KEY`
+  أسرارُ خادم في أسرار دوال Supabase حصراً. راجع `supabase/functions/README.md`.
+- **المبلغ لا يُرسل من العميل أبداً**: الواجهة ترسل `plan_id` + `cycle` فقط،
+  ودالة `paylink-create` تشتقّ السعر من `supabase/functions/_shared/plans.ts`.
+- **التفعيل لا يحدث في المتصفح أبداً**: `paylink-webhook` وحده يكتب في
+  `subscriptions` و`revenue_log` بمفتاح الخدمة، بعد التحقق من الفاتورة عبر
+  `getInvoice` (ويبهوك PayLink بلا توقيع، فلا يُصدَّق جسمه).
+- **أكواد الخصم** تُتحقَّق من جدول `promo_codes` داخل `paylink-create`، ويُحتسب
+  الاستخدام في الويبهوك بعد نجاح الدفع فقط.
+- التبديل للإنتاج = تغيير `PAYLINK_ENV` والمفاتيح في أسرار الدوال. لا إعادة بناء.
+
+> ⚠️ جدول الأسعار مكرَّر في ثلاثة أماكن (`_shared/plans.ts`, `web/src/lib/plans.ts`,
+> `app/src/lib/plans.ts`) لأن دوال الحافة لا تشارك حزمة مع الواجهتين.
+> **أي تعديل سعر يجب أن يمرّ على الثلاثة** وإلا اختلف المعروض عن المخصوم.
 
 ---
 
@@ -88,7 +101,8 @@
 
 ## 5. ملاحظات وتحذيرات
 - لا تعدّل `legacy/` — أرشيف فقط.
-- المفاتيح العامة (anon JWT, Moyasar pk) آمنة للواجهة. لا تكشف أسراراً في logs/commits.
+- المفتاح العام (anon JWT) آمن للواجهة. مفاتيح PayLink أسرار خادم — لا تضعها في
+  أي ملف داخل `web/` أو `app/`، ولا تكشف أسراراً في logs/commits.
 - عند لمس المدفوعات/الجلسة/سياسات RLS: راجع المالك قبل الدفع.
 
 ## 6. بنية المستودع (Repo layout)
@@ -100,13 +114,15 @@
 | `web/src/components/` | مكوّنات (site, menu, dashboard, founder, billing, ui) |
 | `web/src/lib/` | منطق مشترك (supabase, founder, entitlements, plans, personas, themes) |
 | `web/.env.example` | متغيّرات البيئة المطلوبة على Netlify |
+| `supabase/functions/` | مصدر دوال الحافة (PayLink + founder-admin) — **تُنشر يدوياً** |
 | `netlify.toml` | إعداد النشر (`base="web"`) |
 | `legacy/public/` | الموقع المصغّر القديم (أرشيف، لا يُنشر) |
 | `legacy/check_html_js.mjs` | أداة فحص الملف المصغّر القديم (أرشيف) |
 
 ### متغيّرات البيئة (Netlify → Environment variables) — تخص نشر `web/` فقط
-`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `FOUNDER_EMAIL`,
-`NEXT_PUBLIC_MOYASAR_PK`. انظر `web/.env.example`. (نسخة v2 في `app/` لا تحتاج أياً منها.)
+`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `FOUNDER_EMAIL`.
+انظر `web/.env.example`. (نسخة v2 في `app/` لا تحتاج أياً منها.)
+أسرار الدفع ليست هنا — مكانها أسرار دوال Supabase (`supabase/functions/README.md`).
 
 ---
 
@@ -129,7 +145,8 @@
   (`DishPayload`, `RestaurantSettingsPayload`) هي مصدر الحقول الوحيد للإضافة والتحديث معاً —
   حقل جديد يُضاف هناك + في فورم `Dishes.tsx`/`Settings.tsx` + عمود Supabase.
 - **التسعير**: من `app/src/lib/plans.ts` — باقتان (99/199) مطابقة لـ `web/src/lib/plans.ts`
-  ولمفاتيح دالة moyasar-webhook. Moyasar لا يزال `pk_test` مع `TODO(production)` في `config.ts`.
+  ولجدول الأسعار في `supabase/functions/_shared/plans.ts`. الدفع عبر PayLink، وبيئته
+  الافتراضية `test` حتى يضبط المالك `PAYLINK_ENV=production` في أسرار الدوال.
 - جلسة v2 بمفتاح `cm2_session`. سر المؤسس يبقى `cm_fsecret` في sessionStorage — لا يُضمَّن أبداً.
 - **التحقق قبل الدفع (v2)**: من داخل `app/`: `npm run build` (يشمل `tsc --noEmit`) يجب أن يمرّ.
 - `web/` (Next.js) تبقى في المستودع كمرجع/بديل؛ إن أردت نشرها اضبط موقع Netlify منفصلاً

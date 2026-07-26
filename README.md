@@ -1,7 +1,7 @@
 # CloudMenu — كلاود منيو
 
 منيو رقمي QR للمطاعم السعودية. تطبيق **Next.js 16 + React 19 + Tailwind 4** مع backend
-على **Supabase** (Auth + PostgREST + RLS) ومدفوعات **Moyasar**، ويُستضاف على **Netlify**.
+على **Supabase** (Auth + PostgREST + RLS) ومدفوعات **PayLink**، ويُستضاف على **Netlify**.
 
 > ⚠️ **اقرأ [`CLAUDE.md`](./CLAUDE.md) قبل أي تعديل.** المصدر الحيّ الوحيد هو مجلد
 > [`web/`](./web). النسخة المصغّرة القديمة أُرشِفت في `legacy/` ولم تعد تُطوَّر أو تُنشر.
@@ -38,8 +38,7 @@ npm run dev
 1. أضِف متغيّرات البيئة من [`web/.env.example`](./web/.env.example) في
    Netlify → Site settings → Environment variables:
    `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `FOUNDER_EMAIL`,
-   `NEXT_PUBLIC_MOYASAR_PK`.
-2. الدومين الحالي: `cloudmenuy.netlify.app` (مؤقت حتى شراء دومين رسمي).
+2. الدومين الحالي: `cloudsmenu.netlify.app` (مؤقت حتى شراء دومين رسمي).
    عند تغيير الدومين مستقبلاً: عدّل `SITE_URL` في `web/src/lib/site.ts` فقط —
    كل شيء (metadata، sitemap، robots، أكواد QR، الروابط) يشتق منه.
 
@@ -54,7 +53,8 @@ npm run build && npx tsc --noEmit && npm run lint
 
 ## ملاحظات production
 
-- **Moyasar:** لا يزال مفتاح الاختبار `pk_test` (بطلب المالك). ضع `pk_live_...` في
-  المتغيّر `NEXT_PUBLIC_MOYASAR_PK` قبل تفعيل الدفع الحقيقي.
+- **PayLink:** البيئة الافتراضية `test`. للانتقال للإنتاج اضبط `PAYLINK_ENV=production`
+  ومفاتيح `my.paylink.sa` في أسرار دوال Supabase — لا يوجد مفتاح دفع في كود الواجهة.
+  انظر `supabase/functions/README.md`.
 - **الأمان:** جداول المؤسس مقفولة في RLS عبر دالة `is_founder()`. بعد أي تعديل على
   قاعدة البيانات، شغّل advisors الأمان في Supabase للتأكد من عدم وجود سياسات مكشوفة.

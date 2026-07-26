@@ -20,7 +20,7 @@ createRoot(document.getElementById("root")!).render(
   </StrictMode>
 );
 
-// Service worker: قشرة أوفلاين + كاش الأصول — لا يكاش Supabase/Moyasar أبداً.
+// Service worker: قشرة أوفلاين + كاش الأصول — لا يكاش Supabase أبداً.
 if ("serviceWorker" in navigator && import.meta.env.PROD) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/sw.js").catch(() => {});

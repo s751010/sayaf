@@ -6,6 +6,7 @@ import { Badge, EmptyState, Skeleton } from "@/components/ui";
 import { getPublishedPosts } from "@/lib/data";
 import { formatDate } from "@/lib/utils";
 import type { BlogPost } from "@/lib/types";
+import { applySeo } from "@/lib/seo";
 
 export function postTitle(p: BlogPost): string {
   return p.title_ar || p.title;
@@ -20,7 +21,11 @@ export default function Blog() {
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
-    document.title = "المدونة — كلاود منيو";
+    applySeo({
+      title: "المدونة",
+      description: "مقالات كلاود منيو عن إدارة المطاعم، المنيو الرقمي، وتجربة الزبون.",
+      path: "/blog",
+    });
     getPublishedPosts()
       .then(setPosts)
       .catch(() => setFailed(true));

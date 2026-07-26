@@ -41,7 +41,9 @@ export const metadata: Metadata = {
   description:
     "منيو QR ذكي للمطاعم السعودية: أكواد QR، قوائم رقمية، ذكاء اصطناعي، وإحصائيات حية.",
   applicationName: "كلاود منيو",
-  alternates: { canonical: "/" },
+  // ⚠️ لا تضع `alternates.canonical` هنا: حقول الميتاداتا تُورَّث للصفحات التي
+  // لا تحدّدها، فكانت كل صفحة منيو `/[slug]` تُعلن الرئيسية نسختَها المعيارية
+  // فلا تُفهرس. كل صفحة عامة تحدّد canonical الخاص بها الآن.
   openGraph: {
     type: "website",
     siteName: "كلاود منيو",
