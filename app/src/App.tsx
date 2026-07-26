@@ -13,7 +13,7 @@ import NotFound from "@/pages/NotFound";
 const Blog = lazy(() => import("@/pages/Blog"));
 const BlogPostPage = lazy(() => import("@/pages/BlogPost"));
 const Dashboard = lazy(() => import("@/pages/dashboard/Dashboard"));
-const Founder = lazy(() => import("@/pages/Founder"));
+const Founder = lazy(() => import("@/pages/founder/Founder"));
 
 function PageLoader() {
   return (

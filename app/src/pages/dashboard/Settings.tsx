@@ -45,6 +45,8 @@ export default function Settings() {
     loyalty_enabled: restaurant.loyalty_enabled ?? false,
     loyalty_goal: restaurant.loyalty_goal != null ? String(restaurant.loyalty_goal) : "5",
     loyalty_reward: restaurant.loyalty_reward ?? "",
+    // التقييمات مفعّلة افتراضياً للصفوف القديمة التي أُنشئت قبل إضافة العمود.
+    reviews_enabled: restaurant.reviews_enabled ?? true,
   }));
 
   useEffect(() => {
@@ -80,6 +82,7 @@ export default function Settings() {
       loyalty_enabled: ent.loyalty && f.loyalty_enabled,
       loyalty_goal: numOrNull(f.loyalty_goal),
       loyalty_reward: strOrNull(f.loyalty_reward),
+      reviews_enabled: f.reviews_enabled,
     };
     try {
       await updateRestaurant(restaurant.id, payload);
@@ -132,6 +135,19 @@ export default function Settings() {
 
         <Card className="grid gap-4 sm:grid-cols-2">
           <h2 className={`${section} sm:col-span-2`}>🔗 التواصل والتقييم</h2>
+          <div className="flex items-center justify-between rounded-xl border border-line bg-panel2 px-4 py-3 sm:col-span-2">
+            <div>
+              <p className="text-sm font-bold text-ink">⭐ تقييم الزبائن داخل المنيو</p>
+              <p className="text-xs text-faint">
+                يظهر زر «قيّم تجربتك» في منيوك، والنتائج في صفحة التقييمات.
+              </p>
+            </div>
+            <Switch
+              checked={f.reviews_enabled}
+              onChange={(v) => set("reviews_enabled", v)}
+              label="التقييمات"
+            />
+          </div>
           <Field label="رابط تقييم قوقل" className="sm:col-span-2">
             <Input dir="ltr" value={f.google_review_url} onChange={(e) => set("google_review_url", e.target.value)} placeholder="https://g.page/r/…" />
           </Field>

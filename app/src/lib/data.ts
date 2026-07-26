@@ -6,14 +6,24 @@
  * (3) payload التحديث هنا. حقل ناقص = يُسقَط بصمت بلا أي خطأ.
  */
 import { rest, restCount, rpc } from "./api";
+import {
+  SCORE_MAX,
+  SCORE_MIN,
+  SURVEY_QUESTIONS,
+  SURVEY_QUESTION_IDS,
+  NOTE_MAX_LENGTH,
+} from "./survey";
 import type {
   AnalyticsRow,
+  Announcement,
   BlogPost,
   Dish,
   LoyaltyCustomer,
   Menu,
   Restaurant,
   Subscription,
+  SupportTicket,
+  SurveyResponse,
 } from "./types";
 
 // ── عام (زائر — بمفتاح anon) ─────────────────────────────────────────
@@ -155,6 +165,11 @@ export type RestaurantSettingsPayload = {
   loyalty_enabled: boolean;
   loyalty_goal: number | null;
   loyalty_reward: string | null;
+  /**
+   * بوابة التقييمات. سياسة إدراج `survey_responses` تشترط أن يكون `true`،
+   * فبدون هذا المفتاح لا يستطيع أي زبون إرسال تقييم إطلاقاً.
+   */
+  reviews_enabled: boolean;
 };
 
 export async function updateRestaurant(
@@ -340,4 +355,130 @@ export async function redeemLoyalty(c: LoyaltyCustomer): Promise<LoyaltyCustomer
     body: { stamps: 0, rewards_used: (c.rewards_used ?? 0) + 1 },
   });
   return rows[0] ?? null;
+}
+
+// ── تقييمات الزبائن (survey_responses) ───────────────────────────────
+
+/**
+ * إرسال تقييم من صفحة المنيو العامة (زائر بلا حساب).
+ *
+ * يُتحقَّق من الدرجات هنا قبل الإرسال، لكن الحارس الحقيقي في قاعدة البيانات:
+ * سياسة الإدراج تشترط `reviews_enabled = true` للمطعم، و`avg_score` مقيَّد
+ * بـ CHECK بين ١ و٥ — فلا ينفع تزوير القيم من المتصفح.
+ */
+export async function submitSurvey(input: {
+  restaurantId: string;
+  answers: Record<string, number>;
+  note: string;
+}): Promise<void> {
+  const answers: Record<string, number> = {};
+  for (const id of SURVEY_QUESTION_IDS) {
+    const value = input.answers[id];
+    if (value === undefined) continue;
+    if (!Number.isInteger(value) || value < SCORE_MIN || value > SCORE_MAX) {
+      throw new Error("قيمة تقييم غير صالحة.");
+    }
+    answers[id] = value;
+  }
+  const values = Object.values(answers);
+  if (values.length === 0) throw new Error("اختر تقييماً واحداً على الأقل.");
+
+  const note = input.note.trim();
+  if (note.length > NOTE_MAX_LENGTH) throw new Error("الملاحظة طويلة جداً.");
+
+  const avg_score = Math.round((values.reduce((s, n) => s + n, 0) / values.length) * 10) / 10;
+
+  await rest("survey_responses", {
+    method: "POST",
+    anonymous: true,
+    headers: { Prefer: "return=minimal" },
+    body: { restaurant_id: input.restaurantId, answers, note: note || null, avg_score },
+  });
+}
+
+/** تقييمات مطعمي — تقرأها سياسة RLS لصاحب المطعم فقط. */
+export async function getMySurveyResponses(restaurantId: string): Promise<SurveyResponse[]> {
+  return rest<SurveyResponse[]>(
+    `survey_responses?restaurant_id=eq.${restaurantId}&select=*&order=created_at.desc`
+  );
+}
+
+export interface SurveySummary {
+  responses: SurveyResponse[];
+  count: number;
+  /** المتوسط العام من ٥. */
+  overall: number;
+  /** نسبة من أعطوا ٤٫٥ فأعلى. */
+  satisfaction: number;
+  last7: number;
+  perQuestion: { id: string; label: string; icon: string; avg: number | null; n: number }[];
+  notes: SurveyResponse[];
+}
+
+/** تجميع التقييمات لعرضها في لوحة التاجر — نفس حساب نسخة web. */
+export function summarizeSurveys(responses: SurveyResponse[]): SurveySummary {
+  const count = responses.length;
+  if (count === 0) {
+    return { responses, count: 0, overall: 0, satisfaction: 0, last7: 0, perQuestion: [], notes: [] };
+  }
+
+  const overall =
+    Math.round((responses.reduce((sum, r) => sum + (r.avg_score ?? 0), 0) / count) * 10) / 10;
+
+  const perQuestion = SURVEY_QUESTIONS.map((q) => {
+    const values = responses
+      .map((r) => r.answers?.[q.id])
+      .filter((v): v is number => typeof v === "number");
+    const avg = values.length
+      ? Math.round((values.reduce((s, v) => s + v, 0) / values.length) * 10) / 10
+      : null;
+    return { id: q.id as string, label: q.label as string, icon: q.icon as string, avg, n: values.length };
+  });
+
+  const promoters = responses.filter((r) => (r.avg_score ?? 0) >= 4.5).length;
+  const weekAgo = Date.now() - 7 * 86_400_000;
+
+  return {
+    responses,
+    count,
+    overall,
+    satisfaction: Math.round((promoters / count) * 100),
+    last7: responses.filter((r) => new Date(r.created_at).getTime() >= weekAgo).length,
+    perQuestion,
+    notes: responses.filter((r) => r.note?.trim()),
+  };
+}
+
+// ── الإعلانات وتذاكر الدعم ───────────────────────────────────────────
+
+/** إعلانات المنصة الفعّالة — تظهر للتاجر في لوحته. */
+export async function getActiveAnnouncements(): Promise<Announcement[]> {
+  return rest<Announcement[]>(
+    `announcements?status=eq.active&select=*&order=created_at.desc&limit=10`
+  );
+}
+
+/** whitelist حقول التذكرة (القاعدة أ) — مصدر واحد لإنشاء التذاكر. */
+export type SupportTicketPayload = {
+  user_id: string;
+  user_name: string | null;
+  email: string | null;
+  restaurant_name: string | null;
+  subject: string;
+  message: string;
+};
+
+export async function createSupportTicket(payload: SupportTicketPayload): Promise<void> {
+  await rest("support_tickets", {
+    method: "POST",
+    headers: { Prefer: "return=minimal" },
+    body: { ...payload, status: "open" },
+  });
+}
+
+/** تذاكري أنا — سياسة RLS تحصرها في `auth.uid() = user_id`. */
+export async function getMyTickets(userId: string): Promise<SupportTicket[]> {
+  return rest<SupportTicket[]>(
+    `support_tickets?user_id=eq.${userId}&select=*&order=created_at.desc`
+  );
 }

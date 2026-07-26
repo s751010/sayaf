@@ -37,9 +37,11 @@ import Menus from "./Menus";
 import Dishes from "./Dishes";
 import Qr from "./Qr";
 import Analytics from "./Analytics";
+import Reviews from "./Reviews";
 import Loyalty from "./Loyalty";
 import Settings from "./Settings";
 import Billing from "./Billing";
+import Support from "./Support";
 import Ai from "./Ai";
 
 /* ── السياق المشترك ───────────────────────────────────────────────── */
@@ -145,9 +147,11 @@ const NAV = [
   { to: "/dashboard/menus", label: "القوائم", icon: "📋" },
   { to: "/dashboard/qr", label: "أكواد QR", icon: "🔳" },
   { to: "/dashboard/analytics", label: "التحليلات", icon: "📊" },
+  { to: "/dashboard/reviews", label: "التقييمات", icon: "⭐" },
   { to: "/dashboard/loyalty", label: "الولاء", icon: "💛" },
   { to: "/dashboard/ai", label: "المستشار الذكي", icon: "🤖" },
   { to: "/dashboard/billing", label: "الاشتراك", icon: "💳" },
+  { to: "/dashboard/support", label: "الدعم", icon: "🛟" },
   { to: "/dashboard/settings", label: "الإعدادات", icon: "⚙️" },
 ];
 
@@ -297,9 +301,11 @@ export default function Dashboard() {
           <Route path="dishes" element={<Dishes />} />
           <Route path="qr" element={<Qr />} />
           <Route path="analytics" element={<Analytics />} />
+          <Route path="reviews" element={<Reviews />} />
           <Route path="loyalty" element={<Loyalty />} />
           <Route path="ai" element={<Ai />} />
           <Route path="billing" element={<Billing />} />
+          <Route path="support" element={<Support />} />
           <Route path="settings" element={<Settings />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>

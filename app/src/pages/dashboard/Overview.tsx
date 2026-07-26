@@ -2,17 +2,26 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Badge, Card, Skeleton, useToast } from "@/components/ui";
-import { getMyAnalytics, getMyDishes } from "@/lib/data";
+import { getActiveAnnouncements, getMyAnalytics, getMyDishes } from "@/lib/data";
 import { formatPrice } from "@/lib/utils";
 import { SITE_URL } from "@/lib/config";
-import type { Dish } from "@/lib/types";
+import type { Announcement, Dish } from "@/lib/types";
 import { useDashboard } from "./Dashboard";
+
+/** ألوان بطاقة الإعلان حسب نوعه. */
+const ANNOUNCEMENT_STYLE: Record<string, { border: string; icon: string }> = {
+  info: { border: "border-line", icon: "📢" },
+  success: { border: "border-good/30", icon: "🎉" },
+  warning: { border: "border-gold/35", icon: "⚠️" },
+  danger: { border: "border-bad/35", icon: "🚨" },
+};
 
 export default function Overview() {
   const { user, restaurant, menus, ent } = useDashboard();
   const toast = useToast();
   const [dishes, setDishes] = useState<Dish[] | null>(null);
   const [views30, setViews30] = useState<number | null>(null);
+  const [news, setNews] = useState<Announcement[]>([]);
 
   useEffect(() => {
     document.title = "لوحة التحكم — كلاود منيو";
@@ -20,6 +29,8 @@ export default function Overview() {
     getMyAnalytics(user.id)
       .then((rows) => setViews30(rows.reduce((s, r) => s + (r.views ?? 0), 0)))
       .catch(() => setViews30(0));
+    // الإعلانات إضافة تحسينية — فشلها لا يعطّل بقية اللوحة.
+    getActiveAnnouncements().then(setNews).catch(() => setNews([]));
   }, [restaurant.id, user.id]);
 
   const menuUrl = `${window.location.origin}/${restaurant.slug}`;
@@ -45,6 +56,24 @@ export default function Overview() {
           {ent.active ? `باقة ${ent.planName}` : "بدون اشتراك فعّال"}
         </Badge>
       </div>
+
+      {/* إعلانات المنصة */}
+      {news.length > 0 && (
+        <div className="mt-6 flex flex-col gap-3">
+          {news.map((a) => {
+            const style = ANNOUNCEMENT_STYLE[a.type ?? "info"] ?? ANNOUNCEMENT_STYLE.info;
+            return (
+              <Card key={a.id} className={`flex gap-3 ${style.border}`}>
+                <span className="text-xl">{style.icon}</span>
+                <div className="min-w-0">
+                  <p className="font-bold text-ink">{a.title}</p>
+                  <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-dim">{a.body}</p>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      )}
 
       {/* رابط المنيو */}
       <Card className="mt-6 flex flex-wrap items-center justify-between gap-3 border-gold/25 bg-gold/[.04]">

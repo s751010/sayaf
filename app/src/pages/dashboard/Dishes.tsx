@@ -18,6 +18,7 @@ import {
   Textarea,
   useToast,
 } from "@/components/ui";
+import { OptionsEditor } from "@/components/options-editor";
 import {
   countDishes,
   createDish,
@@ -402,8 +403,12 @@ export default function Dishes() {
           <Field label="مسببات الحساسية" hint="افصل بفاصلة: مكسرات، جلوتين، حليب" className="sm:col-span-2">
             <Input value={form.allergens} onChange={(e) => set("allergens", e.target.value)} />
           </Field>
-          <Field label="الخيارات والإضافات" hint="سطر لكل خيار، أو JSON مثل: [{&quot;name&quot;:&quot;جبن إضافي&quot;,&quot;price&quot;:5}]" className="sm:col-span-2">
-            <Textarea value={form.options} onChange={(e) => set("options", e.target.value)} />
+          <Field
+            label="الخيارات والإضافات"
+            hint="تظهر للزبون قبل إضافة الطبق للسلة، ويُحتسب سعرها في الطلب"
+            className="sm:col-span-2"
+          >
+            <OptionsEditor value={form.options} onChange={(v) => set("options", v)} />
           </Field>
 
           <p className="sm:col-span-2 -mb-1 mt-1 text-xs font-black text-faint">

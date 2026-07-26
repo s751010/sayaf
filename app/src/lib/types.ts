@@ -132,3 +132,67 @@ export interface LoyaltyCustomer {
   rewards_used: number | null;
   created_at: string;
 }
+
+/**
+ * تقييم زبون. `answers` خريطة معرّف السؤال → درجة (١..٥)،
+ * و`avg_score` مقيَّد بـ CHECK في قاعدة البيانات فلا يُزوَّر من المتصفح.
+ */
+export interface SurveyResponse {
+  id: string;
+  restaurant_id: string;
+  answers: Record<string, number>;
+  note: string | null;
+  avg_score: number | null;
+  created_at: string;
+}
+
+export interface SupportTicket {
+  id: string;
+  user_id: string | null;
+  user_name: string | null;
+  email: string | null;
+  restaurant_name: string | null;
+  subject: string;
+  message: string;
+  status: string | null;
+  admin_read: boolean | null;
+  admin_reply: string | null;
+  updated_at: string | null;
+  created_at: string;
+}
+
+export interface Announcement {
+  id: string;
+  title: string;
+  body: string;
+  /** info | success | warning | danger — يحدّد لون البطاقة. */
+  type: string | null;
+  audience: string | null;
+  status: string | null;
+  created_at: string;
+}
+
+export interface PromoCode {
+  id: string;
+  code: string;
+  /** نسبة الخصم (٪). */
+  discount: number;
+  max_uses: number | null;
+  uses: number | null;
+  expiry_date: string | null;
+  description: string | null;
+  active: boolean | null;
+  created_at: string;
+}
+
+export interface RevenueEntry {
+  id: string;
+  user_id: string | null;
+  user_name: string | null;
+  plan_id: string | null;
+  plan_name: string | null;
+  amount: number | null;
+  payment_ref: string | null;
+  action: string | null;
+  created_at: string;
+}

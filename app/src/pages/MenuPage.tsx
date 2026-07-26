@@ -14,6 +14,13 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import { Logo } from "@/components/site";
 import { Skeleton } from "@/components/ui";
 import {
+  CartBar,
+  DishOptionsSheet,
+  SurveyButton,
+  type CartLine,
+} from "@/components/menu";
+import { parseDishOptions } from "@/lib/options";
+import {
   getActiveMenus,
   getAvailableDishes,
   getLoyaltyCustomer,
@@ -37,32 +44,6 @@ function dishName(d: Dish, en: boolean): string {
 
 function dishDesc(d: Dish, en: boolean): string | null {
   return en && d.description_en ? d.description_en : d.description;
-}
-
-/** خيارات الطبق تُخزَّن نصاً — قد تكون JSON [{name,price}] أو نصاً حراً. */
-function parseOptions(raw: string | null): { name: string; price?: number }[] {
-  if (!raw?.trim()) return [];
-  try {
-    const v = JSON.parse(raw);
-    if (Array.isArray(v)) {
-      return v
-        .map((o) =>
-          typeof o === "string"
-            ? { name: o }
-            : o && typeof o.name === "string"
-              ? { name: o.name, price: typeof o.price === "number" ? o.price : undefined }
-              : null
-        )
-        .filter((o): o is { name: string; price?: number } => o !== null);
-    }
-  } catch {
-    /* نص حر مفصول بأسطر/فواصل */
-  }
-  return raw
-    .split(/[\n,،]/)
-    .map((s) => s.trim())
-    .filter(Boolean)
-    .map((name) => ({ name }));
 }
 
 function Chip({ children, onClick, href }: { children: ReactNode; onClick?: () => void; href?: string }) {
@@ -140,7 +121,18 @@ function DishCard({ dish, en, onOpen }: { dish: Dish; en: boolean; onOpen: () =>
 }
 
 /* ── نافذة تفاصيل الطبق ───────────────────────────────────────────── */
-function DishModal({ dish, en, onClose }: { dish: Dish; en: boolean; onClose: () => void }) {
+function DishModal({
+  dish,
+  en,
+  onClose,
+  onOrder,
+}: {
+  dish: Dish;
+  en: boolean;
+  onClose: () => void;
+  /** يفتح اختيار الخيارات أو يضيف الطبق مباشرة للسلة. */
+  onOrder: (dish: Dish) => void;
+}) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     document.addEventListener("keydown", onKey);
@@ -151,7 +143,7 @@ function DishModal({ dish, en, onClose }: { dish: Dish; en: boolean; onClose: ()
     };
   }, [onClose]);
 
-  const options = parseOptions(dish.options);
+  const optionGroups = parseDishOptions(dish.options);
   const nutrition = [
     dish.calories != null && { label: en ? "Calories" : "سعرات", value: dish.calories, icon: "🔥" },
     dish.sodium_mg != null && { label: en ? "Sodium" : "صوديوم", value: `${dish.sodium_mg} ملغم`, icon: "🧂" },
@@ -230,27 +222,29 @@ function DishModal({ dish, en, onClose }: { dish: Dish; en: boolean; onClose: ()
             </div>
           )}
 
-          {options.length > 0 && (
-            <div className="mt-4">
+          {optionGroups.map((g) => (
+            <div key={g.id} className="mt-4">
               <p className="mb-1.5 text-xs font-bold" style={{ color: "var(--m-muted)" }}>
-                {en ? "Options" : "الخيارات والإضافات"}
+                {en && g.name_en ? g.name_en : g.name}
               </p>
               <div className="flex flex-col gap-1.5">
-                {options.map((o) => (
+                {g.items.map((o) => (
                   <div
-                    key={o.name}
+                    key={o.id}
                     className="flex items-center justify-between rounded-xl border px-3 py-2 text-sm"
                     style={{ borderColor: "var(--m-border)", color: "var(--m-text)" }}
                   >
-                    <span>{o.name}</span>
-                    {o.price != null && (
-                      <span style={{ color: "var(--m-accent)" }}>+{formatPrice(o.price)} ر.س</span>
+                    <span>{en && o.name_en ? o.name_en : o.name}</span>
+                    {o.price > 0 && (
+                      <span style={{ color: "var(--m-accent)" }}>
+                        +{formatPrice(o.price)} {en ? "SAR" : "ر.س"}
+                      </span>
                     )}
                   </div>
                 ))}
               </div>
             </div>
-          )}
+          ))}
 
           {dish.sfda_compliant && (
             <p className="mt-4 text-center text-[11px]" style={{ color: "var(--m-muted)" }}>
@@ -259,9 +253,16 @@ function DishModal({ dish, en, onClose }: { dish: Dish; en: boolean; onClose: ()
           )}
 
           <button
-            onClick={onClose}
-            className="mt-5 w-full rounded-xl py-2.5 text-sm font-black"
+            onClick={() => onOrder(dish)}
+            className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-black"
             style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}
+          >
+            🛒 {en ? "Add to order" : "أضف للطلب"}
+          </button>
+          <button
+            onClick={onClose}
+            className="mt-2 w-full rounded-xl border py-2.5 text-sm font-bold"
+            style={{ borderColor: "var(--m-border)", color: "var(--m-muted)" }}
           >
             {en ? "Close" : "إغلاق"}
           </button>
@@ -412,6 +413,9 @@ export default function MenuPage() {
   const [search, setSearch] = useState("");
   const [activeCat, setActiveCat] = useState<string | null>(null);
   const [openDish, setOpenDish] = useState<Dish | null>(null);
+  /** الطبق الذي يختار الزبون خياراته الآن (قبل إضافته للسلة). */
+  const [optionsDish, setOptionsDish] = useState<Dish | null>(null);
+  const [cart, setCart] = useState<CartLine[]>([]);
   const tracked = useRef(false);
 
   // رقم الطاولة من ?table= → sessionStorage (نفس مفتاح النسخة الأصلية).
@@ -457,6 +461,40 @@ export default function MenuPage() {
   );
 
   const en = lang === "en";
+
+  /* ── السلة ─────────────────────────────────────────────────────── */
+  /** يضيف سطراً، أو يزيد الكمية إن كان نفس الطبق بنفس الخيارات موجوداً. */
+  function addLine(line: Omit<CartLine, "qty">) {
+    setCart((lines) => {
+      const at = lines.findIndex((l) => l.key === line.key);
+      if (at === -1) return [...lines, { ...line, qty: 1 }];
+      return lines.map((l, i) => (i === at ? { ...l, qty: l.qty + 1 } : l));
+    });
+  }
+
+  /** الطبق بخيارات يفتح نافذة الاختيار؛ وبدونها يدخل السلة مباشرة. */
+  function orderDish(dish: Dish) {
+    setOpenDish(null);
+    if (parseDishOptions(dish.options).length > 0) {
+      setOptionsDish(dish);
+      return;
+    }
+    addLine({
+      key: dish.id,
+      dishId: dish.id,
+      name: dishName(dish, en),
+      unitPrice: dish.price ?? 0,
+      optionIds: [],
+    });
+  }
+
+  function changeQty(key: string, delta: number) {
+    setCart((lines) =>
+      lines
+        .map((l) => (l.key === key ? { ...l, qty: l.qty + delta } : l))
+        .filter((l) => l.qty > 0)
+    );
+  }
 
   const { featured, categories } = useMemo(() => {
     if (state.status !== "ready") return { featured: [], categories: [] as { name: string; dishes: Dish[] }[] };
@@ -692,9 +730,12 @@ export default function MenuPage() {
           ))
         )}
 
-        {/* روابط التواصل + تقييم قوقل */}
-        {socials.length > 0 && (
+        {/* روابط التواصل + تقييم قوقل + استبيان التجربة */}
+        {(socials.length > 0 || restaurant.reviews_enabled !== false) && (
           <section className="mt-10 flex flex-wrap items-center justify-center gap-2">
+            {restaurant.reviews_enabled !== false && (
+              <SurveyButton restaurantId={restaurant.id} en={en} />
+            )}
             {socials.map((s) =>
               s.highlight ? (
                 <a
@@ -740,7 +781,35 @@ export default function MenuPage() {
         </footer>
       </main>
 
-      {openDish && <DishModal dish={openDish} en={en} onClose={() => setOpenDish(null)} />}
+      {openDish && (
+        <DishModal
+          dish={openDish}
+          en={en}
+          onClose={() => setOpenDish(null)}
+          onOrder={orderDish}
+        />
+      )}
+
+      {optionsDish && (
+        <DishOptionsSheet
+          dish={optionsDish}
+          en={en}
+          onClose={() => setOptionsDish(null)}
+          onAdd={addLine}
+        />
+      )}
+
+      <CartBar
+        lines={cart}
+        en={en}
+        whatsapp={restaurant.social_whatsapp}
+        phone={restaurant.phone}
+        restaurantId={restaurant.id}
+        onlinePayment={restaurant.online_payment_enabled === true}
+        table={table}
+        onChangeQty={changeQty}
+        onClear={() => setCart([])}
+      />
     </div>
   );
 }

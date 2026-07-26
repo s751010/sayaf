@@ -191,3 +191,38 @@ export async function createPaylinkInvoice(input: {
   }
   return data as PaylinkInvoice;
 }
+
+/**
+ * دفع طلب زبون لحساب المطعم عبر `paylink-order-create`.
+ *
+ * تُنادى الدالة مباشرة (بلا وسيط خادم كما في نسخة Next) لأنها منشورة بـ
+ * `verify_jwt = false` وتسمح بـCORS — الزبون في صفحة المنيو ليس مسجَّلاً.
+ *
+ * **لا يُرسل أي سعر**: تُرسل معرّفات الأصناف والكميات فقط، والدالة تعيد قراءة
+ * الأسعار من جدول `dishes` وتقرأ بيانات اعتماد المطعم بمفتاح الخدمة. أي تلاعب
+ * بالسلة في المتصفح لا يغيّر المبلغ المطلوب.
+ */
+export async function createOrderInvoice(input: {
+  restaurantId: string;
+  table: string | null;
+  items: { dish_id: string; qty: number; option_ids: string[] }[];
+}): Promise<{ url: string }> {
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/paylink-order-create`, {
+    method: "POST",
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      restaurant_id: input.restaurantId,
+      table: input.table ?? undefined,
+      items: input.items,
+    }),
+  });
+  const data = (await res.json().catch(() => ({}))) as { url?: string; error?: string };
+  if (!res.ok || !data.url) {
+    throw new ApiError(res.status, data.error || "تعذّر بدء الدفع.");
+  }
+  return { url: data.url };
+}
