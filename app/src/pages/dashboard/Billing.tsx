@@ -1,7 +1,7 @@
-/** الاشتراك والفوترة — الباقات + الدفع عبر Moyasar (مدى/بطاقات/Apple Pay/STC Pay). */
-import { useEffect, useRef, useState } from "react";
-import { Badge, Button, Card, ErrorNote, useToast } from "@/components/ui";
-import { MOYASAR_PK } from "@/lib/config";
+/** الاشتراك والفوترة — الباقات + الدفع عبر PayLink (مدى/بطاقات/Apple Pay/STC Pay). */
+import { useEffect, useState } from "react";
+import { Badge, Button, Card, ErrorNote, Field, Input, useToast } from "@/components/ui";
+import { createPaylinkInvoice } from "@/lib/api";
 import { getActiveSubscription } from "@/lib/data";
 import {
   CURRENCY,
@@ -16,90 +16,65 @@ import type { Subscription } from "@/lib/types";
 import { PricingCards } from "@/pages/Landing";
 import { useDashboard } from "./Dashboard";
 
-declare global {
-  interface Window {
-    Moyasar?: { init: (opts: Record<string, unknown>) => void };
-  }
-}
-
-const MOYASAR_VERSION = "1.14.0";
-
-/**
- * نموذج Moyasar المستضاف. المبلغ بالهللات (×100). المفتاح مفتاح نشر عام.
- * metadata تصل لدالة moyasar-webhook التي تفعّل الاشتراك وتسجّل الإيراد.
- */
-function MoyasarForm({
-  amountHalalas,
-  description,
-  metadata,
-}: {
-  amountHalalas: number;
-  description: string;
-  metadata: Record<string, string>;
-}) {
-  const mounted = useRef(false);
-
-  useEffect(() => {
-    if (mounted.current) return;
-    mounted.current = true;
-
-    if (!document.getElementById("moyasar-css")) {
-      const link = document.createElement("link");
-      link.id = "moyasar-css";
-      link.rel = "stylesheet";
-      link.href = `https://cdn.moyasar.com/mpf/${MOYASAR_VERSION}/moyasar.css`;
-      document.head.appendChild(link);
-    }
-
-    const start = () => {
-      window.Moyasar?.init({
-        element: ".moyasar-form",
-        amount: amountHalalas,
-        currency: "SAR",
-        description,
-        publishable_api_key: MOYASAR_PK,
-        callback_url: `${window.location.origin}/dashboard/billing?payment=done`,
-        methods: ["creditcard", "applepay", "stcpay"],
-        metadata,
-      });
-    };
-
-    if (window.Moyasar) start();
-    else {
-      const script = document.createElement("script");
-      script.src = `https://cdn.moyasar.com/mpf/${MOYASAR_VERSION}/moyasar.js`;
-      script.onload = start;
-      document.body.appendChild(script);
-    }
-  }, [amountHalalas, description, metadata]);
-
-  return <div className="moyasar-form rounded-xl bg-white p-3" />;
-}
-
 export default function Billing() {
   const { user, ent, refreshEnt } = useDashboard();
   const toast = useToast();
   const [cycle, setCycle] = useState<BillingCycle>("monthly");
   const [plan, setPlan] = useState<Plan | null>(null);
   const [sub, setSub] = useState<Subscription | null | undefined>(undefined);
+  const [promo, setPromo] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     document.title = "الاشتراك — كلاود منيو";
     getActiveSubscription(user.id).then(setSub).catch(() => setSub(null));
-    // العودة من بوابة الدفع.
-    if (new URLSearchParams(window.location.search).get("payment") === "done") {
+
+    // العودة من صفحة PayLink.
+    const payment = new URLSearchParams(window.location.search).get("payment");
+    if (payment === "done") {
       toast("وصل إشعار الدفع — يُفعَّل اشتراكك خلال لحظات.");
       refreshEnt();
+    } else if (payment === "cancelled") {
+      toast("أُلغيت عملية الدفع.", "err");
     }
   }, [user.id, refreshEnt, toast]);
 
   const yearly = cycle === "yearly";
 
+  /**
+   * لا يُرسل أي مبلغ من هنا — الخادم يشتقّ السعر من الباقة والدورة ويتحقق من
+   * كود الخصم، ثم نُحوّل العميل لصفحة PayLink. تفعيل الاشتراك يتم حصراً
+   * بويبهوك PayLink بعد تأكيد الدفع.
+   */
+  async function startPayment() {
+    if (!plan) return;
+    setBusy(true);
+    setError("");
+    try {
+      const invoice = await createPaylinkInvoice({
+        planId: plan.id,
+        cycle,
+        promoCode: promo,
+      });
+      window.location.href = invoice.url;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "تعذّر بدء عملية الدفع.");
+      setBusy(false);
+    }
+  }
+
   if (plan) {
     const amount = planPrice(plan, cycle);
     return (
       <div className="mx-auto max-w-md">
-        <button onClick={() => setPlan(null)} className="mb-4 text-sm font-bold text-dim hover:text-gold">
+        <button
+          onClick={() => {
+            setPlan(null);
+            setError("");
+          }}
+          className="mb-4 text-sm font-bold text-dim hover:text-gold"
+        >
           → تغيير الباقة
         </button>
         <Card>
@@ -112,24 +87,33 @@ export default function Billing() {
               {formatPrice(amount)} {CURRENCY}
             </span>
           </div>
-          <MoyasarForm
-            amountHalalas={amount * 100}
-            description={`اشتراك كلاود منيو — باقة ${plan.name} (${yearly ? "سنوي" : "شهري"})`}
-            metadata={{
-              user_id: user.id,
-              user_name: user.email ?? "",
-              plan_id: plan.id,
-              cycle,
-            }}
-          />
-          <p className="mt-4 text-center text-xs text-faint">
-            مدفوعات آمنة عبر Moyasar — مدى، بطاقات، Apple Pay، STC Pay.
+
+          <Field label="كود الخصم (اختياري)">
+            <Input
+              dir="ltr"
+              value={promo}
+              onChange={(e) => setPromo(e.target.value.toUpperCase())}
+              placeholder="CLOUD10"
+              className="font-mono tracking-wide"
+            />
+          </Field>
+          <p className="mt-1.5 text-xs text-faint">
+            يُتحقَّق من الكود ويُحتسب الخصم على الخادم قبل إصدار الفاتورة.
           </p>
-          {MOYASAR_PK.startsWith("pk_test") && (
-            <div className="mt-3">
-              <ErrorNote>وضع الاختبار: لن تُخصم مبالغ حقيقية (مفتاح pk_test).</ErrorNote>
+
+          {error && (
+            <div className="mt-4">
+              <ErrorNote>{error}</ErrorNote>
             </div>
           )}
+
+          <Button onClick={startPayment} disabled={busy} className="mt-5 w-full">
+            {busy ? "جارٍ التحويل…" : "المتابعة للدفع"}
+          </Button>
+
+          <p className="mt-4 text-center text-xs text-faint">
+            ستُحوَّل لصفحة PayLink الآمنة — مدى، بطاقات، Apple Pay، STC Pay.
+          </p>
         </Card>
       </div>
     );

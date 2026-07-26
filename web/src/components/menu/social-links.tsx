@@ -1,12 +1,12 @@
 import { AtSign, MapPin, MessageCircle, Star } from "lucide-react";
-import type { Restaurant } from "@/lib/types";
+import type { PublicRestaurant } from "@/lib/types";
 
 function waLink(v: string | null): string | null {
   if (!v) return null;
   return v.startsWith("http") ? v : `https://wa.me/${v.replace(/[^\d]/g, "")}`;
 }
 
-export function SocialLinks({ restaurant }: { restaurant: Restaurant }) {
+export function SocialLinks({ restaurant }: { restaurant: PublicRestaurant }) {
   const items: { href: string | null; label: string; icon?: React.ReactNode }[] = [
     {
       href: restaurant.google_review_url,

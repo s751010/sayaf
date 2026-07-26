@@ -7,9 +7,9 @@ import { DishOptionsModal, type OptionsSelection } from "@/components/menu/dish-
 import { CartBar, type CartLine } from "@/components/menu/cart";
 import { categoryId as slugId } from "@/lib/utils";
 import { parseDishOptions } from "@/lib/options";
-import type { Dish } from "@/lib/types";
+import type { PublicDish } from "@/lib/types";
 
-type Category = { name: string; dishes: Dish[] };
+type Category = { name: string; dishes: PublicDish[] };
 
 export function MenuBody({
   featured,
@@ -18,25 +18,38 @@ export function MenuBody({
   orderingEnabled = false,
   whatsapp,
   phone,
+  restaurantId,
+  onlinePayment = false,
 }: {
-  featured: Dish[];
+  featured: PublicDish[];
   categories: Category[];
   englishEnabled?: boolean;
   /** تفعيل سلة الطلب (زر الإضافة + شريط السلة). */
   orderingEnabled?: boolean;
   whatsapp?: string | null;
   phone?: string | null;
+  restaurantId: string;
+  /** زر «ادفع الآن» — يظهر فقط إذا ربط المطعم حساب PayLink وفعّله. */
+  onlinePayment?: boolean;
 }) {
   const [lang, setLang] = useState<"ar" | "en">("ar");
   const [lines, setLines] = useState<CartLine[]>([]);
-  const [optDish, setOptDish] = useState<Dish | null>(null);
+  const [optDish, setOptDish] = useState<PublicDish | null>(null);
   const en = lang === "en";
   const display = { fontFamily: "var(--m-font)" } as CSSProperties;
 
-  const addLine = (key: string, name: string, unitPrice: number, label?: string) =>
+  const addLine = (
+    key: string,
+    dishId: string,
+    name: string,
+    unitPrice: number,
+    label?: string,
+    optionIds?: string[]
+  ) =>
     setLines((prev) => {
       const i = prev.findIndex((l) => l.key === key);
-      if (i === -1) return [...prev, { key, name, label, unitPrice, qty: 1 }];
+      if (i === -1)
+        return [...prev, { key, dishId, name, label, unitPrice, qty: 1, optionIds }];
       const next = [...prev];
       next[i] = { ...next[i], qty: next[i].qty + 1 };
       return next;
@@ -49,18 +62,18 @@ export function MenuBody({
         .filter((l) => l.qty > 0)
     );
 
-  const handleAdd = (dish: Dish) => {
+  const handleAdd = (dish: PublicDish) => {
     if (parseDishOptions(dish.options).length > 0) {
       setOptDish(dish);
       return;
     }
     const name = en && dish.name_en ? dish.name_en : dish.name;
-    addLine(dish.id, name, dish.price ?? 0);
+    addLine(dish.id, dish.id, name, dish.price ?? 0);
   };
 
-  const handleAddWithOptions = (dish: Dish, sel: OptionsSelection) => {
+  const handleAddWithOptions = (dish: PublicDish, sel: OptionsSelection) => {
     const name = en && dish.name_en ? dish.name_en : dish.name;
-    addLine(`${dish.id}::${sel.label}`, name, sel.unitPrice, sel.label);
+    addLine(`${dish.id}::${sel.label}`, dish.id, name, sel.unitPrice, sel.label, sel.optionIds);
     setOptDish(null);
   };
 
@@ -151,6 +164,8 @@ export function MenuBody({
             lang={lang}
             whatsapp={whatsapp}
             phone={phone}
+            restaurantId={restaurantId}
+            onlinePayment={onlinePayment}
             onChangeQty={changeQty}
           />
         </>

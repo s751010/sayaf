@@ -25,10 +25,13 @@ export default async function FounderPage() {
     { data: menuViews },
   ] = await Promise.all([
     supabase!.from("revenue_log").select("amount"),
+    // «نشط» = العلم مرفوع **و** التاريخ لم ينتهِ. الاكتفاء بالعلم كان يعرض
+    // اشتراكات منتهية على أنها سارية (١١ بدل ٠)، ويناقض لوحة صحة النظام.
     supabase!
       .from("subscriptions")
       .select("id", { count: "exact", head: true })
-      .eq("active", true),
+      .eq("active", true)
+      .or(`end_date.is.null,end_date.gt.${new Date().toISOString()}`),
     supabase!
       .from("support_tickets")
       .select("id", { count: "exact", head: true })

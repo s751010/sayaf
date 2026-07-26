@@ -1,10 +1,8 @@
 "use client";
 
 import { useActionState } from "react";
-import {
-  createSupportTicket,
-  TICKET_CATEGORIES,
-} from "@/app/dashboard/support/actions";
+import { createSupportTicket } from "@/app/dashboard/support/actions";
+import { TICKET_CATEGORIES } from "@/lib/support";
 import type { ActionState } from "@/app/dashboard/actions";
 import { Field, Input, Textarea, fieldClass } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";

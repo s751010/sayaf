@@ -3,4 +3,7 @@
  * عند شراء دومين رسمي: غيّر هذا السطر فقط وسيتحدّث كل شيء
  * (metadata/OG، sitemap، robots، أكواد QR، روابط التذييل).
  */
-export const SITE_URL = "https://cloudmenuy.netlify.app";
+// موحّد مع النسخة المنشورة فعلاً وملفات app/ و deploy/ — كانت `web/` وحدها
+// تستخدم دومين مختلفاً (cloudmenuy)، ما يعني sitemap وrobots وأكواد QR مطبوعة
+// تشير لمكان آخر. عند شراء دومين رسمي: غيّر هذا السطر فقط.
+export const SITE_URL = "https://cloudsmenu.netlify.app";

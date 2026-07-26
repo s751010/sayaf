@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Check } from "lucide-react";
-import { MoyasarForm } from "./moyasar-form";
+import { PaylinkCheckout } from "./paylink-checkout";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,13 +16,11 @@ import {
   type BillingCycle,
 } from "@/lib/plans";
 
-export function BillingClient({
-  userId,
-  userName,
-}: {
-  userId: string;
-  userName: string;
-}) {
+/**
+ * هوية المشتري لم تعد تُمرَّر كخاصية: إجراء الخادم يستخرجها من الجلسة، وهو
+ * أيضاً من يحسب المبلغ. المتصفح يختار الباقة والدورة فقط.
+ */
+export function BillingClient() {
   const [cycle, setCycle] = useState<BillingCycle>("monthly");
   const [plan, setPlan] = useState<Plan | null>(null);
   const yearly = cycle === "yearly";
@@ -49,21 +47,7 @@ export function BillingClient({
               {formatPrice(amount)} {CURRENCY}
             </span>
           </div>
-          <MoyasarForm
-            amountHalalas={amount * 100}
-            description={`اشتراك كلاود منيو — باقة ${plan.name} (${
-              yearly ? "سنوي" : "شهري"
-            })`}
-            metadata={{
-              user_id: userId,
-              user_name: userName,
-              plan_id: plan.id,
-              cycle,
-            }}
-          />
-          <p className="mt-4 text-center text-xs text-muted">
-            مدفوعات آمنة عبر Moyasar — مدى، بطاقات، Apple Pay، STC Pay.
-          </p>
+          <PaylinkCheckout plan={plan} cycle={cycle} />
         </Card>
       </div>
     );

@@ -1,9 +1,10 @@
 /** صفحة الهبوط — واجهة المنصة التسويقية. */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Navbar, Footer } from "@/components/site";
 import { Badge, Card } from "@/components/ui";
 import { CURRENCY, PLANS, effectiveMonthly, planPrice, type BillingCycle } from "@/lib/plans";
+import { applySeo } from "@/lib/seo";
 import { cn, formatPrice } from "@/lib/utils";
 
 /* ── معاينة هاتف حيّة (عرض تسويقي ثابت) ────────────────────────────── */
@@ -87,7 +88,7 @@ const FAQS = [
   { q: "هل يحتاج الزبون تحميل تطبيق؟", a: "أبداً. يمسح كود QR بكاميرا جواله ويفتح المنيو في المتصفح مباشرة — يعمل على كل الأجهزة." },
   { q: "هل أقدر أعدّل الأسعار بنفسي؟", a: "نعم، من لوحة تحكم عربية بالكامل. أي تعديل يظهر للزبائن لحظياً." },
   { q: "كيف تُحسب الطاولات؟", a: "تولّد كود QR خاصاً لكل طاولة (طاولة ١، طاولة ٢…) ويظهر رقم الطاولة تلقائياً عند فتح المنيو." },
-  { q: "ما طرق الدفع المتاحة للاشتراك؟", a: "مدى، البطاقات الائتمانية، Apple Pay وSTC Pay عبر بوابة Moyasar السعودية الآمنة." },
+  { q: "ما طرق الدفع المتاحة للاشتراك؟", a: "مدى، البطاقات الائتمانية، Apple Pay وSTC Pay عبر بوابة PayLink السعودية الآمنة." },
   { q: "هل بياناتي آمنة؟", a: "بياناتك محفوظة في قواعد بيانات سحابية مشفّرة مع صلاحيات وصول صارمة، ونسخ احتياطي مستمر." },
 ];
 
@@ -169,6 +170,16 @@ export function PricingCards({
 export default function Landing() {
   const [cycle, setCycle] = useState<BillingCycle>("monthly");
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+
+  // يعيد ضبط canonical/og للرئيسية عند العودة إليها من صفحة أخرى.
+  useEffect(() => {
+    applySeo({
+      title: "كلاود منيو — منيو رقمي QR لمطعمك",
+      description:
+        "حوّل منيو مطعمك إلى تجربة رقمية فاخرة عبر رمز QR — قوائم جميلة، إحصائيات مباشرة، برنامج ولاء، ومستشار ذكي. صُنع للمطاعم السعودية.",
+      path: "/",
+    });
+  }, []);
 
   return (
     <div className="flex min-h-dvh flex-col">

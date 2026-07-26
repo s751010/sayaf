@@ -13,9 +13,9 @@ export type PlanLimits = {
 
 export type Plan = {
   /**
-   * plan_id المُرسل لبوابة الدفع — يطابق مفاتيح PRICES في دالة moyasar-webhook
-   * ({ basic: 49, standard: 99, premium: 199 })، حتى يُفعَّل الاشتراك ويُسجَّل
-   * الإيراد بشكل صحيح دون تعديل الدالة.
+   * معرّف الباقة. **السعر لا يُرسل من المتصفح إطلاقاً**: دالة `paylink-create`
+   * تشتقّ المبلغ من هذا المعرّف + دورة الفوترة عبر جدول الأسعار في
+   * `supabase/functions/_shared/plans.ts` — يجب أن يبقى الملفان متطابقين.
    */
   id: string;
   name: string;

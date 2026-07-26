@@ -5,30 +5,42 @@ import { getPublicMenu, getRestaurantBySlug } from "@/lib/data";
 import { getSiteSettings } from "@/lib/settings";
 import { SITE_URL } from "@/lib/site";
 import { getTheme } from "@/lib/themes";
+import { normalizeSlug } from "@/lib/utils";
 import { MenuBody } from "@/components/menu/menu-body";
 import { SocialLinks } from "@/components/menu/social-links";
 import { ViewBeacon } from "@/components/menu/view-beacon";
+import { SurveyModal } from "@/components/menu/survey-modal";
 
 export const revalidate = 60;
 
 type Params = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug: rawSlug } = await params;
+  const slug = normalizeSlug(rawSlug);
   const restaurant = await getRestaurantBySlug(slug);
   if (!restaurant) return { title: "المطعم غير موجود" };
+  const description = `قائمة ${restaurant.name} الرقمية — تصفّح الأصناف واطلب بسهولة.`;
   return {
     title: restaurant.name,
-    description: `قائمة ${restaurant.name} الرقمية — تصفّح الأصناف واطلب بسهولة.`,
+    description,
+    // بلا هذا السطر ترث الصفحة canonical الرئيسية فلا تُفهرس أي قائمة.
+    alternates: { canonical: `/${slug}` },
     openGraph: {
+      type: "website",
+      siteName: "كلاود منيو",
+      locale: "ar_SA",
+      url: `/${slug}`,
       title: restaurant.name,
+      description,
       images: restaurant.banner_image || restaurant.logo_image || undefined,
     },
   };
 }
 
 export default async function MenuPage({ params }: Params) {
-  const { slug } = await params;
+  const { slug: rawSlug } = await params;
+  const slug = normalizeSlug(rawSlug);
   const [data, { features }] = await Promise.all([
     getPublicMenu(slug),
     getSiteSettings(),
@@ -36,13 +48,16 @@ export default async function MenuPage({ params }: Params) {
   if (!data) notFound();
 
   const { restaurant, menu, categories, featured } = data;
+  // علم عام على صف المطعم يزامنه مُشغِّل في قاعدة البيانات — لا تصل أي بيانات
+  // اعتماد لهذه الصفحة ولا للمتصفح.
+  const onlinePayment = restaurant.online_payment_enabled === true;
   const theme = getTheme(menu?.theme);
   const rootStyle = { ...theme.vars, background: "var(--m-bg)", color: "var(--m-text)" } as CSSProperties;
   const display = { fontFamily: "var(--m-font)" } as CSSProperties;
 
   return (
     <main className="min-h-screen" style={rootStyle}>
-      {menu && <ViewBeacon menuId={menu.id} ownerId={restaurant.user_id} />}
+      {menu && <ViewBeacon menuId={menu.id} />}
 
       {/* Banner */}
       <header className="relative">
@@ -107,6 +122,12 @@ export default async function MenuPage({ params }: Params) {
           <div className="mt-5 w-full">
             <SocialLinks restaurant={restaurant} />
           </div>
+
+          {restaurant.reviews_enabled !== false && (
+            <div className="mt-3">
+              <SurveyModal restaurantId={restaurant.id} accent={theme.vars["--m-accent"]} />
+            </div>
+          )}
         </div>
       </header>
 
@@ -118,6 +139,8 @@ export default async function MenuPage({ params }: Params) {
           orderingEnabled={features.orders_enabled}
           whatsapp={restaurant.social_whatsapp}
           phone={restaurant.phone}
+          restaurantId={restaurant.id}
+          onlinePayment={features.orders_enabled && onlinePayment}
         />
 
         {restaurant.allergens_text && (

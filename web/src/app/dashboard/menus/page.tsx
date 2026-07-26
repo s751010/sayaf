@@ -2,6 +2,7 @@ import { BookOpen } from "lucide-react";
 import { getMyRestaurant, getMyMenus } from "@/lib/owner";
 import { RestaurantOnboarding } from "@/components/dashboard/restaurant-onboarding";
 import { MenuCreate } from "@/components/dashboard/menu-create";
+import { MenuDuplicate } from "@/components/dashboard/menu-duplicate";
 import { Card } from "@/components/ui/card";
 
 export default async function MenusPage() {
@@ -27,12 +28,18 @@ export default async function MenusPage() {
         ) : (
           menus.map((m) => (
             <Card key={m.id} className="flex items-center gap-3">
-              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-gold/12 text-gold">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gold/12 text-gold">
                 <BookOpen size={18} />
               </span>
-              <span className="font-medium text-cream">
+              <span className="flex-1 font-medium text-cream">
                 {m.name || "قائمة بدون اسم"}
+                {m.active === false && (
+                  <span className="mr-2 rounded-full bg-white/8 px-2 py-0.5 text-xs text-muted">
+                    معطّلة
+                  </span>
+                )}
               </span>
+              <MenuDuplicate menuId={m.id} />
             </Card>
           ))
         )}

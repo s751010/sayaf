@@ -2,17 +2,17 @@
 
 import { Flame, Star } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
-import type { Dish } from "@/lib/types";
+import type { PublicDish } from "@/lib/types";
 
 export function DishCard({
   dish,
   lang = "ar",
   onAdd,
 }: {
-  dish: Dish;
+  dish: PublicDish;
   lang?: "ar" | "en";
   /** عند تمريرها يظهر زر «أضف للطلب» (سلة الطلبات مفعّلة). */
-  onAdd?: (dish: Dish) => void;
+  onAdd?: (dish: PublicDish) => void;
 }) {
   const hasImg = Boolean(dish.image);
   const en = lang === "en";

@@ -26,6 +26,7 @@ import { getTheme } from "@/lib/themes";
 import { K, getItem, getJSON, setItem, setJSON } from "@/lib/storage";
 import { categoryId, formatPrice } from "@/lib/utils";
 import type { Dish, LoyaltyCustomer, Menu, Restaurant } from "@/lib/types";
+import { applySeo } from "@/lib/seo";
 
 /* ── أدوات عرض صغيرة ──────────────────────────────────────────────── */
 const mFont: CSSProperties = { fontFamily: "var(--m-font)" };
@@ -431,11 +432,16 @@ export default function MenuPage() {
         const menus = await getActiveMenus(restaurant.id);
         const dishes = await getAvailableDishes(menus.map((m) => m.id));
         if (cancelled) return;
-        document.title = `${restaurant.name} — المنيو`;
+        applySeo({
+          title: `${restaurant.name} — المنيو`,
+          description: `قائمة ${restaurant.name} الرقمية — تصفّح الأصناف والأسعار واطلب بسهولة.`,
+          path: `/${slug}`,
+          image: restaurant.banner_image || restaurant.logo_image || undefined,
+        });
         setState({ status: "ready", restaurant, menus, dishes });
         if (!tracked.current && menus[0]) {
           tracked.current = true;
-          trackMenuView(menus[0].id, restaurant.user_id);
+          trackMenuView(menus[0].id);
         }
       } catch {
         if (!cancelled) setState({ status: "error" });
