@@ -13,3 +13,6 @@ tmp/
 node_modules/
 .netlify/
 dist/
+
+# مخلفات بناء Next.js (نسخة web/) — لا تُلتزم في git
+.next/
