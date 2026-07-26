@@ -4,13 +4,8 @@ import { revalidatePath } from "next/cache";
 import { createServerSupabase, getCurrentUser } from "@/lib/supabase/server";
 import { getMyRestaurant } from "@/lib/owner";
 import type { ActionState } from "@/app/dashboard/actions";
-
-export const TICKET_CATEGORIES = [
-  { id: "technical", label: "مشكلة تقنية" },
-  { id: "billing", label: "الفوترة والاشتراك" },
-  { id: "feature", label: "اقتراح ميزة" },
-  { id: "other", label: "أخرى" },
-] as const;
+// ملف "use server" لا يُصدِّر إلا دوالّ async — التصنيفات في وحدة عادية.
+import { TICKET_CATEGORIES } from "@/lib/support";
 
 /** إرسال تذكرة دعم — نفس عقد النسخة القديمة (subject يسبقه التصنيف). */
 export async function createSupportTicket(

@@ -1,0 +1,198 @@
+[
+  {
+    "name": "01-landing",
+    "path": "/",
+    "label": "الصفحة الرئيسية",
+    "status": 200,
+    "file": "01-landing.webp"
+  },
+  {
+    "name": "02-login",
+    "path": "/login",
+    "label": "تسجيل الدخول",
+    "status": 200,
+    "file": "02-login.webp"
+  },
+  {
+    "name": "03-menu-demo",
+    "path": "/demo",
+    "label": "منيو عام — مطعم الديوان (بيانات ديمو)",
+    "status": 200,
+    "file": "03-menu-demo.webp"
+  },
+  {
+    "name": "04-menu-qa",
+    "path": "/qa-sanabel",
+    "label": "منيو عام — بيانات العرض",
+    "status": 200,
+    "file": "04-menu-qa.webp"
+  },
+  {
+    "name": "05-blog",
+    "path": "/blog",
+    "label": "المدونة",
+    "status": 200,
+    "file": "05-blog.webp"
+  },
+  {
+    "name": "06-menu-mobile",
+    "path": "/demo",
+    "label": "منيو عام على الجوال",
+    "status": 200,
+    "file": "06-menu-mobile.webp"
+  },
+  {
+    "name": "10-dashboard",
+    "path": "/dashboard",
+    "label": "لوحة التاجر — نظرة عامة",
+    "status": 200,
+    "file": "10-dashboard.webp"
+  },
+  {
+    "name": "11-menus",
+    "path": "/dashboard/menus",
+    "label": "القوائم (مع زر النسخ)",
+    "status": 200,
+    "file": "11-menus.webp"
+  },
+  {
+    "name": "12-dishes",
+    "path": "/dashboard/dishes",
+    "label": "الأصناف",
+    "status": 200,
+    "file": "12-dishes.webp"
+  },
+  {
+    "name": "13-dish-new",
+    "path": "/dashboard/dishes/new",
+    "label": "إضافة صنف",
+    "status": 200,
+    "file": "13-dish-new.webp"
+  },
+  {
+    "name": "14-qr",
+    "path": "/dashboard/qr",
+    "label": "أكواد QR",
+    "status": 200,
+    "file": "14-qr.webp"
+  },
+  {
+    "name": "15-analytics",
+    "path": "/dashboard/analytics",
+    "label": "الإحصائيات",
+    "status": 200,
+    "file": "15-analytics.webp"
+  },
+  {
+    "name": "16-reviews",
+    "path": "/dashboard/reviews",
+    "label": "تقييمات الزبائن ← جديد",
+    "status": 200,
+    "file": "16-reviews.webp"
+  },
+  {
+    "name": "17-ai",
+    "path": "/dashboard/ai",
+    "label": "المستشار الذكي",
+    "status": 200,
+    "file": "17-ai.webp"
+  },
+  {
+    "name": "18-loyalty",
+    "path": "/dashboard/loyalty",
+    "label": "الولاء",
+    "status": 200,
+    "file": "18-loyalty.webp"
+  },
+  {
+    "name": "19-billing",
+    "path": "/dashboard/billing",
+    "label": "الاشتراك (PayLink)",
+    "status": 200,
+    "file": "19-billing.webp"
+  },
+  {
+    "name": "20-payments",
+    "path": "/dashboard/payments",
+    "label": "استقبال المدفوعات ← جديد",
+    "status": 200,
+    "file": "20-payments.webp"
+  },
+  {
+    "name": "21-support",
+    "path": "/dashboard/support",
+    "label": "الدعم الفني",
+    "status": 200,
+    "file": "21-support.webp"
+  },
+  {
+    "name": "22-settings",
+    "path": "/dashboard/settings",
+    "label": "الإعدادات",
+    "status": 200,
+    "file": "22-settings.webp"
+  },
+  {
+    "name": "30-founder",
+    "path": "/founder",
+    "label": "لوحة المؤسس — نظرة عامة",
+    "status": 200,
+    "file": "30-founder.webp"
+  },
+  {
+    "name": "31-founder-restaurants",
+    "path": "/founder/restaurants",
+    "label": "المطاعم والاشتراكات",
+    "status": 200,
+    "file": "31-founder-restaurants.webp"
+  },
+  {
+    "name": "32-founder-announcements",
+    "path": "/founder/announcements",
+    "label": "الإعلانات",
+    "status": 200,
+    "file": "32-founder-announcements.webp"
+  },
+  {
+    "name": "33-founder-promos",
+    "path": "/founder/promos",
+    "label": "أكواد الخصم",
+    "status": 200,
+    "file": "33-founder-promos.webp"
+  },
+  {
+    "name": "34-founder-health",
+    "path": "/founder/health",
+    "label": "صحة النظام ← جديد",
+    "status": 200,
+    "file": "34-founder-health.webp"
+  },
+  {
+    "name": "35-founder-activity",
+    "path": "/founder/activity",
+    "label": "سجل النشاط ← جديد",
+    "status": 200,
+    "file": "35-founder-activity.webp"
+  },
+  {
+    "name": "36-founder-blog",
+    "path": "/founder/blog",
+    "label": "المدونة (المؤسس)",
+    "status": 200,
+    "file": "36-founder-blog.webp"
+  },
+  {
+    "name": "37-founder-support",
+    "path": "/founder/support",
+    "label": "الدعم (المؤسس)",
+    "status": 200,
+    "file": "37-founder-support.webp"
+  },
+  {
+    "name": "38-founder-settings",
+    "path": "/founder/settings",
+    "label": "إعدادات الموقع",
+    "status": 200,
+    "file": "38-founder-settings.webp"
+  }
+]

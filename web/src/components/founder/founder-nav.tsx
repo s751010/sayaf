@@ -10,6 +10,8 @@ import {
   LifeBuoy,
   PenSquare,
   Settings,
+  Stethoscope,
+  ScrollText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -19,6 +21,8 @@ const nav = [
   { href: "/founder/announcements", label: "الإعلانات", icon: Megaphone },
   { href: "/founder/promos", label: "أكواد الخصم", icon: Ticket },
   { href: "/founder/support", label: "الدعم", icon: LifeBuoy },
+  { href: "/founder/health", label: "صحة النظام", icon: Stethoscope },
+  { href: "/founder/activity", label: "سجل النشاط", icon: ScrollText },
   { href: "/founder/blog", label: "المدونة", icon: PenSquare },
   { href: "/founder/settings", label: "الإعدادات", icon: Settings },
 ];
