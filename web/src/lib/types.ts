@@ -38,6 +38,44 @@ export interface Restaurant {
 }
 
 /**
+ * المطعم كما يراه الزائر — بلا `user_id`.
+ *
+ * دور `anon` لم يعد يملك صلاحية قراءة `user_id` على مستوى العمود، فأي استعلام
+ * عام يجب أن يذكر الأعمدة صراحةً (انظر `PUBLIC_RESTAURANT_COLUMNS`).
+ */
+export type PublicRestaurant = Omit<Restaurant, "user_id">;
+
+/**
+ * أعمدة المطعم المسموح بها للزائر — مطابقة تماماً للمنح في قاعدة البيانات.
+ * إضافة عمود عام جديد تتطلب تحديث المكانين معاً.
+ */
+export const PUBLIC_RESTAURANT_COLUMNS = [
+  "id", "name", "type", "phone", "address", "logo", "cover_color",
+  "logo_image", "banner_image", "created_at", "slug", "google_review_url",
+  "allergens_text", "working_hours", "social_instagram", "social_twitter",
+  "social_tiktok", "social_snapchat", "social_whatsapp", "social_maps",
+  "english_enabled", "loyalty_enabled", "loyalty_goal", "loyalty_reward",
+  "reviews_enabled", "online_payment_enabled",
+].join(", ");
+
+/** أعمدة القائمة المسموح بها للزائر (بلا user_id). */
+export const PUBLIC_MENU_COLUMNS = [
+  "id", "restaurant_id", "name", "description", "theme", "language",
+  "cover_image", "active", "views", "created_at",
+].join(", ");
+
+/** أعمدة الصنف المسموح بها للزائر (بلا user_id). */
+export const PUBLIC_DISH_COLUMNS = [
+  "id", "menu_id", "restaurant_id", "name", "description", "price", "category",
+  "emoji", "image", "featured", "available", "views", "calories", "sodium_mg",
+  "caffeine_mg", "burn_minutes", "is_high_sodium", "sfda_compliant",
+  "allergens", "name_en", "description_en", "options", "created_at",
+].join(", ");
+
+export type PublicMenuRow = Omit<Menu, "user_id">;
+export type PublicDish = Omit<Dish, "user_id">;
+
+/**
  * تقييم زبون. `avg_score` يُحسب على الخادم من `answers` ويُقيَّد بـ CHECK في
  * قاعدة البيانات — لا يُقبل من المتصفح.
  */

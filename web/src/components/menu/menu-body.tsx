@@ -7,9 +7,9 @@ import { DishOptionsModal, type OptionsSelection } from "@/components/menu/dish-
 import { CartBar, type CartLine } from "@/components/menu/cart";
 import { categoryId as slugId } from "@/lib/utils";
 import { parseDishOptions } from "@/lib/options";
-import type { Dish } from "@/lib/types";
+import type { PublicDish } from "@/lib/types";
 
-type Category = { name: string; dishes: Dish[] };
+type Category = { name: string; dishes: PublicDish[] };
 
 export function MenuBody({
   featured,
@@ -21,7 +21,7 @@ export function MenuBody({
   restaurantId,
   onlinePayment = false,
 }: {
-  featured: Dish[];
+  featured: PublicDish[];
   categories: Category[];
   englishEnabled?: boolean;
   /** تفعيل سلة الطلب (زر الإضافة + شريط السلة). */
@@ -34,7 +34,7 @@ export function MenuBody({
 }) {
   const [lang, setLang] = useState<"ar" | "en">("ar");
   const [lines, setLines] = useState<CartLine[]>([]);
-  const [optDish, setOptDish] = useState<Dish | null>(null);
+  const [optDish, setOptDish] = useState<PublicDish | null>(null);
   const en = lang === "en";
   const display = { fontFamily: "var(--m-font)" } as CSSProperties;
 
@@ -62,7 +62,7 @@ export function MenuBody({
         .filter((l) => l.qty > 0)
     );
 
-  const handleAdd = (dish: Dish) => {
+  const handleAdd = (dish: PublicDish) => {
     if (parseDishOptions(dish.options).length > 0) {
       setOptDish(dish);
       return;
@@ -71,7 +71,7 @@ export function MenuBody({
     addLine(dish.id, dish.id, name, dish.price ?? 0);
   };
 
-  const handleAddWithOptions = (dish: Dish, sel: OptionsSelection) => {
+  const handleAddWithOptions = (dish: PublicDish, sel: OptionsSelection) => {
     const name = en && dish.name_en ? dish.name_en : dish.name;
     addLine(`${dish.id}::${sel.label}`, dish.id, name, sel.unitPrice, sel.label, sel.optionIds);
     setOptDish(null);

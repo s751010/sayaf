@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getPostBySlug } from "@/lib/data";
+import { normalizeSlug } from "@/lib/utils";
 import { Navbar } from "@/components/site/navbar";
 import { Footer } from "@/components/site/footer";
 
@@ -10,7 +11,7 @@ type Params = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { slug } = await params;
-  const post = await getPostBySlug(slug);
+  const post = await getPostBySlug(normalizeSlug(slug));
   if (!post) return { title: "المقال غير موجود" };
   const title = post.title_ar || post.title;
   const excerpt = post.excerpt_ar || post.excerpt || undefined;
@@ -29,7 +30,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 
 export default async function BlogPostPage({ params }: Params) {
   const { slug } = await params;
-  const post = await getPostBySlug(slug);
+  const post = await getPostBySlug(normalizeSlug(slug));
   if (!post || post.published === false) notFound();
 
   return (

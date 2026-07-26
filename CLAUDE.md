@@ -58,6 +58,17 @@
 - عند أي تعديل DDL: شغّل `get_advisors(security)` عبر Supabase MCP وتأكّد من عدم ظهور
   تحذيرات `rls_policy_always_true`.
 
+#### صلاحيات على مستوى العمود (لا تكفي RLS وحدها)
+RLS تضبط الصفوف لا الأعمدة. لذا `user_id` محجوب عن دور `anon` بمنح صريح على
+`restaurants` و`menus` و`dishes` — كان يصل للمتصفح داخل صفحة المنيو العامة.
+**النتيجة العملية: `select("*")` يفشل لدور الزائر.** أي استعلام عام يجب أن يذكر
+الأعمدة صراحةً عبر `PUBLIC_RESTAURANT_COLUMNS` / `PUBLIC_MENU_COLUMNS` /
+`PUBLIC_DISH_COLUMNS` في `web/src/lib/types.ts` (ونظائرها في `app/src/lib/data.ts`).
+إضافة عمود عام جديد = تحديث المنح في قاعدة البيانات **و** القائمة في الكود.
+
+تسجيل المشاهدات يمر بدالة `public.track_menu_view(menu_id)` (SECURITY DEFINER)
+التي تستنتج مالك القائمة بنفسها — فلا يحتاج المتصفح معرفة `user_id` إطلاقاً.
+
 ### حارس المؤسس
 - بريد المؤسس: `seeaf2013@gmail.com` (متغيّر `FOUNDER_EMAIL`).
 - في التطبيق: `isFounder()` — `web/src/lib/founder.ts`، يُستخدم في كل صفحات وactions `/founder`.

@@ -441,7 +441,7 @@ export default function MenuPage() {
         setState({ status: "ready", restaurant, menus, dishes });
         if (!tracked.current && menus[0]) {
           tracked.current = true;
-          trackMenuView(menus[0].id, restaurant.user_id);
+          trackMenuView(menus[0].id);
         }
       } catch {
         if (!cancelled) setState({ status: "error" });

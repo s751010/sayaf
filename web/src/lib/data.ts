@@ -1,6 +1,14 @@
 import "server-only";
 import { createPublicServerClient } from "@/lib/supabase/server";
-import type { BlogPost, Dish, Menu, Restaurant } from "@/lib/types";
+import {
+  PUBLIC_DISH_COLUMNS,
+  PUBLIC_MENU_COLUMNS,
+  PUBLIC_RESTAURANT_COLUMNS,
+  type BlogPost,
+  type PublicDish,
+  type PublicMenuRow,
+  type PublicRestaurant,
+} from "@/lib/types";
 
 // ── Blog (public, SEO) ─────────────────────────────────────────────
 export async function getPublishedPosts(): Promise<BlogPost[]> {
@@ -28,23 +36,24 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
 /** Lightweight lookup used by generateMetadata. */
 export async function getRestaurantBySlug(
   slug: string
-): Promise<Restaurant | null> {
+): Promise<PublicRestaurant | null> {
   const supabase = createPublicServerClient();
   if (!supabase) return null;
+  // أعمدة صريحة: دور anon لا يملك صلاحية على user_id، و`*` يفشل بسببه.
   const { data } = await supabase
     .from("restaurants")
-    .select("*")
+    .select(PUBLIC_RESTAURANT_COLUMNS)
     .eq("slug", slug)
     .maybeSingle();
-  return (data as Restaurant | null) ?? null;
+  return (data as PublicRestaurant | null) ?? null;
 }
 
 export interface PublicMenu {
-  restaurant: Restaurant;
-  menu: Menu | null;
-  dishes: Dish[];
-  featured: Dish[];
-  categories: { name: string; dishes: Dish[] }[];
+  restaurant: PublicRestaurant;
+  menu: PublicMenuRow | null;
+  dishes: PublicDish[];
+  featured: PublicDish[];
+  categories: { name: string; dishes: PublicDish[] }[];
 }
 
 /**
@@ -58,36 +67,36 @@ export async function getPublicMenu(slug: string): Promise<PublicMenu | null> {
 
   const { data: restaurantRow } = await supabase
     .from("restaurants")
-    .select("*")
+    .select(PUBLIC_RESTAURANT_COLUMNS)
     .eq("slug", slug)
     .maybeSingle();
 
-  const restaurant = restaurantRow as Restaurant | null;
+  const restaurant = restaurantRow as PublicRestaurant | null;
   if (!restaurant) return null;
 
   const { data: menuRow } = await supabase
     .from("menus")
-    .select("*")
+    .select(PUBLIC_MENU_COLUMNS)
     .eq("restaurant_id", restaurant.id)
     .order("created_at", { ascending: true })
     .limit(1)
     .maybeSingle();
 
-  const menu = menuRow as Menu | null;
+  const menu = menuRow as PublicMenuRow | null;
 
-  let dishes: Dish[] = [];
+  let dishes: PublicDish[] = [];
   if (menu) {
     const { data } = await supabase
       .from("dishes")
-      .select("*")
+      .select(PUBLIC_DISH_COLUMNS)
       .eq("menu_id", menu.id)
       .eq("available", true)
       .order("category", { ascending: true })
       .order("created_at", { ascending: true });
-    dishes = (data ?? []) as Dish[];
+    dishes = (data ?? []) as unknown as PublicDish[];
   }
 
-  const byCategory = new Map<string, Dish[]>();
+  const byCategory = new Map<string, PublicDish[]>();
   for (const dish of dishes) {
     const key = dish.category?.trim() || "القائمة";
     if (!byCategory.has(key)) byCategory.set(key, []);

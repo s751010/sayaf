@@ -18,6 +18,10 @@ export interface Restaurant {
   slug: string | null;
   /** علم للقراءة فقط تزامنه قاعدة البيانات من restaurant_payment_settings. */
   online_payment_enabled: boolean | null;
+  /**
+   * غير متاح في المسار العام: دور anon محجوب عنه على مستوى العمود.
+   * يصل فقط في استعلامات التاجر المصادَقة.
+   */
   reviews_enabled: boolean | null;
   google_review_url: string | null;
   allergens_text: string | null;

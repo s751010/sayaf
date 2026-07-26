@@ -5,7 +5,7 @@
  * أي حقل جديد يجب إضافته في: (1) تهيئة الفورم، (2) payload الإضافة هنا،
  * (3) payload التحديث هنا. حقل ناقص = يُسقَط بصمت بلا أي خطأ.
  */
-import { rest, restCount } from "./api";
+import { rest, restCount, rpc } from "./api";
 import type {
   AnalyticsRow,
   BlogPost,
@@ -18,9 +18,35 @@ import type {
 
 // ── عام (زائر — بمفتاح anon) ─────────────────────────────────────────
 
+/**
+ * أعمدة المطعم المسموح بها للزائر — مطابقة للمنح في قاعدة البيانات.
+ * `user_id` محجوب عن دور anon، لذا `select=*` يفشل ويجب ذكر الأعمدة صراحةً.
+ */
+const PUBLIC_RESTAURANT_COLUMNS = [
+  "id", "name", "type", "phone", "address", "logo", "cover_color",
+  "logo_image", "banner_image", "created_at", "slug", "google_review_url",
+  "allergens_text", "working_hours", "social_instagram", "social_twitter",
+  "social_tiktok", "social_snapchat", "social_whatsapp", "social_maps",
+  "english_enabled", "loyalty_enabled", "loyalty_goal", "loyalty_reward",
+  "reviews_enabled", "online_payment_enabled",
+].join(",");
+
+/** أعمدة القائمة والصنف المسموح بها للزائر (بلا user_id). */
+const PUBLIC_MENU_COLUMNS = [
+  "id","restaurant_id","name","description","theme","language",
+  "cover_image","active","views","created_at",
+].join(",");
+
+const PUBLIC_DISH_COLUMNS = [
+  "id","menu_id","restaurant_id","name","description","price","category","emoji",
+  "image","featured","available","views","calories","sodium_mg","caffeine_mg",
+  "burn_minutes","is_high_sodium","sfda_compliant","allergens","name_en",
+  "description_en","options","created_at",
+].join(",");
+
 export async function getRestaurantBySlug(slug: string): Promise<Restaurant | null> {
   const rows = await rest<Restaurant[]>(
-    `restaurants?slug=eq.${encodeURIComponent(slug)}&select=*&limit=1`,
+    `restaurants?slug=eq.${encodeURIComponent(slug)}&select=${PUBLIC_RESTAURANT_COLUMNS}&limit=1`,
     { anonymous: true }
   );
   return rows[0] ?? null;
@@ -28,7 +54,7 @@ export async function getRestaurantBySlug(slug: string): Promise<Restaurant | nu
 
 export async function getActiveMenus(restaurantId: string): Promise<Menu[]> {
   const rows = await rest<Menu[]>(
-    `menus?restaurant_id=eq.${restaurantId}&select=*&order=created_at.asc`,
+    `menus?restaurant_id=eq.${restaurantId}&select=${PUBLIC_MENU_COLUMNS}&order=created_at.asc`,
     { anonymous: true }
   );
   // active=null تُعامل كمفعّلة (بيانات قديمة قبل إضافة العمود).
@@ -39,7 +65,7 @@ export async function getAvailableDishes(menuIds: string[]): Promise<Dish[]> {
   if (menuIds.length === 0) return [];
   const list = menuIds.map(encodeURIComponent).join(",");
   return rest<Dish[]>(
-    `dishes?menu_id=in.(${list})&available=eq.true&select=*&order=created_at.asc`,
+    `dishes?menu_id=in.(${list})&available=eq.true&select=${PUBLIC_DISH_COLUMNS}&order=created_at.asc`,
     { anonymous: true }
   );
 }
@@ -71,21 +97,12 @@ export async function getSiteSetting<T>(key: string): Promise<T | null> {
   }
 }
 
-/** تسجيل مشاهدة منيو — نفس شكل صف analytics في النسخة الأصلية. */
-export function trackMenuView(menuId: string, ownerId: string | null): void {
-  const now = new Date();
-  rest("analytics", {
-    method: "POST",
-    anonymous: true,
-    headers: { Prefer: "return=minimal" },
-    body: {
-      menu_id: menuId,
-      user_id: ownerId,
-      date: now.toISOString().slice(0, 10),
-      hour: now.getUTCHours(),
-      views: 1,
-    },
-  }).catch(() => {});
+/**
+ * تسجيل مشاهدة منيو عبر دالة `track_menu_view` في قاعدة البيانات.
+ * الخادم يستنتج مالك القائمة بنفسه، فلا يحتاج المتصفح معرفة `user_id`.
+ */
+export function trackMenuView(menuId: string): void {
+  rpc("track_menu_view", { p_menu_id: menuId }).catch(() => {});
 }
 
 /** زيادة عداد مشاهدات طبق (أفضل جهد — تجاهُل أي فشل). */
@@ -153,7 +170,7 @@ export async function updateRestaurant(
 
 export async function getMyMenus(restaurantId: string): Promise<Menu[]> {
   return rest<Menu[]>(
-    `menus?restaurant_id=eq.${restaurantId}&select=*&order=created_at.asc`
+    `menus?restaurant_id=eq.${restaurantId}&select=${PUBLIC_MENU_COLUMNS}&order=created_at.asc`
   );
 }
 

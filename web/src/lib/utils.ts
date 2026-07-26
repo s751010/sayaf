@@ -17,3 +17,19 @@ export function formatPrice(value: number | string | null | undefined): string {
     maximumFractionDigits: 2,
   }).format(n as number);
 }
+
+/**
+ * يوحّد قيمة الـslug القادمة من مسار الرابط.
+ *
+ * المسارات غير اللاتينية (العربية) تصل أحياناً مُرمَّزة بنسبة مئوية
+ * (`%D9%85...`) وأحياناً مفكوكة، فيفشل مطابقتها بقاعدة البيانات ويظهر 404
+ * لمطعم موجود فعلاً — وهو ما كان يحدث لكل مطعم باسم عربي.
+ * فكّ الترميز آمن في الحالتين: نص بلا `%` يعود كما هو.
+ */
+export function normalizeSlug(raw: string): string {
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return raw;
+  }
+}

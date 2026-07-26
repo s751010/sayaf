@@ -54,6 +54,19 @@ export async function rest<T>(query: string, opts: RestOptions = {}): Promise<T>
   return (text ? JSON.parse(text) : undefined) as T;
 }
 
+/** نداء دالة قاعدة بيانات (RPC) — تُستخدم للعمليات التي لا يجوز أن يقودها العميل. */
+export async function rpc(fn: string, args: Record<string, unknown>): Promise<void> {
+  await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+    method: "POST",
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(args),
+  });
+}
+
 /** عدد الصفوف المطابقة دون جلبها (HEAD + Prefer: count=exact). */
 export async function restCount(query: string): Promise<number> {
   const token = await getAccessToken();

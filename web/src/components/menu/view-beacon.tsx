@@ -2,14 +2,13 @@
 
 import { useEffect, useRef } from "react";
 
-/** Fires a single menu-view event when the public menu page loads. */
-export function ViewBeacon({
-  menuId,
-  ownerId,
-}: {
-  menuId: string;
-  ownerId: string | null;
-}) {
+/**
+ * يرسل حدث «مشاهدة منيو» مرة واحدة عند فتح الصفحة.
+ *
+ * لا يمرّر معرّف المالك: الخادم يستنتجه من `menu_id`، فلا يصل `user_id` إلى
+ * المتصفح إطلاقاً.
+ */
+export function ViewBeacon({ menuId }: { menuId: string }) {
   const sent = useRef(false);
   useEffect(() => {
     if (sent.current || !menuId) return;
@@ -17,9 +16,9 @@ export function ViewBeacon({
     fetch("/api/track", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ menu_id: menuId, owner_id: ownerId }),
+      body: JSON.stringify({ menu_id: menuId }),
       keepalive: true,
     }).catch(() => {});
-  }, [menuId, ownerId]);
+  }, [menuId]);
   return null;
 }

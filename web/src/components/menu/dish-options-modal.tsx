@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { formatPrice } from "@/lib/utils";
 import type { DishOptionGroup } from "@/lib/options";
-import type { Dish } from "@/lib/types";
+import type { PublicDish } from "@/lib/types";
 
 /** ملخص اختيار جاهز للسلة: سطر وصفي + السعر النهائي للوحدة. */
 export interface OptionsSelection {
@@ -27,7 +27,7 @@ export function DishOptionsModal({
   onAdd,
   onClose,
 }: {
-  dish: Dish;
+  dish: PublicDish;
   groups: DishOptionGroup[];
   lang?: "ar" | "en";
   onAdd: (selection: OptionsSelection) => void;
