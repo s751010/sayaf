@@ -13,3 +13,7 @@ tmp/
 node_modules/
 .netlify/
 dist/
+
+# graphify — مخرجات تحليل مولّدة (graph.json/graph.html) وذاكرة الاستخراج
+# تُعاد بالأمر: graphify app  — لا داعي لحفظها في المستودع
+graphify-out/
