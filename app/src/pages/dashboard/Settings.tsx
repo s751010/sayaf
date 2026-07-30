@@ -15,6 +15,7 @@ import {
   useToast,
 } from "@/components/ui";
 import { ImageUploader } from "@/components/ImageUploader";
+import { HoursEditor } from "@/components/HoursEditor";
 import { updateRestaurant, type RestaurantSettingsPayload } from "@/lib/data";
 import { numOrNull, strOrNull } from "@/lib/utils";
 import { useDashboard } from "./Dashboard";
@@ -135,9 +136,12 @@ export default function Settings() {
             pathPrefix={`${restaurant.id}/banner`}
             shape="wide"
           />
-          <Field label="ساعات العمل" hint="نص حر يظهر أعلى المنيو">
-            <Input value={f.working_hours} onChange={(e) => set("working_hours", e.target.value)} placeholder="يومياً 12م — 12ص" />
-          </Field>
+          <div className="sm:col-span-2">
+            <HoursEditor
+              value={f.working_hours}
+              onChange={(v) => set("working_hours", v)}
+            />
+          </div>
           <Field label="الهاتف">
             <Input dir="ltr" inputMode="tel" value={f.phone} onChange={(e) => set("phone", e.target.value)} placeholder="+9665…" />
           </Field>

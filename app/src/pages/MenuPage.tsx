@@ -14,6 +14,8 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import { Logo } from "@/components/site";
 import { SafeImage, Skeleton } from "@/components/ui";
 import { parseOptions } from "@/lib/options";
+import { displayAllergens } from "@/lib/allergens";
+import { DAYS, openState, parseWeek, riyadhTodayId, weekSummary } from "@/lib/hours";
 import {
   getActiveMenus,
   getAvailableDishes,
@@ -39,6 +41,38 @@ function dishDesc(d: Dish, en: boolean): string | null {
   return en && d.description_en ? d.description_en : d.description;
 }
 
+/**
+ * التاجر قد يكتب «instagram.com/x» بلا مخطَّط، فينتج رابط نسبي مكسور داخل
+ * المنيو. نضيف https:// عند الحاجة ونرفض المخططات غير الآمنة.
+ */
+function httpUrl(raw: string): string {
+  const v = raw.trim();
+  if (/^https?:\/\//i.test(v)) return v;
+  if (/^(javascript|data|vbscript):/i.test(v)) return "#";
+  return `https://${v.replace(/^\/+/, "")}`;
+}
+
+/** رقم مجرّد → رابط wa.me، ورابط كامل يُترك كما هو. */
+function whatsappUrl(raw: string): string {
+  const v = raw.trim();
+  if (/^https?:\/\//i.test(v)) return v;
+  const digits = v.replace(/\D/g, "");
+  return digits ? `https://wa.me/${digits}` : "#";
+}
+
+/** فهرس «مسبب → الأطباق التي تحتويه» لصفحة المسببات. */
+function buildAllergenIndex(dishes: Dish[], en: boolean) {
+  const map = new Map<string, { label: string; emoji: string; dishes: string[] }>();
+  for (const d of dishes) {
+    for (const a of displayAllergens(d.allergens, en)) {
+      const entry = map.get(a.key) ?? { label: a.label, emoji: a.emoji, dishes: [] };
+      entry.dishes.push(dishName(d, en));
+      map.set(a.key, entry);
+    }
+  }
+  return [...map.values()].sort((x, y) => y.dishes.length - x.dishes.length);
+}
+
 
 function Chip({ children, onClick, href }: { children: ReactNode; onClick?: () => void; href?: string }) {
   const cls =
@@ -59,8 +93,69 @@ function Chip({ children, onClick, href }: { children: ReactNode; onClick?: () =
   );
 }
 
+/**
+ * لوح منسدل بثيم المنيو (`--m-*`).
+ * `ui.tsx`'s Modal مربوط بألوان اللوحة لا بثيم المنيو، فنحتاج نسخة مستقلة —
+ * لكن منطق Escape وقفل التمرير موحّد هنا بدل تكراره في كل لوح.
+ */
+function MenuSheet({
+  title,
+  onClose,
+  children,
+}: {
+  title: string;
+  onClose: () => void;
+  children: ReactNode;
+}) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/65 backdrop-blur-sm sm:items-center sm:p-6"
+      onClick={onClose}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        onClick={(e) => e.stopPropagation()}
+        className="anim-fade-up max-h-[88dvh] w-full max-w-lg overflow-y-auto border p-5"
+        style={{
+          background: "var(--m-bg-2)",
+          borderColor: "var(--m-border)",
+          borderRadius: "calc(var(--m-radius) * 1.4)",
+        }}
+      >
+        <div className="mb-4 flex items-center justify-between gap-4">
+          <h3 className="text-lg font-black" style={{ color: "var(--m-text)", ...mFont }}>
+            {title}
+          </h3>
+          <button
+            onClick={onClose}
+            aria-label="إغلاق"
+            className="flex h-8 w-8 items-center justify-center rounded-full"
+            style={{ color: "var(--m-muted)", background: "var(--m-surface)" }}
+          >
+            ✕
+          </button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
 /* ── بطاقة الطبق ──────────────────────────────────────────────────── */
 function DishCard({ dish, en, onOpen }: { dish: Dish; en: boolean; onOpen: () => void }) {
+  const allergenIcons = displayAllergens(dish.allergens, en);
   return (
     <button
       onClick={onOpen}
@@ -98,6 +193,22 @@ function DishCard({ dish, en, onOpen }: { dish: Dish; en: boolean; onOpen: () =>
             {dishDesc(dish, en)}
           </p>
         )}
+        {/* رموز المسببات على البطاقة نفسها — الزبون الحسّاس يجب أن يراها وهو
+            يمسح المنيو، لا أن يفتح كل طبق ليعرف. */}
+        {allergenIcons.length > 0 && (
+          <div className="flex flex-wrap items-center gap-1 pt-1" aria-label={en ? "Allergens" : "مسببات الحساسية"}>
+            {allergenIcons.map((a) => (
+              <span
+                key={a.key}
+                title={a.label}
+                className="rounded-md px-1 text-[11px]"
+                style={{ background: "var(--m-bg-2)" }}
+              >
+                {a.emoji}
+              </span>
+            ))}
+          </div>
+        )}
         <div className="mt-auto flex items-center justify-between pt-1.5">
           <span className="text-sm font-black" style={{ color: "var(--m-accent)" }}>
             {formatPrice(dish.price ?? 0)} <span className="text-[10px] font-bold">ر.س</span>
@@ -126,6 +237,7 @@ function DishModal({ dish, en, onClose }: { dish: Dish; en: boolean; onClose: ()
   }, [onClose]);
 
   const options = parseOptions(dish.options);
+  const allergens = displayAllergens(dish.allergens, en);
   const nutrition = [
     dish.calories != null && { label: en ? "Calories" : "سعرات", value: dish.calories, icon: "🔥" },
     dish.sodium_mg != null && { label: en ? "Sodium" : "صوديوم", value: `${dish.sodium_mg} ملغم`, icon: "🧂" },
@@ -191,19 +303,30 @@ function DishModal({ dish, en, onClose }: { dish: Dish; en: boolean; onClose: ()
             </div>
           )}
 
-          {(dish.allergens?.length ?? 0) > 0 && (
+          {/* تنبيه الصوديوم المرتفع — عمود محسوب في قاعدة البيانات
+              (sodium_mg > 600) لم يكن يُعرض للزبون إطلاقاً. */}
+          {dish.is_high_sodium && (
+            <p
+              className="mt-3 rounded-xl border px-3 py-2 text-xs font-bold"
+              style={{ borderColor: "var(--m-border)", color: "var(--m-text)", background: "var(--m-surface)" }}
+            >
+              🧂 {en ? "High in sodium" : "غني بالصوديوم"}
+            </p>
+          )}
+
+          {allergens.length > 0 && (
             <div className="mt-3">
               <p className="mb-1.5 text-xs font-bold" style={{ color: "var(--m-muted)" }}>
                 ⚠️ {en ? "Allergens" : "مسببات الحساسية"}
               </p>
               <div className="flex flex-wrap gap-1.5">
-                {dish.allergens!.map((a) => (
+                {allergens.map((a) => (
                   <span
-                    key={a}
+                    key={a.key}
                     className="rounded-full border px-2.5 py-0.5 text-xs"
                     style={{ borderColor: "var(--m-border)", color: "var(--m-text)" }}
                   >
-                    {a}
+                    {a.emoji} {a.label}
                   </span>
                 ))}
               </div>
@@ -399,7 +522,15 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
   const [search, setSearch] = useState("");
   const [activeCat, setActiveCat] = useState<string | null>(null);
   const [openDish, setOpenDish] = useState<Dish | null>(null);
+  const [hoursOpen, setHoursOpen] = useState(false);
+  const [allergensOpen, setAllergensOpen] = useState(false);
   const tracked = useRef(false);
+  // يتحدّث كل دقيقة كي لا تتجمّد حالة «مفتوح الآن» على شاشة مفتوحة طويلاً.
+  const [nowTick, setNowTick] = useState(() => Date.now());
+  useEffect(() => {
+    const t = window.setInterval(() => setNowTick(Date.now()), 60_000);
+    return () => window.clearInterval(t);
+  }, []);
 
   // رقم الطاولة من ?table= → sessionStorage (نفس مفتاح النسخة الأصلية).
   const table = params.get("table") ?? getItem(K.TABLE, true);
@@ -501,14 +632,22 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
 
   const { restaurant } = state;
   const socials = [
-    restaurant.google_review_url && { icon: "⭐", label: en ? "Rate us on Google" : "قيّمنا على قوقل", url: restaurant.google_review_url, highlight: true },
-    restaurant.social_whatsapp && { icon: "💬", label: "واتساب", url: restaurant.social_whatsapp.startsWith("http") ? restaurant.social_whatsapp : `https://wa.me/${restaurant.social_whatsapp.replace(/\D/g, "")}` },
-    restaurant.social_instagram && { icon: "📸", label: "إنستغرام", url: restaurant.social_instagram },
-    restaurant.social_twitter && { icon: "𝕏", label: "تويتر", url: restaurant.social_twitter },
-    restaurant.social_tiktok && { icon: "🎵", label: "تيك توك", url: restaurant.social_tiktok },
-    restaurant.social_snapchat && { icon: "👻", label: "سناب شات", url: restaurant.social_snapchat },
-    restaurant.social_maps && { icon: "📍", label: en ? "Location" : "الموقع", url: restaurant.social_maps },
+    restaurant.google_review_url && { icon: "⭐", label: en ? "Rate us on Google" : "قيّمنا على قوقل", url: httpUrl(restaurant.google_review_url), highlight: true },
+    restaurant.social_maps && { icon: "📍", label: en ? "Find us on Maps" : "موقعنا على الخريطة", url: httpUrl(restaurant.social_maps), highlight: true },
+    restaurant.social_whatsapp && { icon: "💬", label: en ? "WhatsApp" : "واتساب", url: whatsappUrl(restaurant.social_whatsapp) },
+    restaurant.social_instagram && { icon: "📸", label: en ? "Instagram" : "إنستغرام", url: httpUrl(restaurant.social_instagram) },
+    restaurant.social_twitter && { icon: "𝕏", label: en ? "X (Twitter)" : "تويتر", url: httpUrl(restaurant.social_twitter) },
+    restaurant.social_tiktok && { icon: "🎵", label: en ? "TikTok" : "تيك توك", url: httpUrl(restaurant.social_tiktok) },
+    restaurant.social_snapchat && { icon: "👻", label: en ? "Snapchat" : "سناب شات", url: httpUrl(restaurant.social_snapchat) },
   ].filter(Boolean) as { icon: string; label: string; url: string; highlight?: boolean }[];
+
+  // كل المسببات الموجودة في المنيو، مع أطباق كل مسبب.
+  const allergenIndex = buildAllergenIndex(state.dishes, en);
+
+  // ساعات العمل: جدول مهيكل إن وُجد، وإلا نصّ حر يُعرض كما هو.
+  const week = parseWeek(restaurant.working_hours);
+  const live = week ? openState(week, en, new Date(nowTick)) : null;
+  const todayId = riyadhTodayId(new Date(nowTick));
 
   return (
     <div
@@ -567,13 +706,38 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
                 🪑 {en ? "Table" : "طاولة"} {table}
               </span>
             )}
-            {restaurant.working_hours && (
-              <span
-                className="rounded-full border px-3 py-1 text-xs"
-                style={{ borderColor: "var(--m-border)", color: "var(--m-muted)" }}
-              >
-                🕐 {restaurant.working_hours}
-              </span>
+            {/* جدول مهيكل ⇒ حالة «مفتوح الآن» + ملخّص. نصّ حر ⇒ يُعرض كما هو.
+                (قبل ذلك كانت القيمة تُطبع خاماً، فيرى الزبون JSON على شاشته.) */}
+            {week ? (
+              <>
+                <span
+                  className="rounded-full px-3 py-1 text-xs font-black"
+                  style={
+                    live?.open
+                      ? { background: "var(--m-accent)", color: "var(--m-on-accent)" }
+                      : { border: "1px solid var(--m-border)", color: "var(--m-muted)" }
+                  }
+                >
+                  {live?.open ? "🟢" : "⚪"} {live?.label}
+                  {live?.open && live.until ? ` · ${en ? "until" : "حتى"} ${live.until}` : ""}
+                </span>
+                <button
+                  onClick={() => setHoursOpen(true)}
+                  className="rounded-full border px-3 py-1 text-xs"
+                  style={{ borderColor: "var(--m-border)", color: "var(--m-muted)" }}
+                >
+                  🕐 {weekSummary(week, en)} ›
+                </button>
+              </>
+            ) : (
+              restaurant.working_hours && (
+                <span
+                  className="rounded-full border px-3 py-1 text-xs"
+                  style={{ borderColor: "var(--m-border)", color: "var(--m-muted)" }}
+                >
+                  🕐 {restaurant.working_hours}
+                </span>
+              )
             )}
           </div>
         </div>
@@ -685,9 +849,32 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
           ))
         )}
 
-        {/* روابط التواصل + تقييم قوقل */}
+        {/* صفحة المسببات — كل المسببات في المنيو وأي الأطباق تحتويها */}
+        {allergenIndex.length > 0 && (
+          <section className="mt-10">
+            <button
+              onClick={() => setAllergensOpen(true)}
+              className="mx-auto flex w-full max-w-md items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-start transition-transform hover:scale-[1.01]"
+              style={{ borderColor: "var(--m-border)", background: "var(--m-surface)" }}
+            >
+              <span>
+                <span className="block text-sm font-black" style={{ color: "var(--m-text)" }}>
+                  ⚠️ {en ? "Allergen guide" : "دليل مسببات الحساسية"}
+                </span>
+                <span className="mt-0.5 block text-xs" style={{ color: "var(--m-muted)" }}>
+                  {en
+                    ? `${allergenIndex.length} allergens across the menu`
+                    : `${allergenIndex.length} مسبباً في هذا المنيو — اعرف أي طبق يحتويه`}
+                </span>
+              </span>
+              <span style={{ color: "var(--m-accent)" }}>›</span>
+            </button>
+          </section>
+        )}
+
+        {/* روابط التواصل + تقييم قوقل + الموقع */}
         {socials.length > 0 && (
-          <section className="mt-10 flex flex-wrap items-center justify-center gap-2">
+          <section className="mt-8 flex flex-wrap items-center justify-center gap-2">
             {socials.map((s) =>
               s.highlight ? (
                 <a
@@ -734,6 +921,82 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
       </main>
 
       {openDish && <DishModal dish={openDish} en={en} onClose={() => setOpenDish(null)} />}
+
+      {hoursOpen && week && (
+        <MenuSheet
+          title={en ? "Opening hours" : "ساعات العمل"}
+          onClose={() => setHoursOpen(false)}
+        >
+          <ul className="flex flex-col gap-1.5">
+            {DAYS.map((d) => {
+              const day = week[d.id];
+              const isToday = d.id === todayId;
+              return (
+                <li
+                  key={d.id}
+                  className="flex items-center justify-between rounded-xl border px-3 py-2 text-sm"
+                  style={{
+                    borderColor: isToday ? "var(--m-accent)" : "var(--m-border)",
+                    background: isToday ? "var(--m-surface)" : "transparent",
+                    color: "var(--m-text)",
+                  }}
+                >
+                  <span className="font-bold">
+                    {en ? d.en : d.ar}
+                    {isToday && (
+                      <span style={{ color: "var(--m-accent)" }}> · {en ? "today" : "اليوم"}</span>
+                    )}
+                  </span>
+                  <span dir="ltr" style={{ color: day.open ? "var(--m-text)" : "var(--m-muted)" }}>
+                    {day.open ? `${day.from} – ${day.to}` : en ? "Closed" : "إجازة"}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+          <p className="mt-3 text-center text-xs" style={{ color: "var(--m-muted)" }}>
+            {en ? "Riyadh time" : "بتوقيت الرياض"}
+          </p>
+        </MenuSheet>
+      )}
+
+      {allergensOpen && (
+        <MenuSheet
+          title={en ? "Allergen guide" : "دليل مسببات الحساسية"}
+          onClose={() => setAllergensOpen(false)}
+        >
+          <p className="mb-3 text-xs leading-relaxed" style={{ color: "var(--m-muted)" }}>
+            {en
+              ? "Allergens declared by the restaurant for each dish. If you have a severe allergy, please tell the staff."
+              : "المسببات كما أعلنها المطعم لكل طبق. إن كانت حساسيتك شديدة فأخبر موظف المطعم قبل الطلب."}
+          </p>
+          <ul className="flex flex-col gap-2">
+            {allergenIndex.map((a) => (
+              <li
+                key={a.label}
+                className="rounded-xl border px-3 py-2.5"
+                style={{ borderColor: "var(--m-border)", background: "var(--m-surface)" }}
+              >
+                <p className="text-sm font-black" style={{ color: "var(--m-text)" }}>
+                  {a.emoji} {a.label}
+                  <span className="font-normal" style={{ color: "var(--m-muted)" }}>
+                    {" "}
+                    · {a.dishes.length} {en ? "dishes" : "طبقاً"}
+                  </span>
+                </p>
+                <p className="mt-1 text-xs leading-relaxed" style={{ color: "var(--m-muted)" }}>
+                  {a.dishes.join(" · ")}
+                </p>
+              </li>
+            ))}
+          </ul>
+          {restaurant.allergens_text && (
+            <p className="mt-4 text-center text-xs" style={{ color: "var(--m-muted)" }}>
+              ⚠️ {restaurant.allergens_text}
+            </p>
+          )}
+        </MenuSheet>
+      )}
     </div>
   );
 }
