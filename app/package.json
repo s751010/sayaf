@@ -6,6 +6,7 @@
   "description": "كلاود منيو — منيو رقمي QR للمطاعم السعودية (SPA قابلة للنشر بالسحب على Netlify)",
   "scripts": {
     "dev": "vite",
+    "typecheck": "tsc --noEmit",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview"
   },

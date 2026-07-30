@@ -12,12 +12,15 @@ import {
   Field,
   Input,
   Modal,
+  SafeImage,
   Select,
   Skeleton,
   Switch,
   Textarea,
   useToast,
 } from "@/components/ui";
+import { ImageUploader } from "@/components/ImageUploader";
+import { OptionsEditor } from "@/components/OptionsEditor";
 import {
   countDishes,
   createDish,
@@ -93,8 +96,14 @@ function toForm(d: Dish): DishForm {
   };
 }
 
-/** الفورم → payload موحّد للإضافة والتحديث (القاعدة أ — المكانان 2 و3). */
-function toPayload(f: DishForm, englishAllowed: boolean): DishPayload {
+/**
+ * الفورم → payload موحّد للإضافة والتحديث (القاعدة أ — المكانان 2 و3).
+ *
+ * الحقول الإنجليزية تُمرَّر كما هي دائماً: حقولها معطّلة في الواجهة عند غياب
+ * الصلاحية، فتبقى محمّلة بقيمة الطبق الأصلية. تصفيرها هنا كان يمحو ترجمات
+ * التاجر نهائياً عند أول تعديل بعد انتهاء الاشتراك.
+ */
+function toPayload(f: DishForm): DishPayload {
   return {
     name: f.name.trim(),
     description: strOrNull(f.description),
@@ -109,8 +118,8 @@ function toPayload(f: DishForm, englishAllowed: boolean): DishPayload {
     caffeine_mg: numOrNull(f.caffeine_mg),
     burn_minutes: numOrNull(f.burn_minutes),
     allergens: csvToArray(f.allergens),
-    name_en: englishAllowed ? strOrNull(f.name_en) : null,
-    description_en: englishAllowed ? strOrNull(f.description_en) : null,
+    name_en: strOrNull(f.name_en),
+    description_en: strOrNull(f.description_en),
     options: strOrNull(f.options),
   };
 }
@@ -159,10 +168,15 @@ export default function Dishes() {
     e.preventDefault();
     if (!form.name.trim()) return setError("اسم الطبق مطلوب.");
     if (!form.menu_id) return setError("اختر القائمة.");
+    // السعر كان يسقط إلى صفر بصمت عند إدخال غير قابل للتحويل (أرقام عربية،
+    // «45 ريال»…) فيُنشر الطبق مجاناً في المنيو.
+    const price = numOrNull(form.price);
+    if (price === null) return setError("اكتب سعراً صحيحاً بالأرقام.");
+    if (price < 0) return setError("السعر لا يمكن أن يكون سالباً.");
     setBusy(true);
     setError("");
     try {
-      const payload = toPayload(form, ent.english);
+      const payload = toPayload(form);
       if (editing === "new") {
         // فرض حدّ الأصناف حسب الباقة.
         if (ent.maxDishes !== null) {
@@ -265,13 +279,13 @@ export default function Dishes() {
               key={d.id}
               className={cn("flex items-center gap-3 py-3", d.available === false && "opacity-55")}
             >
-              {d.image ? (
-                <img src={d.image} alt="" loading="lazy" className="h-12 w-12 rounded-xl object-cover" />
-              ) : (
-                <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-panel2 text-2xl">
-                  {d.emoji ?? "🍽"}
-                </span>
-              )}
+              <SafeImage
+                src={d.image}
+                alt=""
+                className="h-12 w-12 rounded-xl object-cover"
+                wrapperClassName="h-12 w-12 shrink-0 rounded-xl bg-panel2 text-2xl"
+                fallback={d.emoji ?? "🍽"}
+              />
               <div className="min-w-0 flex-1">
                 <p className="truncate font-bold text-ink">
                   {d.name} {d.featured && <span className="text-gold">★</span>}
@@ -343,15 +357,17 @@ export default function Dishes() {
               ))}
             </Select>
           </Field>
-          <Field label="رابط الصورة (اختياري)">
-            <Input
-              dir="ltr"
+          <div className="sm:col-span-2">
+            <ImageUploader
+              label="صورة الطبق (اختيارية)"
               value={form.image}
-              onChange={(e) => set("image", e.target.value)}
-              placeholder="https://…"
+              onChange={(url) => set("image", url)}
+              bucket="dish-images"
+              pathPrefix={restaurant.id}
+              shape="square"
             />
-          </Field>
-          <Field label="الإيموجي (بديل الصورة)" className="sm:col-span-2">
+          </div>
+          <Field label="الإيموجي (يظهر عند غياب الصورة)" className="sm:col-span-2">
             <div className="flex flex-wrap items-center gap-1.5">
               {QUICK_EMOJIS.map((em) => (
                 <button
@@ -384,7 +400,26 @@ export default function Dishes() {
             <Switch checked={form.available} onChange={(v) => set("available", v)} label="متاح" />
           </div>
 
-          <p className="sm:col-span-2 -mb-1 mt-1 text-xs font-black text-faint">
+          <div className="sm:col-span-2">
+            <OptionsEditor
+              key={editing === "new" ? "new" : (editing?.id ?? "none")}
+              value={form.options}
+              onChange={(v) => set("options", v)}
+            />
+          </div>
+
+          {/* الحقول المتقدّمة مطويّة: التاجر يحتاج الاسم والسعر والصورة لينشر
+              طبقاً، وبقيّة الحقول اختيارية تماماً. */}
+          <details className="sm:col-span-2 rounded-xl border border-line bg-panel2/60 px-4 py-3 [&[open]]:pb-4">
+            <summary className="cursor-pointer list-none text-sm font-bold text-ink marker:hidden">
+              <span className="select-none">▾ معلومات إضافية — غذائية، حساسية، إنجليزية</span>
+              <span className="mt-0.5 block text-xs font-normal text-faint">
+                كلها اختيارية — يمكنك نشر الطبق بدونها.
+              </span>
+            </summary>
+
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <p className="sm:col-span-2 -mb-1 text-xs font-black text-faint">
             المعلومات الغذائية (SFDA)
           </p>
           <Field label="سعرات حرارية">
@@ -402,9 +437,6 @@ export default function Dishes() {
           <Field label="مسببات الحساسية" hint="افصل بفاصلة: مكسرات، جلوتين، حليب" className="sm:col-span-2">
             <Input value={form.allergens} onChange={(e) => set("allergens", e.target.value)} />
           </Field>
-          <Field label="الخيارات والإضافات" hint="سطر لكل خيار، أو JSON مثل: [{&quot;name&quot;:&quot;جبن إضافي&quot;,&quot;price&quot;:5}]" className="sm:col-span-2">
-            <Textarea value={form.options} onChange={(e) => set("options", e.target.value)} />
-          </Field>
 
           <p className="sm:col-span-2 -mb-1 mt-1 text-xs font-black text-faint">
             الإنجليزية {!ent.english && "— متاحة في باقة الاحترافية"}
@@ -415,6 +447,8 @@ export default function Dishes() {
           <Field label="Description (EN)">
             <Input dir="ltr" value={form.description_en} onChange={(e) => set("description_en", e.target.value)} disabled={!ent.english} />
           </Field>
+            </div>
+          </details>
 
           {error && <div className="sm:col-span-2"><ErrorNote>{error}</ErrorNote></div>}
 

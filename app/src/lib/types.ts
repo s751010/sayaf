@@ -31,6 +31,9 @@ export interface Restaurant {
   loyalty_enabled: boolean | null;
   loyalty_goal: number | null;
   loyalty_reward: string | null;
+  /** موجودان في الجدول (NOT NULL) لكن لا تكتبهما الواجهة بعد. */
+  reviews_enabled: boolean | null;
+  online_payment_enabled: boolean | null;
   created_at: string;
 }
 

@@ -31,6 +31,12 @@ type RestOptions = {
 export async function rest<T>(query: string, opts: RestOptions = {}): Promise<T> {
   const method = opts.method ?? "GET";
   const token = opts.anonymous ? null : await getAccessToken();
+  // نداء يخصّ مستخدماً مسجَّلاً بلا رمز صالح = جلسة منتهية. لا نُكمل بمفتاح anon:
+  // RLS سيرد صفوفاً فارغة بنجاح، فيرى التاجر «لا توجد أطباق» بدل أن يُطلب منه
+  // تسجيل الدخول. نفشل بوضوح بدل الفشل الصامت.
+  if (!opts.anonymous && !token) {
+    throw new ApiError(401, "انتهت الجلسة — سجّل الدخول من جديد.");
+  }
   const headers: Record<string, string> = {
     apikey: SUPABASE_ANON_KEY,
     Authorization: `Bearer ${token ?? SUPABASE_ANON_KEY}`,
@@ -69,6 +75,40 @@ export async function restCount(query: string): Promise<number> {
   const range = res.headers.get("content-range") ?? "";
   const total = Number(range.split("/")[1]);
   return Number.isFinite(total) ? total : 0;
+}
+
+/** الحاويات المتاحة في Supabase Storage (عامة للقراءة، الكتابة لمستخدم مسجَّل). */
+export type Bucket = "dish-images" | "restaurant-images" | "menu-images";
+
+/**
+ * رفع صورة إلى Supabase Storage وإرجاع رابطها العام.
+ * الحاويات عامة للقراءة، لذا الرابط الناتج يصلح مباشرة في `<img src>`.
+ */
+export async function uploadImage(
+  bucket: Bucket,
+  path: string,
+  blob: Blob
+): Promise<string> {
+  const token = await getAccessToken();
+  if (!token) throw new ApiError(401, "انتهت الجلسة — سجّل الدخول من جديد.");
+  const res = await fetch(
+    `${SUPABASE_URL}/storage/v1/object/${bucket}/${encodeURI(path)}`,
+    {
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${token}`,
+        "Content-Type": blob.type || "image/jpeg",
+        "cache-control": "31536000",
+      },
+      body: blob,
+    }
+  );
+  if (!res.ok) {
+    const detail = await res.text().catch(() => "");
+    throw new ApiError(res.status, detail || `upload ${res.status}`);
+  }
+  return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${encodeURI(path)}`;
 }
 
 /**

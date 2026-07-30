@@ -4,8 +4,10 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
   type ButtonHTMLAttributes,
+  type ImgHTMLAttributes,
   type InputHTMLAttributes,
   type ReactNode,
   type SelectHTMLAttributes,
@@ -207,6 +209,41 @@ export function EmptyState({
   );
 }
 
+/**
+ * صورة بمسار بديل عند الفشل.
+ * روابط الصور يكتبها صاحب المطعم، وأي رابط مكسور كان يترك أيقونة صورة مكسورة
+ * دائمة في منيو الزبون. هنا نسقط إلى `fallback` (إيموجي الطبق عادةً) بدلاً منها.
+ */
+export function SafeImage({
+  src,
+  fallback,
+  className,
+  wrapperClassName,
+  ...props
+}: Omit<ImgHTMLAttributes<HTMLImageElement>, "src"> & {
+  src: string | null | undefined;
+  fallback: ReactNode;
+  wrapperClassName?: string;
+}) {
+  const [failed, setFailed] = useState(false);
+  // رابط جديد ⇒ أعطه فرصة جديدة قبل الحكم عليه بالفشل.
+  useEffect(() => setFailed(false), [src]);
+
+  if (!src || failed) {
+    return <div className={cn("flex items-center justify-center", wrapperClassName)}>{fallback}</div>;
+  }
+  return (
+    <img
+      src={src}
+      loading="lazy"
+      decoding="async"
+      onError={() => setFailed(true)}
+      className={className}
+      {...props}
+    />
+  );
+}
+
 export function ErrorNote({ children }: { children: ReactNode }) {
   return (
     <p className="rounded-xl border border-bad/30 bg-bad/10 px-4 py-3 text-sm text-bad">
@@ -255,18 +292,20 @@ export function Modal({
           wide ? "sm:max-w-2xl" : "sm:max-w-md"
         )}
       >
-        {(title || true) && (
-          <div className="mb-4 flex items-center justify-between gap-4">
+        <div className="mb-4 flex items-center justify-between gap-4">
+          {title ? (
             <h2 className="font-display text-lg font-extrabold text-ink">{title}</h2>
-            <button
-              onClick={onClose}
-              aria-label="إغلاق"
-              className="flex h-8 w-8 items-center justify-center rounded-full text-dim hover:bg-ink/8 hover:text-ink"
-            >
-              ✕
-            </button>
-          </div>
-        )}
+          ) : (
+            <span />
+          )}
+          <button
+            onClick={onClose}
+            aria-label="إغلاق"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-dim hover:bg-ink/8 hover:text-ink"
+          >
+            ✕
+          </button>
+        </div>
         {children}
       </div>
     </div>
@@ -281,10 +320,24 @@ const ToastContext = createContext<(text: string, kind?: Toast["kind"]) => void>
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
+  // المؤقتات تُتتبَّع كي تُلغى عند التفكيك — بدونها يبقى setState معلّقاً على
+  // مكوّن مُفكَّك بعد آخر توست.
+  const timers = useRef<number[]>([]);
+  useEffect(
+    () => () => {
+      timers.current.forEach(clearTimeout);
+      timers.current = [];
+    },
+    []
+  );
   const show = useCallback((text: string, kind: Toast["kind"] = "ok") => {
     const id = Date.now() + Math.random();
     setToasts((t) => [...t, { id, text, kind }]);
-    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 3500);
+    const timer = window.setTimeout(() => {
+      setToasts((t) => t.filter((x) => x.id !== id));
+      timers.current = timers.current.filter((x) => x !== timer);
+    }, 3500);
+    timers.current.push(timer);
   }, []);
   return (
     <ToastContext.Provider value={show}>

@@ -36,9 +36,23 @@ export function slugify(input: string): string {
     .replace(/^-|-$/g, "");
 }
 
+/**
+ * أرقام عربية-هندية (٠١٢٣…) و فارسية (۰۱۲۳…) → أرقام لاتينية.
+ * لوحة المفاتيح العربية على الجوال تُدخلها افتراضياً، و`Number("١٢٥")` = NaN،
+ * فكان السعر يسقط إلى صفر بصمت.
+ */
+export function normalizeDigits(input: string): string {
+  return input.replace(/[٠-٩۰-۹]/g, (d) =>
+    String(d.charCodeAt(0) & 0x0f)
+  );
+}
+
 /** حقل رقمي من نموذج → رقم أو null (عند الفراغ/قيمة غير صالحة). */
 export function numOrNull(v: string | null | undefined): number | null {
-  const s = String(v ?? "").trim();
+  const s = normalizeDigits(String(v ?? "").trim())
+    // فاصلة عشرية عربية + فواصل آلاف
+    .replace(/٫/g, ".")
+    .replace(/[٬,\s]/g, "");
   if (s === "") return null;
   const n = Number(s);
   return Number.isFinite(n) ? n : null;

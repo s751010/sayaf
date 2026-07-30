@@ -12,7 +12,8 @@ import {
 } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { Logo } from "@/components/site";
-import { Skeleton } from "@/components/ui";
+import { SafeImage, Skeleton } from "@/components/ui";
+import { parseOptions } from "@/lib/options";
 import {
   getActiveMenus,
   getAvailableDishes,
@@ -38,31 +39,6 @@ function dishDesc(d: Dish, en: boolean): string | null {
   return en && d.description_en ? d.description_en : d.description;
 }
 
-/** خيارات الطبق تُخزَّن نصاً — قد تكون JSON [{name,price}] أو نصاً حراً. */
-function parseOptions(raw: string | null): { name: string; price?: number }[] {
-  if (!raw?.trim()) return [];
-  try {
-    const v = JSON.parse(raw);
-    if (Array.isArray(v)) {
-      return v
-        .map((o) =>
-          typeof o === "string"
-            ? { name: o }
-            : o && typeof o.name === "string"
-              ? { name: o.name, price: typeof o.price === "number" ? o.price : undefined }
-              : null
-        )
-        .filter((o): o is { name: string; price?: number } => o !== null);
-    }
-  } catch {
-    /* نص حر مفصول بأسطر/فواصل */
-  }
-  return raw
-    .split(/[\n,،]/)
-    .map((s) => s.trim())
-    .filter(Boolean)
-    .map((name) => ({ name }));
-}
 
 function Chip({ children, onClick, href }: { children: ReactNode; onClick?: () => void; href?: string }) {
   const cls =
@@ -95,22 +71,21 @@ function DishCard({ dish, en, onOpen }: { dish: Dish; en: boolean; onOpen: () =>
         borderRadius: "var(--m-radius)",
       }}
     >
-      {dish.image ? (
-        <img
-          src={dish.image}
-          alt={dishName(dish, en)}
-          loading="lazy"
-          decoding="async"
-          className="h-32 w-full object-cover sm:h-36"
-        />
-      ) : (
-        <div
-          className="flex h-32 w-full items-center justify-center text-5xl sm:h-36"
-          style={{ background: "var(--m-bg-2)" }}
-        >
-          {dish.emoji ?? "🍽"}
-        </div>
-      )}
+      <SafeImage
+        src={dish.image}
+        alt={dishName(dish, en)}
+        className="h-32 w-full object-cover sm:h-36"
+        wrapperClassName="h-32 w-full text-5xl sm:h-36"
+        style={{ background: "var(--m-bg-2)" } as CSSProperties}
+        fallback={
+          <div
+            className="flex h-32 w-full items-center justify-center text-5xl sm:h-36"
+            style={{ background: "var(--m-bg-2)" } as CSSProperties}
+          >
+            {dish.emoji ?? "🍽"}
+          </div>
+        }
+      />
       <div className="flex flex-1 flex-col gap-1 p-3">
         <div className="flex items-start justify-between gap-2">
           <p className="text-sm font-bold leading-snug" style={{ color: "var(--m-text)", ...mFont }}>
@@ -174,13 +149,19 @@ function DishModal({ dish, en, onClose }: { dish: Dish; en: boolean; onClose: ()
           borderRadius: "calc(var(--m-radius) * 1.4)",
         }}
       >
-        {dish.image ? (
-          <img src={dish.image} alt="" className="h-56 w-full object-cover" />
-        ) : (
-          <div className="flex h-44 items-center justify-center text-7xl" style={{ background: "var(--m-bg)" }}>
-            {dish.emoji ?? "🍽"}
-          </div>
-        )}
+        <SafeImage
+          src={dish.image}
+          alt=""
+          className="h-56 w-full object-cover"
+          fallback={
+            <div
+              className="flex h-44 w-full items-center justify-center text-7xl"
+              style={{ background: "var(--m-bg)" } as CSSProperties}
+            >
+              {dish.emoji ?? "🍽"}
+            </div>
+          }
+        />
         <div className="p-5">
           <div className="flex items-start justify-between gap-3">
             <h3 className="text-xl font-black" style={{ color: "var(--m-text)", ...mFont }}>
@@ -235,9 +216,9 @@ function DishModal({ dish, en, onClose }: { dish: Dish; en: boolean; onClose: ()
                 {en ? "Options" : "الخيارات والإضافات"}
               </p>
               <div className="flex flex-col gap-1.5">
-                {options.map((o) => (
+                {options.map((o, i) => (
                   <div
-                    key={o.name}
+                    key={`${o.name}-${i}`}
                     className="flex items-center justify-between rounded-xl border px-3 py-2 text-sm"
                     style={{ borderColor: "var(--m-border)", color: "var(--m-text)" }}
                   >
@@ -286,7 +267,9 @@ function LoyaltyCard({ restaurant, en }: { restaurant: Restaurant; en: boolean }
     if (card) getLoyaltyCustomer(card.id).then(setCustomer).catch(() => {});
   }, [card]);
 
-  const goal = restaurant.loyalty_goal ?? 5;
+  // الهدف يأتي من قاعدة البيانات وقد يكون سالباً أو كسرياً في صفوف قديمة/مستوردة،
+  // و`Array(-1)` يرمي RangeError فيُسقط منيو الزبون كاملاً. نحصره في مدى معقول.
+  const goal = Math.min(20, Math.max(1, Math.round(restaurant.loyalty_goal ?? 5)));
   const stamps = customer?.stamps ?? 0;
 
   async function join() {
@@ -403,10 +386,15 @@ type LoadState =
   | { status: "error" }
   | { status: "ready"; restaurant: Restaurant; menus: Menu[]; dishes: Dish[] };
 
-export default function MenuPage() {
+/** بيانات جاهزة تتخطّى الشبكة — تستخدمها صفحة الديمو (/demo). */
+export type MenuData = { restaurant: Restaurant; menus: Menu[]; dishes: Dish[] };
+
+export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
   const { slug = "" } = useParams();
   const [params] = useSearchParams();
-  const [state, setState] = useState<LoadState>({ status: "loading" });
+  const [state, setState] = useState<LoadState>(
+    demo ? { status: "ready", ...demo } : { status: "loading" }
+  );
   const [lang, setLang] = useState<"ar" | "en">("ar");
   const [search, setSearch] = useState("");
   const [activeCat, setActiveCat] = useState<string | null>(null);
@@ -421,6 +409,11 @@ export default function MenuPage() {
   }, [params]);
 
   useEffect(() => {
+    // وضع الديمو: البيانات محقونة، فلا شبكة ولا تتبّع مشاهدات.
+    if (demo) {
+      document.title = `${demo.restaurant.name} — منيو تجريبي`;
+      return;
+    }
     let cancelled = false;
     setState({ status: "loading" });
     (async () => {
@@ -444,7 +437,7 @@ export default function MenuPage() {
     return () => {
       cancelled = true;
     };
-  }, [slug]);
+  }, [slug, demo]);
 
   const theme = getTheme(
     state.status === "ready" ? state.menus.find((m) => m.theme)?.theme : null
@@ -457,7 +450,7 @@ export default function MenuPage() {
     const q = search.trim().toLowerCase();
     const visible = q
       ? state.dishes.filter((d) =>
-          [d.name, d.name_en, d.description, d.category]
+          [d.name, d.name_en, d.description, d.description_en, d.category]
             .filter(Boolean)
             .some((s) => s!.toLowerCase().includes(q))
         )
@@ -525,32 +518,38 @@ export default function MenuPage() {
     >
       {/* الترويسة */}
       <header className="relative">
-        {restaurant.banner_image ? (
-          <img src={restaurant.banner_image} alt="" className="h-44 w-full object-cover sm:h-56" />
-        ) : (
-          <div
-            className="h-32 w-full sm:h-40"
-            style={{
-              background: `linear-gradient(160deg, ${restaurant.cover_color ?? "var(--m-bg-2)"}, var(--m-bg))`,
-            }}
-          />
-        )}
-        <div className="mx-auto -mt-12 flex max-w-3xl flex-col items-center px-4 text-center">
-          {restaurant.logo_image ? (
-            <img
-              src={restaurant.logo_image}
-              alt={restaurant.name}
-              className="h-24 w-24 rounded-3xl border-2 object-cover shadow-xl"
-              style={{ borderColor: "var(--m-accent)", background: "var(--m-bg-2)" }}
+        <SafeImage
+          src={restaurant.banner_image}
+          alt=""
+          className="h-44 w-full object-cover sm:h-56"
+          fallback={
+            <div
+              className="h-32 w-full sm:h-40"
+              style={
+                {
+                  background: `linear-gradient(160deg, ${restaurant.cover_color ?? "var(--m-bg-2)"}, var(--m-bg))`,
+                } as CSSProperties
+              }
             />
-          ) : (
-            <span
-              className="flex h-24 w-24 items-center justify-center rounded-3xl border-2 text-5xl shadow-xl"
-              style={{ borderColor: "var(--m-accent)", background: "var(--m-bg-2)" }}
-            >
-              {restaurant.logo ?? "🍽️"}
-            </span>
-          )}
+          }
+        />
+        <div className="mx-auto -mt-12 flex max-w-3xl flex-col items-center px-4 text-center">
+          <SafeImage
+            src={restaurant.logo_image}
+            alt={restaurant.name}
+            className="h-24 w-24 rounded-3xl border-2 object-cover shadow-xl"
+            style={{ borderColor: "var(--m-accent)", background: "var(--m-bg-2)" } as CSSProperties}
+            fallback={
+              <span
+                className="flex h-24 w-24 items-center justify-center rounded-3xl border-2 text-5xl shadow-xl"
+                style={
+                  { borderColor: "var(--m-accent)", background: "var(--m-bg-2)" } as CSSProperties
+                }
+              >
+                {restaurant.logo ?? "🍽️"}
+              </span>
+            }
+          />
           <h1 className="mt-3 text-2xl font-black" style={mFont}>
             {restaurant.name}
           </h1>

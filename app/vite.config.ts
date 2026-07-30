@@ -13,5 +13,8 @@ export default defineConfig({
     outDir: "../deploy",
     emptyOutDir: true,
     chunkSizeWarningLimit: 900,
+    // خرائط المصدر ضرورية لتشخيص أي خطأ في الإنتاج — بدونها أثر الخطأ
+    // في الحزمة المصغّرة غير قابل للقراءة إطلاقاً.
+    sourcemap: true,
   },
 });

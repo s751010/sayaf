@@ -1,3 +1,0 @@
-# SPA fallback: the app reads the restaurant slug from the URL path
-# (location.pathname), so every path must serve index.html.
-/*    /index.html    200

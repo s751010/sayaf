@@ -2,6 +2,7 @@ import { Suspense, lazy } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "@/lib/auth";
 import { ToastProvider, Spinner } from "@/components/ui";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 import Landing from "@/pages/Landing";
 import MenuPage from "@/pages/MenuPage";
@@ -14,6 +15,8 @@ const Blog = lazy(() => import("@/pages/Blog"));
 const BlogPostPage = lazy(() => import("@/pages/BlogPost"));
 const Dashboard = lazy(() => import("@/pages/dashboard/Dashboard"));
 const Founder = lazy(() => import("@/pages/Founder"));
+const Demo = lazy(() => import("@/pages/Demo"));
+const Help = lazy(() => import("@/pages/Help"));
 
 function PageLoader() {
   return (
@@ -25,24 +28,36 @@ function PageLoader() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <ToastProvider>
-        <BrowserRouter>
-          <Suspense fallback={<PageLoader />}>
-            <Routes>
-              <Route path="/" element={<Landing />} />
-              <Route path="/blog" element={<Blog />} />
-              <Route path="/blog/:slug" element={<BlogPostPage />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/dashboard/*" element={<Dashboard />} />
-              <Route path="/founder" element={<Founder />} />
-              {/* slug المطعم — يلتقط أي مسار من مستوى واحد */}
-              <Route path="/:slug" element={<MenuPage />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
-        </BrowserRouter>
-      </ToastProvider>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <ToastProvider>
+          <BrowserRouter>
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
+                <Route path="/" element={<Landing />} />
+                <Route path="/demo" element={<Demo />} />
+                <Route path="/help" element={<Help />} />
+                <Route path="/blog" element={<Blog />} />
+                <Route path="/blog/:slug" element={<BlogPostPage />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/dashboard/*" element={<Dashboard />} />
+                <Route path="/founder" element={<Founder />} />
+                {/* slug المطعم — يلتقط أي مسار من مستوى واحد.
+                    حاجز خطأ خاص: انهيار منيو مطعم لا يجب أن يُسقط التطبيق كله. */}
+                <Route
+                  path="/:slug"
+                  element={
+                    <ErrorBoundary>
+                      <MenuPage />
+                    </ErrorBoundary>
+                  }
+                />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
+          </BrowserRouter>
+        </ToastProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
