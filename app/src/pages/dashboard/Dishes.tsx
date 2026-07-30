@@ -4,6 +4,7 @@
  * أي حقل جديد في جدول dishes يُضاف في الحالتين معاً وإلا يسقط بصمت.
  */
 import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { Link } from "react-router-dom";
 import {
   Button,
   Card,
@@ -150,7 +151,7 @@ export default function Dishes() {
   }, [dishes, filter]);
 
   function openNew() {
-    setForm({ ...EMPTY_FORM, menu_id: menus[0]?.id ?? "" });
+    setForm({ ...EMPTY_FORM, menu_id: menus?.[0]?.id ?? "" });
     setError("");
     setEditing("new");
   }
@@ -244,9 +245,17 @@ export default function Dishes() {
         <Button onClick={openNew}>＋ طبق جديد</Button>
       </div>
 
-      {menus.length === 0 && (
-        <Card className="mt-6 text-sm text-dim">
-          أنشئ قائمة أولاً من صفحة «القوائم» ثم أضف أطباقك.
+      {/* لا تُعرض هذه التعليمة إلا بعد أن تُحسم القوائم فعلاً — كانت تظهر
+          لكل تاجر في كل تحميل لأن الافتراضي كان مصفوفة فارغة. */}
+      {menus !== null && menus.length === 0 && (
+        <Card className="mt-6 flex flex-wrap items-center justify-between gap-3 border-gold/30 bg-gold/[.04] text-sm text-ink">
+          <span>تحتاج قائمة قبل إضافة الأطباق — أنشئها في خطوة واحدة.</span>
+          <Link
+            to="/dashboard/menus"
+            className="rounded-xl bg-gold px-4 py-2 text-sm font-bold text-on-gold"
+          >
+            أنشئ قائمة
+          </Link>
         </Card>
       )}
 
@@ -352,7 +361,7 @@ export default function Dishes() {
           <Field label="القائمة">
             <Select value={form.menu_id} onChange={(e) => set("menu_id", e.target.value)} required>
               <option value="" disabled>اختر…</option>
-              {menus.map((m) => (
+              {(menus ?? []).map((m) => (
                 <option key={m.id} value={m.id}>{m.name}</option>
               ))}
             </Select>

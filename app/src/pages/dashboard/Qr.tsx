@@ -1,7 +1,7 @@
 /** استوديو QR — توليد أكواد للمنيو ولكل طاولة، وتنزيل PNG/SVG. */
 import { useEffect, useMemo, useState } from "react";
 import QRCode from "qrcode";
-import { Button, Card, Field, Input, useToast } from "@/components/ui";
+import { Button, Card, ErrorNote, Field, Input, useToast } from "@/components/ui";
 import { useDashboard } from "./Dashboard";
 
 function download(href: string, filename: string) {
@@ -9,6 +9,19 @@ function download(href: string, filename: string) {
   a.href = href;
   a.download = filename;
   a.click();
+}
+
+/**
+ * اسم المطعم نص حر يكتبه التاجر ويُدرَج في مستند طباعة جديد؛ بدون تهريب، اسم
+ * يحتوي < أو " يفسد الصفحة (أو أسوأ). ضرر ذاتي فقط، لكن لا سبب لتركه.
+ */
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 export default function Qr() {
@@ -19,16 +32,20 @@ export default function Qr() {
   const [batchBusy, setBatchBusy] = useState(false);
   const [tablesCount, setTablesCount] = useState("10");
 
+  // slug قد يكون null نظرياً؛ توليد كود يشير إلى «/null» أسوأ من عدم توليده.
+  const slug = restaurant.slug?.trim() || null;
   const url = useMemo(() => {
-    const base = `${window.location.origin}/${restaurant.slug}`;
+    if (!slug) return null;
+    const base = `${window.location.origin}/${slug}`;
     return table.trim() ? `${base}?table=${encodeURIComponent(table.trim())}` : base;
-  }, [restaurant.slug, table]);
+  }, [slug, table]);
 
   useEffect(() => {
     document.title = "أكواد QR — كلاود منيو";
   }, []);
 
   useEffect(() => {
+    if (!url) return setDataUrl("");
     let active = true;
     QRCode.toDataURL(url, {
       width: 640,
@@ -43,17 +60,24 @@ export default function Qr() {
   }, [url]);
 
   async function downloadSvg() {
+    if (!url) return;
+    let objectUrl: string | null = null;
     try {
       const svg = await QRCode.toString(url, { type: "svg", margin: 2 });
       const blob = new Blob([svg], { type: "image/svg+xml" });
-      download(URL.createObjectURL(blob), `qr-${restaurant.slug}${table ? `-table-${table}` : ""}.svg`);
+      objectUrl = URL.createObjectURL(blob);
+      download(objectUrl, `qr-${slug}${table ? `-table-${table}` : ""}.svg`);
     } catch {
       toast("تعذّر التوليد.", "err");
+    } finally {
+      // بدون تحرير، يبقى الـblob في الذاكرة حتى إغلاق التبويب.
+      if (objectUrl) setTimeout(() => URL.revokeObjectURL(objectUrl!), 10_000);
     }
   }
 
   /** يولّد كود كل طاولة في صفحة طباعة واحدة (اطبعها وقصّها). */
   async function printBatch() {
+    if (!url) return;
     const n = Math.min(Math.max(parseInt(tablesCount) || 0, 1), 100);
     setBatchBusy(true);
     try {
@@ -61,15 +85,15 @@ export default function Qr() {
         [...Array(n)].map(async (_, i) => {
           const t = i + 1;
           const d = await QRCode.toDataURL(
-            `${window.location.origin}/${restaurant.slug}?table=${t}`,
+            `${window.location.origin}/${slug}?table=${t}`,
             { width: 480, margin: 2, color: { dark: "#141210", light: "#ffffff" } }
           );
-          return `<div class="card"><img src="${d}"><p class="t">طاولة ${t}</p><p class="r">${restaurant.name}</p></div>`;
+          return `<div class="card"><img src="${d}"><p class="t">طاولة ${t}</p><p class="r">${escapeHtml(restaurant.name)}</p></div>`;
         })
       );
       const w = window.open("", "_blank");
       if (!w) throw new Error("popup blocked");
-      w.document.write(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>أكواد QR — ${restaurant.name}</title>
+      w.document.write(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>أكواد QR — ${escapeHtml(restaurant.name)}</title>
 <style>
   body{font-family:Tahoma,Arial,sans-serif;margin:24px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
   .card{border:2px dashed #999;border-radius:16px;padding:14px;text-align:center;break-inside:avoid}
@@ -107,14 +131,26 @@ export default function Qr() {
             />
           </Field>
           <Field label="الرابط">
-            <Input value={url} readOnly dir="ltr" onFocus={(e) => e.currentTarget.select()} />
+            <Input
+              value={url ?? ""}
+              readOnly
+              dir="ltr"
+              placeholder="اضبط رابط المنيو من الإعدادات أولاً"
+              onFocus={(e) => e.currentTarget.select()}
+            />
           </Field>
+          {!slug && (
+            <ErrorNote>
+              منيوك بلا رابط بعد — اضبطه من صفحة الإعدادات ليصبح توليد كود QR
+              ممكناً.
+            </ErrorNote>
+          )}
           {dataUrl && (
             <div className="flex gap-2">
               <Button
                 className="flex-1"
                 onClick={() =>
-                  download(dataUrl, `qr-${restaurant.slug}${table ? `-table-${table}` : ""}.png`)
+                  download(dataUrl, `qr-${slug}${table ? `-table-${table}` : ""}.png`)
                 }
               >
                 ⬇️ PNG

@@ -109,16 +109,23 @@ export default function Analytics() {
     const byHour = new Array<number>(24).fill(0);
     for (const r of rows ?? []) {
       if (r.date) byDate.set(r.date, (byDate.get(r.date) ?? 0) + (r.views ?? 0));
-      if (r.hour != null) byHour[r.hour] += r.views ?? 0;
+      // `hour` يأتي من قاعدة البيانات بلا ضمان مدى؛ أي قيمة خارج 0..23 كانت
+      // تنتج `undefined + n = NaN` فيُفرَغ الرسم البياني بالكامل.
+      if (r.hour != null && Number.isInteger(r.hour) && r.hour >= 0 && r.hour <= 23) {
+        byHour[r.hour] += r.views ?? 0;
+      }
     }
     // آخر ٣٠ يوماً متتالية (حتى الأيام بلا مشاهدات تظهر صفراً).
+    // المفتاح والتسمية كلاهما بالتوقيت العالمي: الصفوف تُكتب بـ
+    // `toISOString()` (UTC)، وقراءتها بتوقيت محلي كانت تُزيح اليوم في الرياض
+    // (UTC+3) بين منتصف الليل والثالثة صباحاً.
     const days: DayPoint[] = [];
     for (let i = 29; i >= 0; i--) {
       const d = new Date(Date.now() - i * 86400_000);
       const iso = d.toISOString().slice(0, 10);
       days.push({
         date: iso,
-        label: `${d.getDate()}/${d.getMonth() + 1}`,
+        label: `${d.getUTCDate()}/${d.getUTCMonth() + 1}`,
         views: byDate.get(iso) ?? 0,
       });
     }

@@ -10,6 +10,12 @@ export type Entitlements = PlanLimits & {
   planName: string;
   /** هل يملك المستخدم اشتراكاً نشطاً غير منتهٍ؟ */
   active: boolean;
+  /**
+   * الصلاحيات لم تُحسم بعد (الطلب جارٍ).
+   * بدونها كان المشترك في الاحترافية يرى جدار الترقية لحظةً عند فتح صفحة
+   * المستشار الذكي أو الولاء — لأن الافتراضي «الأساسية».
+   */
+  loading: boolean;
 };
 
 export const DEFAULT_ENTITLEMENTS: Entitlements = {
@@ -17,6 +23,7 @@ export const DEFAULT_ENTITLEMENTS: Entitlements = {
   planId: resolvePlan(null).id,
   planName: resolvePlan(null).name,
   active: false,
+  loading: true,
 };
 
 export async function fetchEntitlements(userId: string): Promise<Entitlements> {
@@ -32,5 +39,5 @@ export async function fetchEntitlements(userId: string): Promise<Entitlements> {
     /* عند فشل القراءة نفترض الأساسية — لا نمنح ميزات مدفوعة بالخطأ */
   }
   const plan = resolvePlan(planId);
-  return { ...plan.limits, planId: plan.id, planName: plan.name, active };
+  return { ...plan.limits, planId: plan.id, planName: plan.name, active, loading: false };
 }

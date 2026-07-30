@@ -19,7 +19,7 @@ export default function Loyalty() {
     }
   }, [restaurant.id, ent.loyalty]);
 
-  const goal = restaurant.loyalty_goal ?? 5;
+  const goal = Math.min(20, Math.max(1, Math.round(restaurant.loyalty_goal ?? 5)));
 
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
@@ -28,6 +28,15 @@ export default function Loyalty() {
       [c.name, c.phone, c.card_code].filter(Boolean).some((v) => v!.toLowerCase().includes(s))
     );
   }, [customers, q]);
+
+  if (ent.loading) {
+    return (
+      <div>
+        <h1 className="font-display text-2xl font-black text-ink">الولاء</h1>
+        <Skeleton className="mt-6 h-40 rounded-2xl" />
+      </div>
+    );
+  }
 
   if (!ent.loyalty) {
     return (

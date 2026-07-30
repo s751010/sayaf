@@ -26,10 +26,22 @@ export default function Overview() {
   const publicUrl = restaurant.slug ? menuUrl : null;
   const top = [...(dishes ?? [])].sort((a, b) => (b.views ?? 0) - (a.views ?? 0)).slice(0, 5);
 
+  const steps = [
+    { label: "أنشئ قائمة", done: (menus?.length ?? 0) > 0, to: "/dashboard/menus", cta: "القوائم" },
+    { label: "أضف ٣ أطباق على الأقل", done: (dishes?.length ?? 0) >= 3, to: "/dashboard/dishes", cta: "الأطباق" },
+    { label: "ارفع صورة لطبق واحد", done: (dishes ?? []).some((d) => !!d.image), to: "/dashboard/dishes", cta: "الأطباق" },
+    { label: "اطبع كود QR للطاولات", done: (views30 ?? 0) > 0, to: "/dashboard/qr", cta: "كود QR" },
+  ];
+  const STEP_COUNT = steps.length;
+  const doneCount = steps.filter((s) => s.done).length;
+  // لا نُظهر الدليل قبل أن تُحسم البيانات — وإلا ظهر «لم تكمل شيئاً» أثناء التحميل.
+  const settled = dishes !== null && menus !== null && views30 !== null;
+  const allDone = !settled || doneCount === STEP_COUNT;
+
   const stats = [
     { label: "مشاهدات ٣٠ يوماً", value: views30, icon: "👁️" },
     { label: "الأطباق", value: dishes?.length ?? null, icon: "🍽️" },
-    { label: "القوائم", value: menus.length, icon: "📋" },
+    { label: "القوائم", value: menus?.length ?? null, icon: "📋" },
   ];
 
   return (
@@ -41,8 +53,8 @@ export default function Overview() {
           </h1>
           <p className="mt-1 text-sm text-dim">هذه نبضة مطعمك اليوم.</p>
         </div>
-        <Badge variant={ent.active ? "gold" : "neutral"}>
-          {ent.active ? `باقة ${ent.planName}` : "بدون اشتراك فعّال"}
+        <Badge variant={ent.loading ? "neutral" : ent.active ? "gold" : "neutral"}>
+          {ent.loading ? "…" : ent.active ? `باقة ${ent.planName}` : "بدون اشتراك فعّال"}
         </Badge>
       </div>
 
@@ -80,6 +92,45 @@ export default function Overview() {
           )}
         </div>
       </Card>
+
+
+      {/* دليل الخطوات الأولى — يختفي تلقائياً عند إكمالها كلها.
+          كان التاجر يهبط على ثلاثة أصفار بلا أي خطوة تالية واضحة. */}
+      {!allDone && (
+        <Card className="mt-5">
+          <p className="font-display font-extrabold text-ink">🚀 أكمل تجهيز منيوك</p>
+          <p className="mt-1 text-xs text-dim">
+            {doneCount} من {STEP_COUNT} خطوات مكتملة
+          </p>
+          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-ink/8">
+            <div
+              className="h-full rounded-full bg-gold transition-all"
+              style={{ width: `${(doneCount / STEP_COUNT) * 100}%` }}
+            />
+          </div>
+          <ul className="mt-4 flex flex-col gap-2">
+            {steps.map((s) => (
+              <li key={s.label} className="flex items-center gap-2.5 text-sm">
+                <span
+                  className={
+                    s.done
+                      ? "flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-good/15 text-xs text-good"
+                      : "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-line text-xs text-faint"
+                  }
+                >
+                  {s.done ? "✓" : ""}
+                </span>
+                <span className={s.done ? "text-faint line-through" : "text-ink"}>{s.label}</span>
+                {!s.done && (
+                  <Link to={s.to} className="ms-auto text-xs font-bold text-gold hover:underline">
+                    {s.cta} ←
+                  </Link>
+                )}
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
 
       {/* أرقام */}
       <div className="mt-5 grid gap-4 sm:grid-cols-3">

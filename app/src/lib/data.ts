@@ -38,8 +38,11 @@ export async function getActiveMenus(restaurantId: string): Promise<Menu[]> {
 export async function getAvailableDishes(menuIds: string[]): Promise<Dish[]> {
   if (menuIds.length === 0) return [];
   const list = menuIds.map(encodeURIComponent).join(",");
+  // `available` قد تكون null في صفوف قديمة، و`eq.true` كان يستثنيها فتغيب عن
+  // منيو الزبون بينما تظهر «متاحة» في لوحة التاجر (لأنه يقرأها `?? true`).
+  // نطابق منطق القوائم أعلاه: null = متاح.
   return rest<Dish[]>(
-    `dishes?menu_id=in.(${list})&available=eq.true&select=*&order=created_at.asc`,
+    `dishes?menu_id=in.(${list})&or=(available.is.null,available.eq.true)&select=*&order=created_at.asc`,
     { anonymous: true }
   );
 }
@@ -88,13 +91,19 @@ export function trackMenuView(menuId: string, ownerId: string | null): void {
   }).catch(() => {});
 }
 
-/** زيادة عداد مشاهدات طبق (أفضل جهد — تجاهُل أي فشل). */
+/**
+ * زيادة عداد مشاهدات طبق (أفضل جهد — تجاهُل أي فشل).
+ *
+ * عبر دالة `increment_dish_views` لا بـPATCH مباشر: سياسة `dishes_update`
+ * مقصورة على `authenticated`، فكان الـPATCH المجهول يفشل دائماً بصمت. والدالة
+ * تزيد ذرّياً فلا تُفقد زيادات متزامنة بين زبونين.
+ */
 export function trackDishView(dish: Dish): void {
-  rest(`dishes?id=eq.${dish.id}`, {
-    method: "PATCH",
+  rest("rpc/increment_dish_views", {
+    method: "POST",
     anonymous: true,
     headers: { Prefer: "return=minimal" },
-    body: { views: (dish.views ?? 0) + 1 },
+    body: { p_dish_id: dish.id },
   }).catch(() => {});
 }
 
@@ -290,13 +299,26 @@ export async function joinLoyalty(payload: {
   name: string;
   phone: string;
 }): Promise<LoyaltyCustomer> {
-  const card_code = Math.random().toString(36).slice(2, 8).toUpperCase();
   const rows = await rest<LoyaltyCustomer[]>("loyalty_customers", {
     method: "POST",
     anonymous: true,
-    body: { ...payload, card_code, stamps: 0, total_visits: 0 },
+    body: { ...payload, card_code: newCardCode(), stamps: 0, total_visits: 0 },
   });
   return rows[0];
+}
+
+/**
+ * رمز بطاقة ولاء بطول ثابت ٦ خانات.
+ * `Math.random().toString(36).slice(2, 8)` كان ينتج أحياناً خانة واحدة (مثلاً
+ * 0.5 → "0.i" → "I")، والموظف يبحث عن الزبون بهذا الرمز.
+ * نستخدم مصدر عشوائية مشفَّر ونستبعد الحروف الملتبسة (0/O و 1/I/L).
+ */
+const CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+
+function newCardCode(): string {
+  const bytes = new Uint8Array(6);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, (b) => CODE_ALPHABET[b % CODE_ALPHABET.length]).join("");
 }
 
 export async function getLoyaltyCustomer(id: string): Promise<LoyaltyCustomer | null> {

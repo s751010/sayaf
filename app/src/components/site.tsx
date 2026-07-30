@@ -34,8 +34,10 @@ export function Logo({ compact }: { compact?: boolean }) {
 }
 
 const NAV_LINKS = [
+  { to: "/demo", label: "منيو تجريبي" },
   { to: "/#features", label: "المزايا" },
   { to: "/#pricing", label: "الأسعار" },
+  { to: "/help", label: "المساعدة" },
   { to: "/blog", label: "المدونة" },
 ];
 
@@ -137,8 +139,10 @@ export function Footer() {
         <div>
           <p className="mb-3 font-display font-extrabold text-ink">روابط</p>
           <ul className="flex flex-col gap-2 text-sm text-dim">
+            <li><Link to="/demo" className="hover:text-gold">منيو تجريبي</Link></li>
             <li><a href="/#features" className="hover:text-gold">المزايا</a></li>
             <li><a href="/#pricing" className="hover:text-gold">الأسعار</a></li>
+            <li><Link to="/help" className="hover:text-gold">المساعدة والأسئلة</Link></li>
             <li><Link to="/blog" className="hover:text-gold">المدونة</Link></li>
             <li><Link to="/login" className="hover:text-gold">دخول التجّار</Link></li>
           </ul>
@@ -158,7 +162,14 @@ export function Footer() {
             {s?.instagram && (
               <li><a href={s.instagram} target="_blank" rel="noopener noreferrer" className="hover:text-gold">إنستغرام</a></li>
             )}
-            {!s?.email && !s?.phone && <li>قريباً…</li>}
+            {!s?.email && !s?.phone && (
+              <li>
+                <a href="mailto:support@cloudsmenu.app" className="hover:text-gold" dir="ltr">
+                  support@cloudsmenu.app
+                </a>
+              </li>
+            )}
+            <li><Link to="/help" className="hover:text-gold">مركز المساعدة</Link></li>
           </ul>
         </div>
       </div>

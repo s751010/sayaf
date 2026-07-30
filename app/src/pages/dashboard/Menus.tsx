@@ -1,13 +1,16 @@
 /** إدارة القوائم + اختيار ثيم المنيو. */
 import { useEffect, useState, type FormEvent } from "react";
+import { Link } from "react-router-dom";
 import {
   Badge,
   Button,
   Card,
+  EmptyState,
   ErrorNote,
   Field,
   Input,
   Modal,
+  Skeleton,
   Switch,
   useToast,
 } from "@/components/ui";
@@ -25,7 +28,7 @@ export default function Menus() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
-  const currentTheme = getTheme(menus.find((m) => m.theme)?.theme);
+  const currentTheme = getTheme(menus?.find((m) => m.theme)?.theme);
 
   useEffect(() => {
     document.title = "القوائم — كلاود منيو";
@@ -66,6 +69,19 @@ export default function Menus() {
     }
   }
 
+  /** إعادة تسمية قائمة — `updateMenu` يقبل الاسم لكن لم تكن هناك واجهة لإرساله. */
+  async function rename(m: Menu) {
+    const next = window.prompt("الاسم الجديد للقائمة:", m.name)?.trim();
+    if (!next || next === m.name) return;
+    try {
+      await updateMenu(m.id, { name: next });
+      await refreshMenus();
+      toast("حُدّث اسم القائمة ✓");
+    } catch {
+      toast("تعذّر تغيير الاسم.", "err");
+    }
+  }
+
   async function remove(m: Menu) {
     if (!window.confirm(`حذف قائمة «${m.name}» وكل أطباقها نهائياً؟`)) return;
     try {
@@ -93,20 +109,31 @@ export default function Menus() {
         <div>
           <h1 className="font-display text-2xl font-black text-ink">القوائم</h1>
           <p className="mt-1 text-sm text-dim">
-            {menus.length} قائمة{ent.maxMenus !== null && ` من أصل ${ent.maxMenus} في باقتك`}
+            {menus === null ? "…" : menus.length} قائمة
+            {ent.maxMenus !== null && ` من أصل ${ent.maxMenus} في باقتك`}
           </p>
         </div>
         <Button onClick={() => setAdding(true)}>＋ قائمة جديدة</Button>
       </div>
 
       <div className="mt-6 flex flex-col gap-3">
-        {menus.map((m) => (
+        {menus === null &&
+          [...Array(2)].map((_, i) => <Skeleton key={i} className="h-20 rounded-2xl" />)}
+        {(menus ?? []).map((m) => (
           <Card key={m.id} className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-gold/12 text-xl">📋</span>
               <div>
                 <p className="font-bold text-ink">{m.name}</p>
-                <p className="text-xs text-faint">👁️ {m.views ?? 0} مشاهدة</p>
+                {/* عمود menus.views لا يكتبه أي مسار في التطبيق (التتبّع يذهب
+                    إلى جدول analytics)، فكان يعرض «٠ مشاهدة» دائماً ويوهم
+                    التاجر أن منيوه لا يُزار. الأرقام الحقيقية في «التحليلات». */}
+                <Link
+                  to="/dashboard/analytics"
+                  className="text-xs text-faint hover:text-gold hover:underline"
+                >
+                  📊 شاهد المشاهدات في التحليلات
+                </Link>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -114,6 +141,12 @@ export default function Menus() {
                 {m.active !== false ? "منشورة" : "مخفية"}
               </Badge>
               <Switch checked={m.active !== false} onChange={() => toggleActive(m)} label="نشر" />
+              <button
+                onClick={() => rename(m)}
+                className="rounded-lg px-2.5 py-1.5 text-sm font-bold text-dim hover:bg-ink/6 hover:text-ink"
+              >
+                إعادة تسمية
+              </button>
               <button
                 onClick={() => remove(m)}
                 aria-label="حذف"
@@ -124,8 +157,13 @@ export default function Menus() {
             </div>
           </Card>
         ))}
-        {menus.length === 0 && (
-          <Card className="py-10 text-center text-sm text-dim">لا توجد قوائم — أنشئ الأولى الآن.</Card>
+        {menus !== null && menus.length === 0 && (
+          <EmptyState
+            emoji="📋"
+            title="لا توجد قوائم بعد"
+            desc="أنشئ قائمتك الأولى (مثل: القائمة الرئيسية) ثم أضف إليها أطباقك."
+            action={<Button onClick={() => setAdding(true)}>＋ أنشئ القائمة الأولى</Button>}
+          />
         )}
       </div>
 

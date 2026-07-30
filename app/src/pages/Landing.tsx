@@ -16,7 +16,12 @@ const DEMO_DISHES = [
 
 function PhonePreview() {
   return (
-    <div className="anim-float relative mx-auto w-[270px] select-none">
+    // المعاينة تفتح المنيو التجريبي الحقيقي — كانت صورة ثابتة لا تؤدي لشيء.
+    <Link
+      to="/demo"
+      aria-label="افتح المنيو التجريبي"
+      className="anim-float relative mx-auto block w-[270px] select-none transition-transform hover:scale-[1.02]"
+    >
       <div className="rounded-[2.6rem] border border-line-gold bg-[#141210] p-2.5 shadow-[0_40px_80px_-30px_rgba(0,0,0,.6)]">
         <div className="overflow-hidden rounded-[2rem] bg-[#1b1813] pb-4">
           <div className="flex flex-col items-center gap-1.5 bg-gradient-to-b from-[#2a2318] to-transparent px-4 pb-4 pt-7 text-center">
@@ -56,12 +61,12 @@ function PhonePreview() {
         </div>
       </div>
       <span className="absolute -left-5 top-16 rounded-2xl border border-line-gold bg-panel px-3 py-2 text-xs font-bold shadow-xl">
-        📈 ‎+38% مبيعات
-      </span>
-      <span className="absolute -right-4 bottom-24 rounded-2xl border border-line-gold bg-panel px-3 py-2 text-xs font-bold shadow-xl">
         ⭐ تقييم قوقل
       </span>
-    </div>
+      <span className="absolute -right-4 bottom-24 rounded-2xl border border-line-gold bg-panel px-3 py-2 text-xs font-bold text-gold shadow-xl">
+        اضغط للتجربة ←
+      </span>
+    </Link>
   );
 }
 
@@ -195,12 +200,13 @@ export default function Landing() {
               >
                 ابدأ الآن مجاناً
               </Link>
-              <a
-                href="#features"
+              {/* تجربة المنتج الحقيقية أقوى من قائمة مزايا — نضعها ثاني زر. */}
+              <Link
+                to="/demo"
                 className="rounded-xl border border-line-gold px-6 py-3 font-bold text-ink hover:bg-gold/10"
               >
-                اكتشف المزايا
-              </a>
+                👀 جرّب منيو تجريبي
+              </Link>
             </div>
             <div className="mt-8 flex items-center justify-center gap-6 text-xs text-faint lg:justify-start">
               <span>⚡ تجهيز في دقائق</span>

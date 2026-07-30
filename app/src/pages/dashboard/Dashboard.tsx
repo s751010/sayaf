@@ -47,7 +47,8 @@ interface DashboardCtx {
   user: SessionUser;
   restaurant: Restaurant;
   setRestaurant: (r: Restaurant) => void;
-  menus: Menu[];
+  /** `null` = ما زالت تُحمَّل · `[]` = لا توجد قوائم فعلاً. */
+  menus: Menu[] | null;
   refreshMenus: () => Promise<void>;
   ent: Entitlements;
   refreshEnt: () => Promise<void>;
@@ -229,7 +230,7 @@ function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode
 export default function Dashboard() {
   const { user, loading } = useAuth();
   const [restaurant, setRestaurant] = useState<Restaurant | null | undefined>(undefined);
-  const [menus, setMenus] = useState<Menu[]>([]);
+  const [menus, setMenus] = useState<Menu[] | null>(null);
   const [ent, setEnt] = useState<Entitlements>(DEFAULT_ENTITLEMENTS);
 
   const refreshMenus = useCallback(async () => {
@@ -249,7 +250,8 @@ export default function Dashboard() {
   }, [user, refreshEnt]);
 
   useEffect(() => {
-    refreshMenus().catch(() => {});
+    // فشل الجلب يحسم الحالة إلى «فارغة» بدل تركها معلّقة على هيكل تحميل أبدي.
+    refreshMenus().catch(() => setMenus([]));
   }, [refreshMenus]);
 
   if (loading) {

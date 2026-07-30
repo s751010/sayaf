@@ -1,6 +1,6 @@
 /** المستشار الذكي — المجلس الاستشاري (٧ شخصيات) عبر ai-proxy. */
 import { useEffect, useRef, useState } from "react";
-import { Button, Card, Input } from "@/components/ui";
+import { Button, Card, Input, Skeleton } from "@/components/ui";
 import { askAI } from "@/lib/api";
 import { PERSONAS, buildSystemPrompt } from "@/lib/personas";
 import { cn } from "@/lib/utils";
@@ -31,6 +31,17 @@ export default function Ai() {
   }, [messages, pending]);
 
   const persona = PERSONAS.find((p) => p.id === personaId)!;
+
+  // لا نعرض جدار الترقية قبل أن تُحسم الصلاحيات — المشترك في الاحترافية كان
+  // يراه لحظةً في كل فتح للصفحة.
+  if (ent.loading) {
+    return (
+      <div>
+        <h1 className="font-display text-2xl font-black text-ink">المستشار الذكي</h1>
+        <Skeleton className="mt-6 h-40 rounded-2xl" />
+      </div>
+    );
+  }
 
   if (!ent.ai) {
     return (

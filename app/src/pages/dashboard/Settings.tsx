@@ -14,6 +14,7 @@ import {
   Textarea,
   useToast,
 } from "@/components/ui";
+import { ImageUploader } from "@/components/ImageUploader";
 import { updateRestaurant, type RestaurantSettingsPayload } from "@/lib/data";
 import { numOrNull, strOrNull } from "@/lib/utils";
 import { useDashboard } from "./Dashboard";
@@ -110,12 +111,22 @@ export default function Settings() {
           <Field label="نوع النشاط">
             <Input value={f.type} onChange={(e) => set("type", e.target.value)} placeholder="مطعم، كافيه…" />
           </Field>
-          <Field label="رابط الشعار (صورة)">
-            <Input dir="ltr" value={f.logo_image} onChange={(e) => set("logo_image", e.target.value)} placeholder="https://…" />
-          </Field>
-          <Field label="رابط الغلاف (صورة)">
-            <Input dir="ltr" value={f.banner_image} onChange={(e) => set("banner_image", e.target.value)} placeholder="https://…" />
-          </Field>
+          <ImageUploader
+            label="شعار المطعم"
+            value={f.logo_image}
+            onChange={(url) => set("logo_image", url)}
+            bucket="restaurant-images"
+            pathPrefix={`${restaurant.id}/logo`}
+            shape="square"
+          />
+          <ImageUploader
+            label="صورة الغلاف"
+            value={f.banner_image}
+            onChange={(url) => set("banner_image", url)}
+            bucket="restaurant-images"
+            pathPrefix={`${restaurant.id}/banner`}
+            shape="wide"
+          />
           <Field label="ساعات العمل" hint="نص حر يظهر أعلى المنيو">
             <Input value={f.working_hours} onChange={(e) => set("working_hours", e.target.value)} placeholder="يومياً 12م — 12ص" />
           </Field>
