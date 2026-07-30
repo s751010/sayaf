@@ -149,6 +149,17 @@ export default function Login() {
           <p className="mt-4 text-center text-xs text-faint">
             بدخولك أنت توافق على شروط الاستخدام وسياسة الخصوصية.
           </p>
+          <p className="mt-2 text-center text-xs text-dim">
+            جديد على المنصة؟{" "}
+            <Link to="/demo" className="font-bold text-gold hover:underline">
+              شاهد منيو تجريبي
+            </Link>{" "}
+            أو{" "}
+            <Link to="/help" className="font-bold text-gold hover:underline">
+              اطّلع على دليل البداية
+            </Link>
+            .
+          </p>
         </div>
       </main>
     </div>

@@ -8,6 +8,38 @@ import { formatDate } from "@/lib/utils";
 import type { BlogPost } from "@/lib/types";
 import { postTitle } from "./Blog";
 
+/**
+ * تنقية محافظة لمحتوى المقال قبل إدراجه كـHTML.
+ *
+ * تُزيل فقط ما لا لبس في خطورته — وسوم تنفيذية، ومعالجات `on*`، وروابط
+ * `javascript:` — ولا تلمس وسوم التنسيق التي يستخدمها المحتوى المشروع.
+ * تعتمد على `DOMParser` فلا تُنفَّذ أي سكربتات أثناء التحليل.
+ */
+function sanitizeHtml(html: string): string {
+  if (typeof DOMParser === "undefined") return html;
+  const doc = new DOMParser().parseFromString(html, "text/html");
+
+  doc.querySelectorAll("script,iframe,object,embed,link,meta,style,form,base").forEach((el) =>
+    el.remove()
+  );
+
+  doc.querySelectorAll("*").forEach((el) => {
+    for (const attr of [...el.attributes]) {
+      const name = attr.name.toLowerCase();
+      const value = attr.value.replace(/\s+/g, "").toLowerCase();
+      if (name.startsWith("on")) el.removeAttribute(attr.name);
+      else if (
+        (name === "href" || name === "src" || name === "xlink:href") &&
+        (value.startsWith("javascript:") || value.startsWith("data:text/html"))
+      ) {
+        el.removeAttribute(attr.name);
+      }
+    }
+  });
+
+  return doc.body.innerHTML;
+}
+
 export default function BlogPostPage() {
   const { slug = "" } = useParams();
   const [post, setPost] = useState<BlogPost | null | undefined>(undefined);
@@ -23,7 +55,10 @@ export default function BlogPostPage() {
   }, [slug]);
 
   const content = post ? post.content_ar || post.content || "" : "";
-  const looksLikeHtml = /<\/?[a-z][\s\S]*>/i.test(content);
+  // وسم مغلق فعلي، لا مجرد وجود < و > في نص عربي عادي (مثل «< ٥ دقائق»).
+  const looksLikeHtml = /<(p|div|h[1-6]|ul|ol|li|br|img|a|strong|em|blockquote|table)\b[^>]*>/i.test(
+    content
+  );
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -71,9 +106,14 @@ export default function BlogPostPage() {
                 className="mt-6 w-full rounded-2xl border border-line object-cover"
               />
             )}
-            {/* المحتوى يأتي من لوحة المؤسس (مصدر موثوق) — نصاً أو HTML بسيطاً */}
+            {/* المحتوى يأتي من لوحة المؤسس (الكتابة في blog_posts مقصورة على
+                is_founder() في RLS)، لكن نُنقّيه على أي حال: حساب المؤسس قد
+                يُخترق، والتنقية هنا لا تكلّف شيئاً ولا تمسّ التنسيق المشروع. */}
             {looksLikeHtml ? (
-              <div className="prose-ar mt-6 text-ink" dangerouslySetInnerHTML={{ __html: content }} />
+              <div
+                className="prose-ar mt-6 text-ink"
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(content) }}
+              />
             ) : (
               <div className="prose-ar mt-6 whitespace-pre-wrap text-ink">{content}</div>
             )}

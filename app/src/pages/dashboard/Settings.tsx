@@ -58,6 +58,9 @@ export default function Settings() {
   async function save(e: FormEvent) {
     e.preventDefault();
     if (!f.name.trim()) return setError("اسم المطعم مطلوب.");
+    // الحفظ قبل حسم الصلاحيات كان يُوقف الإنجليزية والولاء بصمت، لأن
+    // `ent.english`/`ent.loyalty` تكون false أثناء التحميل.
+    if (ent.loading) return setError("جارٍ تحميل بيانات باقتك — أعد المحاولة بعد لحظة.");
     setBusy(true);
     setError("");
     // الصلاحيات: الولاء والإنجليزي حصريان للاحترافية — نُجبر الإيقاف بدونها.
@@ -79,7 +82,12 @@ export default function Settings() {
       social_maps: strOrNull(f.social_maps),
       english_enabled: ent.english && f.english_enabled,
       loyalty_enabled: ent.loyalty && f.loyalty_enabled,
-      loyalty_goal: numOrNull(f.loyalty_goal),
+      // يُحصر عند الكتابة أيضاً لا عند القراءة فقط — صفحة الزبون ترسم بطاقة
+      // بعدد الأختام، وقيمة خارج المدى كانت تُسقط الصفحة.
+      loyalty_goal: (() => {
+        const n = numOrNull(f.loyalty_goal);
+        return n === null ? null : Math.min(20, Math.max(1, Math.round(n)));
+      })(),
       loyalty_reward: strOrNull(f.loyalty_reward),
     };
     try {
