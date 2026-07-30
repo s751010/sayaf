@@ -19,17 +19,22 @@ app/src/
     Demo.tsx            منيو تجريبي حي /demo (بيانات محلية، بدون شبكة)
     Login.tsx  Blog.tsx  BlogPost.tsx  Help.tsx  NotFound.tsx  Founder.tsx
     dashboard/          Dashboard(shell) Overview Dishes Menus Qr Analytics
-                        Loyalty Ai Billing Settings
+                        Loyalty Billing Settings
   components/
     ui.tsx              نظام التصميم: Button Card Badge Field Input Modal Toast…
     site.tsx            Logo / Navbar / Footer
     ImageUploader.tsx   رفع الصور (ضغط + Supabase Storage)
+    OptionsEditor.tsx   الإضافات (صفوف اسم+سعر)
+    AllergenPicker.tsx  مسببات الحساسية (اختيار بالضغط)
+    HoursEditor.tsx     ساعات العمل يوماً بيوم
+    SupportBox.tsx      الدعم الفني ← لوحة المؤسس
     ErrorBoundary.tsx   يمنع الشاشة البيضاء
   lib/
-    api.ts              rest() restCount() askAI() founderAdmin() ApiError
+    api.ts              rest() restCount() uploadImage() founderAdmin() ApiError
     data.ts             كل الاستعلامات + whitelists الكتابة
     session.ts auth.tsx GoTrue بدون SDK + سياق React
-    config.ts plans.ts entitlements.ts themes.ts personas.ts types.ts utils.ts
+    config.ts plans.ts entitlements.ts themes.ts types.ts utils.ts
+    allergens.ts hours.ts nutrition.ts options.ts
     storage.ts          مفاتيح localStorage/sessionStorage الموحّدة (K)
 ```
 
@@ -48,8 +53,9 @@ Project ref: `wjqpsbpebpntpeinqccl` · URL في `app/src/lib/config.ts`.
 `revenue_log` `support_tickets` `site_settings` `blog_posts` `loyalty_customers`
 `promo_codes` `announcements` `survey_responses` `restaurant_payment_settings`.
 
-**Edge Functions المنشورة فعلياً** (مؤكَّدة من لوحة Supabase):
-`ai-proxy` · `founder-admin` · `moyasar-webhook` · `notify-support` ·
+**Edge Functions المنشورة فعلياً** (مؤكَّدة من لوحة Supabase؛ `ai-proxy`
+موجودة لكن لم تُعد الواجهة تستدعيها بعد حذف المستشار الذكي):
+`founder-admin` · `moyasar-webhook` · `notify-support` ·
 `dynamic-task` · `payments` · `paylink-create` · `paylink-webhook` ·
 `paylink-order-create`.
 
@@ -60,6 +66,18 @@ Project ref: `wjqpsbpebpntpeinqccl` · URL في `app/src/lib/config.ts`.
 
 **Storage buckets** (موجودة، عامة للقراءة، الكتابة لـ `authenticated`):
 `dish-images` · `menu-images` · `restaurant-images`.
+
+**دوال RPC مُضافة:** `increment_dish_views` (زيادة ذرّية؛ سياسة `dishes_update`
+تمنع الزائر المجهول من PATCH مباشر) · `is_menu_published` (بوليان لقفل النشر) ·
+`track_menu_view` (موجودة مسبقاً، غير مستخدَمة من الواجهة).
+
+**صيغ مخزَّنة في أعمدة نصّية** — احترمها ولا تكتب فوقها نصاً حراً:
+- `restaurants.working_hours` → JSON `{"sat":{"open","from","to"},…}`
+  (بيانات إنتاج فعلية) · القارئ في `lib/hours.ts` يتسامح مع النص الحر.
+- `menus.theme` → معرّف ثيم أو `custom:#RRGGBB` للثيم بلون العلامة.
+- `dishes.options` → JSON `[{name,price?}]` · `lib/options.ts`.
+- `dishes.allergens` → `text[]` بمعرّفات `lib/allergens.ts` (مع مرادفات عربية
+  للصفوف القديمة).
 
 ---
 
@@ -88,36 +106,37 @@ cd app && npm run typecheck
 فعلاً». خلط الاثنين يعرض «لا توجد بيانات» للمستخدم أثناء التحميل. الصلاحيات
 (`entitlements`) لها `ent.loading` — لا تعرض جدار ترقية قبل أن تُحسم.
 
-### (د) خريطة الوكلاء (AI Advisory Personas)
-مطابقة لـ `app/src/lib/personas.ts`. الـ`id` ثابت ولا يتغيّر.
+### (د) الأعمدة المحسوبة — لا تُرسل لها قيمة أبداً
+ثلاثة أعمدة في `dishes` هي `GENERATED ALWAYS AS … STORED`؛ إرسال أي قيمة لها
+يجعل Postgres يرفض الطلب كاملاً («cannot insert a non-DEFAULT value…»):
 
-| id | الاسم | الدور | إيموجي | اللون |
-|---|---|---|---|---|
-| `all` | الفريق كاملاً | جميع الأعضاء | 👥 | `#D4A843` |
-| `ceo` | أحمد | المدير التنفيذي | 👔 | `#D4A843` |
-| `cmo` | نورة | مديرة التسويق | 📣 | `#F472B6` |
-| `cto` | فارس | مدير التقنية | 💻 | `#60A5FA` |
-| `cfo` | ريم | مديرة المالية | 💰 | `#34D399` |
-| `cs` | خالد | مدير نجاح العملاء | 🤝 | `#A78BFA` |
-| `growth` | سلمى | محللة النمو | 📊 | `#F97316` |
+| العمود | يُحسب من |
+|---|---|
+| `burn_minutes` | `round(calories / 4)` |
+| `is_high_sodium` | `sodium_mg > 600` |
+| `sfda_compliant` | `calories IS NOT NULL AND sodium_mg IS NOT NULL` |
+
+اعرضها للتاجر عبر `lib/nutrition.ts` (يُكرّر التعبيرات حرفياً) ولا تطلبها منه.
+كان `burn_minutes` مُدرجاً في `DishPayload` فكان **كل** حفظ طبق يفشل.
 
 ---
 
 ## 4. التسعير والمدفوعات
 
-باقتان في `app/src/lib/plans.ts` — **مصدر واحد، لا تكرّره**:
+**باقة واحدة** في `app/src/lib/plans.ts` — مصدر واحد، لا تكرّره:
 
-| id | الاسم | شهري | سنوي (×11) | قوائم | أصناف | AI | ولاء | EN |
-|---|---|---|---|---|---|---|---|---|
-| `standard` | الأساسية | 99 | 1089 | 1 | 100 | ❌ | ❌ | ❌ |
-| `premium` | الاحترافية | 199 | 2189 | ∞ | ∞ | ✅ | ✅ | ✅ |
+| id | الاسم | شهري | سنوي (×11) | المزايا |
+|---|---|---|---|---|
+| `standard` | كلاود منيو | 99 | 1089 | كل شيء بلا حدود |
 
-- Moyasar: `MOYASAR_PK` في `config.ts` لا يزال `pk_test` مع `TODO(production)`.
-  الواجهة تعرض تنبيه «وضع الاختبار» تلقائياً طالما المفتاح يبدأ بـ `pk_test`.
-- المبلغ يُحوَّل لهللات (`*100`).
-- ⚠️ **تنبيه محاسبي مفتوح:** `moyasar-webhook` يسجّل الإيراد بالسعر الشهري فقط
-  (99/199). اشتراك سنوي بـ1089 يُسجَّل كـ99 في `revenue_log`. يحتاج إصلاحاً في
-  الدالة قبل تفعيل الدفع الحقيقي.
+- ⚠️ **لا تغيّر `id`**: `moyasar-webhook` يسعّر `standard` بـ99. تغييره قبل
+  تعديل الدالة يسجّل الإيراد خطأً.
+- Moyasar: `MOYASAR_PK` لا يزال `pk_test` مع `TODO(production)`.
+- `ENFORCE_MENU_PUBLISHING` في `config.ts` مشتقّ من وضع الدفع: قفل نشر المنيو
+  لغير المشتركين **معطَّل** طالما البوابة تجريبية (وإلا أُطفئت منيوهات قائمة
+  بلا طريقة للاشتراك)، ويصبح نشطاً تلقائياً مع `pk_live`.
+- ⚠️ **تنبيه محاسبي مفتوح:** `moyasar-webhook` يسجّل الإيراد بالسعر الشهري فقط.
+  اشتراك سنوي بـ1089 يُسجَّل كـ99 في `revenue_log`. يحتاج إصلاحاً في الدالة.
 
 ---
 
