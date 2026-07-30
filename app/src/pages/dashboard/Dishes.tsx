@@ -6,6 +6,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import {
+  Badge,
   Button,
   Card,
   EmptyState,
@@ -22,6 +23,7 @@ import {
 } from "@/components/ui";
 import { ImageUploader } from "@/components/ImageUploader";
 import { OptionsEditor } from "@/components/OptionsEditor";
+import { AllergenPicker } from "@/components/AllergenPicker";
 import {
   countDishes,
   createDish,
@@ -31,7 +33,8 @@ import {
   updateDish,
   type DishPayload,
 } from "@/lib/data";
-import { cn, csvToArray, formatPrice, numOrNull, strOrNull } from "@/lib/utils";
+import { cn, formatPrice, numOrNull, strOrNull } from "@/lib/utils";
+import { computedNutrition } from "@/lib/nutrition";
 import type { Dish } from "@/lib/types";
 import { useDashboard, UpgradeGate } from "./Dashboard";
 
@@ -48,8 +51,8 @@ type DishForm = {
   calories: string;
   sodium_mg: string;
   caffeine_mg: string;
-  burn_minutes: string;
-  allergens: string;
+  /** معرّفات المسببات كما تُخزَّن في dishes.allergens. */
+  allergens: string[];
   name_en: string;
   description_en: string;
   options: string;
@@ -68,8 +71,7 @@ const EMPTY_FORM: Omit<DishForm, "menu_id"> = {
   calories: "",
   sodium_mg: "",
   caffeine_mg: "",
-  burn_minutes: "",
-  allergens: "",
+  allergens: [],
   name_en: "",
   description_en: "",
   options: "",
@@ -88,8 +90,7 @@ function toForm(d: Dish): DishForm {
     calories: d.calories != null ? String(d.calories) : "",
     sodium_mg: d.sodium_mg != null ? String(d.sodium_mg) : "",
     caffeine_mg: d.caffeine_mg != null ? String(d.caffeine_mg) : "",
-    burn_minutes: d.burn_minutes != null ? String(d.burn_minutes) : "",
-    allergens: (d.allergens ?? []).join("، "),
+    allergens: d.allergens ?? [],
     name_en: d.name_en ?? "",
     description_en: d.description_en ?? "",
     options: d.options ?? "",
@@ -117,8 +118,7 @@ function toPayload(f: DishForm): DishPayload {
     calories: numOrNull(f.calories),
     sodium_mg: numOrNull(f.sodium_mg),
     caffeine_mg: numOrNull(f.caffeine_mg),
-    burn_minutes: numOrNull(f.burn_minutes),
-    allergens: csvToArray(f.allergens),
+    allergens: f.allergens,
     name_en: strOrNull(f.name_en),
     description_en: strOrNull(f.description_en),
     options: strOrNull(f.options),
@@ -141,6 +141,9 @@ export default function Dishes() {
     document.title = "الأطباق — كلاود منيو";
     getMyDishes(restaurant.id).then(setDishes).catch(() => setDishes([]));
   }, [restaurant.id]);
+
+  // القيم التي تحسبها قاعدة البيانات — نعرضها للتاجر لحظياً وهو يكتب.
+  const computed = computedNutrition(numOrNull(form.calories), numOrNull(form.sodium_mg));
 
   const filtered = useMemo(() => {
     const q = filter.trim().toLowerCase();
@@ -440,21 +443,38 @@ export default function Dishes() {
           <Field label="كافيين (ملغم)">
             <Input type="number" inputMode="numeric" min="0" dir="ltr" value={form.caffeine_mg} onChange={(e) => set("caffeine_mg", e.target.value)} />
           </Field>
-          <Field label="دقائق حرق (مشي)">
-            <Input type="number" inputMode="numeric" min="0" dir="ltr" value={form.burn_minutes} onChange={(e) => set("burn_minutes", e.target.value)} />
-          </Field>
-          <Field label="مسببات الحساسية" hint="افصل بفاصلة: مكسرات، جلوتين، حليب" className="sm:col-span-2">
-            <Input value={form.allergens} onChange={(e) => set("allergens", e.target.value)} />
-          </Field>
 
-          <p className="sm:col-span-2 -mb-1 mt-1 text-xs font-black text-faint">
-            الإنجليزية {!ent.english && "— متاحة في باقة الاحترافية"}
-          </p>
+          {/* تُحسب في قاعدة البيانات من السعرات والصوديوم — نعرضها ولا نطلبها.
+              (إرسال قيمة لعمود محسوب كان يُفشل الحفظ كاملاً.) */}
+          <div className="sm:col-span-2 rounded-xl border border-line bg-panel2/60 px-4 py-3">
+            <p className="text-xs font-black text-faint">يُحسب تلقائياً</p>
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
+              {computed.burnMinutes !== null ? (
+                <Badge variant="neutral">🔥 {computed.burnMinutes} دقيقة مشي لحرقه</Badge>
+              ) : (
+                <span className="text-xs text-faint">اكتب السعرات ليُحسب وقت الحرق.</span>
+              )}
+              {computed.highSodium && <Badge variant="red">🧂 صوديوم مرتفع</Badge>}
+              {computed.sfdaCompliant ? (
+                <Badge variant="green">✅ متوافق مع SFDA</Badge>
+              ) : (
+                <span className="text-xs text-faint">
+                  أضف السعرات والصوديوم ليظهر شعار توافق SFDA للزبون.
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="sm:col-span-2">
+            <AllergenPicker value={form.allergens} onChange={(v) => set("allergens", v)} />
+          </div>
+
+          <p className="sm:col-span-2 -mb-1 mt-1 text-xs font-black text-faint">الإنجليزية</p>
           <Field label="Name (EN)">
-            <Input dir="ltr" value={form.name_en} onChange={(e) => set("name_en", e.target.value)} disabled={!ent.english} />
+            <Input dir="ltr" value={form.name_en} onChange={(e) => set("name_en", e.target.value)} />
           </Field>
           <Field label="Description (EN)">
-            <Input dir="ltr" value={form.description_en} onChange={(e) => set("description_en", e.target.value)} disabled={!ent.english} />
+            <Input dir="ltr" value={form.description_en} onChange={(e) => set("description_en", e.target.value)} />
           </Field>
             </div>
           </details>

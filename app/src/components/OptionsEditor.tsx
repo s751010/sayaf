@@ -8,6 +8,7 @@
 import { useState } from "react";
 import { parseOptions, serializeOptions, type DishOption } from "@/lib/options";
 import { Input } from "@/components/ui";
+import { cn } from "@/lib/utils";
 
 /**
  * الصفوف حالة داخلية مقصودة: صفّ جديد فارغ لا يُسلسل (يختفي فوراً لو اشتُقّت
@@ -29,6 +30,13 @@ export function OptionsEditor({
     onChange(serializeOptions(next) ?? "");
   }
 
+  /**
+   * صفوف فيها سعر بلا اسم. `serializeOptions` تُسقطها (إضافة بلا اسم لا معنى
+   * لها للزبون)، وكان ذلك يحدث بصمت: التاجر يكتب «5» ويحفظ فتختفي الإضافة.
+   * نُظهر التحذير بدل الحذف الصامت.
+   */
+  const priceWithoutName = rows.some((r) => !r.name.trim() && r.price !== undefined);
+
   return (
     <div className="space-y-2">
       <span className="block text-sm font-bold text-ink">الخيارات والإضافات</span>
@@ -44,8 +52,12 @@ export function OptionsEditor({
           <div key={i} className="flex items-center gap-1.5">
             <Input
               value={row.name}
-              placeholder="اسم الإضافة"
-              className="flex-1"
+              placeholder="اسم الإضافة (مطلوب)"
+              className={cn(
+                "flex-1",
+                !row.name.trim() && row.price !== undefined && "border-bad/50"
+              )}
+              aria-invalid={!row.name.trim() && row.price !== undefined}
               onChange={(e) =>
                 push(rows.map((r, j) => (j === i ? { ...r, name: e.target.value } : r)))
               }
@@ -82,6 +94,12 @@ export function OptionsEditor({
           </div>
         ))}
       </div>
+
+      {priceWithoutName && (
+        <p className="text-xs text-bad">
+          اكتب اسم الإضافة — السعر وحده لا يظهر للزبون ولن يُحفظ.
+        </p>
+      )}
 
       <button
         type="button"

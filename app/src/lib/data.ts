@@ -230,12 +230,26 @@ export type DishPayload = {
   calories: number | null;
   sodium_mg: number | null;
   caffeine_mg: number | null;
-  burn_minutes: number | null;
   allergens: string[];
   name_en: string | null;
   description_en: string | null;
   options: string | null;
 };
+
+/**
+ * ⚠️ لا تُدرج هنا أبداً: `burn_minutes` · `is_high_sodium` · `sfda_compliant`.
+ *
+ * الثلاثة أعمدة `GENERATED ALWAYS AS … STORED` في Postgres، تحسبها قاعدة
+ * البيانات من `calories` و`sodium_mg`:
+ *   burn_minutes   = round(calories / 4)
+ *   is_high_sodium = sodium_mg > 600
+ *   sfda_compliant = calories IS NOT NULL AND sodium_mg IS NOT NULL
+ *
+ * إرسال أي قيمة لعمود محسوب يجعل Postgres يرفض الطلب كاملاً:
+ *   «cannot insert a non-DEFAULT value into column "burn_minutes"»
+ * وكان `burn_minutes` مُدرجاً هنا فعلاً، فكان **كل** إنشاء وتعديل طبق يفشل.
+ * استخدم `computedNutrition()` في lib/nutrition.ts لعرضها للتاجر بدل طلبها.
+ */
 
 export async function createDish(
   payload: DishPayload,

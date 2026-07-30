@@ -625,7 +625,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
             <div className="flex gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {featured.map((d) => (
                 <div key={d.id} className="w-44 shrink-0">
-                  <DishCard dish={d} en={en} onOpen={() => { setOpenDish(d); trackDishView(d); }} />
+                  <DishCard dish={d} en={en} onOpen={() => { setOpenDish(d); if (!demo) trackDishView(d); }} />
                 </div>
               ))}
             </div>
@@ -678,7 +678,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
               </h2>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {cat.dishes.map((d) => (
-                  <DishCard key={d.id} dish={d} en={en} onOpen={() => { setOpenDish(d); trackDishView(d); }} />
+                  <DishCard key={d.id} dish={d} en={en} onOpen={() => { setOpenDish(d); if (!demo) trackDishView(d); }} />
                 ))}
               </div>
             </section>
