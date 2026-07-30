@@ -31,7 +31,16 @@ const restaurant: Restaurant = {
   payment_key: null,
   google_review_url: "https://www.google.com/maps",
   allergens_text: "تُحضَّر أطباقنا في مطبخ يحتوي على مكسرات وجلوتين.",
-  working_hours: "يومياً ١٢:٠٠ ظهراً — ١:٠٠ صباحاً",
+  // جدول مهيكل كي يُظهر الديمو حالة «مفتوح الآن» وشاشة الساعات كاملة.
+  working_hours: JSON.stringify({
+    sat: { open: true, from: "12:00", to: "01:00" },
+    sun: { open: true, from: "12:00", to: "01:00" },
+    mon: { open: true, from: "12:00", to: "01:00" },
+    tue: { open: true, from: "12:00", to: "01:00" },
+    wed: { open: true, from: "12:00", to: "01:00" },
+    thu: { open: true, from: "12:00", to: "02:00" },
+    fri: { open: true, from: "13:00", to: "02:00" },
+  }),
   social_instagram: "https://instagram.com",
   social_twitter: null,
   social_tiktok: null,

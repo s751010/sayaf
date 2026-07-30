@@ -21,11 +21,13 @@ import {
   getAvailableDishes,
   getLoyaltyCustomer,
   getRestaurantBySlug,
+  isMenuPublished,
   joinLoyalty,
   trackDishView,
   trackMenuView,
 } from "@/lib/data";
 import { getTheme } from "@/lib/themes";
+import { ENFORCE_MENU_PUBLISHING } from "@/lib/config";
 import { K, getItem, getJSON, setItem, setJSON } from "@/lib/storage";
 import { categoryId, formatPrice } from "@/lib/utils";
 import type { Dish, LoyaltyCustomer, Menu, Restaurant } from "@/lib/types";
@@ -507,6 +509,8 @@ type LoadState =
   | { status: "loading" }
   | { status: "notfound" }
   | { status: "error" }
+  /** المطعم موجود لكن صاحبه غير مشترك — المنيو غير منشور. */
+  | { status: "unpublished"; name: string }
   | { status: "ready"; restaurant: Restaurant; menus: Menu[]; dishes: Dish[] };
 
 /** بيانات جاهزة تتخطّى الشبكة — تستخدمها صفحة الديمو (/demo). */
@@ -552,6 +556,15 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
         const restaurant = await getRestaurantBySlug(slug);
         if (cancelled) return;
         if (!restaurant) return setState({ status: "notfound" });
+        // قفل النشر — نشط فقط عند تشغيل الدفع الحقيقي (انظر ENFORCE_MENU_PUBLISHING).
+        if (ENFORCE_MENU_PUBLISHING) {
+          const published = await isMenuPublished(slug).catch(() => true);
+          if (cancelled) return;
+          if (!published) {
+            document.title = `${restaurant.name} — كلاود منيو`;
+            return setState({ status: "unpublished", name: restaurant.name });
+          }
+        }
         const menus = await getActiveMenus(restaurant.id);
         const dishes = await getAvailableDishes(menus.map((m) => m.id));
         if (cancelled) return;
@@ -559,7 +572,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
         setState({ status: "ready", restaurant, menus, dishes });
         if (!tracked.current && menus[0]) {
           tracked.current = true;
-          trackMenuView(menus[0].id, restaurant.user_id);
+          trackMenuView(menus[0].id, restaurant.user_id, { table, lang });
         }
       } catch {
         if (!cancelled) setState({ status: "error" });
@@ -607,6 +620,29 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
             <Skeleton key={i} className="h-44" />
           ))}
         </div>
+      </div>
+    );
+  }
+
+  // المطعم موجود لكن الاشتراك غير نشط — رسالة محترمة للزبون، ودعوة للتاجر.
+  if (state.status === "unpublished") {
+    return (
+      <div className="flex min-h-dvh flex-col items-center justify-center gap-4 px-5 text-center">
+        <span className="text-6xl">🔒</span>
+        <h1 className="font-display text-2xl font-black text-ink">{state.name}</h1>
+        <p className="max-w-sm text-sm text-dim">
+          هذا المنيو غير متاح حالياً. إن كنت صاحب المطعم، فعّل اشتراكك ليعود
+          المنيو للعمل فوراً.
+        </p>
+        <Link
+          to="/login"
+          className="mt-1 rounded-xl bg-gold px-5 py-2.5 text-sm font-bold text-on-gold"
+        >
+          دخول التجّار
+        </Link>
+        <Link to="/" className="text-sm font-bold text-gold hover:underline">
+          → كلاود منيو
+        </Link>
       </div>
     );
   }
@@ -789,7 +825,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
             <div className="flex gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {featured.map((d) => (
                 <div key={d.id} className="w-44 shrink-0">
-                  <DishCard dish={d} en={en} onOpen={() => { setOpenDish(d); if (!demo) trackDishView(d); }} />
+                  <DishCard dish={d} en={en} onOpen={() => { setOpenDish(d); if (!demo) trackDishView(d, { table, lang }); }} />
                 </div>
               ))}
             </div>
@@ -842,7 +878,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
               </h2>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {cat.dishes.map((d) => (
-                  <DishCard key={d.id} dish={d} en={en} onOpen={() => { setOpenDish(d); if (!demo) trackDishView(d); }} />
+                  <DishCard key={d.id} dish={d} en={en} onOpen={() => { setOpenDish(d); if (!demo) trackDishView(d, { table, lang }); }} />
                 ))}
               </div>
             </section>

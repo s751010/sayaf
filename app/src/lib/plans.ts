@@ -1,10 +1,16 @@
+/**
+ * الاشتراك — باقة واحدة لكل المزايا.
+ *
+ * سابقاً كانت باقتان («الأساسية» 99 و«الاحترافية» 199) تفصلان بينهما ميزات
+ * (AI، إنجليزية، ولاء، قوائم لامحدودة). حُذف المستشار الذكي وفُتحت الإنجليزية
+ * للجميع، فلم يبقَ للتمييز معنى: الآن باقة واحدة بـ99 شهرياً تفتح كل شيء.
+ */
+
 export type PlanLimits = {
   /** أقصى عدد قوائم (null = غير محدود). */
   maxMenus: number | null;
   /** أقصى عدد أصناف (null = غير محدود). */
   maxDishes: number | null;
-  /** المستشار الذكي (AI). */
-  ai: boolean;
   /** بطاقة الولاء. */
   loyalty: boolean;
   /** منيو ثنائي اللغة (عربي/إنجليزي). */
@@ -16,6 +22,9 @@ export type Plan = {
    * plan_id المُرسل لبوابة الدفع — يطابق مفاتيح PRICES في دالة moyasar-webhook
    * ({ basic: 49, standard: 99, premium: 199 })، حتى يُفعَّل الاشتراك ويُسجَّل
    * الإيراد بشكل صحيح دون تعديل الدالة.
+   *
+   * ⚠️ يبقى `standard` لأن سعره في الويبهوك 99 — وهو سعر الباقة الواحدة.
+   * لا تغيّره إلى معرّف جديد قبل تعديل الدالة، وإلا سُجِّل الإيراد خطأً.
    */
   id: string;
   name: string;
@@ -36,73 +45,59 @@ export const CURRENCY = "ر.س";
 /** عدد الأشهر المدفوعة في الاشتراك السنوي (12 − شهر مجاني). */
 const YEARLY_MONTHS = 11;
 
+/** كل المزايا مفتوحة — لا فروق بين مستويات. */
+const ALL_FEATURES: PlanLimits = {
+  maxMenus: null,
+  maxDishes: null,
+  loyalty: true,
+  english: true,
+};
+
 /**
- * المصدر الوحيد لباقات الاشتراك (single source of truth).
+ * المصدر الوحيد للاشتراك (single source of truth).
  * تُستهلك في صفحة الهبوط، صفحة الفوترة، وفرض الصلاحيات في اللوحة.
  */
 export const PLANS: Plan[] = [
   {
     id: "standard",
-    name: "الأساسية",
+    name: "كلاود منيو",
     monthly: 99,
     yearly: 99 * YEARLY_MONTHS, // 1089
-    features: [
-      "قائمة واحدة",
-      "حتى 100 صنف",
-      "أكواد QR للطاولات",
-      "إحصائيات المشاهدات",
-      "روابط تواصل وتقييم قوقل",
-      "معلومات غذائية + توافق SFDA",
-    ],
-    limits: {
-      maxMenus: 1,
-      maxDishes: 100,
-      ai: false,
-      loyalty: false,
-      english: false,
-    },
-  },
-  {
-    id: "premium",
-    name: "الاحترافية",
-    monthly: 199,
-    yearly: 199 * YEARLY_MONTHS, // 2189
     featured: true,
     features: [
-      "كل مزايا الأساسية",
       "قوائم وأصناف غير محدودة",
-      "المستشار الذكي (AI)",
-      "بطاقة الولاء",
+      "رفع صور الأطباق مع ضغط تلقائي",
+      "أكواد QR للطاولات + صفحة طباعة",
       "منيو ثنائي اللغة (عربي/إنجليزي)",
-      "دعم أولوية",
+      "بطاقة الولاء الرقمية",
+      "٨ ثيمات + ثيم بلون علامتك",
+      "معلومات غذائية ومسببات حساسية (SFDA)",
+      "ساعات عمل يومية وحالة «مفتوح الآن»",
+      "تحليلات المشاهدات والأطباق",
+      "روابط تواصل وتقييم قوقل والموقع",
+      "دعم فني مباشر من اللوحة",
     ],
-    limits: {
-      maxMenus: null,
-      maxDishes: null,
-      ai: true,
-      loyalty: true,
-      english: true,
-    },
+    limits: ALL_FEATURES,
   },
 ];
 
-/** سعر الباقة حسب دورة الفوترة. */
+/** الباقة الوحيدة — مختصر مريح للمُستدعين. */
+export const PLAN = PLANS[0];
+
 export function planPrice(plan: Plan, cycle: BillingCycle): number {
   return cycle === "yearly" ? plan.yearly : plan.monthly;
 }
 
-/** ما يعادله الاشتراك السنوي شهرياً (للعرض: «يعادل X ر.س/شهر»). */
+/** ما يعادله الاشتراك السنوي شهرياً — لعرض «يعادل X ر.س/شهر». */
 export function effectiveMonthly(plan: Plan, cycle: BillingCycle): number {
   return cycle === "yearly" ? Math.round(plan.yearly / 12) : plan.monthly;
 }
 
 /**
- * يحوّل plan_id المخزَّن في الاشتراك إلى باقة لاستخراج الصلاحيات.
- * الميزات المتقدمة (AI/الولاء/الإنجليزي/اللامحدود) تنفتح فقط مع «الاحترافية».
- * أي معرّف آخر (standard، أو basic القديم، أو غير معروف) يُعامل كـ«الأساسية».
+ * أي `plan_id` مخزَّن → الباقة الوحيدة.
+ * الاشتراكات القديمة تحمل `basic`/`premium`؛ كلها تُفتح الآن على نفس المزايا،
+ * فلا حاجة لتمييز — ما يهمّ هو `active` في `entitlements`.
  */
-export function resolvePlan(planId: string | null | undefined): Plan {
-  const pro = PLANS.find((p) => p.id === "premium")!;
-  const basic = PLANS.find((p) => p.id === "standard")!;
-  return planId === "premium" ? pro : basic;
+export function resolvePlan(_planId: string | null | undefined): Plan {
+  return PLAN;
 }

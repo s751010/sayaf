@@ -4,20 +4,18 @@ import { Link } from "react-router-dom";
 import { Badge, Button, Card, EmptyState, Input, Skeleton, useToast } from "@/components/ui";
 import { getLoyaltyCustomers, redeemLoyalty, stampLoyalty } from "@/lib/data";
 import type { LoyaltyCustomer } from "@/lib/types";
-import { useDashboard, UpgradeGate } from "./Dashboard";
+import { useDashboard } from "./Dashboard";
 
 export default function Loyalty() {
-  const { restaurant, ent } = useDashboard();
+  const { restaurant } = useDashboard();
   const toast = useToast();
   const [customers, setCustomers] = useState<LoyaltyCustomer[] | null>(null);
   const [q, setQ] = useState("");
 
   useEffect(() => {
     document.title = "الولاء — كلاود منيو";
-    if (ent.loyalty) {
-      getLoyaltyCustomers(restaurant.id).then(setCustomers).catch(() => setCustomers([]));
-    }
-  }, [restaurant.id, ent.loyalty]);
+    getLoyaltyCustomers(restaurant.id).then(setCustomers).catch(() => setCustomers([]));
+  }, [restaurant.id]);
 
   const goal = Math.min(20, Math.max(1, Math.round(restaurant.loyalty_goal ?? 5)));
 
@@ -28,27 +26,6 @@ export default function Loyalty() {
       [c.name, c.phone, c.card_code].filter(Boolean).some((v) => v!.toLowerCase().includes(s))
     );
   }, [customers, q]);
-
-  if (ent.loading) {
-    return (
-      <div>
-        <h1 className="font-display text-2xl font-black text-ink">الولاء</h1>
-        <Skeleton className="mt-6 h-40 rounded-2xl" />
-      </div>
-    );
-  }
-
-  if (!ent.loyalty) {
-    return (
-      <div>
-        <h1 className="font-display text-2xl font-black text-ink">الولاء</h1>
-        <UpgradeGate
-          title="بطاقة الولاء متاحة في باقة الاحترافية"
-          desc="فعّل برنامج الولاء لمكافأة عملائك المتكررين وزيادة معدّل عودتهم لمطعمك."
-        />
-      </div>
-    );
-  }
 
   async function stamp(c: LoyaltyCustomer) {
     try {

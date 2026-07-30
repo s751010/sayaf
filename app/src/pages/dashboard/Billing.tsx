@@ -144,13 +144,19 @@ export default function Billing() {
         <div>
           <p className="text-sm text-dim">باقتك الحالية</p>
           <p className="font-display text-xl font-black text-ink">
-            {ent.active ? resolvePlan(sub?.plan_id).name : "لا يوجد اشتراك فعّال"}
+            {sub === undefined
+              ? "جارٍ التحميل…"
+              : ent.active
+                ? resolvePlan(sub?.plan_id).name
+                : "لا يوجد اشتراك فعّال"}
           </p>
           {sub?.end_date && (
             <p className="mt-0.5 text-xs text-faint">صالح حتى {formatDate(sub.end_date)}</p>
           )}
         </div>
-        <Badge variant={ent.active ? "green" : "red"}>{ent.active ? "نشط" : "غير نشط"}</Badge>
+        <Badge variant={ent.loading || sub === undefined ? "neutral" : ent.active ? "green" : "red"}>
+          {ent.loading || sub === undefined ? "…" : ent.active ? "نشط" : "غير نشط"}
+        </Badge>
       </Card>
 
       {/* مبدّل الدورة */}
@@ -188,9 +194,8 @@ export default function Billing() {
       </div>
 
       <p className="mt-6 text-center text-xs text-faint">
-        بعد إتمام الدفع يُفعَّل اشتراكك تلقائياً خلال دقيقة. تحتاج مساعدة؟ راسلنا من صفحة التواصل.
+        بعد إتمام الدفع يُفعَّل اشتراكك تلقائياً خلال دقيقة. تحتاج مساعدة؟ استخدم صندوق الدعم الفني في صفحة الإعدادات.
       </p>
-      {sub === undefined && <span className="sr-only">جارٍ تحميل الاشتراك</span>}
       <div className="mt-4 flex justify-center">
         <Button variant="ghost" onClick={() => refreshEnt().then(() => toast("حُدّثت حالة الاشتراك."))}>
           ↻ تحديث حالة الاشتراك

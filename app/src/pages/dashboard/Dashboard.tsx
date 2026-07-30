@@ -40,7 +40,6 @@ import Analytics from "./Analytics";
 import Loyalty from "./Loyalty";
 import Settings from "./Settings";
 import Billing from "./Billing";
-import Ai from "./Ai";
 
 /* ── السياق المشترك ───────────────────────────────────────────────── */
 interface DashboardCtx {
@@ -147,7 +146,6 @@ const NAV = [
   { to: "/dashboard/qr", label: "أكواد QR", icon: "🔳" },
   { to: "/dashboard/analytics", label: "التحليلات", icon: "📊" },
   { to: "/dashboard/loyalty", label: "الولاء", icon: "💛" },
-  { to: "/dashboard/ai", label: "المستشار الذكي", icon: "🤖" },
   { to: "/dashboard/billing", label: "الاشتراك", icon: "💳" },
   { to: "/dashboard/settings", label: "الإعدادات", icon: "⚙️" },
 ];
@@ -300,7 +298,6 @@ export default function Dashboard() {
           <Route path="qr" element={<Qr />} />
           <Route path="analytics" element={<Analytics />} />
           <Route path="loyalty" element={<Loyalty />} />
-          <Route path="ai" element={<Ai />} />
           <Route path="billing" element={<Billing />} />
           <Route path="settings" element={<Settings />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />

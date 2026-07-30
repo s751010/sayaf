@@ -11,5 +11,20 @@ export const SUPABASE_ANON_KEY =
 // TODO(production): استبدله بمفتاح النشر الحقيقي pk_live_... عند الإطلاق (قرار المالك).
 export const MOYASAR_PK = "pk_test_ZcUaLJxdz27Fc9SkQyneSfuq193EBUmMr8tBqHj7";
 
+/** وضع الدفع التجريبي — لا يمكن تحصيل مبالغ حقيقية. */
+export const IS_TEST_PAYMENTS = MOYASAR_PK.startsWith("pk_test");
+
+/**
+ * هل نُلزم الاشتراك لنشر المنيو للزبائن؟
+ *
+ * مربوط بوضع الدفع عن قصد: لا يصحّ أن نُطفئ منيو تاجر لعدم اشتراكه بينما
+ * البوابة في وضع الاختبار ولا تقبل مبلغاً حقيقياً أصلاً. عند استبدال المفتاح
+ * بـ`pk_live_…` يتحوّل القفل تلقائياً إلى نشط.
+ *
+ * ملاحظة: هذا قفل تسويقي لا حدّ أمني — محتوى المنيو عام بطبعه (يُقرأ من كود QR
+ * على الطاولة)، والحماية الحقيقية للبيانات في سياسات RLS.
+ */
+export const ENFORCE_MENU_PUBLISHING = !IS_TEST_PAYMENTS;
+
 export const SITE_NAME = "كلاود منيو";
 export const SITE_URL = "https://cloudsmenu.netlify.app";

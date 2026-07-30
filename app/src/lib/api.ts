@@ -112,35 +112,6 @@ export async function uploadImage(
 }
 
 /**
- * المستشار الذكي عبر `functions/v1/ai-proxy` (يخفي مفتاح المزوّد).
- * العقد: طلب { system, messages, temperature } → { text } أو { error }.
- * الدالة تتحقق من JWT، لذا نرسل رمز المستخدم المسجَّل.
- */
-export async function askAI(
-  system: string,
-  messages: { role: "user" | "assistant"; content: string }[]
-): Promise<{ text?: string; error?: string }> {
-  const token = await getAccessToken();
-  if (!token) return { error: "سجّل الدخول أولاً." };
-  try {
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/ai-proxy`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ system, messages, temperature: 0.7 }),
-    });
-    const data = (await res.json().catch(() => ({}))) as { text?: string; error?: string };
-    if (!res.ok || data.error) return { error: data.error || `تعذّر الاتصال (${res.status}).` };
-    return data.text ? { text: data.text } : { error: "وصل ردّ فارغ." };
-  } catch {
-    return { error: "تعذّر الاتصال بالمستشار." };
-  }
-}
-
-/**
  * لوحة المؤسس عبر `functions/v1/founder-admin` — نفس عقد النسخة الأصلية:
  * body = { table, method, query, body } وترويسة `x-founder-secret` من sessionStorage.
  */

@@ -16,12 +16,13 @@ import {
 } from "@/components/ui";
 import { ImageUploader } from "@/components/ImageUploader";
 import { HoursEditor } from "@/components/HoursEditor";
+import { SupportBox } from "@/components/SupportBox";
 import { updateRestaurant, type RestaurantSettingsPayload } from "@/lib/data";
 import { numOrNull, strOrNull } from "@/lib/utils";
 import { useDashboard } from "./Dashboard";
 
 export default function Settings() {
-  const { restaurant, setRestaurant, ent } = useDashboard();
+  const { user, restaurant, setRestaurant } = useDashboard();
   const toast = useToast();
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -59,12 +60,8 @@ export default function Settings() {
   async function save(e: FormEvent) {
     e.preventDefault();
     if (!f.name.trim()) return setError("اسم المطعم مطلوب.");
-    // الحفظ قبل حسم الصلاحيات كان يُوقف الإنجليزية والولاء بصمت، لأن
-    // `ent.english`/`ent.loyalty` تكون false أثناء التحميل.
-    if (ent.loading) return setError("جارٍ تحميل بيانات باقتك — أعد المحاولة بعد لحظة.");
     setBusy(true);
     setError("");
-    // الصلاحيات: الولاء والإنجليزي حصريان للاحترافية — نُجبر الإيقاف بدونها.
     const payload: RestaurantSettingsPayload = {
       name: f.name.trim(),
       type: strOrNull(f.type),
@@ -81,8 +78,8 @@ export default function Settings() {
       social_tiktok: strOrNull(f.social_tiktok),
       social_snapchat: strOrNull(f.social_snapchat),
       social_maps: strOrNull(f.social_maps),
-      english_enabled: ent.english && f.english_enabled,
-      loyalty_enabled: ent.loyalty && f.loyalty_enabled,
+      english_enabled: f.english_enabled,
+      loyalty_enabled: f.loyalty_enabled,
       // يُحصر عند الكتابة أيضاً لا عند القراءة فقط — صفحة الزبون ترسم بطاقة
       // بعدد الأختام، وقيمة خارج المدى كانت تُسقط الصفحة.
       loyalty_goal: (() => {
@@ -179,32 +176,32 @@ export default function Settings() {
         </Card>
 
         <Card className="flex flex-col gap-4">
-          <h2 className={section}>👑 ميزات الاحترافية</h2>
+          <h2 className={section}>✨ مزايا المنيو</h2>
           <div className="flex items-center justify-between rounded-xl border border-line bg-panel2 px-4 py-3">
             <div>
               <p className="text-sm font-bold text-ink">🌐 منيو ثنائي اللغة (عربي/إنجليزي)</p>
-              {!ent.english && <p className="text-xs text-faint">متاح في باقة الاحترافية</p>}
+              <p className="text-xs text-faint">
+                يُظهر مبدّل اللغة للزبون — أضف الأسماء الإنجليزية داخل كل طبق.
+              </p>
             </div>
             <Switch
-              checked={ent.english && f.english_enabled}
+              checked={f.english_enabled}
               onChange={(v) => set("english_enabled", v)}
-              disabled={!ent.english}
               label="ثنائي اللغة"
             />
           </div>
           <div className="flex items-center justify-between rounded-xl border border-line bg-panel2 px-4 py-3">
             <div>
               <p className="text-sm font-bold text-ink">💛 بطاقة الولاء للزبائن</p>
-              {!ent.loyalty && <p className="text-xs text-faint">متاحة في باقة الاحترافية</p>}
+              <p className="text-xs text-faint">بطاقة أختام رقمية تظهر أسفل المنيو.</p>
             </div>
             <Switch
-              checked={ent.loyalty && f.loyalty_enabled}
+              checked={f.loyalty_enabled}
               onChange={(v) => set("loyalty_enabled", v)}
-              disabled={!ent.loyalty}
               label="الولاء"
             />
           </div>
-          {ent.loyalty && f.loyalty_enabled && (
+          {f.loyalty_enabled && (
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="عدد الزيارات للمكافأة">
                 <Input
@@ -233,6 +230,15 @@ export default function Settings() {
           {busy ? "جارٍ الحفظ…" : "حفظ الإعدادات"}
         </Button>
       </form>
+
+      {/* الدعم الفني — خارج فورم الإعدادات كي لا يتشابك الإرسال بينهما. */}
+      <div className="mt-5">
+        <SupportBox
+          userId={user.id}
+          email={user.email ?? null}
+          restaurantName={restaurant.name}
+        />
+      </div>
     </div>
   );
 }

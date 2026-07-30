@@ -15,7 +15,9 @@ type Ticket = {
   subject: string | null;
   message: string | null;
   email: string | null;
+  restaurant_name: string | null;
   status: string | null;
+  admin_reply: string | null;
   created_at: string;
 };
 
@@ -74,6 +76,24 @@ export default function Founder() {
       setError("السر غير صحيح أو الخدمة غير متاحة.");
     } finally {
       setBusy(false);
+    }
+  }
+
+  /** ردّ المؤسس — يظهر للتاجر في صندوق الدعم داخل إعداداته. */
+  async function replyTicket(t: Ticket) {
+    const reply = window.prompt(`الرد على «${t.subject ?? "التذكرة"}»:`, t.admin_reply ?? "")?.trim();
+    if (reply === undefined || reply === "") return;
+    try {
+      await founderAdmin(`support_tickets?id=eq.${t.id}`, {
+        method: "PATCH",
+        body: { admin_reply: reply, admin_read: true },
+      });
+      setTickets((rows) =>
+        rows?.map((x) => (x.id === t.id ? { ...x, admin_reply: reply } : x)) ?? null
+      );
+      toast("أُرسل الرد للتاجر ✓");
+    } catch {
+      toast("تعذّر إرسال الرد.", "err");
     }
   }
 
@@ -174,11 +194,24 @@ export default function Founder() {
                     <p className="font-bold text-ink">{t.subject ?? "بلا موضوع"}</p>
                     {t.message && <p className="mt-0.5 line-clamp-2 text-sm text-dim">{t.message}</p>}
                     <p className="mt-1 text-xs text-faint">
+                      {t.restaurant_name && <span>{t.restaurant_name} · </span>}
                       {t.email && <span dir="ltr">{t.email} · </span>}
                       {formatDate(t.created_at)}
                     </p>
+                    {t.admin_reply && (
+                      <p className="mt-1.5 rounded-lg border border-gold/30 bg-gold/[.06] px-2.5 py-1.5 text-xs text-ink">
+                        ردّك: {t.admin_reply}
+                      </p>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      className="px-3 py-1.5 text-xs"
+                      onClick={() => replyTicket(t)}
+                    >
+                      {t.admin_reply ? "تعديل الرد" : "ردّ"}
+                    </Button>
                     <Badge variant={t.status === "open" ? "red" : "green"}>
                       {t.status === "open" ? "مفتوحة" : "مغلقة"}
                     </Badge>

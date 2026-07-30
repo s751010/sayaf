@@ -14,21 +14,42 @@ import {
   Switch,
   useToast,
 } from "@/components/ui";
-import { applyThemeToAllMenus, countMenus, createMenu, deleteMenu, updateMenu } from "@/lib/data";
-import { THEMES, getTheme } from "@/lib/themes";
+import {
+  applyThemeToAllMenus,
+  countMenus,
+  createMenu,
+  deleteMenu,
+  updateMenu,
+  updateBrandColor,
+} from "@/lib/data";
+import {
+  THEMES,
+  buildCustomTheme,
+  customHexOf,
+  customThemeId,
+  getTheme,
+  isHex,
+} from "@/lib/themes";
 import { cn } from "@/lib/utils";
 import type { Menu } from "@/lib/types";
 import { useDashboard } from "./Dashboard";
 
 export default function Menus() {
-  const { user, restaurant, menus, refreshMenus, ent } = useDashboard();
+  const { user, restaurant, setRestaurant, menus, refreshMenus, ent } = useDashboard();
   const toast = useToast();
   const [adding, setAdding] = useState(false);
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
-  const currentTheme = getTheme(menus?.find((m) => m.theme)?.theme);
+  const activeThemeId = menus?.find((m) => m.theme)?.theme ?? null;
+  const currentTheme = getTheme(activeThemeId);
+  // لون العلامة: من الثيم المخصّص إن كان مطبَّقاً، وإلا من cover_color الموجود.
+  const [brandHex, setBrandHex] = useState(
+    () => customHexOf(activeThemeId) ?? restaurant.cover_color ?? "#d4a843"
+  );
+  const brandPreview = buildCustomTheme(isHex(brandHex) ? brandHex : "#d4a843");
+  const isBrandActive = customHexOf(activeThemeId) === (isHex(brandHex) ? brandHex.toLowerCase().replace(/^#?/, "#") : null);
 
   useEffect(() => {
     document.title = "القوائم — كلاود منيو";
@@ -43,7 +64,7 @@ export default function Menus() {
       if (ent.maxMenus !== null) {
         const count = await countMenus(restaurant.id);
         if (count >= ent.maxMenus) {
-          setError(`باقتك تسمح بـ ${ent.maxMenus} قائمة. رقِّ إلى الاحترافية لقوائم غير محدودة.`);
+          setError(`بلغت الحد المسموح (${ent.maxMenus} قائمة).`);
           setBusy(false);
           return;
         }
@@ -96,6 +117,12 @@ export default function Menus() {
   async function pickTheme(id: string) {
     try {
       await applyThemeToAllMenus(restaurant.id, id);
+      const hex = customHexOf(id);
+      if (hex) {
+        // اللون يُحفظ أيضاً في cover_color كي يستخدمه تدرّج ترويسة المنيو.
+        await updateBrandColor(restaurant.id, hex).catch(() => {});
+        setRestaurant({ ...restaurant, cover_color: hex });
+      }
       await refreshMenus();
       toast("طُبّق الثيم على منيوك ✓");
     } catch {
@@ -110,7 +137,6 @@ export default function Menus() {
           <h1 className="font-display text-2xl font-black text-ink">القوائم</h1>
           <p className="mt-1 text-sm text-dim">
             {menus === null ? "…" : menus.length} قائمة
-            {ent.maxMenus !== null && ` من أصل ${ent.maxMenus} في باقتك`}
           </p>
         </div>
         <Button onClick={() => setAdding(true)}>＋ قائمة جديدة</Button>
@@ -200,6 +226,56 @@ export default function Menus() {
             </button>
           ))}
         </div>
+
+        {/* ثيم بلون العلامة — يُخزَّن كـ`custom:#hex` في نفس عمود الثيم،
+            واللون نفسه في cover_color لتدرّج ترويسة المنيو. */}
+        <Card className="mt-4">
+          <p className="text-sm font-bold text-ink">🖌️ أو استخدم لون علامتك</p>
+          <p className="mt-1 text-xs text-dim">
+            اختر لون مشروعك وسنبني منه ثيماً كاملاً متناسقاً.
+          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <input
+              type="color"
+              value={brandHex}
+              onChange={(e) => setBrandHex(e.target.value)}
+              aria-label="لون العلامة"
+              className="h-11 w-16 cursor-pointer rounded-xl border border-line bg-panel2 p-1"
+            />
+            <Input
+              dir="ltr"
+              value={brandHex}
+              onChange={(e) => setBrandHex(e.target.value)}
+              className="w-32 text-center"
+              aria-label="كود اللون"
+            />
+            <div
+              className="flex h-11 items-center gap-2 rounded-xl border px-3"
+              style={{
+                background: brandPreview.vars["--m-bg"],
+                borderColor: brandPreview.vars["--m-border"],
+              }}
+            >
+              <span
+                className="h-4 w-4 rounded-full"
+                style={{ background: brandPreview.vars["--m-accent"] }}
+              />
+              <span className="text-xs font-bold" style={{ color: brandPreview.vars["--m-text"] }}>
+                معاينة
+              </span>
+            </div>
+            <Button
+              variant={isBrandActive ? "outline" : "gold"}
+              onClick={() => pickTheme(customThemeId(brandHex))}
+              disabled={!isHex(brandHex)}
+            >
+              {isBrandActive ? "مطبَّق ✓" : "طبّق لوني"}
+            </Button>
+          </div>
+          {!isHex(brandHex) && (
+            <p className="mt-2 text-xs text-bad">كود اللون غير صالح — استخدم صيغة #RRGGBB.</p>
+          )}
+        </Card>
       </section>
 
       <Modal open={adding} onClose={() => setAdding(false)} title="قائمة جديدة">

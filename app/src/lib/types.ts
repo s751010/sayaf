@@ -114,9 +114,14 @@ export interface AnalyticsRow {
   id: string;
   menu_id: string | null;
   user_id: string | null;
+  /** بتوقيت الرياض (UTC+3) — انظر `analyticsRow` في lib/data. */
   date: string | null;
   hour: number | null;
   views: number | null;
+  /** `null` = مشاهدة منيو · قيمة = فتح طبق. */
+  dish_id: string | null;
+  table_no: string | null;
+  lang: string | null;
 }
 
 export interface LoyaltyCustomer {

@@ -186,7 +186,7 @@ export default function Dishes() {
         if (ent.maxDishes !== null) {
           const count = await countDishes(restaurant.id);
           if (count >= ent.maxDishes) {
-            setError(`باقتك تسمح بـ ${ent.maxDishes} صنف. رقِّ إلى الاحترافية لأصناف غير محدودة.`);
+            setError(`بلغت الحد المسموح (${ent.maxDishes} صنفاً).`);
             setBusy(false);
             return;
           }
@@ -495,7 +495,7 @@ export default function Dishes() {
       {!ent.active && dishes !== null && dishes.length > 0 && (
         <UpgradeGate
           title="فعّل اشتراكك لتفتح كل الميزات"
-          desc="اشترك في إحدى الباقات لضمان استمرار منيوك وفتح الإحصائيات المتقدمة والمستشار الذكي."
+          desc="اشتراكك يضمن بقاء منيوك متاحاً لزبائنك. كل المزايا مفتوحة — 99 ر.س شهرياً."
         />
       )}
     </div>

@@ -1,9 +1,12 @@
 /**
- * صلاحيات المستخدم حسب اشتراكه النشط — نسخة client-side من منطق web/.
- * بدون اشتراك ساري → صلاحيات «الأساسية» افتراضياً (بدون AI/ولاء/إنجليزي/لامحدود).
+ * صلاحيات المستخدم.
+ *
+ * باقة واحدة تفتح كل المزايا، فالسؤال الوحيد هو: هل الاشتراك نشط؟
+ * كل مزايا اللوحة متاحة للتجربة بلا اشتراك — ما يتوقّف بدونه هو **نشر** المنيو
+ * للزبائن (انظر `isMenuPublished` في lib/data).
  */
 import { getActiveSubscription } from "./data";
-import { resolvePlan, type PlanLimits } from "./plans";
+import { PLAN, type PlanLimits } from "./plans";
 
 export type Entitlements = PlanLimits & {
   planId: string;
@@ -12,32 +15,32 @@ export type Entitlements = PlanLimits & {
   active: boolean;
   /**
    * الصلاحيات لم تُحسم بعد (الطلب جارٍ).
-   * بدونها كان المشترك في الاحترافية يرى جدار الترقية لحظةً عند فتح صفحة
-   * المستشار الذكي أو الولاء — لأن الافتراضي «الأساسية».
+   * بدونها كان التاجر يرى «بدون اشتراك» لحظةً في كل تحميل.
    */
   loading: boolean;
 };
 
 export const DEFAULT_ENTITLEMENTS: Entitlements = {
-  ...resolvePlan(null).limits,
-  planId: resolvePlan(null).id,
-  planName: resolvePlan(null).name,
+  ...PLAN.limits,
+  planId: PLAN.id,
+  planName: PLAN.name,
   active: false,
   loading: true,
 };
 
 export async function fetchEntitlements(userId: string): Promise<Entitlements> {
-  let planId: string | null = null;
   let active = false;
   try {
     const sub = await getActiveSubscription(userId);
-    if (sub) {
-      planId = sub.plan_id;
-      active = true;
-    }
+    active = !!sub;
   } catch {
-    /* عند فشل القراءة نفترض الأساسية — لا نمنح ميزات مدفوعة بالخطأ */
+    /* فشل القراءة ⇒ نفترض عدم الاشتراك (لا نمنح نشراً بالخطأ) */
   }
-  const plan = resolvePlan(planId);
-  return { ...plan.limits, planId: plan.id, planName: plan.name, active, loading: false };
+  return {
+    ...PLAN.limits,
+    planId: PLAN.id,
+    planName: PLAN.name,
+    active,
+    loading: false,
+  };
 }

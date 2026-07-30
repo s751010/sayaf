@@ -26,6 +26,22 @@ export async function getRestaurantBySlug(slug: string): Promise<Restaurant | nu
   return rows[0] ?? null;
 }
 
+/**
+ * هل منيو هذا المطعم منشور للزبائن (صاحبه مشترك بشكل نشط)؟
+ *
+ * عبر دالة `is_menu_published` لأن `subscriptions_select` مقصورة على صاحب الصف
+ * أو المؤسس — الزائر المجهول لا يستطيع قراءة الاشتراك. الدالة تكشف بولياناً
+ * واحداً فقط، لا تفاصيل الاشتراك.
+ */
+export async function isMenuPublished(slug: string): Promise<boolean> {
+  const v = await rest<boolean>("rpc/is_menu_published", {
+    method: "POST",
+    anonymous: true,
+    body: { p_slug: slug },
+  });
+  return v === true;
+}
+
 export async function getActiveMenus(restaurantId: string): Promise<Menu[]> {
   const rows = await rest<Menu[]>(
     `menus?restaurant_id=eq.${restaurantId}&select=*&order=created_at.asc`,
@@ -74,19 +90,41 @@ export async function getSiteSetting<T>(key: string): Promise<T | null> {
   }
 }
 
-/** تسجيل مشاهدة منيو — نفس شكل صف analytics في النسخة الأصلية. */
-export function trackMenuView(menuId: string, ownerId: string | null): void {
-  const now = new Date();
+/**
+ * صفّ حدث في `analytics`.
+ *
+ * `date`/`hour` بتوقيت **الرياض** (UTC+3) لا UTC: التاجر يقرأ «الساعة ٢١» على
+ * أنها التاسعة مساءً عنده، وكانت تُكتب بـUTC فتُقرأ منزاحة ثلاث ساعات، ويقع
+ * حدث ما بعد منتصف الليل في يوم خاطئ.
+ *
+ * سياسة `analytics_insert` تتطلّب `menu_id` غير فارغ ومملوكاً للـ`user_id`،
+ * فكل حدث — حتى فتح طبق — يحمل معرّف القائمة.
+ */
+function analyticsRow(menuId: string, ownerId: string | null) {
+  const riyadh = new Date(Date.now() + 3 * 3600_000);
+  return {
+    menu_id: menuId,
+    user_id: ownerId,
+    date: riyadh.toISOString().slice(0, 10),
+    hour: riyadh.getUTCHours(),
+    views: 1,
+  };
+}
+
+/** تسجيل مشاهدة منيو. */
+export function trackMenuView(
+  menuId: string,
+  ownerId: string | null,
+  meta: { table?: string | null; lang?: string } = {}
+): void {
   rest("analytics", {
     method: "POST",
     anonymous: true,
     headers: { Prefer: "return=minimal" },
     body: {
-      menu_id: menuId,
-      user_id: ownerId,
-      date: now.toISOString().slice(0, 10),
-      hour: now.getUTCHours(),
-      views: 1,
+      ...analyticsRow(menuId, ownerId),
+      table_no: meta.table ?? null,
+      lang: meta.lang ?? "ar",
     },
   }).catch(() => {});
 }
@@ -98,12 +136,31 @@ export function trackMenuView(menuId: string, ownerId: string | null): void {
  * مقصورة على `authenticated`، فكان الـPATCH المجهول يفشل دائماً بصمت. والدالة
  * تزيد ذرّياً فلا تُفقد زيادات متزامنة بين زبونين.
  */
-export function trackDishView(dish: Dish): void {
+export function trackDishView(
+  dish: Dish,
+  meta: { table?: string | null; lang?: string } = {}
+): void {
+  // (١) العدّاد التراكمي على الطبق — للترتيب السريع في اللوحة.
   rest("rpc/increment_dish_views", {
     method: "POST",
     anonymous: true,
     headers: { Prefer: "return=minimal" },
     body: { p_dish_id: dish.id },
+  }).catch(() => {});
+
+  // (٢) حدث مؤرَّخ في analytics — يمنح الطبق بعداً زمنياً كان مفقوداً تماماً
+  //     (العدّاد وحده لا يجيب «أي طبق صعد هذا الأسبوع؟»).
+  if (!dish.menu_id) return;
+  rest("analytics", {
+    method: "POST",
+    anonymous: true,
+    headers: { Prefer: "return=minimal" },
+    body: {
+      ...analyticsRow(dish.menu_id, dish.user_id),
+      dish_id: dish.id,
+      table_no: meta.table ?? null,
+      lang: meta.lang ?? "ar",
+    },
   }).catch(() => {});
 }
 
@@ -157,6 +214,21 @@ export async function updateRestaurant(
     method: "PATCH",
     headers: { Prefer: "return=minimal" },
     body: payload,
+  });
+}
+
+/**
+ * لون علامة المطعم (`cover_color`).
+ *
+ * دالة مستقلّة عن `RestaurantSettingsPayload` عن قصد: ذلك النوع هو whitelist
+ * صفحة الإعدادات، واللون يُحرَّر من صفحة القوائم مع الثيم. إضافته للـwhitelist
+ * كانت ستوجب وجوده في فورم الإعدادات (القاعدة أ) بلا داعٍ.
+ */
+export async function updateBrandColor(id: string, hex: string): Promise<void> {
+  await rest(`restaurants?id=eq.${id}`, {
+    method: "PATCH",
+    headers: { Prefer: "return=minimal" },
+    body: { cover_color: hex },
   });
 }
 
@@ -280,6 +352,45 @@ export async function toggleDishAvailability(id: string, available: boolean): Pr
     headers: { Prefer: "return=minimal" },
     body: { available },
   });
+}
+
+// ── الدعم الفني ──────────────────────────────────────────────────────
+
+/**
+ * تذاكر الدعم.
+ *
+ * الجدول وسياساته كانت جاهزة منذ البداية (`tickets_insert` تسمح للتاجر
+ * بالإدخال على صفّه، و`tickets_select` تُريه تذاكره وردّ المؤسس)، لكن لم تكن
+ * هناك أي واجهة تُنشئ تذكرة — فصندوق المؤسس يستقبل من النسخة القديمة فقط.
+ */
+export type SupportTicket = {
+  id: string;
+  subject: string | null;
+  message: string | null;
+  status: string | null;
+  admin_reply: string | null;
+  created_at: string;
+};
+
+export async function createSupportTicket(payload: {
+  user_id: string;
+  user_name: string | null;
+  email: string | null;
+  restaurant_name: string | null;
+  subject: string;
+  message: string;
+}): Promise<SupportTicket> {
+  const rows = await rest<SupportTicket[]>("support_tickets", {
+    method: "POST",
+    body: { ...payload, status: "open" },
+  });
+  return rows[0];
+}
+
+export async function getMySupportTickets(userId: string): Promise<SupportTicket[]> {
+  return rest<SupportTicket[]>(
+    `support_tickets?user_id=eq.${userId}&select=id,subject,message,status,admin_reply,created_at&order=created_at.desc&limit=20`
+  );
 }
 
 // ── الاشتراك والتحليلات والولاء ──────────────────────────────────────
