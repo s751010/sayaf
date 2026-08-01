@@ -18,10 +18,50 @@ import type {
 
 // ── عام (زائر — بمفتاح anon) ─────────────────────────────────────────
 
-export async function getRestaurantBySlug(slug: string): Promise<Restaurant | null> {
+/**
+ * ⚠️ لا تستخدم `select=*` في أي استعلام عام.
+ *
+ * صلاحيات `anon` على `restaurants` و`menus` و`dishes` ممنوحة **على مستوى
+ * الأعمدة** لا الجدول (لإخفاء `user_id` عن الزوّار). و`select=*` يتوسّع إلى كل
+ * الأعمدة، فأي عمود جديد بلا منح صريح يُسقط الطلب كاملاً بـ«permission denied»
+ * — أي أن إضافة عمود واحد تُطفئ منيوهات كل المطاعم دفعة واحدة. حدث هذا فعلاً.
+ *
+ * القوائم الصريحة أدناه تجعل العمود الجديد غير مرئي للزبون حتى يُضاف هنا عمداً،
+ * بدل أن يكسر الصفحة. وهي أيضاً حاجز ثانٍ يمنع تسريب عمود حسّاس مستقبلاً.
+ */
+const PUBLIC_RESTAURANT_COLS = [
+  "id", "name", "type", "phone", "address", "logo", "cover_color",
+  "logo_image", "banner_image", "slug", "google_review_url", "allergens_text",
+  "working_hours", "social_instagram", "social_twitter", "social_tiktok",
+  "social_snapchat", "social_whatsapp", "social_maps", "english_enabled",
+  "loyalty_enabled", "loyalty_goal", "loyalty_reward",
+  "prices_include_vat", "vat_number", "category_order", "created_at",
+].join(",");
+
+const PUBLIC_MENU_COLS = [
+  "id", "restaurant_id", "name", "description", "theme", "language",
+  "cover_image", "active", "views", "window_from", "window_to", "created_at",
+].join(",");
+
+const PUBLIC_DISH_COLS = [
+  "id", "menu_id", "restaurant_id", "name", "description", "price", "category",
+  "emoji", "image", "featured", "available", "sort_order", "views", "calories",
+  "sodium_mg", "caffeine_mg", "burn_minutes", "is_high_sodium", "sfda_compliant",
+  "allergens", "name_en", "description_en", "options", "created_at",
+].join(",");
+
+/**
+ * `asOwner` تجلب الصف بجلسة المستخدم بدل مفتاح anon، فتصل إلى `user_id`
+ * المحجوب عن الزوّار. تستخدمها المعاينة للتحقّق من ملكية المطعم فقط.
+ */
+export async function getRestaurantBySlug(
+  slug: string,
+  opts: { asOwner?: boolean } = {}
+): Promise<Restaurant | null> {
+  const cols = opts.asOwner ? "*" : PUBLIC_RESTAURANT_COLS;
   const rows = await rest<Restaurant[]>(
-    `restaurants?slug=eq.${encodeURIComponent(slug)}&select=*&limit=1`,
-    { anonymous: true }
+    `restaurants?slug=eq.${encodeURIComponent(slug)}&select=${cols}&limit=1`,
+    { anonymous: !opts.asOwner }
   );
   return rows[0] ?? null;
 }
@@ -44,7 +84,7 @@ export async function isMenuPublished(slug: string): Promise<boolean> {
 
 export async function getActiveMenus(restaurantId: string): Promise<Menu[]> {
   const rows = await rest<Menu[]>(
-    `menus?restaurant_id=eq.${restaurantId}&select=*&order=created_at.asc`,
+    `menus?restaurant_id=eq.${restaurantId}&select=${PUBLIC_MENU_COLS}&order=created_at.asc`,
     { anonymous: true }
   );
   // active=null تُعامل كمفعّلة (بيانات قديمة قبل إضافة العمود).
@@ -60,7 +100,7 @@ export async function getAvailableDishes(menuIds: string[]): Promise<Dish[]> {
   return rest<Dish[]>(
     // ترتيب التاجر أولاً، ثم الأقدم — الصفوف القديمة كلها sort_order = 0
     // فتحافظ على ترتيبها السابق حتى يرتّبها بنفسه.
-    `dishes?menu_id=in.(${list})&or=(available.is.null,available.eq.true)&select=*&order=sort_order.asc,created_at.asc`,
+    `dishes?menu_id=in.(${list})&or=(available.is.null,available.eq.true)&select=${PUBLIC_DISH_COLS}&order=sort_order.asc,created_at.asc`,
     { anonymous: true }
   );
 }
@@ -113,7 +153,13 @@ function analyticsRow(menuId: string, ownerId: string | null) {
   };
 }
 
-/** تسجيل مشاهدة منيو. */
+/**
+ * تسجيل مشاهدة منيو.
+ *
+ * `ownerId` يجوز أن يكون `null`: الزائر المجهول لا يستطيع قراءة
+ * `restaurants.user_id` (محجوب عنه عمداً)، وتريجر `analytics_fill_owner`
+ * يشتقّ المالك من القائمة في القاعدة فتمرّ سياسة `analytics_insert`.
+ */
 export function trackMenuView(
   menuId: string,
   ownerId: string | null,

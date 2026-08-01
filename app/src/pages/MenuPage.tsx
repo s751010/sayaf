@@ -550,14 +550,19 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
     setState({ status: "loading" });
     (async () => {
       try {
-        const restaurant = await getRestaurantBySlug(slug);
+        // `user_id` محجوب عن الزائر المجهول، فالتحقّق من الملكية يتطلّب جلب
+        // الصف بجلسة المستخدم — ولا نفعل ذلك إلا حين تُطلب المعاينة فعلاً.
+        const session = loadSession();
+        const tryOwner = wantsPreview && !!session;
+        const restaurant = tryOwner
+          ? await getRestaurantBySlug(slug, { asOwner: true }).catch(() =>
+              getRestaurantBySlug(slug)
+            )
+          : await getRestaurantBySlug(slug);
         if (cancelled) return;
         if (!restaurant) return setState({ status: "notfound" });
-        // مالك المطعم فقط يعاين منيوه المقفل — `loadSession` متزامنة وبلا شبكة.
-        const session = loadSession();
-        const isOwner =
-          !!restaurant.user_id && session?.user.id === restaurant.user_id;
-        const previewing = wantsPreview && isOwner;
+        const previewing =
+          tryOwner && !!restaurant.user_id && session!.user.id === restaurant.user_id;
         setPreview(previewing);
         // قفل النشر — نشط فقط عند تشغيل الدفع الحقيقي (انظر ENFORCE_MENU_PUBLISHING).
         if (ENFORCE_MENU_PUBLISHING && !previewing) {
