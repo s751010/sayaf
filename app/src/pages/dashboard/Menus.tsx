@@ -15,6 +15,7 @@ import {
   useToast,
 } from "@/components/ui";
 import { PreviewMenuButton } from "@/components/site";
+import { inTimeWindow, normalizeTime } from "@/lib/hours";
 import {
   applyThemeToAllMenus,
   countMenus,
@@ -39,6 +40,7 @@ export default function Menus() {
   const { user, restaurant, setRestaurant, menus, refreshMenus, ent } = useDashboard();
   const toast = useToast();
   const [adding, setAdding] = useState(false);
+  const [scheduling, setScheduling] = useState<Menu | null>(null);
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -88,6 +90,38 @@ export default function Menus() {
       await refreshMenus();
     } catch {
       toast("تعذّر التحديث.", "err");
+    }
+  }
+
+  /** يفعّل قائمة واحدة ويطفئ شقيقاتها — «أبدّل بين قوائم بضغطة». */
+  async function showOnly(m: Menu) {
+    try {
+      await Promise.all(
+        (menus ?? []).map((x) =>
+          (x.active !== false) === (x.id === m.id)
+            ? Promise.resolve()
+            : updateMenu(x.id, { active: x.id === m.id })
+        )
+      );
+      await refreshMenus();
+      toast(`يُعرض «${m.name}» وحده الآن ✓`);
+    } catch {
+      toast("تعذّر التبديل.", "err");
+    }
+  }
+
+  /** نافذة العرض: تُحفظ HH:MM أو تُمسح بالكامل (لا نصف نافذة). */
+  async function setWindow(m: Menu, from: string | null, to: string | null) {
+    const clear = !from || !to;
+    try {
+      await updateMenu(m.id, {
+        window_from: clear ? null : normalizeTime(from),
+        window_to: clear ? null : normalizeTime(to),
+      });
+      await refreshMenus();
+      toast(clear ? "أُلغي توقيت العرض — تظهر دائماً." : "حُفظ توقيت العرض ✓");
+    } catch {
+      toast("تعذّر حفظ التوقيت.", "err");
     }
   }
 
@@ -155,6 +189,16 @@ export default function Menus() {
               <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-gold/12 text-xl">📋</span>
               <div>
                 <p className="font-bold text-ink">{m.name}</p>
+                {m.window_from && m.window_to && (
+                  <p className="text-xs text-dim">
+                    ⏰ <span dir="ltr">{m.window_from} – {m.window_to}</span>{" "}
+                    {inTimeWindow(m.window_from, m.window_to) ? (
+                      <span className="text-good">· تظهر الآن</span>
+                    ) : (
+                      <span className="text-faint">· خارج وقتها الآن</span>
+                    )}
+                  </p>
+                )}
                 {/* عمود menus.views لا يكتبه أي مسار في التطبيق (التتبّع يذهب
                     إلى جدول analytics)، فكان يعرض «٠ مشاهدة» دائماً ويوهم
                     التاجر أن منيوه لا يُزار. الأرقام الحقيقية في «التحليلات». */}
@@ -171,6 +215,21 @@ export default function Menus() {
                 {m.active !== false ? "منشورة" : "مخفية"}
               </Badge>
               <Switch checked={m.active !== false} onChange={() => toggleActive(m)} label="نشر" />
+              <PreviewMenuButton slug={restaurant.slug} label="معاينة" className="px-2.5 py-1.5 text-xs" />
+              <button
+                onClick={() => setScheduling(m)}
+                className="rounded-lg px-2.5 py-1.5 text-sm font-bold text-dim hover:bg-ink/6 hover:text-ink"
+              >
+                ⏰ وقت العرض
+              </button>
+              {(menus?.length ?? 0) > 1 && (
+                <button
+                  onClick={() => showOnly(m)}
+                  className="rounded-lg px-2.5 py-1.5 text-sm font-bold text-dim hover:bg-ink/6 hover:text-ink"
+                >
+                  اعرض هذه فقط
+                </button>
+              )}
               <button
                 onClick={() => rename(m)}
                 className="rounded-lg px-2.5 py-1.5 text-sm font-bold text-dim hover:bg-ink/6 hover:text-ink"
@@ -293,6 +352,107 @@ export default function Menus() {
           </Button>
         </form>
       </Modal>
+
+      {scheduling && (
+        <ScheduleModal
+          menu={scheduling}
+          onClose={() => setScheduling(null)}
+          onSave={async (from, to) => {
+            await setWindow(scheduling, from, to);
+            setScheduling(null);
+          }}
+        />
+      )}
     </div>
+  );
+}
+
+/* ── نافذة عرض القائمة ────────────────────────────────────────────── */
+
+/** إعدادات جاهزة — التاجر يريد «فطور رمضان» لا أن يحسب الساعات. */
+const WINDOW_PRESETS = [
+  { label: "🌙 فطور رمضان", from: "18:00", to: "23:59" },
+  { label: "🌃 سحور", from: "23:00", to: "03:30" },
+  { label: "🍳 فطور الصباح", from: "06:00", to: "11:30" },
+  { label: "🌞 غداء", from: "12:00", to: "17:00" },
+];
+
+function ScheduleModal({
+  menu,
+  onClose,
+  onSave,
+}: {
+  menu: Menu;
+  onClose: () => void;
+  onSave: (from: string | null, to: string | null) => Promise<void>;
+}) {
+  const [from, setFrom] = useState(menu.window_from ?? "");
+  const [to, setTo] = useState(menu.window_to ?? "");
+  const [busy, setBusy] = useState(false);
+
+  const half = Boolean(from) !== Boolean(to);
+
+  async function save(clear = false) {
+    setBusy(true);
+    try {
+      await onSave(clear ? null : from || null, clear ? null : to || null);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Modal open onClose={onClose} title={`وقت عرض «${menu.name}»`}>
+      <div className="flex flex-col gap-4">
+        <p className="text-sm leading-relaxed text-dim">
+          خارج هذا الوقت تختفي القائمة من المنيو تلقائياً — بتوقيت الرياض. اتركه
+          فارغاً لتظهر دائماً.
+        </p>
+
+        <div className="flex flex-wrap gap-2">
+          {WINDOW_PRESETS.map((p) => (
+            <button
+              key={p.label}
+              type="button"
+              onClick={() => {
+                setFrom(p.from);
+                setTo(p.to);
+              }}
+              className="rounded-xl border border-line-gold px-3 py-1.5 text-xs font-bold text-ink hover:bg-gold/10"
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label="من">
+            <Input type="time" dir="ltr" value={from} onChange={(e) => setFrom(e.target.value)} />
+          </Field>
+          <Field label="إلى">
+            <Input type="time" dir="ltr" value={to} onChange={(e) => setTo(e.target.value)} />
+          </Field>
+        </div>
+
+        {half && (
+          <ErrorNote>اضبط الوقتين معاً — نافذة بطرف واحد لا معنى لها.</ErrorNote>
+        )}
+        {from && to && from > to && (
+          <p className="text-xs text-dim">
+            ℹ️ فترة تعبر منتصف الليل — ستظهر من <span dir="ltr">{from}</span> حتى{" "}
+            <span dir="ltr">{to}</span> من اليوم التالي.
+          </p>
+        )}
+
+        <div className="flex flex-wrap justify-between gap-2">
+          <Button variant="ghost" onClick={() => save(true)} disabled={busy}>
+            اعرضها دائماً
+          </Button>
+          <Button onClick={() => save()} disabled={busy || half}>
+            {busy ? "جارٍ الحفظ…" : "حفظ التوقيت"}
+          </Button>
+        </div>
+      </div>
+    </Modal>
   );
 }

@@ -6,6 +6,7 @@ import { getSiteSetting } from "@/lib/data";
 import { SITE_NAME } from "@/lib/config";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/ui";
+import { SupportWhatsAppButton } from "@/components/SupportWhatsApp";
 
 export function Logo({ compact }: { compact?: boolean }) {
   return (
@@ -211,6 +212,12 @@ export function Footer() {
             )}
             <li><Link to="/help" className="hover:text-gold">مركز المساعدة</Link></li>
           </ul>
+          <SupportWhatsAppButton className="mt-3" />
+          <p className="mt-3 text-xs text-faint">
+            <Link to="/help#policy" className="hover:text-gold">
+              سياسة الاشتراك والإلغاء
+            </Link>
+          </p>
         </div>
       </div>
       <div className="border-t border-line py-4 text-center text-xs text-faint">

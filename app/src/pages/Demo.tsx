@@ -53,6 +53,16 @@ const restaurant: Restaurant = {
   loyalty_reward: "قهوة سعودية مجاناً",
   prices_include_vat: true,
   vat_number: "300000000000003",
+  // ترتيب التاجر — يعرضه الديمو كما يراه الزبون (المقبلات أولاً لا المشاوي
+  // لمجرّد أن أول طبق مضاف كان ستيك).
+  category_order: JSON.stringify([
+    "الإفطار",
+    "المقبلات",
+    "المشاوي",
+    "الأطباق الرئيسية",
+    "الحلويات",
+    "المشروبات",
+  ]),
   reviews_enabled: true,
   online_payment_enabled: false,
 };
@@ -70,6 +80,8 @@ const menus: Menu[] = [
     created_at: DEMO_TS,
     language: null,
     cover_image: null,
+    window_from: null,
+    window_to: null,
   },
 ];
 
@@ -98,6 +110,7 @@ function dish(
     image: null,
     featured: false,
     available: true,
+    sort_order: 0,
     views: 0,
     created_at: DEMO_TS,
     calories: null,

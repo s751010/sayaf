@@ -38,7 +38,23 @@ import {
   updateDish,
   type DishPayload,
 } from "@/lib/data";
+import {
+  renameCategory,
+  reorderDishes,
+  updateCategoryOrder,
+} from "@/lib/data";
 import { rowToPayload, type ParsedRow } from "@/lib/import";
+import {
+  categoriesOf,
+  matchKnownCategory,
+  moveItem,
+  parseCategoryOrder,
+  reconcileOrder,
+  serializeCategoryOrder,
+  sortCategories,
+} from "@/lib/categories";
+import { ReorderList } from "@/components/Reorder";
+import { CategoryManager } from "@/components/CategoryManager";
 import { cn, formatPrice, numOrNull, strOrNull } from "@/lib/utils";
 import { computedNutrition } from "@/lib/nutrition";
 import type { Dish } from "@/lib/types";
@@ -133,14 +149,74 @@ function toPayload(f: DishForm): DishPayload {
 
 const QUICK_EMOJIS = ["🍔", "🍕", "🍗", "🥩", "🍤", "🍝", "🥗", "🍚", "🌯", "🧆", "🍰", "🍩", "☕", "🧋", "🥤", "🍹"];
 
+/** اسم التصنيف الافتراضي — يطابق ما يعرضه `MenuPage` للزبون. */
+const UNCATEGORIZED = "أخرى";
+
+function DishRow({
+  dish: d,
+  showCategory,
+  onToggle,
+  onEdit,
+  onRemove,
+}: {
+  dish: Dish;
+  showCategory?: boolean;
+  onToggle: () => void;
+  onEdit: () => void;
+  onRemove: () => void;
+}) {
+  return (
+    <Card
+      className={cn(
+        "flex items-center gap-3 border-transparent bg-transparent p-0 shadow-none",
+        d.available === false && "opacity-55"
+      )}
+    >
+      <SafeImage
+        src={d.image}
+        alt=""
+        className="h-12 w-12 rounded-xl object-cover"
+        wrapperClassName="h-12 w-12 shrink-0 rounded-xl bg-panel2 text-2xl"
+        fallback={d.emoji ?? "🍽"}
+      />
+      <div className="min-w-0 flex-1">
+        <p className="truncate font-bold text-ink">
+          {d.name} {d.featured && <span className="text-gold">★</span>}
+        </p>
+        <p className="text-xs text-faint">
+          {showCategory && `${d.category ?? "بدون تصنيف"} · `}👁️ {d.views ?? 0}
+        </p>
+      </div>
+      <span className="hidden font-bold text-gold sm:block">
+        {formatPrice(d.price ?? 0)} ر.س
+      </span>
+      <Switch checked={d.available ?? true} onChange={onToggle} label="متاح" />
+      <button
+        onClick={onEdit}
+        className="rounded-lg px-2.5 py-1.5 text-sm font-bold text-dim hover:bg-ink/6 hover:text-ink"
+      >
+        تعديل
+      </button>
+      <button
+        onClick={onRemove}
+        aria-label="حذف"
+        className="rounded-lg px-2 py-1.5 text-sm text-bad hover:bg-bad/10"
+      >
+        🗑
+      </button>
+    </Card>
+  );
+}
+
 export default function Dishes() {
-  const { user, restaurant, menus, ent } = useDashboard();
+  const { user, restaurant, setRestaurant, menus, ent } = useDashboard();
   const toast = useToast();
   const [dishes, setDishes] = useState<Dish[] | null>(null);
   const [filter, setFilter] = useState("");
   const [editing, setEditing] = useState<Dish | "new" | null>(null);
   const [importing, setImporting] = useState(false);
   const [bulkImages, setBulkImages] = useState(false);
+  const [managingCats, setManagingCats] = useState(false);
   const [form, setForm] = useState<DishForm>({ ...EMPTY_FORM, menu_id: "" });
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -221,15 +297,81 @@ export default function Dishes() {
     }
   }
 
-  /** التصنيفات الموجودة فعلاً — تُقترح على المستورِد فلا يتكاثر «مشاوي/المشاوي». */
-  const knownCategories = useMemo(() => {
-    const set = new Set<string>();
+  /** التصنيفات الموجودة فعلاً — تُقترح في الفورم وللمستورِد فلا يتكاثر «مشاوي/المشاوي». */
+  const knownCategories = useMemo(() => categoriesOf(dishes ?? []), [dishes]);
+
+  const categoryOrder = useMemo(
+    () => parseCategoryOrder(restaurant.category_order),
+    [restaurant.category_order]
+  );
+
+  /** نفس تجميع `MenuPage` وترتيبه — اللوحة والمنيو يعرضان الشيء ذاته. */
+  const groups = useMemo(() => {
+    const byCat = new Map<string, Dish[]>();
     for (const d of dishes ?? []) {
-      const c = d.category?.trim();
-      if (c) set.add(c);
+      const cat = d.category?.trim() || UNCATEGORIZED;
+      byCat.set(cat, [...(byCat.get(cat) ?? []), d]);
     }
-    return [...set].sort((a, b) => a.localeCompare(b, "ar"));
-  }, [dishes]);
+    return sortCategories([...byCat.keys()], categoryOrder).map((name) => ({
+      name,
+      dishes: byCat.get(name)!,
+    }));
+  }, [dishes, categoryOrder]);
+
+  /** ترتيب التصنيفات المعروض في مدير التصنيفات (بلا «أخرى» — ليس تصنيفاً حقيقياً). */
+  const orderedCategories = useMemo(
+    () => groups.map((g) => g.name).filter((n) => n !== UNCATEGORIZED),
+    [groups]
+  );
+
+  /**
+   * السحب داخل تصنيف.
+   *
+   * `sort_order` عمود واحد لكل المطعم لا لكل تصنيف، فنُعيد ترقيم **كل** الأطباق
+   * حسب موضعها في القائمة المسطّحة بعد النقل. هكذا يبقى ترتيب اللوحة والمنيو
+   * متطابقاً مهما تحرّك الطبق، ولا نُرسل إلا الصفوف التي تغيّر رقمها فعلاً.
+   */
+  async function reorder(group: string, from: number, to: number) {
+    const next = groups.map((g) =>
+      g.name === group ? { ...g, dishes: moveItem(g.dishes, from, to) } : g
+    );
+    const flat = next.flatMap((g) => g.dishes);
+    const renumbered = flat.map((d, i) => ({ ...d, sort_order: i }));
+    setDishes(renumbered);
+    const changed = renumbered
+      .filter((_, i) => (flat[i].sort_order ?? 0) !== i)
+      .map((d) => ({ id: d.id, sort_order: d.sort_order }));
+    if (!changed.length) return;
+    try {
+      await reorderDishes(changed);
+    } catch {
+      toast("تعذّر حفظ الترتيب.", "err");
+      getMyDishes(restaurant.id).then(setDishes).catch(() => {});
+    }
+  }
+
+  async function saveCategoryOrder(order: string[]) {
+    const value = serializeCategoryOrder(order);
+    await updateCategoryOrder(restaurant.id, value);
+    setRestaurant({ ...restaurant, category_order: value });
+    toast("حُفظ ترتيب التصنيفات ✓");
+  }
+
+  async function renameCat(from: string, to: string) {
+    await renameCategory(restaurant.id, from, to);
+    setDishes(
+      (ds) => ds?.map((d) => (d.category?.trim() === from ? { ...d, category: to } : d)) ?? null
+    );
+    // حدّث الترتيب المحفوظ أيضاً وإلا بقي يشير لاسم لم يعد موجوداً.
+    const nextOrder = reconcileOrder(
+      categoryOrder.map((c) => (c === from ? to : c)),
+      orderedCategories.map((c) => (c === from ? to : c))
+    );
+    const value = serializeCategoryOrder([...new Set(nextOrder)]);
+    await updateCategoryOrder(restaurant.id, value);
+    setRestaurant({ ...restaurant, category_order: value });
+    toast(`أصبح التصنيف «${to}» ✓`);
+  }
 
   async function importRows(rows: ParsedRow[], menuId: string) {
     const created = await createDishes(rows.map(rowToPayload), {
@@ -286,9 +428,14 @@ export default function Dishes() {
             ⬆️ استيراد أصناف
           </Button>
           {(dishes?.length ?? 0) > 0 && (
-            <Button variant="outline" onClick={() => setBulkImages(true)}>
-              📷 صور دفعة واحدة
-            </Button>
+            <>
+              <Button variant="outline" onClick={() => setBulkImages(true)}>
+                📷 صور دفعة واحدة
+              </Button>
+              <Button variant="outline" onClick={() => setManagingCats(true)}>
+                🗂️ التصنيفات
+              </Button>
+            </>
           )}
           <Button onClick={openNew}>＋ طبق جديد</Button>
         </div>
@@ -345,46 +492,43 @@ export default function Dishes() {
             }
           />
         </div>
-      ) : (
+      ) : filter ? (
+        /* أثناء البحث: قائمة مسطّحة بلا سحب — الترتيب بلا معنى على نتائج مفلترة. */
         <div className="mt-5 flex flex-col gap-2.5">
           {filtered.map((d) => (
-            <Card
+            <DishRow
               key={d.id}
-              className={cn("flex items-center gap-3 py-3", d.available === false && "opacity-55")}
-            >
-              <SafeImage
-                src={d.image}
-                alt=""
-                className="h-12 w-12 rounded-xl object-cover"
-                wrapperClassName="h-12 w-12 shrink-0 rounded-xl bg-panel2 text-2xl"
-                fallback={d.emoji ?? "🍽"}
+              dish={d}
+              showCategory
+              onToggle={() => toggle(d)}
+              onEdit={() => openEdit(d)}
+              onRemove={() => remove(d)}
+            />
+          ))}
+        </div>
+      ) : (
+        /* بلا بحث: نفس تجميع المنيو وترتيبه بالضبط — ما تراه هنا يراه الزبون. */
+        <div className="mt-5 flex flex-col gap-6">
+          {groups.map((g) => (
+            <section key={g.name}>
+              <h2 className="mb-2 flex items-center gap-2 font-display text-sm font-extrabold text-dim">
+                {g.name}
+                <span className="font-normal text-faint">· {g.dishes.length}</span>
+              </h2>
+              <ReorderList
+                items={g.dishes}
+                keyOf={(d) => d.id}
+                onReorder={(from, to) => reorder(g.name, from, to)}
+                render={(d) => (
+                  <DishRow
+                    dish={d}
+                    onToggle={() => toggle(d)}
+                    onEdit={() => openEdit(d)}
+                    onRemove={() => remove(d)}
+                  />
+                )}
               />
-              <div className="min-w-0 flex-1">
-                <p className="truncate font-bold text-ink">
-                  {d.name} {d.featured && <span className="text-gold">★</span>}
-                </p>
-                <p className="text-xs text-faint">
-                  {d.category ?? "بدون تصنيف"} · 👁️ {d.views ?? 0}
-                </p>
-              </div>
-              <span className="hidden font-bold text-gold sm:block">
-                {formatPrice(d.price ?? 0)} ر.س
-              </span>
-              <Switch checked={d.available ?? true} onChange={() => toggle(d)} label="متاح" />
-              <button
-                onClick={() => openEdit(d)}
-                className="rounded-lg px-2.5 py-1.5 text-sm font-bold text-dim hover:bg-ink/6 hover:text-ink"
-              >
-                تعديل
-              </button>
-              <button
-                onClick={() => remove(d)}
-                aria-label="حذف"
-                className="rounded-lg px-2 py-1.5 text-sm text-bad hover:bg-bad/10"
-              >
-                🗑
-              </button>
-            </Card>
+            </section>
           ))}
         </div>
       )}
@@ -419,8 +563,34 @@ export default function Dishes() {
               required
             />
           </Field>
-          <Field label="التصنيف" hint="مثال: المشاوي، المقبلات، الحلويات">
-            <Input value={form.category} onChange={(e) => set("category", e.target.value)} />
+          {/* اختيار من الموجود أولاً — الحقل الحر وحده كان يولّد «مشاوي» و«المشاوي». */}
+          <Field label="التصنيف" hint="اختر من تصنيفاتك، أو اكتب تصنيفاً جديداً.">
+            {knownCategories.length > 0 && (
+              <Select
+                value={knownCategories.includes(form.category) ? form.category : "__new"}
+                onChange={(e) => set("category", e.target.value === "__new" ? "" : e.target.value)}
+                className="mb-2"
+              >
+                {knownCategories.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+                <option value="__new">＋ تصنيف جديد…</option>
+              </Select>
+            )}
+            {(knownCategories.length === 0 || !knownCategories.includes(form.category)) && (
+              <Input
+                value={form.category}
+                onChange={(e) => set("category", e.target.value)}
+                onBlur={(e) => {
+                  // «المشاوي» تُضم إلى «مشاوي» الموجودة بدل أن تصير قسماً ثانياً.
+                  const hit = matchKnownCategory(e.target.value, knownCategories);
+                  if (hit && hit !== e.target.value.trim()) set("category", hit);
+                }}
+                placeholder="مثال: المشاوي، المقبلات، الحلويات"
+              />
+            )}
           </Field>
           <Field label="القائمة">
             <Select value={form.menu_id} onChange={(e) => set("menu_id", e.target.value)} required>
@@ -571,6 +741,15 @@ export default function Dishes() {
         dishes={dishes ?? []}
         restaurantId={restaurant.id}
         onSave={linkImages}
+      />
+
+      <CategoryManager
+        open={managingCats}
+        onClose={() => setManagingCats(false)}
+        categories={orderedCategories}
+        countOf={(name) => groups.find((g) => g.name === name)?.dishes.length ?? 0}
+        onSaveOrder={saveCategoryOrder}
+        onRename={renameCat}
       />
 
       {!ent.active && dishes !== null && dishes.length > 0 && (

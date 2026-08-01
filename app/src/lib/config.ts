@@ -28,3 +28,12 @@ export const ENFORCE_MENU_PUBLISHING = !IS_TEST_PAYMENTS;
 
 export const SITE_NAME = "كلاود منيو";
 export const SITE_URL = "https://cloudsmenu.netlify.app";
+
+/**
+ * واتساب الدعم — التاجر السعودي يراسل واتساب لا يفتح تذكرة.
+ *
+ * قيمة احتياطية فقط: المصدر المعتمد هو مفتاح `support_whatsapp` في جدول
+ * `site_settings` ليغيّره المؤسس بلا إعادة نشر. اتركها فارغة ليختفي الزر
+ * تلقائياً بدل أن يقود إلى رقم لا يردّ.
+ */
+export const SUPPORT_WHATSAPP = "";

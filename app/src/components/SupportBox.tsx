@@ -23,6 +23,7 @@ import {
   Textarea,
   useToast,
 } from "@/components/ui";
+import { SupportWhatsAppButton } from "@/components/SupportWhatsApp";
 
 export function SupportBox({
   userId,
@@ -80,6 +81,15 @@ export function SupportBox({
           اكتب مشكلتك أو طلبك وسيصل مباشرة لفريق كلاود منيو — وستجد الرد هنا.
         </p>
       </div>
+
+      {/* الأسرع أولاً؛ التذكرة تبقى لمن يريد أثراً مكتوباً. */}
+      <SupportWhatsAppButton
+        label="الأسرع: راسلنا واتساب"
+        className="self-start"
+        message={`السلام عليكم، أنا ${restaurantName ?? "تاجر"}${
+          email ? ` (${email})` : ""
+        } وأحتاج مساعدة في كلاود منيو:`}
+      />
 
       <form onSubmit={submit} className="flex flex-col gap-3">
         <Field label="الموضوع">

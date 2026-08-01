@@ -109,6 +109,26 @@ export function riyadhTodayId(now = new Date()): DayId {
   return riyadhNow(now).dayId;
 }
 
+/**
+ * هل نحن الآن داخل نافذة زمنية `from → to` بتوقيت الرياض؟
+ *
+ * تُستخدم لنافذة عرض القائمة (قائمة فطور رمضان مثلاً). أي طرف مفقود أو غير
+ * صالح ⇒ `true` (بلا تقييد) — أي أن خطأً في البيانات لا يُخفي قائمة عن الزبون.
+ * تدعم الفترات التي تعبر منتصف الليل (18:00 → 02:00) بنفس منطق `openState`.
+ */
+export function inTimeWindow(
+  from: string | null | undefined,
+  to: string | null | undefined,
+  now = new Date()
+): boolean {
+  if (!isTime(from) || !isTime(to)) return true;
+  const start = toMinutes(from);
+  const end = toMinutes(to);
+  if (start === end) return true;
+  const { minutes } = riyadhNow(now);
+  return end > start ? minutes >= start && minutes < end : minutes >= start || minutes < end;
+}
+
 export type OpenState = { open: boolean; label: string; until: string | null };
 
 /**

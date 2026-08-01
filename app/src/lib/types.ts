@@ -35,6 +35,8 @@ export interface Restaurant {
   prices_include_vat: boolean | null;
   /** الرقم الضريبي للمنشأة — يُعرض في تذييل المنيو إن وُجد. */
   vat_number: string | null;
+  /** ترتيب التصنيفات في المنيو — نصّ يحمل مصفوفة JSON (انظر lib/categories). */
+  category_order: string | null;
   /** موجودان في الجدول (NOT NULL) لكن لا تكتبهما الواجهة بعد. */
   reviews_enabled: boolean | null;
   online_payment_enabled: boolean | null;
@@ -51,6 +53,9 @@ export interface Menu {
   language: string | null;
   cover_image: string | null;
   active: boolean | null;
+  /** نافذة ظهور القائمة بتوقيت الرياض `HH:MM` — null = تظهر دائماً. */
+  window_from: string | null;
+  window_to: string | null;
   views: number | null;
   created_at: string;
 }
@@ -68,6 +73,8 @@ export interface Dish {
   image: string | null;
   featured: boolean | null;
   available: boolean | null;
+  /** ترتيب الطبق داخل تصنيفه — يُضبط بالسحب، خارج فورم الطبق. */
+  sort_order: number | null;
   views: number | null;
   calories: number | null;
   sodium_mg: number | null;

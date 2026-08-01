@@ -15,7 +15,14 @@ import { Logo } from "@/components/site";
 import { SafeImage, Skeleton } from "@/components/ui";
 import { parseOptions } from "@/lib/options";
 import { displayAllergens } from "@/lib/allergens";
-import { DAYS, openState, parseWeek, riyadhTodayId, weekSummary } from "@/lib/hours";
+import {
+  DAYS,
+  inTimeWindow,
+  openState,
+  parseWeek,
+  riyadhTodayId,
+  weekSummary,
+} from "@/lib/hours";
 import {
   getActiveMenus,
   getAvailableDishes,
@@ -26,11 +33,12 @@ import {
   trackDishView,
   trackMenuView,
 } from "@/lib/data";
+import { parseCategoryOrder, sortCategories } from "@/lib/categories";
 import { getTheme } from "@/lib/themes";
 import { loadSession } from "@/lib/session";
 import { ENFORCE_MENU_PUBLISHING } from "@/lib/config";
 import { K, getItem, getJSON, setItem, setJSON } from "@/lib/storage";
-import { categoryId, formatPrice } from "@/lib/utils";
+import { categoryId, formatPrice, httpUrl, whatsappUrl } from "@/lib/utils";
 import type { Dish, LoyaltyCustomer, Menu, Restaurant } from "@/lib/types";
 
 /* ── أدوات عرض صغيرة ──────────────────────────────────────────────── */
@@ -42,25 +50,6 @@ function dishName(d: Dish, en: boolean): string {
 
 function dishDesc(d: Dish, en: boolean): string | null {
   return en && d.description_en ? d.description_en : d.description;
-}
-
-/**
- * التاجر قد يكتب «instagram.com/x» بلا مخطَّط، فينتج رابط نسبي مكسور داخل
- * المنيو. نضيف https:// عند الحاجة ونرفض المخططات غير الآمنة.
- */
-function httpUrl(raw: string): string {
-  const v = raw.trim();
-  if (/^https?:\/\//i.test(v)) return v;
-  if (/^(javascript|data|vbscript):/i.test(v)) return "#";
-  return `https://${v.replace(/^\/+/, "")}`;
-}
-
-/** رقم مجرّد → رابط wa.me، ورابط كامل يُترك كما هو. */
-function whatsappUrl(raw: string): string {
-  const v = raw.trim();
-  if (/^https?:\/\//i.test(v)) return v;
-  const digits = v.replace(/\D/g, "");
-  return digits ? `https://wa.me/${digits}` : "#";
 }
 
 /** فهرس «مسبب → الأطباق التي تحتويه» لصفحة المسببات. */
@@ -579,7 +568,14 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
             return setState({ status: "unpublished", name: restaurant.name });
           }
         }
-        const menus = await getActiveMenus(restaurant.id);
+        const active = await getActiveMenus(restaurant.id);
+        /**
+         * نافذة العرض (قائمة فطور رمضان مثلاً). لو أسقط الترشيح كل القوائم
+         * نعرضها كلها: منيو فارغ أمام زبون على الطاولة أسوأ بكثير من قائمة
+         * تظهر خارج وقتها.
+         */
+        const inWindow = active.filter((m) => inTimeWindow(m.window_from, m.window_to));
+        const menus = inWindow.length ? inWindow : active;
         const dishes = await getAvailableDishes(menus.map((m) => m.id));
         if (cancelled) return;
         document.title = `${restaurant.name} — المنيو`;
@@ -619,9 +615,15 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
       const cat = d.category?.trim() || (en ? "Other" : "أخرى");
       byCat.set(cat, [...(byCat.get(cat) ?? []), d]);
     }
+    // ترتيب التاجر لا ترتيب أول ظهور لطبق (كان «الحلويات» قد تسبق «المقبلات»
+    // لمجرّد أن أول طبق مضاف كان حلوى).
+    const order = parseCategoryOrder(state.restaurant.category_order);
     return {
       featured: q ? [] : visible.filter((d) => d.featured),
-      categories: [...byCat.entries()].map(([name, dishes]) => ({ name, dishes })),
+      categories: sortCategories([...byCat.keys()], order).map((name) => ({
+        name,
+        dishes: byCat.get(name)!,
+      })),
     };
   }, [state, search, en]);
 

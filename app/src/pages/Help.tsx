@@ -9,6 +9,7 @@ import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card } from "@/components/ui";
 import { Navbar, Footer } from "@/components/site";
+import { SupportWhatsAppButton } from "@/components/SupportWhatsApp";
 
 const STEPS = [
   {
@@ -185,12 +186,15 @@ export default function Help() {
             راسلنا وسنرد في أقرب وقت. أرفق اسم مطعمك ورابط منيوك حتى نصل للمشكلة
             أسرع.
           </p>
-          <a
-            href="mailto:support@cloudsmenu.app?subject=%D8%B7%D9%84%D8%A8%20%D8%AF%D8%B9%D9%85%20%E2%80%94%20%D9%83%D9%84%D8%A7%D9%88%D8%AF%20%D9%85%D9%86%D9%8A%D9%88"
-            className="mt-4 inline-flex items-center justify-center rounded-xl bg-gold px-4 py-2.5 text-sm font-bold text-on-gold transition-all active:scale-[0.98]"
-          >
-            ✉️ راسل الدعم
-          </a>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <SupportWhatsAppButton message="السلام عليكم، عندي سؤال عن كلاود منيو:" />
+            <a
+              href="mailto:support@cloudsmenu.app?subject=%D8%B7%D9%84%D8%A8%20%D8%AF%D8%B9%D9%85%20%E2%80%94%20%D9%83%D9%84%D8%A7%D9%88%D8%AF%20%D9%85%D9%86%D9%8A%D9%88"
+              className="inline-flex items-center justify-center rounded-xl bg-gold px-4 py-2.5 text-sm font-bold text-on-gold transition-all active:scale-[0.98]"
+            >
+              ✉️ راسل الدعم
+            </a>
+          </div>
         </Card>
       </main>
 

@@ -9,6 +9,7 @@
  * فتصل مفصولة بـ Tab ويلتقطها `parseMenuText`.
  */
 import { normalizeDigits, numOrNull, strOrNull } from "./utils";
+import { matchKnownCategory } from "./categories";
 import type { DishPayload } from "./data";
 
 export type ParsedRow = {
@@ -73,19 +74,6 @@ export function suggestEmoji(name: string): string {
 
 /* ── تطبيع التصنيف ────────────────────────────────────────────────── */
 
-/** مفتاح مقارنة: بلا «ال» التعريف، بلا تشكيل، بهمزات موحّدة. */
-function categoryKey(raw: string): string {
-  return raw
-    .trim()
-    .toLowerCase()
-    .replace(/[ً-ْ]/g, "")
-    .replace(/[أإآ]/g, "ا")
-    .replace(/ة/g, "ه")
-    .replace(/ى/g, "ي")
-    .replace(/^ال/, "")
-    .replace(/\s+/g, " ");
-}
-
 /**
  * يطابق التصنيف المكتوب بتصنيف معروف إن كانا نفس الشيء.
  * هذا ما يمنع أن يصبح «مشاوي» و«المشاوي» تصنيفين منفصلين في المنيو.
@@ -93,8 +81,7 @@ function categoryKey(raw: string): string {
 export function normalizeCategory(raw: string, known: string[]): string {
   const v = raw.trim().replace(/[:：]\s*$/, "");
   if (!v) return v;
-  const key = categoryKey(v);
-  return known.find((k) => categoryKey(k) === key) ?? v;
+  return matchKnownCategory(v, known) ?? v;
 }
 
 /* ── محلّل النص الملصوق ───────────────────────────────────────────── */

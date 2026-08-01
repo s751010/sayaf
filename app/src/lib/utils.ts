@@ -64,6 +64,30 @@ export function strOrNull(v: string | null | undefined): string | null {
   return s === "" ? null : s;
 }
 
+/**
+ * التاجر قد يكتب «instagram.com/x» بلا مخطَّط، فينتج رابط نسبي مكسور.
+ * نضيف https:// عند الحاجة ونرفض المخططات غير الآمنة.
+ */
+export function httpUrl(raw: string): string {
+  const v = raw.trim();
+  if (/^https?:\/\//i.test(v)) return v;
+  if (/^(javascript|data|vbscript):/i.test(v)) return "#";
+  return `https://${v.replace(/^\/+/, "")}`;
+}
+
+/**
+ * رقم مجرّد → رابط wa.me، ورابط كامل يُترك كما هو.
+ * `text` رسالة معبّأة مسبقاً (تُتجاهل مع الروابط الكاملة التي تحمل معاملاتها).
+ */
+export function whatsappUrl(raw: string, text?: string): string {
+  const v = raw.trim();
+  if (/^https?:\/\//i.test(v)) return v;
+  const digits = normalizeDigits(v).replace(/\D/g, "");
+  if (!digits) return "#";
+  const q = text ? `?text=${encodeURIComponent(text)}` : "";
+  return `https://wa.me/${digits}${q}`;
+}
+
 /** نص مفصول بفواصل (عربية أو إنجليزية) → مصفوفة نظيفة. */
 export function csvToArray(v: string | null | undefined): string[] {
   return String(v ?? "")

@@ -58,7 +58,9 @@ export async function getAvailableDishes(menuIds: string[]): Promise<Dish[]> {
   // منيو الزبون بينما تظهر «متاحة» في لوحة التاجر (لأنه يقرأها `?? true`).
   // نطابق منطق القوائم أعلاه: null = متاح.
   return rest<Dish[]>(
-    `dishes?menu_id=in.(${list})&or=(available.is.null,available.eq.true)&select=*&order=created_at.asc`,
+    // ترتيب التاجر أولاً، ثم الأقدم — الصفوف القديمة كلها sort_order = 0
+    // فتحافظ على ترتيبها السابق حتى يرتّبها بنفسه.
+    `dishes?menu_id=in.(${list})&or=(available.is.null,available.eq.true)&select=*&order=sort_order.asc,created_at.asc`,
     { anonymous: true }
   );
 }
@@ -251,7 +253,9 @@ export async function createMenu(payload: {
 
 export async function updateMenu(
   id: string,
-  payload: Partial<Pick<Menu, "name" | "description" | "theme" | "active">>
+  payload: Partial<
+    Pick<Menu, "name" | "description" | "theme" | "active" | "window_from" | "window_to">
+  >
 ): Promise<void> {
   await rest(`menus?id=eq.${id}`, {
     method: "PATCH",
@@ -274,9 +278,15 @@ export async function applyThemeToAllMenus(restaurantId: string, theme: string):
   });
 }
 
+/**
+ * أطباق اللوحة — بنفس ترتيب المنيو العام تماماً (`getAvailableDishes`).
+ *
+ * كان الترتيب هنا `created_at.desc` وهناك `created_at.asc`، أي أن التاجر يرتّب
+ * في شاشة ويرى عكسها عند الزبون. مع السحب صار التطابق شرطاً لا تحسيناً.
+ */
 export async function getMyDishes(restaurantId: string): Promise<Dish[]> {
   return rest<Dish[]>(
-    `dishes?restaurant_id=eq.${restaurantId}&select=*&order=created_at.desc`
+    `dishes?restaurant_id=eq.${restaurantId}&select=*&order=sort_order.asc,created_at.asc`
   );
 }
 
@@ -327,7 +337,7 @@ export type DishPayload = {
 
 export async function createDish(
   payload: DishPayload,
-  refs: { menu_id: string; restaurant_id: string; user_id: string }
+  refs: { menu_id: string; restaurant_id: string; user_id: string; sort_order?: number }
 ): Promise<Dish> {
   const rows = await rest<Dish[]>("dishes", {
     method: "POST",
@@ -348,13 +358,15 @@ const IMPORT_CHUNK = 50;
  */
 export async function createDishes(
   payloads: DishPayload[],
-  refs: { menu_id: string; restaurant_id: string; user_id: string }
+  refs: { menu_id: string; restaurant_id: string; user_id: string; sort_order?: number }
 ): Promise<Dish[]> {
   const created: Dish[] = [];
+  const base = refs.sort_order ?? 0;
   for (let i = 0; i < payloads.length; i += IMPORT_CHUNK) {
     const body = payloads
       .slice(i, i + IMPORT_CHUNK)
-      .map((p) => ({ ...p, ...refs, views: 0 }));
+      // ترتيب متصاعد يحفظ ترتيب القائمة التي لصقها التاجر كما كتبها.
+      .map((p, j) => ({ ...p, ...refs, sort_order: base + i + j, views: 0 }));
     const rows = await rest<Dish[]>("dishes", { method: "POST", body });
     created.push(...rows);
   }
@@ -378,6 +390,55 @@ export async function toggleDishAvailability(id: string, available: boolean): Pr
     method: "PATCH",
     headers: { Prefer: "return=minimal" },
     body: { available },
+  });
+}
+
+/**
+ * ترتيب الأطباق بعد السحب.
+ *
+ * خارج `DishPayload` عن قصد (كسابقة `updateBrandColor` و`setDishImage`): الترتيب
+ * يُضبط بالسحب لا من فورم الطبق، وإدراجه في الـwhitelist كان سيوجب حمله في كل
+ * حفظ طبق فيدهس ترتيباً غيّره التاجر لتوّه.
+ */
+export async function reorderDishes(
+  updates: { id: string; sort_order: number }[]
+): Promise<void> {
+  await Promise.all(
+    updates.map((u) =>
+      rest(`dishes?id=eq.${u.id}`, {
+        method: "PATCH",
+        headers: { Prefer: "return=minimal" },
+        body: { sort_order: u.sort_order },
+      })
+    )
+  );
+}
+
+/**
+ * إعادة تسمية تصنيف على كل أطباقه دفعة واحدة.
+ * الفلترة بـ`category=eq.` تحتاج ترميز القيمة — أسماء التصنيفات عربية وقد
+ * تحمل مسافات وفواصل.
+ */
+export async function renameCategory(
+  restaurantId: string,
+  from: string,
+  to: string | null
+): Promise<void> {
+  await rest(
+    `dishes?restaurant_id=eq.${restaurantId}&category=eq.${encodeURIComponent(from)}`,
+    { method: "PATCH", headers: { Prefer: "return=minimal" }, body: { category: to } }
+  );
+}
+
+/** ترتيب التصنيفات — عمود نصّي مستقل عن whitelist الإعدادات. */
+export async function updateCategoryOrder(
+  restaurantId: string,
+  categoryOrder: string | null
+): Promise<void> {
+  await rest(`restaurants?id=eq.${restaurantId}`, {
+    method: "PATCH",
+    headers: { Prefer: "return=minimal" },
+    body: { category_order: categoryOrder },
   });
 }
 
