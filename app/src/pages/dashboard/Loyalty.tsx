@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Badge, Button, Card, EmptyState, Input, Skeleton, useToast } from "@/components/ui";
+import { CashierCard } from "@/components/CashierCard";
 import { getLoyaltyCustomers, redeemLoyalty, stampLoyalty } from "@/lib/data";
 import type { LoyaltyCustomer } from "@/lib/types";
 import { useDashboard } from "./Dashboard";
@@ -76,6 +77,8 @@ export default function Loyalty() {
           </span>
         )}
       </Card>
+
+      <CashierCard restaurant={restaurant} />
 
       <Input
         value={q}

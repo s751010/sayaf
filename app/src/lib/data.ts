@@ -574,3 +574,93 @@ export async function redeemLoyalty(c: LoyaltyCustomer): Promise<LoyaltyCustomer
   });
   return rows[0] ?? null;
 }
+
+// ── وضع الكاشير ──────────────────────────────────────────────────────
+
+/**
+ * التاجر لا يريد إعطاء الكاشير حسابه الكامل (يقدر يحذف كل الأطباق)، ولا إنشاء
+ * حساب بريد لكل موظف. فالكاشير يدخل `/stamp` برمز، وكل العمليات تمرّ من دالة
+ * `staff_stamp` في قاعدة البيانات: هي وحدها تتحقّق من الرمز وتنفّذ الختم ذرّياً.
+ *
+ * الرمز **لا يمنح أي وصول** لقاعدة البيانات: سياسات `loyalty_customers`
+ * و`staff_pins` لا تسمح للزائر المجهول بشيء.
+ */
+export type StaffCustomer = {
+  id: string;
+  name: string | null;
+  stamps: number;
+  total_visits: number;
+  card_code: string | null;
+  /** آخر أربعة أرقام فقط — يكفي للتمييز بلا كشف جوال الزبون للكاشير. */
+  phone_tail: string;
+};
+
+export type StaffResult = {
+  ok: boolean;
+  error?: "not_found" | "no_pin" | "locked" | "bad_pin" | "short_query" | "bad_action" | "customer_not_found" | "not_enough";
+  until?: string;
+  goal?: number;
+  reward?: string | null;
+  restaurant?: string;
+  customers?: StaffCustomer[];
+  customer?: StaffCustomer;
+};
+
+export async function staffAction(params: {
+  slug: string;
+  pin: string;
+  action: "lookup" | "stamp" | "redeem";
+  query?: string;
+  customerId?: string;
+}): Promise<StaffResult> {
+  return rest<StaffResult>("rpc/staff_stamp", {
+    method: "POST",
+    anonymous: true,
+    body: {
+      p_slug: params.slug,
+      p_pin: params.pin,
+      p_action: params.action,
+      p_query: params.query ?? null,
+      p_customer_id: params.customerId ?? null,
+    },
+  });
+}
+
+/** رمز كاشير جديد — نفس أبجدية بطاقة الولاء (بلا 0/O و 1/I/L). */
+export function newStaffPin(): string {
+  const bytes = new Uint8Array(6);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, (b) => CODE_ALPHABET[b % CODE_ALPHABET.length]).join("");
+}
+
+/** يضبط رمز الكاشير (يستبدل السابق). التجزئة تتم في قاعدة البيانات. */
+export async function setStaffPin(restaurantId: string, pin: string): Promise<void> {
+  await rest("rpc/set_staff_pin", {
+    method: "POST",
+    headers: { Prefer: "return=minimal" },
+    body: { p_restaurant_id: restaurantId, p_pin: pin, p_name: null },
+  });
+}
+
+export type StaffPinRow = {
+  id: string;
+  enabled: boolean;
+  last_used_at: string | null;
+  locked_until: string | null;
+  created_at: string;
+};
+
+/** هل للمطعم رمز كاشير؟ (الهاش نفسه لا يُقرأ.) */
+export async function getStaffPin(restaurantId: string): Promise<StaffPinRow | null> {
+  const rows = await rest<StaffPinRow[]>(
+    `staff_pins?restaurant_id=eq.${restaurantId}&select=id,enabled,last_used_at,locked_until,created_at&limit=1`
+  );
+  return rows[0] ?? null;
+}
+
+export async function deleteStaffPin(restaurantId: string): Promise<void> {
+  await rest(`staff_pins?restaurant_id=eq.${restaurantId}`, {
+    method: "DELETE",
+    headers: { Prefer: "return=minimal" },
+  });
+}

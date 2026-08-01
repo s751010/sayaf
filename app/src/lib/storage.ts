@@ -9,6 +9,11 @@ export const K = {
   FSECRET: "cm_fsecret",
   /** رقم الطاولة من ?table= — sessionStorage (يخص الزيارة الحالية). */
   TABLE: "cm_table",
+  /**
+   * رمز الكاشير وslug مطعمه — sessionStorage كي لا يبقى الرمز على جهاز مشترك
+   * بعد إغلاق المتصفح، وكي لا يعيد الكاشير إدخاله مع كل زبون.
+   */
+  STAFF: "cm_staff",
 } as const;
 
 function store(session: boolean): Storage | null {
