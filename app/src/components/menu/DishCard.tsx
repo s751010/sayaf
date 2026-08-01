@@ -216,12 +216,14 @@ export function DishCard({
             {desc(dish, en)}
           </p>
         )}
-        <div className="pt-1">
-          <Allergens dish={dish} en={en} />
-        </div>
-        <div className="mt-auto flex items-center justify-between pt-1.5">
+        {/* سطر ميتا واحد: السعر في طرف، والتفاصيل الثانوية في الآخر.
+            كانا صفّين منفصلين فتنافست خمسة عناصر على انتباه واحد. */}
+        <div className="mt-auto flex items-center justify-between gap-2 pt-2">
           <Price dish={dish} />
-          <Calories dish={dish} en={en} />
+          <span className="flex items-center gap-1.5 opacity-80">
+            <Allergens dish={dish} en={en} />
+            <Calories dish={dish} en={en} />
+          </span>
         </div>
       </div>
     </button>

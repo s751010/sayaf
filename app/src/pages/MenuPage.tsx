@@ -15,6 +15,7 @@ import { Logo } from "@/components/site";
 import { SafeImage, Skeleton } from "@/components/ui";
 import { MenuHeader } from "@/components/menu/MenuHeader";
 import { DishCard } from "@/components/menu/DishCard";
+import { DishOfTheDay } from "@/components/menu/DishOfTheDay";
 import { parseOptions } from "@/lib/options";
 import { displayAllergens } from "@/lib/allergens";
 import {
@@ -36,13 +37,13 @@ import {
   trackMenuView,
 } from "@/lib/data";
 import { parseCategoryOrder, sortCategories } from "@/lib/categories";
-import { getTheme, type DishLayout, type HeadingStyle } from "@/lib/themes";
+import { getTheme, RHYTHM, type DishLayout, type HeadingStyle } from "@/lib/themes";
 import { patternImage, PATTERN_SIZE } from "@/lib/patterns";
 import { getSeason } from "@/lib/seasons";
 import { loadSession } from "@/lib/session";
 import { ENFORCE_MENU_PUBLISHING } from "@/lib/config";
 import { K, getItem, getJSON, setItem, setJSON } from "@/lib/storage";
-import { categoryId, formatPrice, httpUrl, whatsappUrl } from "@/lib/utils";
+import { categoryId, cn, formatPrice, httpUrl, whatsappUrl } from "@/lib/utils";
 import type { Dish, LoyaltyCustomer, Menu, Restaurant } from "@/lib/types";
 
 /* ── أدوات عرض صغيرة ──────────────────────────────────────────────── */
@@ -151,10 +152,11 @@ function MenuSheet({
 
 
 /* ── عنوان القسم حسب الطابع ───────────────────────────────────────── */
+/** التباعد يأتي من `RHYTHM` لا من هنا — سلّم واحد لكل الصفحة. */
 const LAYOUT_CLASS: Record<DishLayout, string> = {
-  grid: "grid grid-cols-2 gap-3 sm:grid-cols-3",
+  grid: "grid grid-cols-2 sm:grid-cols-3",
   list: "flex flex-col",
-  showcase: "grid grid-cols-1 gap-5 sm:grid-cols-2",
+  showcase: "grid grid-cols-1 sm:grid-cols-2",
 };
 
 function SectionHeading({ name, style }: { name: string; style: HeadingStyle }) {
@@ -498,6 +500,12 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
   const [lang, setLang] = useState<"ar" | "en">("ar");
   const [search, setSearch] = useState("");
   const [activeCat, setActiveCat] = useState<string | null>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [showTop, setShowTop] = useState(false);
+  const navRef = useRef<HTMLElement | null>(null);
+  const catRefs = useRef<Record<string, HTMLAnchorElement | null>>({});
+  /** ارتفاع الشريط اللاصق الفعلي — يُستخدم لهامش التمرير ولمنطقة المراقبة. */
+  const [navHeight, setNavHeight] = useState(48);
   const [openDish, setOpenDish] = useState<Dish | null>(null);
   const [hoursOpen, setHoursOpen] = useState(false);
   const [allergensOpen, setAllergensOpen] = useState(false);
@@ -586,6 +594,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
     state.status === "ready" ? state.menus.find((m) => m.theme)?.theme : null
   );
   const design = theme.design;
+  const rhythm = RHYTHM[design.density];
   const season = getSeason(state.status === "ready" ? state.restaurant.season : null);
   // الزينة تُبدّل الزخرفة ولون التمييز الثانوي فقط — الخلفية والنص يبقيان
   // كما ضبطهما الطابع، فلا ينكسر التباين مهما اختار التاجر.
@@ -619,6 +628,59 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
       })),
     };
   }, [state, search, en]);
+
+  /**
+   * تتبّع القسم الظاهر أثناء التمرير.
+   *
+   * كان `activeCat` يُضبط عند الضغط فقط، فيبرز الشريط قسماً لا يقف عنده الزبون
+   * — أوضح سبب للإحساس بالضياع في منيو طويل. الهامش العلوي بقدر ارتفاع الشريط
+   * كي يتبدّل القسم عند وصوله للشريط لا عند خروجه من الشاشة.
+   */
+  const catNames = categories.map((c) => c.name).join("|");
+  useEffect(() => {
+    if (!catNames) return;
+    const navH = navRef.current?.offsetHeight ?? 48;
+    setNavHeight(navH);
+    const sections = catNames
+      .split("|")
+      .map((n) => document.getElementById(categoryId(n)))
+      .filter((el): el is HTMLElement => !!el);
+    if (!sections.length) return;
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        // أعلى قسم متقاطع مع منطقة الرؤية تحت الشريط هو القسم الحالي.
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+        if (visible?.target.id) {
+          const name = sections.find((s) => s.id === visible.target.id)?.dataset.cat;
+          if (name) setActiveCat(name);
+        }
+      },
+      { rootMargin: `-${navH + 8}px 0px -70% 0px`, threshold: 0 }
+    );
+    sections.forEach((s) => io.observe(s));
+    return () => io.disconnect();
+  }, [catNames]);
+
+  /** الشريحة النشطة تُمرَّر إلى داخل الرؤية — في منيو بعشرة أقسام تكون خارجها. */
+  useEffect(() => {
+    if (!activeCat) return;
+    catRefs.current[activeCat]?.scrollIntoView({
+      behavior: "smooth",
+      inline: "nearest",
+      block: "nearest",
+    });
+  }, [activeCat]);
+
+  /** زر «لأعلى» بعد شاشتين — منيو بستة أقسام يحتاجه. */
+  useEffect(() => {
+    const onScroll = () => setShowTop(window.scrollY > window.innerHeight * 2);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   /* حالات غير جاهزة */
   if (state.status === "loading") {
@@ -796,6 +858,28 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
             </button>
           )
         )}
+        {/* مبدّل اللغة شريحة بين الشرائح — كان يحتلّ صفاً كاملاً وحده. */}
+        {restaurant.english_enabled && (
+          <div
+            className="inline-flex overflow-hidden rounded-full border text-xs font-black"
+            style={{ borderColor: "var(--m-border)" }}
+          >
+            {(["ar", "en"] as const).map((l) => (
+              <button
+                key={l}
+                onClick={() => setLang(l)}
+                className="px-2.5 py-1 transition-colors"
+                style={
+                  lang === l
+                    ? { background: "var(--m-accent)", color: "var(--m-on-accent)" }
+                    : { color: "var(--m-muted)" }
+                }
+              >
+                {l === "ar" ? "ع" : "EN"}
+              </button>
+            ))}
+          </div>
+        )}
       </MenuHeader>
 
       <main className="mx-auto max-w-3xl px-4">
@@ -821,108 +905,128 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
           </div>
         )}
 
-        {/* مبدّل اللغة */}
-        {restaurant.english_enabled && (
-          <div className="mt-5 flex justify-center">
-            <div
-              className="inline-flex rounded-full border p-1"
-              style={{ borderColor: "var(--m-border)", background: "var(--m-surface)" }}
-            >
-              {(["ar", "en"] as const).map((l) => (
-                <button
-                  key={l}
-                  onClick={() => setLang(l)}
-                  className="rounded-full px-4 py-1 text-sm font-bold transition-colors"
-                  style={
-                    lang === l
-                      ? { background: "var(--m-accent)", color: "var(--m-on-accent)" }
-                      : { color: "var(--m-muted)" }
-                  }
-                >
-                  {l === "ar" ? "العربية" : "English"}
-                </button>
-              ))}
-            </div>
+        {/* طبق اليوم — بطاقة واحدة كاملة بدل شريط بطاقات مقطوعة عند الحافة. */}
+        {featured[0] && (
+          <div className={rhythm.block}>
+            <DishOfTheDay
+              dish={featured[0]}
+              en={en}
+              onOpen={() => {
+                setOpenDish(featured[0]);
+                if (!demo && !preview) trackDishView(featured[0], { table, lang });
+              }}
+            />
           </div>
         )}
 
-        {/* البحث */}
-        <div className="mt-5">
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder={en ? "🔍 Search the menu…" : "🔍 ابحث في المنيو…"}
-            className="w-full rounded-2xl border bg-transparent px-4 py-3 text-sm"
-            style={{ borderColor: "var(--m-border)", background: "var(--m-surface)", color: "var(--m-text)" }}
-          />
-        </div>
-
-        {/* المميّز */}
-        {featured.length > 0 && (
-          <section className="mt-7">
-            <h2 className="mb-3 text-lg font-black" style={mFont}>
-              <span style={{ color: "var(--m-accent)" }}>★</span> {en ? "Featured" : "الأكثر تميّزاً"}
-            </h2>
-            <div className="flex gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {/* المميّز شريط أفقي دائماً — بطاقات الشبكة تناسبه في كل الطوابع. */}
-              {featured.map((d) => (
-                <div key={d.id} className="w-44 shrink-0">
-                  <DishCard
-                    dish={d}
-                    en={en}
-                    layout="grid"
-                    onOpen={() => { setOpenDish(d); if (!demo && !preview) trackDishView(d, { table, lang }); }}
-                  />
-                </div>
+        {/* شريط التصنيفات + البحث في صف واحد لاصق.
+            البحث كان يحتلّ صفاً كاملاً في الأعلى ويختفي عند التمرير؛ هنا يبقى
+            في متناول اليد **أثناء التصفّح** ويوفّر كتلة كاملة قبل الأكل. */}
+        {(categories.length > 1 || search) && (
+          <nav
+            ref={navRef}
+            className={cn(
+              "sticky top-0 z-30 -mx-4 flex items-center gap-2 px-4 py-2.5",
+              rhythm.block
+            )}
+            style={{
+              // خلفية معتمة لا ضبابية وحدها: الضبابية فوق نقش السدو تُنتج طمشاً.
+              background: "var(--m-bg)",
+              borderBottom: "1px solid var(--m-border)",
+            }}
+          >
+            <div className="flex flex-1 gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {categories.map((c) => (
+                <a
+                  key={c.name}
+                  href={`#${categoryId(c.name)}`}
+                  ref={(el) => { catRefs.current[c.name] = el; }}
+                  className="shrink-0 rounded-full px-3.5 py-1.5 text-sm font-bold transition-colors"
+                  style={
+                    activeCat === c.name
+                      ? { background: "var(--m-accent)", color: "var(--m-on-accent)" }
+                      : { background: "var(--m-surface)", color: "var(--m-muted)" }
+                  }
+                >
+                  {c.name}
+                </a>
               ))}
             </div>
-          </section>
-        )}
 
-        {/* شريط التصنيفات اللاصق */}
-        {categories.length > 1 && (
-          <nav
-            className="sticky top-0 z-30 -mx-4 mt-6 flex gap-2 overflow-x-auto px-4 py-3 backdrop-blur-lg [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-            style={{ background: "color-mix(in srgb, var(--m-bg) 82%, transparent)" }}
-          >
-            {categories.map((c) => (
-              <a
-                key={c.name}
-                href={`#${categoryId(c.name)}`}
-                onClick={() => setActiveCat(c.name)}
-                className="shrink-0 rounded-full px-4 py-1.5 text-sm font-bold transition-colors"
-                style={
-                  activeCat === c.name
-                    ? { background: "var(--m-accent)", color: "var(--m-on-accent)" }
-                    : { background: "var(--m-surface)", color: "var(--m-muted)" }
-                }
+            {searchOpen || search ? (
+              <input
+                autoFocus
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                onBlur={() => !search && setSearchOpen(false)}
+                placeholder={en ? "Search…" : "ابحث…"}
+                aria-label={en ? "Search the menu" : "ابحث في المنيو"}
+                className="w-28 shrink-0 rounded-full border bg-transparent px-3 py-1.5 text-sm sm:w-40"
+                style={{
+                  borderColor: "var(--m-border)",
+                  background: "var(--m-surface)",
+                  color: "var(--m-text)",
+                }}
+              />
+            ) : (
+              <button
+                onClick={() => setSearchOpen(true)}
+                aria-label={en ? "Search the menu" : "ابحث في المنيو"}
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border"
+                style={{ borderColor: "var(--m-border)", color: "var(--m-muted)" }}
               >
-                {c.name}
-              </a>
-            ))}
+                🔍
+              </button>
+            )}
           </nav>
         )}
 
         {/* الأقسام */}
         {categories.length === 0 ? (
-          <p className="py-16 text-center" style={{ color: "var(--m-muted)" }}>
-            {search
-              ? en
-                ? "No results for your search."
-                : "لا نتائج لبحثك."
-              : en
-                ? "No items available yet."
-                : "لا توجد أصناف متاحة حالياً."}
-          </p>
+          <div
+            className={cn(rhythm.section, "mx-auto max-w-sm border px-5 py-10 text-center")}
+            style={{
+              borderColor: "var(--m-border)",
+              background: "var(--m-surface)",
+              borderRadius: "var(--m-radius)",
+            }}
+          >
+            <p className="text-3xl">{search ? "🔍" : "🍽️"}</p>
+            <p className="mt-2 text-sm font-bold" style={{ color: "var(--m-text)" }}>
+              {search
+                ? en
+                  ? "No results for your search."
+                  : "لا نتائج لبحثك."
+                : en
+                  ? "No items available yet."
+                  : "لا توجد أصناف متاحة حالياً."}
+            </p>
+            {search && (
+              <button
+                onClick={() => {
+                  setSearch("");
+                  setSearchOpen(false);
+                }}
+                className="mt-3 rounded-full px-4 py-1.5 text-xs font-black"
+                style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}
+              >
+                {en ? "Clear search" : "امسح البحث"}
+              </button>
+            )}
+          </div>
         ) : (
           categories.map((cat) => (
             <section
               key={cat.name}
               id={categoryId(cat.name)}
-              className={design.density === "airy" ? "scroll-mt-20 pt-10" : "scroll-mt-20 pt-7"}
+              data-cat={cat.name}
+              className={rhythm.section}
+              // هامش تمرير مربوط بارتفاع الشريط الفعلي — كان ثابتاً (scroll-mt-20)
+              // بينما ارتفاع الشريط يتغيّر، فيختفي عنوان القسم خلفه عند الضغط.
+              style={{ scrollMarginTop: `${navHeight + 12}px` }}
             >
               <SectionHeading name={cat.name} style={design.heading} />
-              <div className={LAYOUT_CLASS[design.layout]}>
+              <div className={cn(LAYOUT_CLASS[design.layout], rhythm.gap)}>
                 {cat.dishes.map((d) => (
                   <DishCard
                     key={d.id}
@@ -937,13 +1041,25 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
           ))
         )}
 
-        {/* صفحة المسببات — كل المسببات في المنيو وأي الأطباق تحتويها */}
-        {allergenIndex.length > 0 && (
-          <section className="mt-10">
+        {/* ── التذييل ككتلة واحدة ─────────────────────────────────────
+            كانت ست كتل متتالية بمحاذاات مختلفة تطفو بلا علاقة بينها.
+            الآن تسلسل واحد بفواصل رفيعة وإيقاع `RHYTHM` نفسه. */}
+        <div
+          className={cn(rhythm.section, "border-t")}
+          style={{ borderColor: "var(--m-border)" }}
+        >
+          {allergenIndex.length > 0 && (
             <button
               onClick={() => setAllergensOpen(true)}
-              className="mx-auto flex w-full max-w-md items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-start transition-transform hover:scale-[1.01]"
-              style={{ borderColor: "var(--m-border)", background: "var(--m-surface)" }}
+              className={cn(
+                rhythm.block,
+                "mx-auto flex w-full max-w-md items-center justify-between gap-3 border px-4 py-3 text-start transition-transform hover:scale-[1.01]"
+              )}
+              style={{
+                borderColor: "var(--m-border)",
+                background: "var(--m-surface)",
+                borderRadius: "var(--m-radius)",
+              }}
             >
               <span>
                 <span className="block text-sm font-black" style={{ color: "var(--m-text)" }}>
@@ -957,64 +1073,67 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
               </span>
               <span style={{ color: "var(--m-accent)" }}>›</span>
             </button>
-          </section>
-        )}
+          )}
 
-        {/* روابط التواصل فقط — التقييم والموقع صعدا إلى أعلى الصفحة. */}
-        {socials.length > 0 && (
-          <section className="mt-8 flex flex-wrap items-center justify-center gap-2">
-            {socials.map((s) => (
-              <Chip key={s.label} href={s.url}>
-                {s.icon} {s.label}
-              </Chip>
-            ))}
-          </section>
-        )}
+          {restaurant.loyalty_enabled && <LoyaltyCard restaurant={restaurant} en={en} />}
 
-        {/* الولاء */}
-        {restaurant.loyalty_enabled && <LoyaltyCard restaurant={restaurant} en={en} />}
+          {socials.length > 0 && (
+            <div className={cn(rhythm.block, "flex flex-wrap items-center justify-center gap-2")}>
+              {socials.map((s) => (
+                <Chip key={s.label} href={s.url}>
+                  {s.icon} {s.label}
+                </Chip>
+              ))}
+            </div>
+          )}
 
-        {/* الضريبة — أول سؤال يسأله الزبون السعودي عن أي سعر. */}
-        <section className="mt-8 text-center text-xs leading-relaxed" style={{ color: "var(--m-muted)" }}>
-          <p>
+          {/* معلومات المطعم والضريبة — نصّ واحد متّسق بدل ثلاث كتل. */}
+          <div
+            className={cn(rhythm.block, "space-y-1 text-center text-xs leading-relaxed")}
+            style={{ color: "var(--m-muted)" }}
+          >
+            {restaurant.address && <p>📍 {restaurant.address}</p>}
+            {restaurant.phone && <p dir="ltr">📞 {restaurant.phone}</p>}
+            {restaurant.allergens_text && <p>⚠️ {restaurant.allergens_text}</p>}
             {/* أرقام غربية و«%» — نفس اتفاقية formatPrice ونِسب التحليلات،
                 وتتفادى إعادة ترتيب «٪» داخل نص RTL. */}
-            {restaurant.prices_include_vat === false
-              ? en
-                ? "Prices exclude 15% VAT — it is added at checkout."
-                : "الأسعار غير شاملة ضريبة القيمة المضافة (تُضاف 15% عند الدفع)."
-              : en
-                ? "All prices include 15% VAT."
-                : "جميع الأسعار شاملة ضريبة القيمة المضافة 15%."}
-          </p>
-          {restaurant.vat_number && (
-            <p className="mt-1">
-              {en ? "VAT number" : "الرقم الضريبي"}:{" "}
-              <span dir="ltr">{restaurant.vat_number}</span>
+            <p>
+              {restaurant.prices_include_vat === false
+                ? en
+                  ? "Prices exclude 15% VAT — it is added at checkout."
+                  : "الأسعار غير شاملة ضريبة القيمة المضافة (تُضاف 15% عند الدفع)."
+                : en
+                  ? "All prices include 15% VAT."
+                  : "جميع الأسعار شاملة ضريبة القيمة المضافة 15%."}
             </p>
-          )}
-        </section>
-
-        {/* الحساسية + معلومات المطعم */}
-        {(restaurant.allergens_text || restaurant.address || restaurant.phone) && (
-          <section className="mt-3 text-center text-xs leading-relaxed" style={{ color: "var(--m-muted)" }}>
-            {restaurant.allergens_text && <p>⚠️ {restaurant.allergens_text}</p>}
-            {restaurant.address && <p className="mt-1">📍 {restaurant.address}</p>}
-            {restaurant.phone && (
-              <p className="mt-1" dir="ltr">
-                📞 {restaurant.phone}
+            {restaurant.vat_number && (
+              <p>
+                {en ? "VAT number" : "الرقم الضريبي"}:{" "}
+                <span dir="ltr">{restaurant.vat_number}</span>
               </p>
             )}
-          </section>
-        )}
+          </div>
+        </div>
 
         {/* توقيع المنصة */}
-        <footer className="mt-12 flex flex-col items-center gap-2 opacity-70">
+        <footer className={cn(rhythm.section, "flex flex-col items-center gap-2 opacity-70")}>
           <Link to="/" className="scale-90">
             <Logo />
           </Link>
         </footer>
       </main>
+
+      {/* «لأعلى» — منيو بستة أقسام يحتاجه؛ يظهر بعد شاشتين فقط. */}
+      {showTop && (
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          aria-label={en ? "Back to top" : "العودة لأعلى"}
+          className="fixed bottom-5 end-5 z-40 flex h-11 w-11 items-center justify-center rounded-full shadow-lg transition-transform hover:scale-105"
+          style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}
+        >
+          ↑
+        </button>
+      )}
 
       {openDish && <DishModal dish={openDish} en={en} onClose={() => setOpenDish(null)} />}
 

@@ -35,6 +35,18 @@ export interface MenuTheme {
   design: MenuDesign;
 }
 
+/**
+ * سلّم المسافات — إيقاع رأسي واحد لكل المنيو.
+ *
+ * كانت المسافات إحدى عشرة قيمة مزاجية (`mt-5, mt-7, mt-6, pt-10, mt-8…`) بلا
+ * علاقة بينها. العين تبحث عن تكرار منتظم لتقرأ الصفحة «مرتّبة»، فلا تجده
+ * فتقرأها مبعثرة — حتى لو كان كل عنصر جميلاً وحده.
+ */
+export const RHYTHM = {
+  cozy: { block: "mt-6", section: "pt-9", gap: "gap-3", head: "mb-3" },
+  airy: { block: "mt-8", section: "pt-14", gap: "gap-5", head: "mb-5" },
+} as const;
+
 /** طابع الثيمات اللونية القديمة — يحفظ شكل منيو كل تاجر قائم كما هو. */
 const CLASSIC_DESIGN: MenuDesign = {
   pattern: "none",

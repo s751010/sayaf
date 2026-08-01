@@ -662,8 +662,14 @@ export default function Dishes() {
             </div>
           </Field>
 
-          <div className="flex items-center justify-between rounded-xl border border-line bg-panel2 px-4 py-3">
-            <span className="text-sm font-bold text-ink">⭐ طبق مميز</span>
+          {/* أثر هذا المفتاح صار مرئياً في أعلى المنيو، فيجب أن يُشرح. */}
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-line bg-panel2 px-4 py-3">
+            <span>
+              <span className="block text-sm font-bold text-ink">⭐ طبق مميز</span>
+              <span className="mt-0.5 block text-xs text-faint">
+                أول طبق مميّز يظهر كـ«طبق اليوم» أعلى المنيو، والبقية بنجمة داخل أقسامها.
+              </span>
+            </span>
             <Switch checked={form.featured} onChange={(v) => set("featured", v)} label="مميز" />
           </div>
           <div className="flex items-center justify-between rounded-xl border border-line bg-panel2 px-4 py-3">
