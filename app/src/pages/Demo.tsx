@@ -53,6 +53,7 @@ const restaurant: Restaurant = {
   loyalty_reward: "قهوة سعودية مجاناً",
   prices_include_vat: true,
   vat_number: "300000000000003",
+  season: null,
   // ترتيب التاجر — يعرضه الديمو كما يراه الزبون (المقبلات أولاً لا المشاوي
   // لمجرّد أن أول طبق مضاف كان ستيك).
   category_order: JSON.stringify([

@@ -25,13 +25,14 @@ import {
   updateBrandColor,
 } from "@/lib/data";
 import {
+  DESIGN_THEMES,
   THEMES,
-  buildCustomTheme,
-  customHexOf,
-  customThemeId,
   getTheme,
   isHex,
+  splitThemeId,
+  themeIdOf,
 } from "@/lib/themes";
+import { ThemePreview } from "@/components/menu/ThemePreview";
 import { cn } from "@/lib/utils";
 import type { Menu } from "@/lib/types";
 import { useDashboard } from "./Dashboard";
@@ -46,13 +47,14 @@ export default function Menus() {
   const [busy, setBusy] = useState(false);
 
   const activeThemeId = menus?.find((m) => m.theme)?.theme ?? null;
-  const currentTheme = getTheme(activeThemeId);
-  // لون العلامة: من الثيم المخصّص إن كان مطبَّقاً، وإلا من cover_color الموجود.
+  const parsedTheme = splitThemeId(activeThemeId);
+  /** الطابع المطبَّق حالياً بلا اللون — عليه تُبنى الاختيارات والمعاينات. */
+  const activeBase = parsedTheme.base ?? getTheme(activeThemeId).id;
+  // لون العلامة: من الثيم المطبَّق إن حمل لوناً، وإلا من cover_color الموجود.
   const [brandHex, setBrandHex] = useState(
-    () => customHexOf(activeThemeId) ?? restaurant.cover_color ?? "#d4a843"
+    () => parsedTheme.hex ?? restaurant.cover_color ?? "#d4a843"
   );
-  const brandPreview = buildCustomTheme(isHex(brandHex) ? brandHex : "#d4a843");
-  const isBrandActive = customHexOf(activeThemeId) === (isHex(brandHex) ? brandHex.toLowerCase().replace(/^#?/, "#") : null);
+  const [useBrand, setUseBrand] = useState(() => parsedTheme.hex !== null);
 
   useEffect(() => {
     document.title = "القوائم — كلاود منيو";
@@ -152,16 +154,16 @@ export default function Menus() {
   async function pickTheme(id: string) {
     try {
       await applyThemeToAllMenus(restaurant.id, id);
-      const hex = customHexOf(id);
+      const hex = splitThemeId(id).hex;
       if (hex) {
         // اللون يُحفظ أيضاً في cover_color كي يستخدمه تدرّج ترويسة المنيو.
         await updateBrandColor(restaurant.id, hex).catch(() => {});
         setRestaurant({ ...restaurant, cover_color: hex });
       }
       await refreshMenus();
-      toast("طُبّق الثيم على منيوك ✓");
+      toast("طُبّق الطابع على منيوك ✓");
     } catch {
-      toast("تعذّر تطبيق الثيم.", "err");
+      toast("تعذّر تطبيق الطابع.", "err");
     }
   }
 
@@ -256,89 +258,116 @@ export default function Menus() {
         )}
       </div>
 
-      {/* الثيمات */}
+      {/* الطوابع */}
       <section className="mt-10">
-        <h2 className="font-display text-lg font-extrabold text-ink">🎨 ثيم المنيو</h2>
-        <p className="mt-1 text-sm text-dim">اختر مظهر منيوك العام — يُطبَّق فوراً على كل القوائم.</p>
-        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {THEMES.map((t) => (
-            <button
-              key={t.id}
-              onClick={() => pickTheme(t.id)}
-              className={cn(
-                "overflow-hidden rounded-2xl border-2 text-right transition-transform hover:scale-[1.02]",
-                currentTheme.id === t.id ? "border-gold" : "border-line"
-              )}
-            >
-              <div className="flex h-20 flex-col justify-between p-3" style={{ background: t.vars["--m-bg"] }}>
-                <span
-                  className="h-2 w-1/2 rounded-full"
-                  style={{ background: t.vars["--m-accent"] }}
-                />
-                <div className="flex gap-1">
-                  <span className="h-4 flex-1 rounded" style={{ background: t.vars["--m-surface"], border: `1px solid ${t.vars["--m-border"]}` }} />
-                  <span className="h-4 flex-1 rounded" style={{ background: t.vars["--m-surface"], border: `1px solid ${t.vars["--m-border"]}` }} />
-                </div>
-              </div>
-              <p className={cn(
-                "px-3 py-2 text-xs font-bold",
-                currentTheme.id === t.id ? "bg-gold/10 text-gold" : "bg-panel text-dim"
-              )}>
-                {t.name} {currentTheme.id === t.id && "✓"}
-              </p>
-            </button>
-          ))}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="font-display text-lg font-extrabold text-ink">🎨 طابع منيوك</h2>
+            <p className="mt-1 text-sm text-dim">
+              كل طابع تصميم كامل — زخرفة وترويسة وتخطيط أطباق، لا لوناً فقط.
+            </p>
+          </div>
+          <PreviewMenuButton slug={restaurant.slug} label="عاين النتيجة" />
         </div>
 
-        {/* ثيم بلون العلامة — يُخزَّن كـ`custom:#hex` في نفس عمود الثيم،
-            واللون نفسه في cover_color لتدرّج ترويسة المنيو. */}
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {DESIGN_THEMES.map((t) => {
+            const on = activeBase === t.id;
+            return (
+              <button
+                key={t.id}
+                onClick={() => pickTheme(themeIdOf(t.id, useBrand ? brandHex : null))}
+                className={cn(
+                  "overflow-hidden rounded-2xl border-2 text-start transition-transform hover:scale-[1.02]",
+                  on ? "border-gold" : "border-line"
+                )}
+              >
+                <ThemePreview theme={getTheme(themeIdOf(t.id, useBrand ? brandHex : null))} />
+                <div className={cn("px-3 py-2", on ? "bg-gold/10" : "bg-panel")}>
+                  <p className={cn("text-xs font-bold", on ? "text-gold" : "text-ink")}>
+                    {t.name} {on && "✓"}
+                  </p>
+                  <p className="mt-0.5 text-[11px] leading-snug text-faint">{t.tagline}</p>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* لون العلامة يُطبَّق **على الطابع** لا بديلاً عنه. */}
         <Card className="mt-4">
-          <p className="text-sm font-bold text-ink">🖌️ أو استخدم لون علامتك</p>
-          <p className="mt-1 text-xs text-dim">
-            اختر لون مشروعك وسنبني منه ثيماً كاملاً متناسقاً.
-          </p>
-          <div className="mt-3 flex flex-wrap items-center gap-3">
-            <input
-              type="color"
-              value={brandHex}
-              onChange={(e) => setBrandHex(e.target.value)}
-              aria-label="لون العلامة"
-              className="h-11 w-16 cursor-pointer rounded-xl border border-line bg-panel2 p-1"
-            />
-            <Input
-              dir="ltr"
-              value={brandHex}
-              onChange={(e) => setBrandHex(e.target.value)}
-              className="w-32 text-center"
-              aria-label="كود اللون"
-            />
-            <div
-              className="flex h-11 items-center gap-2 rounded-xl border px-3"
-              style={{
-                background: brandPreview.vars["--m-bg"],
-                borderColor: brandPreview.vars["--m-border"],
-              }}
-            >
-              <span
-                className="h-4 w-4 rounded-full"
-                style={{ background: brandPreview.vars["--m-accent"] }}
-              />
-              <span className="text-xs font-bold" style={{ color: brandPreview.vars["--m-text"] }}>
-                معاينة
-              </span>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-bold text-ink">🖌️ لون علامتك</p>
+              <p className="mt-1 text-xs text-dim">
+                يُصبغ به الطابع المختار مع بقاء زخرفته وتخطيطه.
+              </p>
             </div>
-            <Button
-              variant={isBrandActive ? "outline" : "gold"}
-              onClick={() => pickTheme(customThemeId(brandHex))}
-              disabled={!isHex(brandHex)}
-            >
-              {isBrandActive ? "مطبَّق ✓" : "طبّق لوني"}
-            </Button>
+            <Switch checked={useBrand} onChange={setUseBrand} label="استخدم لوني" />
           </div>
-          {!isHex(brandHex) && (
-            <p className="mt-2 text-xs text-bad">كود اللون غير صالح — استخدم صيغة #RRGGBB.</p>
+          {useBrand && (
+            <>
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                <input
+                  type="color"
+                  value={isHex(brandHex) ? brandHex : "#d4a843"}
+                  onChange={(e) => setBrandHex(e.target.value)}
+                  aria-label="لون العلامة"
+                  className="h-11 w-16 cursor-pointer rounded-xl border border-line bg-panel2 p-1"
+                />
+                <Input
+                  dir="ltr"
+                  value={brandHex}
+                  onChange={(e) => setBrandHex(e.target.value)}
+                  className="w-32 text-center"
+                  aria-label="كود اللون"
+                />
+                <Button
+                  onClick={() => pickTheme(themeIdOf(activeBase, brandHex))}
+                  disabled={!isHex(brandHex)}
+                >
+                  طبّق اللون على «{getTheme(activeBase).name}»
+                </Button>
+              </div>
+              {!isHex(brandHex) && (
+                <p className="mt-2 text-xs text-bad">كود اللون غير صالح — استخدم صيغة #RRGGBB.</p>
+              )}
+            </>
           )}
         </Card>
+
+        {/* اللوحات الكلاسيكية — تبقى لمن اختارها من قبل. */}
+        <details className="mt-4">
+          <summary className="cursor-pointer text-sm font-bold text-dim hover:text-ink">
+            ألوان كلاسيكية (بلا زخرفة)
+          </summary>
+          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {THEMES.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => pickTheme(t.id)}
+                className={cn(
+                  "overflow-hidden rounded-2xl border-2 text-right transition-transform hover:scale-[1.02]",
+                  activeBase === t.id ? "border-gold" : "border-line"
+                )}
+              >
+                <div className="flex h-16 flex-col justify-between p-3" style={{ background: t.vars["--m-bg"] }}>
+                  <span className="h-2 w-1/2 rounded-full" style={{ background: t.vars["--m-accent"] }} />
+                  <div className="flex gap-1">
+                    <span className="h-4 flex-1 rounded" style={{ background: t.vars["--m-surface"], border: `1px solid ${t.vars["--m-border"]}` }} />
+                    <span className="h-4 flex-1 rounded" style={{ background: t.vars["--m-surface"], border: `1px solid ${t.vars["--m-border"]}` }} />
+                  </div>
+                </div>
+                <p className={cn(
+                  "px-3 py-2 text-xs font-bold",
+                  activeBase === t.id ? "bg-gold/10 text-gold" : "bg-panel text-dim"
+                )}>
+                  {t.name} {activeBase === t.id && "✓"}
+                </p>
+              </button>
+            ))}
+          </div>
+        </details>
       </section>
 
       <Modal open={adding} onClose={() => setAdding(false)} title="قائمة جديدة">

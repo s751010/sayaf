@@ -13,6 +13,8 @@ import {
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { Logo } from "@/components/site";
 import { SafeImage, Skeleton } from "@/components/ui";
+import { MenuHeader } from "@/components/menu/MenuHeader";
+import { DishCard } from "@/components/menu/DishCard";
 import { parseOptions } from "@/lib/options";
 import { displayAllergens } from "@/lib/allergens";
 import {
@@ -34,7 +36,9 @@ import {
   trackMenuView,
 } from "@/lib/data";
 import { parseCategoryOrder, sortCategories } from "@/lib/categories";
-import { getTheme } from "@/lib/themes";
+import { getTheme, type DishLayout, type HeadingStyle } from "@/lib/themes";
+import { patternImage, PATTERN_SIZE } from "@/lib/patterns";
+import { getSeason } from "@/lib/seasons";
 import { loadSession } from "@/lib/session";
 import { ENFORCE_MENU_PUBLISHING } from "@/lib/config";
 import { K, getItem, getJSON, setItem, setJSON } from "@/lib/storage";
@@ -145,74 +149,53 @@ function MenuSheet({
   );
 }
 
-/* ── بطاقة الطبق ──────────────────────────────────────────────────── */
-function DishCard({ dish, en, onOpen }: { dish: Dish; en: boolean; onOpen: () => void }) {
-  const allergenIcons = displayAllergens(dish.allergens, en);
-  return (
-    <button
-      onClick={onOpen}
-      className="group flex flex-col overflow-hidden border text-right transition-transform hover:-translate-y-0.5"
-      style={{
-        background: "var(--m-surface)",
-        borderColor: "var(--m-border)",
-        borderRadius: "var(--m-radius)",
-      }}
-    >
-      <SafeImage
-        src={dish.image}
-        alt={dishName(dish, en)}
-        className="h-32 w-full object-cover sm:h-36"
-        wrapperClassName="h-32 w-full text-5xl sm:h-36"
-        style={{ background: "var(--m-bg-2)" } as CSSProperties}
-        fallback={
-          <div
-            className="flex h-32 w-full items-center justify-center text-5xl sm:h-36"
-            style={{ background: "var(--m-bg-2)" } as CSSProperties}
-          >
-            {dish.emoji ?? "🍽"}
-          </div>
-        }
-      />
-      <div className="flex flex-1 flex-col gap-1 p-3">
-        <div className="flex items-start justify-between gap-2">
-          <p className="text-sm font-bold leading-snug" style={{ color: "var(--m-text)", ...mFont }}>
-            {dishName(dish, en)}
-            {dish.featured && <span style={{ color: "var(--m-accent)" }}> ★</span>}
-          </p>
-        </div>
-        {dishDesc(dish, en) && (
-          <p className="line-clamp-2 text-xs leading-relaxed" style={{ color: "var(--m-muted)" }}>
-            {dishDesc(dish, en)}
-          </p>
-        )}
-        {/* رموز المسببات على البطاقة نفسها — الزبون الحسّاس يجب أن يراها وهو
-            يمسح المنيو، لا أن يفتح كل طبق ليعرف. */}
-        {allergenIcons.length > 0 && (
-          <div className="flex flex-wrap items-center gap-1 pt-1" aria-label={en ? "Allergens" : "مسببات الحساسية"}>
-            {allergenIcons.map((a) => (
-              <span
-                key={a.key}
-                title={a.label}
-                className="rounded-md px-1 text-[11px]"
-                style={{ background: "var(--m-bg-2)" }}
-              >
-                {a.emoji}
-              </span>
-            ))}
-          </div>
-        )}
-        <div className="mt-auto flex items-center justify-between pt-1.5">
-          <span className="text-sm font-black" style={{ color: "var(--m-accent)" }}>
-            {formatPrice(dish.price ?? 0)} <span className="text-[10px] font-bold">ر.س</span>
-          </span>
-          {dish.calories != null && (
-            <span className="text-[10px]" style={{ color: "var(--m-muted)" }}>
-              🔥 {dish.calories} {en ? "cal" : "سعرة"}
-            </span>
-          )}
-        </div>
+
+/* ── عنوان القسم حسب الطابع ───────────────────────────────────────── */
+const LAYOUT_CLASS: Record<DishLayout, string> = {
+  grid: "grid grid-cols-2 gap-3 sm:grid-cols-3",
+  list: "flex flex-col",
+  showcase: "grid grid-cols-1 gap-5 sm:grid-cols-2",
+};
+
+function SectionHeading({ name, style }: { name: string; style: HeadingStyle }) {
+  if (style === "rule") {
+    return (
+      <div className="mb-4 flex items-center gap-3">
+        <span className="h-px flex-1" style={{ background: "var(--m-border)" }} />
+        <h2 className="text-lg font-black tracking-wide" style={{ ...mFont, color: "var(--m-text)" }}>
+          {name}
+        </h2>
+        <span className="h-px flex-1" style={{ background: "var(--m-border)" }} />
       </div>
-    </button>
+    );
+  }
+  if (style === "ornament") {
+    return (
+      <h2
+        className="mb-3 flex items-center gap-2 text-lg font-black"
+        style={{ ...mFont, color: "var(--m-text)" }}
+      >
+        <span aria-hidden="true" style={{ color: "var(--m-accent)" }}>
+          ❖
+        </span>
+        {name}
+        <span
+          aria-hidden="true"
+          className="h-px flex-1"
+          style={{
+            background: "linear-gradient(90deg, var(--m-accent), transparent)",
+          }}
+        />
+      </h2>
+    );
+  }
+  return (
+    <h2
+      className="mb-3 inline-block border-b-2 pb-1 text-lg font-black"
+      style={{ ...mFont, borderColor: "var(--m-accent)", color: "var(--m-text)" }}
+    >
+      {name}
+    </h2>
   );
 }
 
@@ -602,6 +585,11 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
   const theme = getTheme(
     state.status === "ready" ? state.menus.find((m) => m.theme)?.theme : null
   );
+  const design = theme.design;
+  const season = getSeason(state.status === "ready" ? state.restaurant.season : null);
+  // الزينة تُبدّل الزخرفة ولون التمييز الثانوي فقط — الخلفية والنص يبقيان
+  // كما ضبطهما الطابع، فلا ينكسر التباين مهما اختار التاجر.
+  const pagePattern = season?.pattern ?? design.pattern;
 
   const en = lang === "en";
 
@@ -689,15 +677,33 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
   }
 
   const { restaurant } = state;
+
+  /**
+   * التقييم والموقع يصعدان أعلى الصفحة.
+   *
+   * كانا في الذيل بعد الأطباق كلها، والزبون يغادر قبل أن يصل إليه — وتقييم
+   * قوقل أرخص قناة نمو للمطعم. وهما محذوفان من `socials` أدناه كي لا يتكرّرا.
+   */
+  const primaryLinks = [
+    restaurant.google_review_url && {
+      icon: "⭐",
+      label: en ? "Rate us on Google" : "قيّمنا على قوقل",
+      url: httpUrl(restaurant.google_review_url),
+    },
+    restaurant.social_maps && {
+      icon: "📍",
+      label: en ? "Find us" : "موقعنا",
+      url: httpUrl(restaurant.social_maps),
+    },
+  ].filter(Boolean) as { icon: string; label: string; url: string }[];
+
   const socials = [
-    restaurant.google_review_url && { icon: "⭐", label: en ? "Rate us on Google" : "قيّمنا على قوقل", url: httpUrl(restaurant.google_review_url), highlight: true },
-    restaurant.social_maps && { icon: "📍", label: en ? "Find us on Maps" : "موقعنا على الخريطة", url: httpUrl(restaurant.social_maps), highlight: true },
     restaurant.social_whatsapp && { icon: "💬", label: en ? "WhatsApp" : "واتساب", url: whatsappUrl(restaurant.social_whatsapp) },
     restaurant.social_instagram && { icon: "📸", label: en ? "Instagram" : "إنستغرام", url: httpUrl(restaurant.social_instagram) },
     restaurant.social_twitter && { icon: "𝕏", label: en ? "X (Twitter)" : "تويتر", url: httpUrl(restaurant.social_twitter) },
     restaurant.social_tiktok && { icon: "🎵", label: en ? "TikTok" : "تيك توك", url: httpUrl(restaurant.social_tiktok) },
     restaurant.social_snapchat && { icon: "👻", label: en ? "Snapchat" : "سناب شات", url: httpUrl(restaurant.social_snapchat) },
-  ].filter(Boolean) as { icon: string; label: string; url: string; highlight?: boolean }[];
+  ].filter(Boolean) as { icon: string; label: string; url: string }[];
 
   // كل المسببات الموجودة في المنيو، مع أطباق كل مسبب.
   const allergenIndex = buildAllergenIndex(state.dishes, en);
@@ -711,7 +717,23 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
     <div
       dir={en ? "ltr" : "rtl"}
       className="min-h-dvh pb-16"
-      style={{ ...theme.vars, background: "var(--m-bg)", color: "var(--m-text)" } as CSSProperties}
+      style={
+        {
+          ...theme.vars,
+          ...(season ? { "--m-accent-2": season.tint } : {}),
+          // زخرفة الطابع تسري على الصفحة كلها بشفافية منخفضة — حضور بلا مزاحمة
+          // للنص. `background-attachment: fixed` يجعلها تبدو نسيجاً لا خلفية.
+          backgroundColor: "var(--m-bg)",
+          backgroundImage: patternImage(
+            pagePattern,
+            season?.tint ?? theme.vars["--m-accent"],
+            Math.max(design.patternOpacity, season ? 0.05 : 0)
+          ),
+          backgroundSize: PATTERN_SIZE[pagePattern],
+          backgroundAttachment: "fixed",
+          color: "var(--m-text)",
+        } as CSSProperties
+      }
     >
       {/* شريط المعاينة — يظهر لصاحب المطعم وحده، ولا يُحتسب في التحليلات.
           غير لاصق عمداً: شريط التصنيفات لاصق على top-0 أيضاً فيتراكبان. */}
@@ -728,95 +750,77 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
         </div>
       )}
 
-      {/* الترويسة */}
-      <header className="relative">
-        <SafeImage
-          src={restaurant.banner_image}
-          alt=""
-          className="h-44 w-full object-cover sm:h-56"
-          fallback={
-            <div
-              className="h-32 w-full sm:h-40"
-              style={
-                {
-                  background: `linear-gradient(160deg, ${restaurant.cover_color ?? "var(--m-bg-2)"}, var(--m-bg))`,
-                } as CSSProperties
-              }
-            />
-          }
-        />
-        <div className="mx-auto -mt-12 flex max-w-3xl flex-col items-center px-4 text-center">
-          <SafeImage
-            src={restaurant.logo_image}
-            alt={restaurant.name}
-            className="h-24 w-24 rounded-3xl border-2 object-cover shadow-xl"
-            style={{ borderColor: "var(--m-accent)", background: "var(--m-bg-2)" } as CSSProperties}
-            fallback={
-              <span
-                className="flex h-24 w-24 items-center justify-center rounded-3xl border-2 text-5xl shadow-xl"
-                style={
-                  { borderColor: "var(--m-accent)", background: "var(--m-bg-2)" } as CSSProperties
-                }
-              >
-                {restaurant.logo ?? "🍽️"}
-              </span>
-            }
-          />
-          <h1 className="mt-3 text-2xl font-black" style={mFont}>
-            {restaurant.name}
-          </h1>
-          {restaurant.type && (
-            <p className="text-sm" style={{ color: "var(--m-muted)" }}>
-              {restaurant.type}
-            </p>
-          )}
-          <div className="mt-2 flex flex-wrap items-center justify-center gap-2">
-            {table && (
-              <span
-                className="rounded-full px-3 py-1 text-xs font-black"
-                style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}
-              >
-                🪑 {en ? "Table" : "طاولة"} {table}
-              </span>
-            )}
-            {/* جدول مهيكل ⇒ حالة «مفتوح الآن» + ملخّص. نصّ حر ⇒ يُعرض كما هو.
-                (قبل ذلك كانت القيمة تُطبع خاماً، فيرى الزبون JSON على شاشته.) */}
-            {week ? (
-              <>
-                <span
-                  className="rounded-full px-3 py-1 text-xs font-black"
-                  style={
-                    live?.open
-                      ? { background: "var(--m-accent)", color: "var(--m-on-accent)" }
-                      : { border: "1px solid var(--m-border)", color: "var(--m-muted)" }
-                  }
-                >
-                  {live?.open ? "🟢" : "⚪"} {live?.label}
-                  {live?.open && live.until ? ` · ${en ? "until" : "حتى"} ${live.until}` : ""}
-                </span>
-                <button
-                  onClick={() => setHoursOpen(true)}
-                  className="rounded-full border px-3 py-1 text-xs"
-                  style={{ borderColor: "var(--m-border)", color: "var(--m-muted)" }}
-                >
-                  🕐 {weekSummary(week, en)} ›
-                </button>
-              </>
-            ) : (
-              restaurant.working_hours && (
-                <span
-                  className="rounded-full border px-3 py-1 text-xs"
-                  style={{ borderColor: "var(--m-border)", color: "var(--m-muted)" }}
-                >
-                  🕐 {restaurant.working_hours}
-                </span>
-              )
-            )}
-          </div>
+      {/* تهنئة الموسم — لمسة يضبطها التاجر، فوق الترويسة مباشرة. */}
+      {season && (
+        <div
+          className="px-4 py-2 text-center text-sm font-black"
+          style={{ background: "var(--m-bg-2)", color: season.tint }}
+        >
+          {season.emoji} {en ? season.greetingEn : season.greeting}
         </div>
-      </header>
+      )}
+
+      <MenuHeader restaurant={restaurant} theme={theme}>
+        {table && (
+          <span
+            className="rounded-full px-3 py-1 text-xs font-black"
+            style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}
+          >
+            🪑 {en ? "Table" : "طاولة"} {table}
+          </span>
+        )}
+        {/* ساعات العمل: **شريحة واحدة** تحمل الحالة الحيّة وتفتح جدول الأسبوع.
+            كانت شريحتين («مفتوح الآن» + ملخّص الأسبوع) تزدحمان بلا داعٍ —
+            الملخّص انتقل إلى داخل اللوح. */}
+        {week ? (
+          <button
+            onClick={() => setHoursOpen(true)}
+            className="rounded-full px-3 py-1 text-xs font-black transition-opacity hover:opacity-85"
+            style={
+              live?.open
+                ? { background: "var(--m-accent)", color: "var(--m-on-accent)" }
+                : { border: "1px solid var(--m-border)", color: "var(--m-muted)" }
+            }
+          >
+            {live?.open ? "🟢" : "⚪"} {live?.label}
+            {live?.open && live.until ? ` · ${en ? "until" : "حتى"} ${live.until}` : ""} ›
+          </button>
+        ) : (
+          restaurant.working_hours && (
+            <button
+              onClick={() => setHoursOpen(true)}
+              className="rounded-full border px-3 py-1 text-xs"
+              style={{ borderColor: "var(--m-border)", color: "var(--m-muted)" }}
+            >
+              🕐 {restaurant.working_hours} ›
+            </button>
+          )
+        )}
+      </MenuHeader>
 
       <main className="mx-auto max-w-3xl px-4">
+        {/* التقييم والموقع — أعلى الصفحة حيث يراهما الزبون فعلاً. */}
+        {primaryLinks.length > 0 && (
+          <div className="mt-5 flex gap-2">
+            {primaryLinks.map((s) => (
+              <a
+                key={s.label}
+                href={s.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-1 items-center justify-center gap-1.5 px-4 py-3 text-sm font-black transition-transform hover:scale-[1.02]"
+                style={{
+                  background: "var(--m-accent)",
+                  color: "var(--m-on-accent)",
+                  borderRadius: "var(--m-radius)",
+                }}
+              >
+                {s.icon} {s.label}
+              </a>
+            ))}
+          </div>
+        )}
+
         {/* مبدّل اللغة */}
         {restaurant.english_enabled && (
           <div className="mt-5 flex justify-center">
@@ -860,9 +864,15 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
               <span style={{ color: "var(--m-accent)" }}>★</span> {en ? "Featured" : "الأكثر تميّزاً"}
             </h2>
             <div className="flex gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {/* المميّز شريط أفقي دائماً — بطاقات الشبكة تناسبه في كل الطوابع. */}
               {featured.map((d) => (
                 <div key={d.id} className="w-44 shrink-0">
-                  <DishCard dish={d} en={en} onOpen={() => { setOpenDish(d); if (!demo) trackDishView(d, { table, lang }); }} />
+                  <DishCard
+                    dish={d}
+                    en={en}
+                    layout="grid"
+                    onOpen={() => { setOpenDish(d); if (!demo && !preview) trackDishView(d, { table, lang }); }}
+                  />
                 </div>
               ))}
             </div>
@@ -906,16 +916,21 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
           </p>
         ) : (
           categories.map((cat) => (
-            <section key={cat.name} id={categoryId(cat.name)} className="scroll-mt-20 pt-7">
-              <h2
-                className="mb-3 inline-block border-b-2 pb-1 text-lg font-black"
-                style={{ ...mFont, borderColor: "var(--m-accent)" }}
-              >
-                {cat.name}
-              </h2>
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <section
+              key={cat.name}
+              id={categoryId(cat.name)}
+              className={design.density === "airy" ? "scroll-mt-20 pt-10" : "scroll-mt-20 pt-7"}
+            >
+              <SectionHeading name={cat.name} style={design.heading} />
+              <div className={LAYOUT_CLASS[design.layout]}>
                 {cat.dishes.map((d) => (
-                  <DishCard key={d.id} dish={d} en={en} onOpen={() => { setOpenDish(d); if (!demo && !preview) trackDishView(d, { table, lang }); }} />
+                  <DishCard
+                    key={d.id}
+                    dish={d}
+                    en={en}
+                    layout={design.layout}
+                    onOpen={() => { setOpenDish(d); if (!demo && !preview) trackDishView(d, { table, lang }); }}
+                  />
                 ))}
               </div>
             </section>
@@ -945,27 +960,14 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
           </section>
         )}
 
-        {/* روابط التواصل + تقييم قوقل + الموقع */}
+        {/* روابط التواصل فقط — التقييم والموقع صعدا إلى أعلى الصفحة. */}
         {socials.length > 0 && (
           <section className="mt-8 flex flex-wrap items-center justify-center gap-2">
-            {socials.map((s) =>
-              s.highlight ? (
-                <a
-                  key={s.label}
-                  href={s.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-black transition-transform hover:scale-[1.03]"
-                  style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}
-                >
-                  {s.icon} {s.label}
-                </a>
-              ) : (
-                <Chip key={s.label} href={s.url}>
-                  {s.icon} {s.label}
-                </Chip>
-              )
-            )}
+            {socials.map((s) => (
+              <Chip key={s.label} href={s.url}>
+                {s.icon} {s.label}
+              </Chip>
+            ))}
           </section>
         )}
 
@@ -1016,13 +1018,25 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
 
       {openDish && <DishModal dish={openDish} en={en} onClose={() => setOpenDish(null)} />}
 
-      {hoursOpen && week && (
+      {hoursOpen && (
         <MenuSheet
           title={en ? "Opening hours" : "ساعات العمل"}
           onClose={() => setHoursOpen(false)}
         >
-          <ul className="flex flex-col gap-1.5">
+          {/* ملخّص الأسبوع انتقل إلى هنا من شريحة ثانية كانت تزدحم في الترويسة. */}
+          {week && (
+            <p className="mb-3 text-center text-sm font-bold" style={{ color: "var(--m-accent)" }}>
+              {weekSummary(week, en)}
+            </p>
+          )}
+          {!week && (
+            <p className="text-center text-sm leading-relaxed" style={{ color: "var(--m-text)" }}>
+              {restaurant.working_hours}
+            </p>
+          )}
+          <ul className={week ? "flex flex-col gap-1.5" : "hidden"}>
             {DAYS.map((d) => {
+              if (!week) return null;
               const day = week[d.id];
               const isToday = d.id === todayId;
               return (

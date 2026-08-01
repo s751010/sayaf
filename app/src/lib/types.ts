@@ -37,6 +37,8 @@ export interface Restaurant {
   vat_number: string | null;
   /** ترتيب التصنيفات في المنيو — نصّ يحمل مصفوفة JSON (انظر lib/categories). */
   category_order: string | null;
+  /** زينة موسمية اختيارية: ramadan | national | founding (انظر lib/seasons). */
+  season: string | null;
   /** موجودان في الجدول (NOT NULL) لكن لا تكتبهما الواجهة بعد. */
   reviews_enabled: boolean | null;
   online_payment_enabled: boolean | null;

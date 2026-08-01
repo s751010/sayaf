@@ -1,12 +1,49 @@
 /**
- * ثيمات المنيو العام. كل ثيم مجموعة CSS custom properties تُطبَّق على جذر
- * صفحة المنيو؛ المكوّنات تقرأها عبر `var(--m-*)`. يُخزَّن لكل قائمة في `menus.theme`.
+ * طوابع المنيو العام.
+ *
+ * كان كل «ثيم» لوحة ألوان فحسب — ثمانية ثيمات بتخطيط واحد حرفياً، فالفرق
+ * يُقرأ ولا يُرى. الآن الثيم **طابع كامل**: زخرفة، شكل ترويسة، تخطيط أطباق،
+ * فواصل أقسام، واقتران خطوط. `vars` تُطبَّق على جذر الصفحة وتُقرأ بـ`var(--m-*)`،
+ * و`design` تقرأها المكوّنات لتغيّر البنية لا اللون.
+ *
+ * يُخزَّن في `menus.theme` (نص واحد) — انظر `getTheme` لصيغ التخزين المدعومة.
  */
+import type { PatternId } from "./patterns";
+
+/** شكل الخلفية وراء الشعار — أكثر ما يمنح المنيو شخصيته من أول نظرة. */
+export type HeaderShape = "arch" | "band" | "frame" | "soft";
+/** تخطيط الأطباق — هذا ما يجعل الفرق بين الطوابع يُرى لا يُقرأ. */
+export type DishLayout = "grid" | "list" | "showcase";
+export type HeadingStyle = "ornament" | "rule" | "plain";
+
+export interface MenuDesign {
+  pattern: PatternId;
+  /** شفافية الزخرفة — تبقى منخفضة كي لا تزاحم قراءة النص فوقها. */
+  patternOpacity: number;
+  header: HeaderShape;
+  layout: DishLayout;
+  heading: HeadingStyle;
+  density: "cozy" | "airy";
+}
+
 export interface MenuTheme {
   id: string;
   name: string; // التسمية العربية في المُنتقي
+  /** سطر يشرح الطابع للتاجر وهو يختار. */
+  tagline: string;
   vars: Record<string, string>;
+  design: MenuDesign;
 }
+
+/** طابع الثيمات اللونية القديمة — يحفظ شكل منيو كل تاجر قائم كما هو. */
+const CLASSIC_DESIGN: MenuDesign = {
+  pattern: "none",
+  patternOpacity: 0,
+  header: "soft",
+  layout: "grid",
+  heading: "plain",
+  density: "cozy",
+};
 
 const FONT = {
   cairo: "var(--font-cairo)",
@@ -15,7 +52,124 @@ const FONT = {
   amiri: "var(--font-amiri)",
 };
 
-export const THEMES: MenuTheme[] = [
+/**
+ * الطوابع المصمَّمة — لكل واحد هوية كاملة لا لون.
+ * تأتي أولاً في المُنتقي لأنها ما نريد أن يختاره التاجر.
+ */
+export const DESIGN_THEMES: MenuTheme[] = [
+  {
+    id: "najdi",
+    name: "نجدي تراثي",
+    tagline: "طين ورمل وفيروزي أبواب نجد، مع نسيج السدو",
+    vars: {
+      // أرضية رملية فاتحة كجدران الطين، والفيروزي لون أبواب نجد ونوافذها.
+      "--m-bg": "#f4e8d5",
+      "--m-bg-2": "#e9d9be",
+      "--m-surface": "#fffaf1",
+      "--m-text": "#33261a",
+      "--m-muted": "#8a745a",
+      "--m-accent": "#1f7a72",
+      "--m-accent-2": "#c8912f",
+      "--m-on-accent": "#ffffff",
+      "--m-border": "rgba(51,38,26,.14)",
+      "--m-font": FONT.reem,
+      "--m-radius": "0.5rem",
+    },
+    design: {
+      pattern: "sadu",
+      patternOpacity: 0.07,
+      header: "band",
+      layout: "grid",
+      heading: "ornament",
+      density: "cozy",
+    },
+  },
+  {
+    id: "luxe",
+    name: "حصري فاخر",
+    tagline: "أسود عميق وذهب شامبانيا، وقائمة بلا صور كبيرة",
+    vars: {
+      "--m-bg": "#0b0b0c",
+      "--m-bg-2": "#131315",
+      "--m-surface": "rgba(255,255,255,.035)",
+      "--m-text": "#f4efe4",
+      "--m-muted": "#8d8679",
+      "--m-accent": "#c9a227",
+      "--m-accent-2": "#e3c766",
+      "--m-on-accent": "#0b0b0c",
+      "--m-border": "rgba(201,162,39,.28)",
+      "--m-font": FONT.amiri,
+      "--m-radius": "0.25rem",
+    },
+    design: {
+      pattern: "girih",
+      patternOpacity: 0.035,
+      header: "frame",
+      layout: "list",
+      heading: "rule",
+      density: "airy",
+    },
+  },
+  {
+    id: "hijazi",
+    name: "حجازي",
+    tagline: "أزرق البحر ومرجاني، بأقواس الرواشين",
+    vars: {
+      "--m-bg": "#0d1f26",
+      "--m-bg-2": "#122a33",
+      "--m-surface": "rgba(255,255,255,.05)",
+      "--m-text": "#eaf6f7",
+      "--m-muted": "#8faab3",
+      "--m-accent": "#e07a5f",
+      "--m-accent-2": "#4ecdc4",
+      // غامق لا أبيض: الأبيض على المرجاني 2.95:1 فقط — دون حدّ WCAG AA.
+      "--m-on-accent": "#141210",
+      "--m-border": "rgba(224,122,95,.26)",
+      "--m-font": FONT.cairo,
+      "--m-radius": "1.25rem",
+    },
+    design: {
+      pattern: "mashrabiya",
+      patternOpacity: 0.06,
+      header: "arch",
+      layout: "grid",
+      heading: "plain",
+      density: "cozy",
+    },
+  },
+  {
+    id: "modern",
+    name: "عصري مينيمال",
+    tagline: "أبيض نظيف وصور كبيرة — للكافيهات الحديثة",
+    vars: {
+      "--m-bg": "#ffffff",
+      "--m-bg-2": "#f4f4f5",
+      "--m-surface": "#ffffff",
+      "--m-text": "#101012",
+      "--m-muted": "#6b6b73",
+      "--m-accent": "#101012",
+      "--m-accent-2": "#3f3f46",
+      "--m-on-accent": "#ffffff",
+      "--m-border": "rgba(0,0,0,.09)",
+      "--m-font": FONT.cairo,
+      "--m-radius": "1rem",
+    },
+    design: {
+      pattern: "none",
+      patternOpacity: 0,
+      header: "soft",
+      layout: "showcase",
+      heading: "plain",
+      density: "airy",
+    },
+  },
+];
+
+/**
+ * لوحات ألوان كلاسيكية — تخطيط واحد لكلها، تبقى لمن اختارها من قبل.
+ * `design` يُضاف لها آلياً في `THEMES` أدناه فلا يتكرّر ثماني مرات.
+ */
+const CLASSIC_PALETTES: Omit<MenuTheme, "design" | "tagline">[] = [
   {
     id: "dark-gold",
     name: "ليلي ذهبي",
@@ -154,6 +308,15 @@ export const THEMES: MenuTheme[] = [
   },
 ];
 
+export const THEMES: MenuTheme[] = CLASSIC_PALETTES.map((p) => ({
+  ...p,
+  tagline: "لوحة ألوان كلاسيكية",
+  design: CLASSIC_DESIGN,
+}));
+
+/** كل ما يظهر في المُنتقي — الطوابع المصمَّمة أولاً. */
+export const ALL_THEMES: MenuTheme[] = [...DESIGN_THEMES, ...THEMES];
+
 const DEFAULT_THEME = THEMES[0];
 
 /** يحوّل أسماء الثيمات القديمة (الموجودة في قاعدة البيانات الحية) إلى المعرّفات الجديدة. */
@@ -219,6 +382,25 @@ function luminance(hex: string): number {
   return 0.2126 * srgb[0] + 0.7152 * srgb[1] + 0.0722 * srgb[2];
 }
 
+/** نسبة تباين WCAG بين لونين. */
+function contrast(a: string, b: string): number {
+  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (hi + 0.05) / (lo + 0.05);
+}
+
+/**
+ * لون النص فوق لون التمييز — **الأعلى تبايناً** بين الفاتح والغامق.
+ *
+ * كان الاختيار بعتبة سطوع ثابتة (`luminance > 0.45`)، وهي تفشل على الألوان
+ * المتوسطة: المرجاني `#e07a5f` سطوعه دون العتبة فيُختار له نص أبيض بتباين
+ * 2.95:1 — دون حدّ WCAG AA. المقارنة الفعلية تختار الغامق فيرتفع إلى 6.9:1.
+ */
+export function bestOnAccent(hex: string): string {
+  const dark = "#141210";
+  const light = "#ffffff";
+  return contrast(hex, dark) >= contrast(hex, light) ? dark : light;
+}
+
 function mix(hex: string, target: [number, number, number], amount: number): string {
   const [r, g, b] = rgb(hex);
   const m = (a: number, t: number) => Math.round(a + (t - a) * amount);
@@ -235,9 +417,7 @@ function mix(hex: string, target: [number, number, number], amount: number): str
  */
 export function buildCustomTheme(hex: string): MenuTheme {
   const accent = normalizeHex(isHex(hex) ? hex : "#d4a843");
-  const lum = luminance(accent);
-  // لون فاتح ⇒ نص غامق عليه، والعكس. (تباين مقبول على اللون نفسه.)
-  const onAccent = lum > 0.45 ? "#141210" : "#ffffff";
+  const onAccent = bestOnAccent(accent);
 
   // خلفية غامقة مشتقّة من اللون: تحفظ «شخصية» العلامة دون إرهاق العين.
   const bg = mix(accent, [10, 9, 8], 0.9);
@@ -247,6 +427,8 @@ export function buildCustomTheme(hex: string): MenuTheme {
   return {
     id: customThemeId(accent),
     name: "لون علامتي",
+    tagline: "لون علامتك على تخطيط كلاسيكي",
+    design: CLASSIC_DESIGN,
     vars: {
       "--m-bg": bg,
       "--m-bg-2": bg2,
@@ -263,10 +445,60 @@ export function buildCustomTheme(hex: string): MenuTheme {
   };
 }
 
+/**
+ * صيغ `menus.theme` المدعومة — كلها تعيش في عمود نصّي واحد بلا تغيير مخطَّط:
+ *
+ * | القيمة | المعنى |
+ * |---|---|
+ * | `najdi` | طابع بألوانه الأصلية |
+ * | `najdi:#2fa8a0` | نفس الطابع بلون علامة التاجر |
+ * | `custom:#hex` | صيغة قديمة — تبقى تعمل كما كانت تماماً |
+ * | `dark-gold` … | الثيمات الثمانية القديمة عبر `ALIASES` |
+ */
+export function splitThemeId(id: string | null | undefined): {
+  base: string | null;
+  hex: string | null;
+} {
+  if (!id) return { base: null, hex: null };
+  const legacy = customHexOf(id);
+  if (legacy) return { base: null, hex: legacy };
+  const at = id.indexOf(":");
+  if (at < 0) return { base: id, hex: null };
+  const hex = id.slice(at + 1);
+  return { base: id.slice(0, at), hex: isHex(hex) ? normalizeHex(hex) : null };
+}
+
+/** يبني معرّف التخزين من طابع ولون اختياري. */
+export function themeIdOf(base: string, hex?: string | null): string {
+  return hex && isHex(hex) ? `${base}:${normalizeHex(hex)}` : base;
+}
+
+/**
+ * يصبغ طابعاً بلون علامة التاجر مع الإبقاء على شخصيته (الزخرفة والتخطيط والخط).
+ * هذا جوهر «طابع كامل × لون علامتك»: اللون يتغيّر، والتصميم يبقى.
+ */
+function tintTheme(theme: MenuTheme, hex: string): MenuTheme {
+  const accent = normalizeHex(hex);
+  const [r, g, b] = rgb(accent);
+  const onAccent = bestOnAccent(accent);
+  return {
+    ...theme,
+    id: themeIdOf(theme.id, accent),
+    vars: {
+      ...theme.vars,
+      "--m-accent": accent,
+      "--m-accent-2": mix(accent, [255, 255, 255], 0.3),
+      "--m-on-accent": onAccent,
+      "--m-border": `rgba(${r},${g},${b},.28)`,
+    },
+  };
+}
+
 export function getTheme(id: string | null | undefined): MenuTheme {
-  if (!id) return DEFAULT_THEME;
-  const custom = customHexOf(id);
-  if (custom) return buildCustomTheme(custom);
-  const key = ALIASES[id] ?? id;
-  return THEMES.find((t) => t.id === key) ?? DEFAULT_THEME;
+  const { base, hex } = splitThemeId(id);
+  // صيغة قديمة `custom:#hex` بلا طابع — تبقى كما كانت.
+  if (!base) return hex ? buildCustomTheme(hex) : DEFAULT_THEME;
+  const key = ALIASES[base] ?? base;
+  const theme = ALL_THEMES.find((t) => t.id === key) ?? DEFAULT_THEME;
+  return hex ? tintTheme(theme, hex) : theme;
 }

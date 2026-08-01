@@ -35,7 +35,7 @@ const PUBLIC_RESTAURANT_COLS = [
   "working_hours", "social_instagram", "social_twitter", "social_tiktok",
   "social_snapchat", "social_whatsapp", "social_maps", "english_enabled",
   "loyalty_enabled", "loyalty_goal", "loyalty_reward",
-  "prices_include_vat", "vat_number", "category_order", "created_at",
+  "prices_include_vat", "vat_number", "category_order", "season", "created_at",
 ].join(",");
 
 const PUBLIC_MENU_COLS = [
@@ -254,6 +254,7 @@ export type RestaurantSettingsPayload = {
   loyalty_reward: string | null;
   prices_include_vat: boolean;
   vat_number: string | null;
+  season: string | null;
 };
 
 export async function updateRestaurant(

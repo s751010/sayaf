@@ -18,7 +18,8 @@ import { ImageUploader } from "@/components/ImageUploader";
 import { HoursEditor } from "@/components/HoursEditor";
 import { SupportBox } from "@/components/SupportBox";
 import { updateRestaurant, type RestaurantSettingsPayload } from "@/lib/data";
-import { normalizeDigits, numOrNull, strOrNull } from "@/lib/utils";
+import { SEASONS } from "@/lib/seasons";
+import { cn, normalizeDigits, numOrNull, strOrNull } from "@/lib/utils";
 import { useDashboard } from "./Dashboard";
 
 export default function Settings() {
@@ -51,6 +52,7 @@ export default function Settings() {
     // العمود NOT NULL بافتراضي true — الأغلب في السوق السعودي أسعار شاملة.
     prices_include_vat: restaurant.prices_include_vat ?? true,
     vat_number: restaurant.vat_number ?? "",
+    season: restaurant.season ?? "",
   }));
 
   useEffect(() => {
@@ -92,6 +94,7 @@ export default function Settings() {
       loyalty_reward: strOrNull(f.loyalty_reward),
       prices_include_vat: f.prices_include_vat,
       vat_number: strOrNull(f.vat_number),
+      season: strOrNull(f.season),
     };
     try {
       await updateRestaurant(restaurant.id, payload);
@@ -228,6 +231,37 @@ export default function Settings() {
               </Field>
             </div>
           )}
+        </Card>
+
+        {/* زينة موسمية — تُضاف فوق طابع منيوك بلا أن تبدّله. */}
+        <Card className="flex flex-col gap-4">
+          <div>
+            <h2 className={section}>🌙 زينة الموسم</h2>
+            <p className="mt-1 text-sm text-dim">
+              لمسة موسمية أعلى منيوك وزخرفة خفيفة في الخلفية — تُشغّلها وتُطفئها متى شئت.
+            </p>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-4">
+            {[{ id: "", name: "بلا زينة", emoji: "—" }, ...SEASONS].map((s) => {
+              const on = f.season === s.id;
+              return (
+                <button
+                  key={s.id || "none"}
+                  type="button"
+                  onClick={() => set("season", s.id)}
+                  className={cn(
+                    "flex flex-col items-center gap-1 rounded-xl border px-3 py-3 text-sm font-bold transition-colors",
+                    on
+                      ? "border-gold bg-gold/12 text-ink"
+                      : "border-line text-dim hover:border-line-gold hover:text-ink"
+                  )}
+                >
+                  <span className="text-xl">{s.emoji}</span>
+                  {s.name}
+                </button>
+              );
+            })}
+          </div>
         </Card>
 
         {/* الزبون السعودي يسأل «هل السعر شامل الضريبة؟» — الجواب يظهر في المنيو. */}

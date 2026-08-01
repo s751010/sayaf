@@ -24,6 +24,9 @@ app/src/
   components/
     ui.tsx              نظام التصميم: Button Card Badge Field Input Modal Toast…
     site.tsx            Logo / Navbar / Footer / PreviewMenuButton
+    menu/MenuHeader.tsx  ترويسة المنيو: قوس/شريط سدو/إطار/ناعم
+    menu/DishCard.tsx    بطاقة الطبق بثلاثة تخطيطات (شبكة/قائمة/عرض)
+    menu/ThemePreview.tsx معاينة الطابع المصغّرة في اللوحة
     ImageUploader.tsx   رفع صورة واحدة (يستورد الضغط من lib/image)
     BulkImages.tsx      رفع صور متعدد + ربط كل صورة بطبقها
     DishImport.tsx      استيراد أصناف (لصق نص أو CSV) + جدول مراجعة
@@ -44,6 +47,8 @@ app/src/
     session.ts auth.tsx GoTrue بدون SDK + سياق React (+ استعادة كلمة المرور)
     config.ts plans.ts entitlements.ts themes.ts types.ts utils.ts
     allergens.ts hours.ts nutrition.ts options.ts
+    patterns.ts         زخارف SVG مولَّدة (سدو، مشربية، جيري، نخيل، أهلّة)
+    seasons.ts          الزينة الموسمية (رمضان/الوطني/التأسيس)
     categories.ts       توحيد أسماء التصنيفات وترتيبها
     image.ts            ضغط الصور (مشترك بين الرافعَين)
     import.ts           محلّل النص/CSV → DishPayload
@@ -97,7 +102,10 @@ Project ref: `wjqpsbpebpntpeinqccl` · URL في `app/src/lib/config.ts`.
 - `restaurants.working_hours` → JSON `{"sat":{"open","from","to"},…}`
   (بيانات إنتاج فعلية) · القارئ في `lib/hours.ts` يتسامح مع النص الحر.
 - `restaurants.category_order` → JSON `["مشاوي","مقبلات",…]` · `lib/categories.ts`.
-- `menus.theme` → معرّف ثيم أو `custom:#RRGGBB` للثيم بلون العلامة.
+- `menus.theme` → معرّف الطابع، أو `طابع:#RRGGBB` لصبغه بلون العلامة، أو
+  `custom:#RRGGBB` (صيغة قديمة تبقى تعمل) · `splitThemeId`/`getTheme` في
+  `lib/themes.ts`. الطابع **ليس لوناً**: يحمل زخرفة وشكل ترويسة وتخطيط أطباق.
+- `restaurants.season` → `ramadan` | `national` | `founding` | null · `lib/seasons.ts`.
 - `menus.window_from` / `window_to` → `HH:MM` بتوقيت الرياض (نافذة ظهور
   القائمة، تدعم تجاوز منتصف الليل) · `inTimeWindow` في `lib/hours.ts`.
 - `dishes.options` → JSON `[{name,price?}]` · `lib/options.ts`.
@@ -161,6 +169,12 @@ cd app && npm run typecheck
 
 > `analytics.user_id` يملؤه تريجر `analytics_fill_owner` من مالك القائمة، فلا
 > يحتاج الزائر المجهول قراءة `restaurants.user_id` إطلاقاً.
+
+### (ز) تباين الألوان في الطوابع
+لون النص فوق لون التمييز يُختار بـ`bestOnAccent()` في `lib/themes.ts` — **بمقارنة
+تباين فعلية** لا بعتبة سطوع. العتبة الثابتة كانت تختار أبيض على المرجاني
+`#e07a5f` بتباين 2.95:1، دون حدّ WCAG AA. أي لون تمييز جديد (ثابت أو من لون
+علامة التاجر) يجب أن يمرّ بهذه الدالة.
 
 ### (هـ) أعمدة عمداً **خارج** الـwhitelists
 ليست سهواً: كل منها يُكتب من شاشة أخرى، وإدراجه في الـpayload كان سيوجب حمله
