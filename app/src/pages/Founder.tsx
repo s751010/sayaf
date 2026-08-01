@@ -1,12 +1,18 @@
 /**
- * لوحة المؤسس — كل النداءات عبر edge function `founder-admin` المحمية
- * بسر `cm_fsecret` (يُدخله المؤسس ويُخزَّن في sessionStorage فقط — لا يُضمَّن أبداً).
+ * لوحة المؤسس — كل النداءات عبر edge function `founder-admin`.
+ *
+ * الدخول ببريد المؤسس نفسه: إن كانت هناك جلسة، تُجرَّب مباشرة فتفتح اللوحة بلا
+ * أي خطوة إضافية (البريد المعتمد في `founder_email()` بالقاعدة، لا هنا — فلا
+ * يتكرّر في مكانين). وسرّ المؤسس يبقى **مساراً احتياطياً** مطوياً كي لا يُفقد
+ * الوصول إن تعطّل شيء في الأول؛ ولا يُضمَّن في الكود أبداً ولا يُحفظ إلا في
+ * sessionStorage.
  */
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { Logo } from "@/components/site";
 import { Badge, Button, Card, ErrorNote, Field, Input, Skeleton, ThemeToggle, useToast } from "@/components/ui";
 import { founderAdmin } from "@/lib/api";
+import { useAuth } from "@/lib/auth";
 import { K, getItem, removeItem, setItem } from "@/lib/storage";
 import { formatDate, formatPrice } from "@/lib/utils";
 
@@ -32,10 +38,16 @@ type Stats = {
 
 export default function Founder() {
   const toast = useToast();
+  const { user, loading: authLoading, login, logout } = useAuth();
   const [secret, setSecret] = useState(() => getItem(K.FSECRET, true) ?? "");
   const [unlocked, setUnlocked] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  /** فحص الجلسة الحالية جارٍ — يمنع وميض شاشة الدخول أمام المؤسس المسجَّل. */
+  const [probing, setProbing] = useState(true);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showSecret, setShowSecret] = useState(false);
   const [stats, setStats] = useState<Stats | null>(null);
   const [tickets, setTickets] = useState<Ticket[] | null>(null);
   const [restaurants, setRestaurants] = useState<RestaurantRow[] | null>(null);
@@ -63,6 +75,46 @@ export default function Founder() {
     setTickets(ticketRows);
   }, []);
 
+  /**
+   * محاولة صامتة بما هو موجود (جلسة أو سرّ محفوظ).
+   *
+   * لا نسأل الواجهة «هل هذا بريد المؤسس؟» — الدالة وحدها تعرف الجواب، ونسخُ
+   * البريد إلى العميل يكرّر مصدر الحقيقة. نجرّب النداء: نجح ⇒ افتح، فشل ⇒ اعرض
+   * الدخول.
+   */
+  useEffect(() => {
+    if (authLoading) return;
+    let alive = true;
+    if (!user && !getItem(K.FSECRET, true)) {
+      setProbing(false);
+      return;
+    }
+    loadAll()
+      .then(() => alive && setUnlocked(true))
+      .catch(() => {})
+      .finally(() => alive && setProbing(false));
+    return () => {
+      alive = false;
+    };
+  }, [authLoading, user, loadAll]);
+
+  /** دخول ببريد المؤسس — الحساب نفسه الذي يملك المنصة. */
+  async function signIn(e: FormEvent) {
+    e.preventDefault();
+    setError("");
+    setBusy(true);
+    try {
+      await login(email.trim(), password);
+      await loadAll();
+      setUnlocked(true);
+    } catch {
+      setError("البريد أو كلمة المرور غير صحيحة، أو هذا الحساب ليس حساب المؤسس.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  /** المسار الاحتياطي بالسرّ — يبقى حتى يتأكّد المؤسس أن دخول البريد يعمل. */
   async function unlock(e: FormEvent) {
     e.preventDefault();
     setError("");
@@ -110,6 +162,15 @@ export default function Founder() {
     }
   }
 
+  // قاعدة حالات التحميل: لا نعرض جدار الدخول قبل أن تُحسم الجلسة والمحاولة.
+  if (!unlocked && (authLoading || probing)) {
+    return (
+      <div className="flex min-h-dvh items-center justify-center px-5">
+        <Skeleton className="h-40 w-full max-w-sm" />
+      </div>
+    );
+  }
+
   if (!unlocked) {
     return (
       <div className="glow-bg flex min-h-dvh flex-col">
@@ -121,15 +182,32 @@ export default function Founder() {
           <Card className="anim-fade-up w-full max-w-sm p-7 text-center">
             <span className="text-4xl">🛡️</span>
             <h1 className="mt-3 font-display text-xl font-black text-ink">لوحة المؤسس</h1>
-            <p className="mt-1 text-sm text-dim">أدخل سر المؤسس للمتابعة.</p>
-            <form onSubmit={unlock} className="mt-5 flex flex-col gap-3 text-right">
-              <Field label="السر">
+            <p className="mt-1 text-sm text-dim">
+              {user
+                ? "هذا الحساب ليس حساب المؤسس — سجّل الدخول ببريد المؤسس."
+                : "سجّل الدخول ببريد المؤسس."}
+            </p>
+
+            <form onSubmit={signIn} className="mt-5 flex flex-col gap-3 text-right">
+              <Field label="البريد">
+                <Input
+                  type="email"
+                  dir="ltr"
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  required
+                />
+              </Field>
+              <Field label="كلمة المرور">
                 <Input
                   type="password"
                   dir="ltr"
-                  value={secret}
-                  onChange={(e) => setSecret(e.target.value)}
-                  placeholder="••••••••••"
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
                   required
                 />
               </Field>
@@ -138,6 +216,43 @@ export default function Founder() {
                 {busy ? "جارٍ التحقق…" : "دخول"}
               </Button>
             </form>
+
+            {user && (
+              <button
+                onClick={() => {
+                  logout();
+                  setError("");
+                }}
+                className="mt-3 text-xs font-bold text-dim hover:text-ink"
+              >
+                تسجيل الخروج من «{user.email}»
+              </button>
+            )}
+
+            {/* المسار الاحتياطي — مطويّ كي لا يكون هو الطريق المعتاد. */}
+            <details className="mt-5 text-right" open={showSecret}>
+              <summary
+                onClick={() => setShowSecret((v) => !v)}
+                className="cursor-pointer text-center text-xs font-bold text-faint hover:text-dim"
+              >
+                الدخول بسر المؤسس (احتياطي)
+              </summary>
+              <form onSubmit={unlock} className="mt-3 flex flex-col gap-3">
+                <Field label="السر">
+                  <Input
+                    type="password"
+                    dir="ltr"
+                    value={secret}
+                    onChange={(e) => setSecret(e.target.value)}
+                    placeholder="••••••••••"
+                    required
+                  />
+                </Field>
+                <Button type="submit" variant="ghost" disabled={busy} className="w-full">
+                  {busy ? "جارٍ التحقق…" : "دخول بالسر"}
+                </Button>
+              </form>
+            </details>
           </Card>
         </main>
       </div>

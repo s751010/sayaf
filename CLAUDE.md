@@ -26,6 +26,7 @@ app/src/
     site.tsx            Logo / Navbar / Footer / PreviewMenuButton
     menu/MenuHeader.tsx  ترويسة المنيو: قوس/شريط سدو/إطار/ناعم
     menu/DishCard.tsx    بطاقة الطبق بثلاثة تخطيطات (شبكة/قائمة/عرض)
+    menu/DishOfTheDay.tsx بطاقة «طبق اليوم» للطبق المميّز الأول
     menu/ThemePreview.tsx معاينة الطابع المصغّرة في اللوحة
     ImageUploader.tsx   رفع صورة واحدة (يستورد الضغط من lib/image)
     BulkImages.tsx      رفع صور متعدد + ربط كل صورة بطبقها
@@ -47,7 +48,7 @@ app/src/
     session.ts auth.tsx GoTrue بدون SDK + سياق React (+ استعادة كلمة المرور)
     config.ts plans.ts entitlements.ts themes.ts types.ts utils.ts
     allergens.ts hours.ts nutrition.ts options.ts
-    patterns.ts         زخارف SVG مولَّدة (سدو، مشربية، جيري، نخيل، أهلّة)
+    patterns.ts         زخارف SVG (سدو، مشربية، جيري CC0، نخيل، أهلّة)
     seasons.ts          الزينة الموسمية (رمضان/الوطني/التأسيس)
     categories.ts       توحيد أسماء التصنيفات وترتيبها
     image.ts            ضغط الصور (مشترك بين الرافعَين)
@@ -90,7 +91,12 @@ Project ref: `wjqpsbpebpntpeinqccl` · URL في `app/src/lib/config.ts`.
 **دوال RPC مُضافة:** `increment_dish_views` (زيادة ذرّية؛ سياسة `dishes_update`
 تمنع الزائر المجهول من PATCH مباشر) · `is_menu_published` (بوليان لقفل النشر) ·
 `track_menu_view` (موجودة مسبقاً، غير مستخدَمة من الواجهة) ·
-`staff_stamp` و `set_staff_pin` (وضع الكاشير، انظر §8).
+`staff_stamp` و `set_staff_pin` (وضع الكاشير، انظر §8) ·
+`founder_email` (بريد المؤسس — مصدر واحد، انظر §10).
+
+**`is_founder()` صارت `SECURITY DEFINER`** لتقرأ `founder_email()` المحجوبة عن
+`anon` و`authenticated`. لا تُرجعها إلى SQL عادية إلا مع منح EXECUTE على
+`founder_email()` — وإلا انهارت ٤٨ سياسة RLS تعتمد عليها دفعةً واحدة.
 
 **تريجر `guard_client_subscription`** على `subscriptions BEFORE INSERT`:
 يقصر ما يُدرجه العميل على صف `plan_id='trial'` واحد بحد ١٤ يوماً لنفسه.
@@ -102,9 +108,13 @@ Project ref: `wjqpsbpebpntpeinqccl` · URL في `app/src/lib/config.ts`.
 - `restaurants.working_hours` → JSON `{"sat":{"open","from","to"},…}`
   (بيانات إنتاج فعلية) · القارئ في `lib/hours.ts` يتسامح مع النص الحر.
 - `restaurants.category_order` → JSON `["مشاوي","مقبلات",…]` · `lib/categories.ts`.
-- `menus.theme` → معرّف الطابع، أو `طابع:#RRGGBB` لصبغه بلون العلامة، أو
-  `custom:#RRGGBB` (صيغة قديمة تبقى تعمل) · `splitThemeId`/`getTheme` في
-  `lib/themes.ts`. الطابع **ليس لوناً**: يحمل زخرفة وشكل ترويسة وتخطيط أطباق.
+- `menus.theme` → مقاطع مفصولة بـ`:` في عمود نصّي واحد (**لا عمود جديد**):
+  `طابع` · `طابع:#RRGGBB` (لون العلامة) · `طابع:grid|list|showcase` (شكل عرض
+  الأطباق) · `طابع:#RRGGBB:grid` · و`custom:#RRGGBB` صيغة قديمة تبقى تعمل ·
+  `splitThemeId`/`themeIdOf`/`getTheme` في `lib/themes.ts`. التحليل **غير مرتبط
+  بالترتيب**: المقطع الذي يصلح لوناً لون، والمطابق لتخطيط تخطيط، والباقي يُتجاهل
+  بلا انهيار. الطابع **ليس لوناً**: يحمل زخرفة وشكل ترويسة وخطاً وإيقاع مسافات؛
+  و`design.layout` فيه **افتراض** يتجاوزه اختيار التاجر لا قيد.
 - `restaurants.season` → `ramadan` | `national` | `founding` | null · `lib/seasons.ts`.
 - `menus.window_from` / `window_to` → `HH:MM` بتوقيت الرياض (نافذة ظهور
   القائمة، تدعم تجاوز منتصف الليل) · `inTimeWindow` في `lib/hours.ts`.
@@ -221,7 +231,7 @@ cd app && npm run typecheck
 |---|---|---|
 | `cm2_session` | localStorage | الجلسة (GoTrue) |
 | `cm2_theme` | localStorage | الوضع الداكن/الفاتح |
-| `cm_fsecret` | sessionStorage | سر المؤسس — **لا يُضمَّن في الكود أبداً** |
+| `cm_fsecret` | sessionStorage | سر المؤسس الاحتياطي — **لا يُضمَّن في الكود أبداً** (§10) |
 | `cm_table` | sessionStorage | رقم الطاولة من `?table=` |
 | `cm_staff` | sessionStorage | رمز الكاشير + slug مطعمه (لا يبقى على جهاز مشترك) |
 | `cm2_loyalty_<id>` | localStorage | بطاقة ولاء الزبون محلياً |
@@ -252,6 +262,10 @@ cd app && npm run typecheck
   URL Configuration، وإلا رفض GoTrue إعادة التوجيه ولن يعمل الرابط.
 - `Leaked Password Protection` معطّلة في إعدادات Auth (تحذير advisor). تفعيلها
   قرار مالك، ويستحق مع وجود استعادة كلمة المرور الآن.
+- **زخارف `lib/patterns.ts`**: `girih` مشتقّة من ملف **CC0** من OpenClipart
+  (الرابط والرخصة في رأس الملف)، والأربع الباقيات إنشاء أصلي موثَّق. أي زخرفة
+  جديدة تحمل مصدرها ورخصتها فوق دالتها — ولا تُضاف زخرفة برخصة عدوى
+  (CC BY-SA) في منتج تجاري مغلق.
 
 ---
 
@@ -291,3 +305,26 @@ cd app && npm run typecheck
 - عند الدفع لا حاجة لتعطيل صف التجربة: `getActiveSubscription` ترتّب بـ
   `end_date.desc`، والاشتراك المدفوع (٣٠ يوماً فأكثر) يسبق ما تبقّى من التجربة.
 - الحماية في التريجر `guard_client_subscription` (انظر §2).
+
+---
+
+## 10. دخول لوحة المؤسس
+
+الوصول للوحة `/founder` يمرّ من `founder-admin` وحدها، ولها **بوابتان تُقبل
+أيّهما**:
+
+| البوابة | كيف | متى تُستخدم |
+|---|---|---|
+| جلسة بريد المؤسس | `Authorization: Bearer <jwt>` والدالة تسأل `/auth/v1/user` عن البريد وتشترط أنه **مؤكَّد** | المسار المعتاد |
+| `x-founder-secret` | يقارَن بزمن ثابت بـ`FOUNDER_SECRET` (٢٤ محرفاً فأكثر) | احتياطي فقط |
+
+- **بريد المؤسس لا يُكرَّر في الواجهة ولا في الدالة**: مصدره `public.founder_email()`
+  في القاعدة، وهي نفسها التي تقرأها `is_founder()` في سياسات RLS. تغييره تغييرٌ
+  في مكان واحد.
+- الدالة **لا تعيد 503 عند غياب `FOUNDER_SECRET`** بعد الآن: كان الفحص يقع قبل
+  كل شيء فيقفل اللوحة كلها على متغيّر بيئة منسيّ. الآن غيابه يُعطّل المسار
+  الاحتياطي وحده.
+- `Founder.tsx` لا يسأل «هل هذا بريد المؤسس؟» — يجرّب النداء بما لديه: نجح
+  فتحت اللوحة، فشل ظهر الدخول. نسخُ البريد إلى العميل كان سيكرّر مصدر الحقيقة.
+- `FOUNDER_SECRET` **لا يُقرأ برمجياً** من Supabase؛ إن احتجته اضبط قيمة جديدة
+  في Edge Functions → Secrets. ولا يُضمَّن في المستودع ولا في القاعدة إطلاقاً.

@@ -457,32 +457,58 @@ export function buildCustomTheme(hex: string): MenuTheme {
   };
 }
 
+export const LAYOUTS: DishLayout[] = ["grid", "list", "showcase"];
+
+function isLayout(v: string): v is DishLayout {
+  return (LAYOUTS as string[]).includes(v);
+}
+
 /**
  * صيغ `menus.theme` المدعومة — كلها تعيش في عمود نصّي واحد بلا تغيير مخطَّط:
  *
  * | القيمة | المعنى |
  * |---|---|
- * | `najdi` | طابع بألوانه الأصلية |
+ * | `najdi` | طابع بألوانه وتخطيطه الأصليين |
  * | `najdi:#2fa8a0` | نفس الطابع بلون علامة التاجر |
+ * | `najdi:grid` | نفس الطابع لكن بشكل عرض اختاره التاجر |
+ * | `najdi:#2fa8a0:grid` | طابع + لون + شكل عرض |
  * | `custom:#hex` | صيغة قديمة — تبقى تعمل كما كانت تماماً |
  * | `dark-gold` … | الثيمات الثمانية القديمة عبر `ALIASES` |
+ *
+ * التحليل **غير مرتبط بترتيب** المقاطع: المقطع الذي يصلح لوناً لون، والمطابق
+ * لأحد `grid|list|showcase` تخطيط، والأول اسم الطابع. هكذا لا تنكسر أي قيمة
+ * مخزَّنة اليوم مهما كان ترتيب ما يُكتب لاحقاً.
  */
 export function splitThemeId(id: string | null | undefined): {
   base: string | null;
   hex: string | null;
+  layout: DishLayout | null;
 } {
-  if (!id) return { base: null, hex: null };
+  if (!id) return { base: null, hex: null, layout: null };
   const legacy = customHexOf(id);
-  if (legacy) return { base: null, hex: legacy };
-  const at = id.indexOf(":");
-  if (at < 0) return { base: id, hex: null };
-  const hex = id.slice(at + 1);
-  return { base: id.slice(0, at), hex: isHex(hex) ? normalizeHex(hex) : null };
+  if (legacy) return { base: null, hex: legacy, layout: null };
+
+  const [base, ...rest] = id.split(":");
+  let hex: string | null = null;
+  let layout: DishLayout | null = null;
+  for (const part of rest) {
+    const p = part.trim();
+    if (!hex && isHex(p)) hex = normalizeHex(p);
+    else if (!layout && isLayout(p)) layout = p;
+  }
+  return { base: base || null, hex, layout };
 }
 
-/** يبني معرّف التخزين من طابع ولون اختياري. */
-export function themeIdOf(base: string, hex?: string | null): string {
-  return hex && isHex(hex) ? `${base}:${normalizeHex(hex)}` : base;
+/** يبني معرّف التخزين من طابع ولون وشكل عرض اختياريين. */
+export function themeIdOf(
+  base: string,
+  hex?: string | null,
+  layout?: DishLayout | null
+): string {
+  let id = base;
+  if (hex && isHex(hex)) id += `:${normalizeHex(hex)}`;
+  if (layout && isLayout(layout)) id += `:${layout}`;
+  return id;
 }
 
 /**
@@ -506,11 +532,31 @@ function tintTheme(theme: MenuTheme, hex: string): MenuTheme {
   };
 }
 
+/**
+ * يبدّل شكل عرض الأطباق دون المساس ببقية الطابع.
+ *
+ * `design.layout` صار **افتراضاً** لا قيداً: التاجر الذي يحبّ ألوان «الحصري»
+ * ويريد مربّعات بدل القائمة يملك الخيار، وباقي شخصية الطابع (الزخرفة، شكل
+ * الترويسة، الخط، الإيقاع) تبقى كما صُمّمت.
+ */
+function withLayout(theme: MenuTheme, layout: DishLayout): MenuTheme {
+  if (theme.design.layout === layout) return theme;
+  return {
+    ...theme,
+    id: themeIdOf(theme.id, null, layout),
+    design: { ...theme.design, layout },
+  };
+}
+
 export function getTheme(id: string | null | undefined): MenuTheme {
-  const { base, hex } = splitThemeId(id);
+  const { base, hex, layout } = splitThemeId(id);
   // صيغة قديمة `custom:#hex` بلا طابع — تبقى كما كانت.
-  if (!base) return hex ? buildCustomTheme(hex) : DEFAULT_THEME;
+  if (!base) {
+    const legacy = hex ? buildCustomTheme(hex) : DEFAULT_THEME;
+    return layout ? withLayout(legacy, layout) : legacy;
+  }
   const key = ALIASES[base] ?? base;
-  const theme = ALL_THEMES.find((t) => t.id === key) ?? DEFAULT_THEME;
-  return hex ? tintTheme(theme, hex) : theme;
+  const found = ALL_THEMES.find((t) => t.id === key) ?? DEFAULT_THEME;
+  const theme = hex ? tintTheme(found, hex) : found;
+  return layout ? withLayout(theme, layout) : theme;
 }

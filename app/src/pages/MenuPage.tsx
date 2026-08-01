@@ -14,7 +14,7 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import { Logo } from "@/components/site";
 import { SafeImage, Skeleton } from "@/components/ui";
 import { MenuHeader } from "@/components/menu/MenuHeader";
-import { DishCard } from "@/components/menu/DishCard";
+import { DishCard, type CardReserve } from "@/components/menu/DishCard";
 import { DishOfTheDay } from "@/components/menu/DishOfTheDay";
 import { parseOptions } from "@/lib/options";
 import { displayAllergens } from "@/lib/allergens";
@@ -153,6 +153,23 @@ function MenuSheet({
 
 /* ── عنوان القسم حسب الطابع ───────────────────────────────────────── */
 /** التباعد يأتي من `RHYTHM` لا من هنا — سلّم واحد لكل الصفحة. */
+/**
+ * ما يُحجز مكانه في كل بطاقات القسم — يُحسب مرة للقسم لا لكل بطاقة.
+ *
+ * البطاقات في الصف الواحد تتساوى تلقائياً، لكن **الصفوف تختلف**: صف أطباقه بلا
+ * وصف يقصر عن صف أطباقه بوصف سطرين، فتقع الأسعار على خطوط مختلفة وتُقرأ الشبكة
+ * مهزوزة. الحجز على مستوى القسم يوحّد الارتفاع دون أن يفرض فراغاً على قسم لا
+ * وصف فيه أصلاً.
+ */
+function sectionReserve(dishes: Dish[], en: boolean): CardReserve {
+  return {
+    desc: dishes.some((d) =>
+      (en && d.description_en ? d.description_en : d.description)?.trim()
+    ),
+    meta: dishes.some((d) => d.calories != null || !!d.allergens?.length),
+  };
+}
+
 const LAYOUT_CLASS: Record<DishLayout, string> = {
   grid: "grid grid-cols-2 sm:grid-cols-3",
   list: "flex flex-col",
@@ -1033,6 +1050,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
                     dish={d}
                     en={en}
                     layout={design.layout}
+                    reserve={sectionReserve(cat.dishes, en)}
                     onOpen={() => { setOpenDish(d); if (!demo && !preview) trackDishView(d, { table, lang }); }}
                   />
                 ))}

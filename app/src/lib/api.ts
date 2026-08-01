@@ -112,8 +112,12 @@ export async function uploadImage(
 }
 
 /**
- * لوحة المؤسس عبر `functions/v1/founder-admin` — نفس عقد النسخة الأصلية:
- * body = { table, method, query, body } وترويسة `x-founder-secret` من sessionStorage.
+ * لوحة المؤسس عبر `functions/v1/founder-admin` — العقد نفسه:
+ * body = { table, method, query, body }.
+ *
+ * الدالة تقبل **بوابتين**، فنرسل ما نملك منهما:
+ * - جلسة المؤسس (`Authorization`) — المسار المفضَّل، بلا سرّ يُحفظ في المتصفح.
+ * - `x-founder-secret` — يبقى احتياطياً لمن دخل به من قبل.
  */
 export async function founderAdmin<T>(
   pathQuery: string,
@@ -122,11 +126,13 @@ export async function founderAdmin<T>(
   const table = pathQuery.split(/[?#]/)[0];
   const query = pathQuery.slice(table.length);
   const secret = getItem(K.FSECRET, true) ?? "";
+  const token = await getAccessToken().catch(() => null);
   const res = await fetch(`${SUPABASE_URL}/functions/v1/founder-admin`, {
     method: "POST",
     headers: {
       apikey: SUPABASE_ANON_KEY,
-      "x-founder-secret": secret,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(secret ? { "x-founder-secret": secret } : {}),
       "Content-Type": "application/json",
     },
     body: JSON.stringify({

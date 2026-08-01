@@ -40,12 +40,12 @@ export function DishOfTheDay({
       <SafeImage
         src={dish.image}
         alt={name}
-        className="h-28 w-28 shrink-0 object-cover sm:h-36 sm:w-40"
-        wrapperClassName="h-28 w-28 shrink-0 text-4xl sm:h-36 sm:w-40"
+        className="h-28 w-28 shrink-0 object-cover sm:h-40 sm:w-40"
+        wrapperClassName="h-28 w-28 shrink-0 text-4xl sm:h-40 sm:w-40"
         style={{ background: "var(--m-bg-2)" } as CSSProperties}
         fallback={
           <div
-            className="flex h-28 w-28 items-center justify-center text-4xl sm:h-36 sm:w-40"
+            className="flex h-28 w-28 items-center justify-center text-4xl sm:h-40 sm:w-40"
             style={{ background: "var(--m-bg-2)" } as CSSProperties}
           >
             {dish.emoji ?? "🍽"}

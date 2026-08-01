@@ -15,7 +15,7 @@ import { SafeImage } from "@/components/ui";
 import { displayAllergens } from "@/lib/allergens";
 import type { DishLayout } from "@/lib/themes";
 import type { Dish } from "@/lib/types";
-import { formatPrice } from "@/lib/utils";
+import { cn, formatPrice } from "@/lib/utils";
 
 const mFont: CSSProperties = { fontFamily: "var(--m-font)" };
 
@@ -63,21 +63,69 @@ function Allergens({ dish, en }: { dish: Dish; en: boolean }) {
 function Calories({ dish, en }: { dish: Dish; en: boolean }) {
   if (dish.calories == null) return null;
   return (
-    <span className="text-[10px]" style={{ color: "var(--m-muted)" }}>
+    <span className="whitespace-nowrap text-[10px]" style={{ color: "var(--m-muted)" }}>
       🔥 {dish.calories} {en ? "cal" : "سعرة"}
     </span>
   );
+}
+
+/**
+ * سطر التفاصيل الثانوية — **بارتفاع ثابت لا يتبع محتواه**.
+ *
+ * كان مع السعر في صفٍّ واحد، فبطاقة تحمل حساسية وسعرات معاً تفيض عن عرض
+ * البطاقة على الجوال فيلتفّ نصّ السعرات سطرين — وهذا وحده كان يجعل بطاقات
+ * الشبكة تختلف ٢٠ بكسل بلا سبب ظاهر للتاجر. `h-4` مع `overflow-hidden`
+ * و`flex-nowrap` تجعل الارتفاع ثابتاً مهما كان المحتوى.
+ */
+function MetaRow({ dish, en, reserve }: { dish: Dish; en: boolean; reserve: boolean }) {
+  const has = !!displayAllergens(dish.allergens, en).length || dish.calories != null;
+  if (!has && !reserve) return null;
+  return (
+    <span className="flex h-4 flex-nowrap items-center gap-1.5 overflow-hidden opacity-80">
+      <Allergens dish={dish} en={en} />
+      <Calories dish={dish} en={en} />
+    </span>
+  );
+}
+
+/**
+ * ارتفاعات محجوزة — سببها انضباط الشبكة لا التجميل.
+ *
+ * البطاقات في الصف الواحد تتساوى تلقائياً (grid + `h-full`)، لكن **الصفوف
+ * تختلف**: صف أطباقه بلا وصف يقصر عن صف أطباقه بوصف سطرين، فتظهر الأسعار على
+ * خطوط مختلفة وتُقرأ الشبكة مهزوزة. حجز سطرين للاسم وسطرين للوصف يجعل كل
+ * البطاقات في الصفحة بارتفاع واحد.
+ *
+ * القيم بـ`em` (نسبة إلى حجم خط العنصر نفسه) = عدد الأسطر × `line-height`:
+ * الاسم `text-sm` بـ`leading-snug` (1.375) ⇒ 2.75em · الوصف `text-xs` بـ
+ * `leading-relaxed` (1.625) ⇒ 3.25em.
+ */
+const NAME_2_LINES = "line-clamp-2 min-h-[2.75em]";
+const DESC_2_LINES = "line-clamp-2 min-h-[3.25em]";
+
+/**
+ * ما يجب حجز مكانه في **كل** بطاقات القسم.
+ *
+ * تحسبها `MenuPage` مرة لكل قسم: إن حمل أي طبق وصفاً حُجز سطرا الوصف للجميع،
+ * وإن حمل أي طبق حساسية أو سعرات حُجز سطرها للجميع. وقسمٌ لا شيء فيه من ذلك
+ * (المشروبات غالباً) يبقى مضغوطاً بلا فراغ محجوز لا شيء فيه.
+ */
+export interface CardReserve {
+  desc: boolean;
+  meta: boolean;
 }
 
 export function DishCard({
   dish,
   en,
   layout,
+  reserve,
   onOpen,
 }: {
   dish: Dish;
   en: boolean;
   layout: DishLayout;
+  reserve?: CardReserve;
   onOpen: () => void;
 }) {
   const surface: CSSProperties = {
@@ -139,12 +187,15 @@ export function DishCard({
     );
   }
 
+  const showDesc = !!desc(dish, en) || !!reserve?.desc;
+  const meta = <MetaRow dish={dish} en={en} reserve={!!reserve?.meta} />;
+
   /* ── عرض بصورة كبيرة ───────────────────────────────────────────────── */
   if (layout === "showcase") {
     return (
       <button
         onClick={onOpen}
-        className="group flex w-full flex-col overflow-hidden border text-start transition-transform hover:-translate-y-0.5"
+        className="group flex h-full w-full flex-col overflow-hidden border text-start transition-transform hover:-translate-y-0.5"
         style={surface}
       >
         <SafeImage
@@ -162,22 +213,25 @@ export function DishCard({
             </div>
           }
         />
-        <div className="flex flex-col gap-1.5 p-4">
-          <div className="flex items-baseline justify-between gap-3">
-            <p className="text-base font-bold" style={{ color: "var(--m-text)", ...mFont }}>
-              {name(dish, en)}
-              {dish.featured && <span style={{ color: "var(--m-accent)" }}> ★</span>}
-            </p>
-            <Price dish={dish} big />
-          </div>
-          {desc(dish, en) && (
-            <p className="line-clamp-2 text-xs leading-relaxed" style={{ color: "var(--m-muted)" }}>
+        <div className="flex flex-1 flex-col gap-1.5 p-4">
+          {/* الاسم والسعر ليسا في صفٍّ بمحاذاة خط القاعدة: اسم يلتفّ سطرين
+              يزيح خط القاعدة فينزل معه السعر، فتختلف مواضع الأسعار بين
+              البطاقات. الاسم كتلة محجوزة، والسعر على سطر أسفل ثابت. */}
+          <p
+            className={cn(NAME_2_LINES, "text-base font-bold leading-snug")}
+            style={{ color: "var(--m-text)", ...mFont }}
+          >
+            {name(dish, en)}
+            {dish.featured && <span style={{ color: "var(--m-accent)" }}> ★</span>}
+          </p>
+          {showDesc && (
+            <p className={cn(DESC_2_LINES, "text-xs leading-relaxed")} style={{ color: "var(--m-muted)" }}>
               {desc(dish, en)}
             </p>
           )}
-          <div className="flex items-center gap-2 pt-0.5">
-            <Allergens dish={dish} en={en} />
-            <Calories dish={dish} en={en} />
+          <div className="mt-auto flex items-center justify-between gap-3 pt-1">
+            <span className="min-w-0 flex-1">{meta}</span>
+            <Price dish={dish} big />
           </div>
         </div>
       </button>
@@ -191,15 +245,17 @@ export function DishCard({
       className="group flex h-full flex-col overflow-hidden border text-start transition-transform hover:-translate-y-0.5"
       style={surface}
     >
+      {/* مربّع تماماً: صور التجّار تأتي بأبعاد شتّى، و`object-cover` على نسبة
+          واحدة يجعلها كلها بحجم واحد. الرافع يضغط بـ`square` أصلاً. */}
       <SafeImage
         src={dish.image}
         alt={name(dish, en)}
-        className="h-32 w-full object-cover sm:h-36"
-        wrapperClassName="h-32 w-full text-5xl sm:h-36"
+        className="aspect-square w-full object-cover"
+        wrapperClassName="aspect-square w-full text-5xl"
         style={{ background: "var(--m-bg-2)" } as CSSProperties}
         fallback={
           <div
-            className="flex h-32 w-full items-center justify-center text-5xl sm:h-36"
+            className="flex aspect-square w-full items-center justify-center text-5xl"
             style={{ background: "var(--m-bg-2)" } as CSSProperties}
           >
             {dish.emoji ?? "🍽"}
@@ -207,23 +263,24 @@ export function DishCard({
         }
       />
       <div className="flex flex-1 flex-col gap-1 p-3">
-        <p className="text-sm font-bold leading-snug" style={{ color: "var(--m-text)", ...mFont }}>
+        <p
+          className={cn(NAME_2_LINES, "text-sm font-bold leading-snug")}
+          style={{ color: "var(--m-text)", ...mFont }}
+        >
           {name(dish, en)}
           {dish.featured && <span style={{ color: "var(--m-accent)" }}> ★</span>}
         </p>
-        {desc(dish, en) && (
-          <p className="line-clamp-2 text-xs leading-relaxed" style={{ color: "var(--m-muted)" }}>
+        {showDesc && (
+          <p className={cn(DESC_2_LINES, "text-xs leading-relaxed")} style={{ color: "var(--m-muted)" }}>
             {desc(dish, en)}
           </p>
         )}
-        {/* سطر ميتا واحد: السعر في طرف، والتفاصيل الثانوية في الآخر.
-            كانا صفّين منفصلين فتنافست خمسة عناصر على انتباه واحد. */}
-        <div className="mt-auto flex items-center justify-between gap-2 pt-2">
+        {/* التفاصيل الثانوية ثم السعر — سطران بارتفاع محسوم لا يتبع المحتوى.
+            كانا في صفّ واحد فيفيض عن عرض البطاقة على الجوال ويلتفّ، والسعر
+            وحده على سطره أسهل مسحاً بالعين نزولاً في عمود واحد. */}
+        <div className="mt-auto flex flex-col gap-1 pt-2">
+          {meta}
           <Price dish={dish} />
-          <span className="flex items-center gap-1.5 opacity-80">
-            <Allergens dish={dish} en={en} />
-            <Calories dish={dish} en={en} />
-          </span>
         </div>
       </div>
     </button>

@@ -31,11 +31,47 @@ import {
   isHex,
   splitThemeId,
   themeIdOf,
+  type DishLayout,
 } from "@/lib/themes";
 import { ThemePreview } from "@/components/menu/ThemePreview";
 import { cn } from "@/lib/utils";
 import type { Menu } from "@/lib/types";
 import { useDashboard } from "./Dashboard";
+
+/**
+ * خيارات شكل العرض. `null` = «اترك افتراضي الطابع» — وهو خيار حقيقي لا غياب
+ * خيار: التاجر الذي جرّب ثم ندم يعود لأصل الطابع بضغطة واحدة.
+ */
+const LAYOUT_OPTIONS: { value: DishLayout | null; label: string; hint: string }[] = [
+  { value: null, label: "افتراضي الطابع", hint: "كما صُمّم" },
+  { value: "grid", label: "مربّعات", hint: "بطاقتان بالصف" },
+  { value: "list", label: "قائمة", hint: "أنيقة بلا صور كبيرة" },
+  { value: "showcase", label: "صور كبيرة", hint: "للكافيهات" },
+];
+
+/** رسم مصغّر لشكل العرض — الاختيار بالعين لا بقراءة الاسم. */
+function LayoutGlyph({ value }: { value: DishLayout | null }) {
+  const box = "rounded-[3px] bg-dim/35";
+  if (value === null)
+    return <span className="block text-center text-lg leading-6">✨</span>;
+  if (value === "list")
+    return (
+      <span className="mx-auto flex h-6 w-16 flex-col justify-center gap-1">
+        {[0, 1, 2].map((i) => (
+          <span key={i} className={cn(box, "h-1")} />
+        ))}
+      </span>
+    );
+  if (value === "showcase")
+    return <span className={cn(box, "mx-auto block h-6 w-16")} />;
+  return (
+    <span className="mx-auto grid h-6 w-16 grid-cols-2 gap-1">
+      {[0, 1, 2, 3].map((i) => (
+        <span key={i} className={cn(box, "h-[10px]")} />
+      ))}
+    </span>
+  );
+}
 
 export default function Menus() {
   const { user, restaurant, setRestaurant, menus, refreshMenus, ent } = useDashboard();
@@ -55,6 +91,8 @@ export default function Menus() {
     () => parsedTheme.hex ?? restaurant.cover_color ?? "#d4a843"
   );
   const [useBrand, setUseBrand] = useState(() => parsedTheme.hex !== null);
+  /** شكل العرض المختار — `null` يعني «اترك افتراضي الطابع». */
+  const activeLayout = parsedTheme.layout;
 
   useEffect(() => {
     document.title = "القوائم — كلاود منيو";
@@ -276,13 +314,17 @@ export default function Menus() {
             return (
               <button
                 key={t.id}
-                onClick={() => pickTheme(themeIdOf(t.id, useBrand ? brandHex : null))}
+                onClick={() =>
+                  pickTheme(themeIdOf(t.id, useBrand ? brandHex : null, activeLayout))
+                }
                 className={cn(
                   "overflow-hidden rounded-2xl border-2 text-start transition-transform hover:scale-[1.02]",
                   on ? "border-gold" : "border-line"
                 )}
               >
-                <ThemePreview theme={getTheme(themeIdOf(t.id, useBrand ? brandHex : null))} />
+                <ThemePreview
+                  theme={getTheme(themeIdOf(t.id, useBrand ? brandHex : null, activeLayout))}
+                />
                 <div className={cn("px-3 py-2", on ? "bg-gold/10" : "bg-panel")}>
                   <p className={cn("text-xs font-bold", on ? "text-gold" : "text-ink")}>
                     {t.name} {on && "✓"}
@@ -293,6 +335,38 @@ export default function Menus() {
             );
           })}
         </div>
+
+        {/* شكل عرض الأطباق — يُطبَّق فوق الطابع المختار ولا يُلغي شخصيته. */}
+        <Card className="mt-4">
+          <p className="text-sm font-bold text-ink">🗂️ شكل عرض الأطباق</p>
+          <p className="mt-1 text-xs text-dim">
+            لكل طابع شكله الافتراضي، لكن الاختيار لك: زخرفة الطابع وترويسته وخطّه
+            تبقى كما هي ويتغيّر شكل البطاقات وحده.
+          </p>
+          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {LAYOUT_OPTIONS.map((o) => {
+              const on = activeLayout === o.value;
+              return (
+                <button
+                  key={o.label}
+                  onClick={() =>
+                    pickTheme(themeIdOf(activeBase, useBrand ? brandHex : null, o.value))
+                  }
+                  className={cn(
+                    "rounded-xl border-2 px-2 py-2.5 text-center transition-colors",
+                    on ? "border-gold bg-gold/10" : "border-line bg-panel2 hover:border-gold/40"
+                  )}
+                >
+                  <LayoutGlyph value={o.value} />
+                  <p className={cn("mt-1.5 text-[11px] font-bold", on ? "text-gold" : "text-ink")}>
+                    {o.label} {on && "✓"}
+                  </p>
+                  <p className="mt-0.5 text-[10px] leading-snug text-faint">{o.hint}</p>
+                </button>
+              );
+            })}
+          </div>
+        </Card>
 
         {/* لون العلامة يُطبَّق **على الطابع** لا بديلاً عنه. */}
         <Card className="mt-4">
@@ -323,7 +397,7 @@ export default function Menus() {
                   aria-label="كود اللون"
                 />
                 <Button
-                  onClick={() => pickTheme(themeIdOf(activeBase, brandHex))}
+                  onClick={() => pickTheme(themeIdOf(activeBase, brandHex, activeLayout))}
                   disabled={!isHex(brandHex)}
                 >
                   طبّق اللون على «{getTheme(activeBase).name}»
@@ -345,7 +419,7 @@ export default function Menus() {
             {THEMES.map((t) => (
               <button
                 key={t.id}
-                onClick={() => pickTheme(t.id)}
+                onClick={() => pickTheme(themeIdOf(t.id, null, activeLayout))}
                 className={cn(
                   "overflow-hidden rounded-2xl border-2 text-right transition-transform hover:scale-[1.02]",
                   activeBase === t.id ? "border-gold" : "border-line"
