@@ -11,6 +11,7 @@ import {
   getAccessToken,
   loadSession,
   onSessionChange,
+  requestPasswordReset,
   signInWithPassword,
   signOut as sessionSignOut,
   signUp as sessionSignUp,
@@ -24,6 +25,8 @@ interface AuthContextValue {
   login: (email: string, password: string) => Promise<void>;
   /** يعيد true إن اكتمل الدخول، وfalse إن كان تأكيد البريد مطلوباً. */
   signup: (email: string, password: string, name: string) => Promise<boolean>;
+  /** يرسل رابط استعادة كلمة المرور إلى البريد. */
+  resetPassword: (email: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -61,13 +64,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return Boolean(s);
   }, []);
 
+  const resetPassword = useCallback(async (email: string) => {
+    await requestPasswordReset(email);
+  }, []);
+
   const logout = useCallback(() => {
     sessionSignOut();
     setUser(null);
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, signup, logout }}>
+    <AuthContext.Provider
+      value={{ user, loading, login, signup, resetPassword, logout }}
+    >
       {children}
     </AuthContext.Provider>
   );

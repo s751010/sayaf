@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import QRCode from "qrcode";
 import { Button, Card, ErrorNote, Field, Input, useToast } from "@/components/ui";
+import { PreviewMenuButton } from "@/components/site";
 import { useDashboard } from "./Dashboard";
 
 function download(href: string, filename: string) {
@@ -114,8 +115,14 @@ export default function Qr() {
 
   return (
     <div>
-      <h1 className="font-display text-2xl font-black text-ink">أكواد QR</h1>
-      <p className="mt-1 text-sm text-dim">ولّد كود منيوك، أو كوداً خاصاً لكل طاولة.</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="font-display text-2xl font-black text-ink">أكواد QR</h1>
+          <p className="mt-1 text-sm text-dim">ولّد كود منيوك، أو كوداً خاصاً لكل طاولة.</p>
+        </div>
+        {/* عاين قبل الطباعة لا بعدها — الطباعة خطوة لا رجعة فيها عملياً. */}
+        <PreviewMenuButton slug={slug} label="عاين قبل الطباعة" />
+      </div>
 
       <div className="mt-6 grid gap-5 md:grid-cols-2">
         <Card className="flex flex-col gap-4">

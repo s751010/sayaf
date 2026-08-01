@@ -105,6 +105,68 @@ export function signOut() {
   clearSession();
 }
 
+/* ── استعادة كلمة المرور ──────────────────────────────────────────── */
+
+/** المسار الذي يعود إليه رابط الاستعادة. */
+export const RESET_PATH = "/reset-password";
+
+/**
+ * يرسل رابط استعادة إلى البريد.
+ *
+ * ⚠️ خطوة إعداد لازمة خارج الكود: يجب أن يكون
+ * `<origin>/reset-password` مُدرجاً في Redirect URLs بلوحة Supabase
+ * (Authentication → URL Configuration)، وإلا رفض GoTrue إعادة التوجيه.
+ *
+ * لا تكشف الدالة ما إذا كان البريد مسجّلاً — الواجهة تعرض رسالة محايدة دائماً.
+ */
+export async function requestPasswordReset(email: string): Promise<void> {
+  const redirect = encodeURIComponent(`${window.location.origin}${RESET_PATH}`);
+  await gotrue(`recover?redirect_to=${redirect}`, { email });
+}
+
+/**
+ * يضبط كلمة مرور جديدة باستخدام رمز الاستعادة القادم في hash الرابط.
+ *
+ * `PUT auth/v1/user` لا يمرّ من `gotrue` لأنها POST-only وبلا رأس Authorization.
+ */
+export async function updatePassword(
+  accessToken: string,
+  password: string
+): Promise<SessionUser> {
+  const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+    method: "PUT",
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ password }),
+  });
+  const data = (await res.json().catch(() => ({}))) as GoTrueTokenResponse & SessionUser;
+  if (!res.ok) {
+    throw new Error(data.error_description || data.msg || data.error || `auth ${res.status}`);
+  }
+  return data;
+}
+
+/**
+ * يحفظ جلسة مبنيّة من رموز رابط الاستعادة، فيهبط التاجر داخل لوحته مباشرة
+ * بعد تغيير كلمة السر بدل أن يُطلب منه الدخول من جديد.
+ */
+export function adoptSession(
+  accessToken: string,
+  refreshToken: string,
+  user: SessionUser,
+  expiresIn = 3600
+) {
+  saveSession({
+    access_token: accessToken,
+    refresh_token: refreshToken,
+    expires_at: Math.floor(Date.now() / 1000) + expiresIn,
+    user,
+  });
+}
+
 let refreshing: Promise<Session | null> | null = null;
 
 async function refresh(current: Session): Promise<Session | null> {

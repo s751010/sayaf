@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Badge, Card, Skeleton, useToast } from "@/components/ui";
+import { PreviewMenuButton } from "@/components/site";
 import { getMyAnalytics, getMyDishes } from "@/lib/data";
 import { formatPrice } from "@/lib/utils";
 import { SITE_URL } from "@/lib/config";
@@ -80,14 +81,10 @@ export default function Overview() {
               >
                 📋 نسخ
               </button>
-              <a
-                href={publicUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded-xl bg-gold px-4 py-2 text-sm font-bold text-on-gold hover:bg-gold2"
-              >
-                فتح المنيو ↗
-              </a>
+              <PreviewMenuButton
+                slug={restaurant.slug}
+                className="border-transparent bg-gold text-on-gold hover:bg-gold2"
+              />
             </>
           )}
         </div>

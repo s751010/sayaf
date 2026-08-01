@@ -14,6 +14,7 @@ import {
   Switch,
   useToast,
 } from "@/components/ui";
+import { PreviewMenuButton } from "@/components/site";
 import {
   applyThemeToAllMenus,
   countMenus,
@@ -139,7 +140,10 @@ export default function Menus() {
             {menus === null ? "…" : menus.length} قائمة
           </p>
         </div>
-        <Button onClick={() => setAdding(true)}>＋ قائمة جديدة</Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <PreviewMenuButton slug={restaurant.slug} />
+          <Button onClick={() => setAdding(true)}>＋ قائمة جديدة</Button>
+        </div>
       </div>
 
       <div className="mt-6 flex flex-col gap-3">

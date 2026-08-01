@@ -8,59 +8,16 @@
  */
 import { useRef, useState } from "react";
 import { uploadImage, type Bucket } from "@/lib/api";
+import {
+  ACCEPT,
+  TARGET_KB,
+  compress,
+  imageFileError,
+  uniqueName,
+  type ImageShape,
+} from "@/lib/image";
 import { cn } from "@/lib/utils";
 import { Spinner } from "@/components/ui";
-
-/** أقصى بُعد بالبكسل حسب شكل الصورة — أكبر من ذلك هدر خالص على شاشة جوال. */
-const MAX_EDGE = { square: 900, wide: 1400 } as const;
-const TARGET_KB = 300;
-const ACCEPT = "image/jpeg,image/png,image/webp";
-
-/** يصغّر الصورة ويضغطها، ويختار بين webp و jpeg أيهما أصغر. */
-async function compress(file: File, shape: keyof typeof MAX_EDGE): Promise<Blob> {
-  const url = URL.createObjectURL(file);
-  try {
-    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
-      const el = new Image();
-      el.onload = () => resolve(el);
-      el.onerror = () => reject(new Error("تعذّرت قراءة الصورة."));
-      el.src = url;
-    });
-
-    const max = MAX_EDGE[shape];
-    const scale = Math.min(1, max / Math.max(img.width, img.height));
-    const w = Math.max(1, Math.round(img.width * scale));
-    const h = Math.max(1, Math.round(img.height * scale));
-
-    const canvas = document.createElement("canvas");
-    canvas.width = w;
-    canvas.height = h;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) throw new Error("تعذّرت معالجة الصورة في هذا المتصفح.");
-    ctx.drawImage(img, 0, 0, w, h);
-
-    const encode = (type: string, q: number) =>
-      new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, type, q));
-
-    // نخفّض الجودة تدريجياً حتى نقترب من الحجم الهدف.
-    let best: Blob | null = null;
-    for (const q of [0.82, 0.7, 0.6, 0.5]) {
-      const [webp, jpeg] = await Promise.all([encode("image/webp", q), encode("image/jpeg", q)]);
-      const candidates = [webp, jpeg].filter((b): b is Blob => !!b);
-      if (!candidates.length) break;
-      best = candidates.reduce((a, b) => (a.size <= b.size ? a : b));
-      if (best.size <= TARGET_KB * 1024) break;
-    }
-    if (!best) throw new Error("تعذّر ضغط الصورة.");
-    return best;
-  } finally {
-    URL.revokeObjectURL(url);
-  }
-}
-
-function extFor(blob: Blob) {
-  return blob.type === "image/webp" ? "webp" : "jpg";
-}
 
 export function ImageUploader({
   value,
@@ -75,7 +32,7 @@ export function ImageUploader({
   bucket: Bucket;
   /** بادئة مسار داخل الحاوية، مثل `<restaurantId>/dishes`. */
   pathPrefix: string;
-  shape?: keyof typeof MAX_EDGE;
+  shape?: ImageShape;
   label?: string;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -86,20 +43,12 @@ export function ImageUploader({
   async function pick(file: File | undefined) {
     if (!file) return;
     setError(null);
-    if (!file.type.startsWith("image/")) {
-      setError("اختر ملف صورة (JPG أو PNG أو WebP).");
-      return;
-    }
-    // سقف أوّلي قبل الضغط — يمنع تعليق المتصفح على ملف ضخم.
-    if (file.size > 15 * 1024 * 1024) {
-      setError("الصورة كبيرة جداً (أكثر من 15 ميغابايت).");
-      return;
-    }
+    const invalid = imageFileError(file);
+    if (invalid) return setError(invalid);
     setBusy(true);
     try {
       const blob = await compress(file, shape);
-      const name = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${extFor(blob)}`;
-      const url = await uploadImage(bucket, `${pathPrefix}/${name}`, blob);
+      const url = await uploadImage(bucket, `${pathPrefix}/${uniqueName(blob)}`, blob);
       setBroken(false);
       onChange(url);
     } catch (e) {

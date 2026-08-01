@@ -17,6 +17,7 @@ const Dashboard = lazy(() => import("@/pages/dashboard/Dashboard"));
 const Founder = lazy(() => import("@/pages/Founder"));
 const Demo = lazy(() => import("@/pages/Demo"));
 const Help = lazy(() => import("@/pages/Help"));
+const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 
 function PageLoader() {
   return (
@@ -40,6 +41,8 @@ export default function App() {
                 <Route path="/blog" element={<Blog />} />
                 <Route path="/blog/:slug" element={<BlogPostPage />} />
                 <Route path="/login" element={<Login />} />
+                {/* قبل `/:slug` — مسار ثابت لا يجوز أن يلتقطه slug مطعم. */}
+                <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/dashboard/*" element={<Dashboard />} />
                 <Route path="/founder" element={<Founder />} />
                 {/* slug المطعم — يلتقط أي مسار من مستوى واحد.

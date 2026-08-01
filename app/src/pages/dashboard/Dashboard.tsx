@@ -8,7 +8,7 @@ import {
   type FormEvent,
 } from "react";
 import { Link, NavLink, Navigate, Route, Routes, useNavigate } from "react-router-dom";
-import { Logo } from "@/components/site";
+import { Logo, PreviewMenuButton } from "@/components/site";
 import {
   Badge,
   Button,
@@ -180,6 +180,7 @@ function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode
       <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col border-l border-line bg-panel px-3 py-5 lg:flex">
         <Link to="/" className="mb-6 px-2"><Logo /></Link>
         <nav className="flex flex-1 flex-col gap-1">{links(false)}</nav>
+        <PreviewMenuButton slug={ctx.restaurant.slug} className="mt-3 justify-center" />
         <div className="mt-4 border-t border-line pt-4">
           <div className="mb-3 flex items-center justify-between px-2">
             <Badge variant={ctx.ent.active ? "gold" : "neutral"}>
@@ -203,6 +204,11 @@ function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode
           <div className="flex h-14 items-center justify-between px-4">
             <Link to="/"><Logo /></Link>
             <div className="flex items-center gap-2">
+              <PreviewMenuButton
+                slug={ctx.restaurant.slug}
+                label="معاينة"
+                className="px-2.5 py-1.5 text-xs"
+              />
               <ThemeToggle />
               <button
                 onClick={() => { logout(); navigate("/"); }}

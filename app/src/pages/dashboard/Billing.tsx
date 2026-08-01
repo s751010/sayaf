@@ -1,5 +1,6 @@
 /** الاشتراك والفوترة — الباقات + الدفع عبر Moyasar (مدى/بطاقات/Apple Pay/STC Pay). */
 import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { Badge, Button, Card, ErrorNote, useToast } from "@/components/ui";
 import { MOYASAR_PK } from "@/lib/config";
 import { getActiveSubscription } from "@/lib/data";
@@ -125,6 +126,14 @@ export default function Billing() {
           <p className="mt-4 text-center text-xs text-faint">
             مدفوعات آمنة عبر Moyasar — مدى، بطاقات، Apple Pay، STC Pay.
           </p>
+          {/* التاجر لا يدفع لمنصة بلا سياسة إلغاء واسترجاع مكتوبة يرجع إليها. */}
+          <p className="mt-2 text-center text-xs text-dim">
+            بالدفع أنت توافق على{" "}
+            <Link to="/help#policy" target="_blank" className="font-bold text-gold hover:underline">
+              سياسة الاشتراك والإلغاء والاسترجاع
+            </Link>
+            .
+          </p>
           {MOYASAR_PK.startsWith("pk_test") && (
             <div className="mt-3">
               <ErrorNote>وضع الاختبار: لن تُخصم مبالغ حقيقية (مفتاح pk_test).</ErrorNote>
@@ -195,6 +204,11 @@ export default function Billing() {
 
       <p className="mt-6 text-center text-xs text-faint">
         بعد إتمام الدفع يُفعَّل اشتراكك تلقائياً خلال دقيقة. تحتاج مساعدة؟ استخدم صندوق الدعم الفني في صفحة الإعدادات.
+      </p>
+      <p className="mt-2 text-center text-xs text-dim">
+        <Link to="/help#policy" target="_blank" className="font-bold text-gold hover:underline">
+          📄 سياسة الاشتراك والإلغاء والاسترجاع
+        </Link>
       </p>
       <div className="mt-4 flex justify-center">
         <Button variant="ghost" onClick={() => refreshEnt().then(() => toast("حُدّثت حالة الاشتراك."))}>

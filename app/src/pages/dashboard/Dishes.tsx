@@ -21,18 +21,24 @@ import {
   Textarea,
   useToast,
 } from "@/components/ui";
+import { PreviewMenuButton } from "@/components/site";
+import { DishImport } from "@/components/DishImport";
+import { BulkImages } from "@/components/BulkImages";
 import { ImageUploader } from "@/components/ImageUploader";
 import { OptionsEditor } from "@/components/OptionsEditor";
 import { AllergenPicker } from "@/components/AllergenPicker";
 import {
   countDishes,
   createDish,
+  createDishes,
   deleteDish,
   getMyDishes,
+  setDishImage,
   toggleDishAvailability,
   updateDish,
   type DishPayload,
 } from "@/lib/data";
+import { rowToPayload, type ParsedRow } from "@/lib/import";
 import { cn, formatPrice, numOrNull, strOrNull } from "@/lib/utils";
 import { computedNutrition } from "@/lib/nutrition";
 import type { Dish } from "@/lib/types";
@@ -133,6 +139,8 @@ export default function Dishes() {
   const [dishes, setDishes] = useState<Dish[] | null>(null);
   const [filter, setFilter] = useState("");
   const [editing, setEditing] = useState<Dish | "new" | null>(null);
+  const [importing, setImporting] = useState(false);
+  const [bulkImages, setBulkImages] = useState(false);
   const [form, setForm] = useState<DishForm>({ ...EMPTY_FORM, menu_id: "" });
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -213,6 +221,33 @@ export default function Dishes() {
     }
   }
 
+  /** التصنيفات الموجودة فعلاً — تُقترح على المستورِد فلا يتكاثر «مشاوي/المشاوي». */
+  const knownCategories = useMemo(() => {
+    const set = new Set<string>();
+    for (const d of dishes ?? []) {
+      const c = d.category?.trim();
+      if (c) set.add(c);
+    }
+    return [...set].sort((a, b) => a.localeCompare(b, "ar"));
+  }, [dishes]);
+
+  async function importRows(rows: ParsedRow[], menuId: string) {
+    const created = await createDishes(rows.map(rowToPayload), {
+      menu_id: menuId,
+      restaurant_id: restaurant.id,
+      user_id: user.id,
+    });
+    setDishes((ds) => [...created.reverse(), ...(ds ?? [])]);
+    toast(`أُضيف ${created.length} صنفاً ✓`);
+  }
+
+  async function linkImages(links: { dishId: string; url: string }[]) {
+    await Promise.all(links.map((l) => setDishImage(l.dishId, l.url)));
+    const byId = new Map(links.map((l) => [l.dishId, l.url]));
+    setDishes((ds) => ds?.map((d) => (byId.has(d.id) ? { ...d, image: byId.get(d.id)! } : d)) ?? null);
+    toast(`رُبطت ${links.length} صورة ✓`);
+  }
+
   async function remove(d: Dish) {
     if (!window.confirm(`حذف «${d.name}» نهائياً؟`)) return;
     try {
@@ -245,7 +280,18 @@ export default function Dishes() {
             {ent.maxDishes !== null && ` من أصل ${ent.maxDishes} في باقتك`}
           </p>
         </div>
-        <Button onClick={openNew}>＋ طبق جديد</Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <PreviewMenuButton slug={restaurant.slug} />
+          <Button variant="outline" onClick={() => setImporting(true)}>
+            ⬆️ استيراد أصناف
+          </Button>
+          {(dishes?.length ?? 0) > 0 && (
+            <Button variant="outline" onClick={() => setBulkImages(true)}>
+              📷 صور دفعة واحدة
+            </Button>
+          )}
+          <Button onClick={openNew}>＋ طبق جديد</Button>
+        </div>
       </div>
 
       {/* لا تُعرض هذه التعليمة إلا بعد أن تُحسم القوائم فعلاً — كانت تظهر
@@ -277,11 +323,26 @@ export default function Dishes() {
         </div>
       ) : filtered.length === 0 ? (
         <div className="mt-5">
+          {/* الشاشة الفارغة هي أكبر نقطة تسرّب: التاجر عنده منيو جاهز ورقياً أو
+              في Excel، فنعرض الاستيراد هنا بنفس بروز «أضف طبقاً». */}
           <EmptyState
             emoji="🍽️"
             title={filter ? "لا نتائج لبحثك" : "لا توجد أطباق بعد"}
-            desc={filter ? undefined : "أضف أول طبق وسيظهر في منيوك فوراً."}
-            action={!filter && <Button onClick={openNew}>＋ إضافة طبق</Button>}
+            desc={
+              filter
+                ? undefined
+                : "عندك منيو جاهز؟ الصقه أو ارفع ملف CSV بدل إدخاله صنفاً صنفاً."
+            }
+            action={
+              !filter && (
+                <div className="flex flex-wrap justify-center gap-2">
+                  <Button onClick={() => setImporting(true)}>⬆️ استيراد قائمتي</Button>
+                  <Button variant="outline" onClick={openNew}>
+                    ＋ إضافة طبق
+                  </Button>
+                </div>
+              )
+            }
           />
         </div>
       ) : (
@@ -491,6 +552,26 @@ export default function Dishes() {
           </div>
         </form>
       </Modal>
+
+      <DishImport
+        open={importing}
+        onClose={() => setImporting(false)}
+        menus={menus}
+        knownCategories={knownCategories}
+        existingNames={(dishes ?? []).map((d) => d.name)}
+        remaining={
+          ent.maxDishes === null ? null : Math.max(0, ent.maxDishes - (dishes?.length ?? 0))
+        }
+        onImport={importRows}
+      />
+
+      <BulkImages
+        open={bulkImages}
+        onClose={() => setBulkImages(false)}
+        dishes={dishes ?? []}
+        restaurantId={restaurant.id}
+        onSave={linkImages}
+      />
 
       {!ent.active && dishes !== null && dishes.length > 0 && (
         <UpgradeGate

@@ -31,6 +31,10 @@ export interface Restaurant {
   loyalty_enabled: boolean | null;
   loyalty_goal: number | null;
   loyalty_reward: string | null;
+  /** هل أسعار المنيو شاملة ضريبة القيمة المضافة ١٥٪ (NOT NULL، افتراضي true). */
+  prices_include_vat: boolean | null;
+  /** الرقم الضريبي للمنشأة — يُعرض في تذييل المنيو إن وُجد. */
+  vat_number: string | null;
   /** موجودان في الجدول (NOT NULL) لكن لا تكتبهما الواجهة بعد. */
   reviews_enabled: boolean | null;
   online_payment_enabled: boolean | null;

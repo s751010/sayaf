@@ -51,6 +51,8 @@ const restaurant: Restaurant = {
   loyalty_enabled: true,
   loyalty_goal: 6,
   loyalty_reward: "قهوة سعودية مجاناً",
+  prices_include_vat: true,
+  vat_number: "300000000000003",
   reviews_enabled: true,
   online_payment_enabled: false,
 };

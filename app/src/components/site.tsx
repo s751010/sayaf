@@ -33,6 +33,46 @@ export function Logo({ compact }: { compact?: boolean }) {
   );
 }
 
+/**
+ * رابط معاينة المنيو كما يراه الزبون.
+ *
+ * `?preview=1` وحده لا يمنح شيئاً: `MenuPage` يتحقّق أن الجلسة الحالية تخصّ
+ * صاحب المطعم قبل تجاوز قفل النشر، فيبقى القفل فعّالاً أمام العموم.
+ */
+export function menuPreviewUrl(slug: string | null | undefined): string | null {
+  return slug ? `${window.location.origin}/${slug}?preview=1` : null;
+}
+
+/**
+ * زر «معاينة المنيو» — التاجر كان يضيف ٢٠ طبقاً وهو يخمّن شكل النتيجة، والرابط
+ * الوحيد للمنيو كان مدفوناً في صفحة «نظرة عامة» فقط.
+ */
+export function PreviewMenuButton({
+  slug,
+  label = "معاينة المنيو",
+  className,
+}: {
+  slug: string | null | undefined;
+  label?: string;
+  className?: string;
+}) {
+  const url = menuPreviewUrl(slug);
+  if (!url) return null;
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={cn(
+        "inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-line-gold px-3.5 py-2 text-sm font-bold text-ink transition-colors hover:bg-gold/10",
+        className
+      )}
+    >
+      👁️ {label} ↗
+    </a>
+  );
+}
+
 const NAV_LINKS = [
   { to: "/demo", label: "منيو تجريبي" },
   { to: "/#features", label: "المزايا" },

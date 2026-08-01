@@ -27,6 +27,7 @@ import {
   trackMenuView,
 } from "@/lib/data";
 import { getTheme } from "@/lib/themes";
+import { loadSession } from "@/lib/session";
 import { ENFORCE_MENU_PUBLISHING } from "@/lib/config";
 import { K, getItem, getJSON, setItem, setJSON } from "@/lib/storage";
 import { categoryId, formatPrice } from "@/lib/utils";
@@ -529,6 +530,13 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
   const [hoursOpen, setHoursOpen] = useState(false);
   const [allergensOpen, setAllergensOpen] = useState(false);
   const tracked = useRef(false);
+  /**
+   * وضع المعاينة: التاجر يفتح منيوه من اللوحة قبل الطباعة.
+   * النيّة (`?preview=1`) لا تكفي — تُمنح فقط بعد التأكد أن الجلسة تخصّ صاحب
+   * المطعم، وإلا صار المعامل مفتاحاً عاماً يفتح كل منيو مقفل.
+   */
+  const wantsPreview = params.get("preview") === "1";
+  const [preview, setPreview] = useState(false);
   // يتحدّث كل دقيقة كي لا تتجمّد حالة «مفتوح الآن» على شاشة مفتوحة طويلاً.
   const [nowTick, setNowTick] = useState(() => Date.now());
   useEffect(() => {
@@ -556,8 +564,14 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
         const restaurant = await getRestaurantBySlug(slug);
         if (cancelled) return;
         if (!restaurant) return setState({ status: "notfound" });
+        // مالك المطعم فقط يعاين منيوه المقفل — `loadSession` متزامنة وبلا شبكة.
+        const session = loadSession();
+        const isOwner =
+          !!restaurant.user_id && session?.user.id === restaurant.user_id;
+        const previewing = wantsPreview && isOwner;
+        setPreview(previewing);
         // قفل النشر — نشط فقط عند تشغيل الدفع الحقيقي (انظر ENFORCE_MENU_PUBLISHING).
-        if (ENFORCE_MENU_PUBLISHING) {
+        if (ENFORCE_MENU_PUBLISHING && !previewing) {
           const published = await isMenuPublished(slug).catch(() => true);
           if (cancelled) return;
           if (!published) {
@@ -570,7 +584,8 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
         if (cancelled) return;
         document.title = `${restaurant.name} — المنيو`;
         setState({ status: "ready", restaurant, menus, dishes });
-        if (!tracked.current && menus[0]) {
+        // معاينات التاجر لا تُحتسب مشاهدات، وإلا لوّثت تحليلاته بنفسه.
+        if (!tracked.current && menus[0] && !previewing) {
           tracked.current = true;
           trackMenuView(menus[0].id, restaurant.user_id, { table, lang });
         }
@@ -581,7 +596,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
     return () => {
       cancelled = true;
     };
-  }, [slug, demo]);
+  }, [slug, demo, wantsPreview]);
 
   const theme = getTheme(
     state.status === "ready" ? state.menus.find((m) => m.theme)?.theme : null
@@ -691,6 +706,21 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
       className="min-h-dvh pb-16"
       style={{ ...theme.vars, background: "var(--m-bg)", color: "var(--m-text)" } as CSSProperties}
     >
+      {/* شريط المعاينة — يظهر لصاحب المطعم وحده، ولا يُحتسب في التحليلات.
+          غير لاصق عمداً: شريط التصنيفات لاصق على top-0 أيضاً فيتراكبان. */}
+      {preview && (
+        <div
+          dir="rtl"
+          className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 px-4 py-2 text-center text-xs font-black"
+          style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}
+        >
+          <span>👁️ معاينة — هذا ما يراه الزبون. لا تُحتسب في مشاهداتك.</span>
+          <Link to="/dashboard" className="underline underline-offset-2">
+            ← عُد للوحة
+          </Link>
+        </div>
+      )}
+
       {/* الترويسة */}
       <header className="relative">
         <SafeImage
@@ -878,7 +908,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
               </h2>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {cat.dishes.map((d) => (
-                  <DishCard key={d.id} dish={d} en={en} onOpen={() => { setOpenDish(d); if (!demo) trackDishView(d, { table, lang }); }} />
+                  <DishCard key={d.id} dish={d} en={en} onOpen={() => { setOpenDish(d); if (!demo && !preview) trackDishView(d, { table, lang }); }} />
                 ))}
               </div>
             </section>
@@ -935,9 +965,30 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
         {/* الولاء */}
         {restaurant.loyalty_enabled && <LoyaltyCard restaurant={restaurant} en={en} />}
 
+        {/* الضريبة — أول سؤال يسأله الزبون السعودي عن أي سعر. */}
+        <section className="mt-8 text-center text-xs leading-relaxed" style={{ color: "var(--m-muted)" }}>
+          <p>
+            {/* أرقام غربية و«%» — نفس اتفاقية formatPrice ونِسب التحليلات،
+                وتتفادى إعادة ترتيب «٪» داخل نص RTL. */}
+            {restaurant.prices_include_vat === false
+              ? en
+                ? "Prices exclude 15% VAT — it is added at checkout."
+                : "الأسعار غير شاملة ضريبة القيمة المضافة (تُضاف 15% عند الدفع)."
+              : en
+                ? "All prices include 15% VAT."
+                : "جميع الأسعار شاملة ضريبة القيمة المضافة 15%."}
+          </p>
+          {restaurant.vat_number && (
+            <p className="mt-1">
+              {en ? "VAT number" : "الرقم الضريبي"}:{" "}
+              <span dir="ltr">{restaurant.vat_number}</span>
+            </p>
+          )}
+        </section>
+
         {/* الحساسية + معلومات المطعم */}
         {(restaurant.allergens_text || restaurant.address || restaurant.phone) && (
-          <section className="mt-8 text-center text-xs leading-relaxed" style={{ color: "var(--m-muted)" }}>
+          <section className="mt-3 text-center text-xs leading-relaxed" style={{ color: "var(--m-muted)" }}>
             {restaurant.allergens_text && <p>⚠️ {restaurant.allergens_text}</p>}
             {restaurant.address && <p className="mt-1">📍 {restaurant.address}</p>}
             {restaurant.phone && (

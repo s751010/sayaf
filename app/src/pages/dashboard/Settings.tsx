@@ -18,7 +18,7 @@ import { ImageUploader } from "@/components/ImageUploader";
 import { HoursEditor } from "@/components/HoursEditor";
 import { SupportBox } from "@/components/SupportBox";
 import { updateRestaurant, type RestaurantSettingsPayload } from "@/lib/data";
-import { numOrNull, strOrNull } from "@/lib/utils";
+import { normalizeDigits, numOrNull, strOrNull } from "@/lib/utils";
 import { useDashboard } from "./Dashboard";
 
 export default function Settings() {
@@ -48,6 +48,9 @@ export default function Settings() {
     loyalty_enabled: restaurant.loyalty_enabled ?? false,
     loyalty_goal: restaurant.loyalty_goal != null ? String(restaurant.loyalty_goal) : "5",
     loyalty_reward: restaurant.loyalty_reward ?? "",
+    // العمود NOT NULL بافتراضي true — الأغلب في السوق السعودي أسعار شاملة.
+    prices_include_vat: restaurant.prices_include_vat ?? true,
+    vat_number: restaurant.vat_number ?? "",
   }));
 
   useEffect(() => {
@@ -87,6 +90,8 @@ export default function Settings() {
         return n === null ? null : Math.min(20, Math.max(1, Math.round(n)));
       })(),
       loyalty_reward: strOrNull(f.loyalty_reward),
+      prices_include_vat: f.prices_include_vat,
+      vat_number: strOrNull(f.vat_number),
     };
     try {
       await updateRestaurant(restaurant.id, payload);
@@ -222,6 +227,45 @@ export default function Settings() {
                 />
               </Field>
             </div>
+          )}
+        </Card>
+
+        {/* الزبون السعودي يسأل «هل السعر شامل الضريبة؟» — الجواب يظهر في المنيو. */}
+        <Card className="flex flex-col gap-4">
+          <h2 className={section}>🧾 الضريبة</h2>
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-line bg-panel2 px-4 py-3">
+            <div>
+              <p className="text-sm font-bold text-ink">
+                الأسعار المعروضة شاملة ضريبة القيمة المضافة 15%
+              </p>
+              <p className="text-xs text-faint">
+                يظهر للزبون سطر واضح أسفل المنيو يوضّح ذلك.
+              </p>
+            </div>
+            <Switch
+              checked={f.prices_include_vat}
+              onChange={(v) => set("prices_include_vat", v)}
+              label="شاملة الضريبة"
+            />
+          </div>
+          <Field
+            label="الرقم الضريبي (اختياري)"
+            hint="١٥ رقماً — يظهر في تذييل المنيو لمن يطلبه من زبائنك."
+          >
+            <Input
+              value={f.vat_number}
+              onChange={(e) =>
+                set("vat_number", normalizeDigits(e.target.value).replace(/\D/g, "").slice(0, 15))
+              }
+              dir="ltr"
+              inputMode="numeric"
+              placeholder="3xxxxxxxxxxxxx3"
+            />
+          </Field>
+          {f.vat_number.length > 0 && f.vat_number.length !== 15 && (
+            <p className="text-xs text-bad">
+              الرقم الضريبي السعودي ١٥ رقماً — كتبت {f.vat_number.length}.
+            </p>
           )}
         </Card>
 

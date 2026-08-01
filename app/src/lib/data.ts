@@ -204,6 +204,8 @@ export type RestaurantSettingsPayload = {
   loyalty_enabled: boolean;
   loyalty_goal: number | null;
   loyalty_reward: string | null;
+  prices_include_vat: boolean;
+  vat_number: string | null;
 };
 
 export async function updateRestaurant(
@@ -334,6 +336,31 @@ export async function createDish(
   return rows[0];
 }
 
+/** أقصى عدد صفوف في طلب إدراج واحد — منيو ٦٠ صنفاً يمرّ في طلبين. */
+const IMPORT_CHUNK = 50;
+
+/**
+ * إدراج دفعة أطباق (استيراد من نص أو CSV).
+ *
+ * PostgREST يقبل مصفوفة JSON على POST كإدراج متعدد الصفوف، لكنه يشترط أن تحمل
+ * **كل** عناصر المصفوفة نفس المفاتيح؛ نوع `DishPayload` الكامل (لا Partial) هو
+ * ما يضمن ذلك — انظر `rowToPayload` في lib/import.
+ */
+export async function createDishes(
+  payloads: DishPayload[],
+  refs: { menu_id: string; restaurant_id: string; user_id: string }
+): Promise<Dish[]> {
+  const created: Dish[] = [];
+  for (let i = 0; i < payloads.length; i += IMPORT_CHUNK) {
+    const body = payloads
+      .slice(i, i + IMPORT_CHUNK)
+      .map((p) => ({ ...p, ...refs, views: 0 }));
+    const rows = await rest<Dish[]>("dishes", { method: "POST", body });
+    created.push(...rows);
+  }
+  return created;
+}
+
 export async function updateDish(id: string, payload: DishPayload & { menu_id: string }): Promise<void> {
   await rest(`dishes?id=eq.${id}`, {
     method: "PATCH",
@@ -351,6 +378,21 @@ export async function toggleDishAvailability(id: string, available: boolean): Pr
     method: "PATCH",
     headers: { Prefer: "return=minimal" },
     body: { available },
+  });
+}
+
+/**
+ * صورة الطبق وحدها — يستخدمها الربط الدفعي في شاشة «صور دفعة واحدة».
+ *
+ * خارج `DishPayload` عن قصد (كسابقة `updateBrandColor`): تلك whitelist فورم
+ * الطبق، وإدراج الصورة فيها كان سيوجب مرور الربط الدفعي بالفورم كاملاً
+ * فيمحو بقية الحقول بقيم الفورم الفارغة.
+ */
+export async function setDishImage(id: string, image: string | null): Promise<void> {
+  await rest(`dishes?id=eq.${id}`, {
+    method: "PATCH",
+    headers: { Prefer: "return=minimal" },
+    body: { image },
   });
 }
 
