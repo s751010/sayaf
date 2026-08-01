@@ -4,7 +4,7 @@
  * أي حقل جديد في جدول dishes يُضاف في الحالتين معاً وإلا يسقط بصمت.
  */
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import {
   Badge,
   Button,
@@ -55,6 +55,8 @@ import {
 } from "@/lib/categories";
 import { ReorderList } from "@/components/Reorder";
 import { CategoryManager } from "@/components/CategoryManager";
+import { StarterMenu } from "@/components/StarterMenu";
+import { hasStarter, type StarterDish } from "@/lib/starterMenus";
 import { cn, formatPrice, numOrNull, strOrNull } from "@/lib/utils";
 import { computedNutrition } from "@/lib/nutrition";
 import type { Dish } from "@/lib/types";
@@ -217,6 +219,9 @@ export default function Dishes() {
   const [importing, setImporting] = useState(false);
   const [bulkImages, setBulkImages] = useState(false);
   const [managingCats, setManagingCats] = useState(false);
+  // `?starter=1` يأتي من الأونبوردنغ مباشرةً بعد إنشاء المطعم.
+  const [params] = useSearchParams();
+  const [starter, setStarter] = useState(params.get("starter") === "1");
   const [form, setForm] = useState<DishForm>({ ...EMPTY_FORM, menu_id: "" });
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -383,6 +388,21 @@ export default function Dishes() {
     toast(`أُضيف ${created.length} صنفاً ✓`);
   }
 
+  /** قائمة البداية تمرّ من نفس مسار الاستيراد الدفعي — لا مسار إدراج ثانٍ. */
+  async function applyStarter(items: StarterDish[], menuId: string) {
+    await importRows(
+      items.map((d) => ({
+        name: d.name,
+        price: d.price,
+        category: d.category,
+        description: null,
+        emoji: d.emoji,
+        line: 0,
+      })),
+      menuId
+    );
+  }
+
   async function linkImages(links: { dishId: string; url: string }[]) {
     await Promise.all(links.map((l) => setDishImage(l.dishId, l.url)));
     const byId = new Map(links.map((l) => [l.dishId, l.url]));
@@ -483,7 +503,15 @@ export default function Dishes() {
             action={
               !filter && (
                 <div className="flex flex-wrap justify-center gap-2">
-                  <Button onClick={() => setImporting(true)}>⬆️ استيراد قائمتي</Button>
+                  {hasStarter(restaurant.type) && (
+                    <Button onClick={() => setStarter(true)}>⚡ قائمة جاهزة لنوع مطعمي</Button>
+                  )}
+                  <Button
+                    variant={hasStarter(restaurant.type) ? "outline" : "gold"}
+                    onClick={() => setImporting(true)}
+                  >
+                    ⬆️ استيراد قائمتي
+                  </Button>
                   <Button variant="outline" onClick={openNew}>
                     ＋ إضافة طبق
                   </Button>
@@ -750,6 +778,14 @@ export default function Dishes() {
         countOf={(name) => groups.find((g) => g.name === name)?.dishes.length ?? 0}
         onSaveOrder={saveCategoryOrder}
         onRename={renameCat}
+      />
+
+      <StarterMenu
+        open={starter}
+        onClose={() => setStarter(false)}
+        type={restaurant.type}
+        menus={menus}
+        onApply={applyStarter}
       />
 
       {!ent.active && dishes !== null && dishes.length > 0 && (

@@ -21,13 +21,20 @@ import {
   ThemeToggle,
 } from "@/components/ui";
 import { useAuth } from "@/lib/auth";
-import { DEFAULT_ENTITLEMENTS, fetchEntitlements, type Entitlements } from "@/lib/entitlements";
+import {
+  DEFAULT_ENTITLEMENTS,
+  fetchEntitlements,
+  planLabel,
+  type Entitlements,
+} from "@/lib/entitlements";
 import {
   createMenu,
   createRestaurant,
   getMyMenus,
   getMyRestaurant,
+  startTrial,
 } from "@/lib/data";
+import { hasStarter } from "@/lib/starterMenus";
 import { cn, slugify } from "@/lib/utils";
 import type { Menu, Restaurant } from "@/lib/types";
 import type { SessionUser } from "@/lib/session";
@@ -88,6 +95,8 @@ function Onboarding({ user, onDone }: { user: SessionUser; onDone: (r: Restauran
       });
       // قائمة أولى جاهزة حتى يبدأ بإضافة الأطباق فوراً.
       await createMenu({ name: "القائمة الرئيسية", restaurant_id: r.id, user_id: user.id }).catch(() => {});
+      // تجربة مجانية ١٤ يوماً بمنيو شغّال — فشلها لا يُوقف التسجيل.
+      await startTrial(user.id).catch(() => {});
       onDone(r);
     } catch {
       setError("تعذّر الإنشاء — قد يكون الرابط مستخدماً لمطعم آخر.");
@@ -183,8 +192,12 @@ function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode
         <PreviewMenuButton slug={ctx.restaurant.slug} className="mt-3 justify-center" />
         <div className="mt-4 border-t border-line pt-4">
           <div className="mb-3 flex items-center justify-between px-2">
-            <Badge variant={ctx.ent.active ? "gold" : "neutral"}>
-              {ctx.ent.active ? `باقة ${ctx.ent.planName}` : "بدون اشتراك"}
+            <Badge
+              variant={
+                !ctx.ent.active ? "neutral" : ctx.ent.trialDaysLeft === 1 ? "red" : "gold"
+              }
+            >
+              {planLabel(ctx.ent)}
             </Badge>
             <ThemeToggle />
           </div>
@@ -233,6 +246,7 @@ function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode
 /* ── نقطة الدخول ──────────────────────────────────────────────────── */
 export default function Dashboard() {
   const { user, loading } = useAuth();
+  const navigate = useNavigate();
   const [restaurant, setRestaurant] = useState<Restaurant | null | undefined>(undefined);
   const [menus, setMenus] = useState<Menu[] | null>(null);
   const [ent, setEnt] = useState<Entitlements>(DEFAULT_ENTITLEMENTS);
@@ -279,6 +293,9 @@ export default function Dashboard() {
         user={user}
         onDone={(r) => {
           setRestaurant(r);
+          // مباشرةً إلى الأطباق مع عرض قائمة البداية — الشاشة الفارغة بعد
+          // التسجيل هي أكثر نقطة يؤجّل عندها التاجر «لبكرة» ولا يعود.
+          if (hasStarter(r.type)) navigate("/dashboard/dishes?starter=1", { replace: true });
         }}
       />
     );

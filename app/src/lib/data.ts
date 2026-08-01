@@ -508,6 +508,28 @@ export async function getActiveSubscription(userId: string): Promise<Subscriptio
   return endsAt === null || endsAt > Date.now() ? sub : null;
 }
 
+/** مدة التجربة المجانية بالأيام (تريجر القاعدة يقبل حتى ١٥ يوماً). */
+export const TRIAL_DAYS = 14;
+
+/**
+ * يبدأ التجربة المجانية لمستخدم جديد.
+ *
+ * لا يحتاج أي تغيير خلفي: `is_menu_published` تسأل عن اشتراك نشط لم ينتهِ
+ * فقط، فصف التجربة يفتح نشر المنيو تلقائياً — وهذا ما يجعل التحويل إلى
+ * `pk_live` لا يُطفئ منيو تاجر بدأ لتوّه.
+ *
+ * فشل الإنشاء لا يُوقف التسجيل: تريجر `guard_client_subscription` يرفض تجربة
+ * ثانية لنفس المستخدم، وهذا رفض متوقّع لا خطأ يستحق إزعاج التاجر به.
+ */
+export async function startTrial(userId: string): Promise<void> {
+  const endsAt = new Date(Date.now() + TRIAL_DAYS * 86400_000).toISOString();
+  await rest("subscriptions", {
+    method: "POST",
+    headers: { Prefer: "return=minimal" },
+    body: { user_id: userId, plan_id: "trial", active: true, end_date: endsAt },
+  });
+}
+
 export async function getMyAnalytics(userId: string, days = 30): Promise<AnalyticsRow[]> {
   const since = new Date(Date.now() - days * 86400_000).toISOString().slice(0, 10);
   return rest<AnalyticsRow[]>(

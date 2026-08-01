@@ -1,27 +1,36 @@
 /** نظرة عامة: أرقام سريعة + أفضل الأطباق + رابط المنيو. */
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Badge, Card, Skeleton, useToast } from "@/components/ui";
 import { PreviewMenuButton } from "@/components/site";
+import { Insights } from "@/components/Insights";
 import { getMyAnalytics, getMyDishes } from "@/lib/data";
+import { buildInsights } from "@/lib/insights";
+import { planLabel } from "@/lib/entitlements";
 import { formatPrice } from "@/lib/utils";
 import { SITE_URL } from "@/lib/config";
-import type { Dish } from "@/lib/types";
+import type { AnalyticsRow, Dish } from "@/lib/types";
 import { useDashboard } from "./Dashboard";
 
 export default function Overview() {
   const { user, restaurant, menus, ent } = useDashboard();
   const toast = useToast();
   const [dishes, setDishes] = useState<Dish[] | null>(null);
-  const [views30, setViews30] = useState<number | null>(null);
+  const [rows, setRows] = useState<AnalyticsRow[] | null>(null);
 
   useEffect(() => {
     document.title = "لوحة التحكم — كلاود منيو";
     getMyDishes(restaurant.id).then(setDishes).catch(() => setDishes([]));
-    getMyAnalytics(user.id)
-      .then((rows) => setViews30(rows.reduce((s, r) => s + (r.views ?? 0), 0)))
-      .catch(() => setViews30(0));
+    getMyAnalytics(user.id).then(setRows).catch(() => setRows([]));
   }, [restaurant.id, user.id]);
+
+  // مشاهدات المنيو فقط — الصفوف التي تحمل dish_id هي فتح أطباق لا مشاهدات.
+  const views30 = rows === null ? null : rows.reduce((s, r) => s + (r.dish_id ? 0 : r.views ?? 0), 0);
+
+  const insights = useMemo(
+    () => (rows && dishes ? buildInsights(dishes, rows, restaurant) : []),
+    [rows, dishes, restaurant]
+  );
 
   const menuUrl = `${window.location.origin}/${restaurant.slug}`;
   const publicUrl = restaurant.slug ? menuUrl : null;
@@ -54,8 +63,12 @@ export default function Overview() {
           </h1>
           <p className="mt-1 text-sm text-dim">هذه نبضة مطعمك اليوم.</p>
         </div>
-        <Badge variant={ent.loading ? "neutral" : ent.active ? "gold" : "neutral"}>
-          {ent.loading ? "…" : ent.active ? `باقة ${ent.planName}` : "بدون اشتراك فعّال"}
+        <Badge
+          variant={
+            ent.loading || !ent.active ? "neutral" : ent.trialDaysLeft === 1 ? "red" : "gold"
+          }
+        >
+          {planLabel(ent)}
         </Badge>
       </div>
 
@@ -90,6 +103,13 @@ export default function Overview() {
         </div>
       </Card>
 
+
+      {/* أهم ثلاث توصيات — التفاصيل كاملة في التحليلات. */}
+      {insights.length > 0 && (
+        <div className="mt-5">
+          <Insights items={insights} limit={3} moreTo="/dashboard/analytics" />
+        </div>
+      )}
 
       {/* دليل الخطوات الأولى — يختفي تلقائياً عند إكمالها كلها.
           كان التاجر يهبط على ثلاثة أصفار بلا أي خطوة تالية واضحة. */}

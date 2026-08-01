@@ -9,7 +9,9 @@
  */
 import { useEffect, useMemo, useState } from "react";
 import { Badge, Button, Card, Skeleton } from "@/components/ui";
+import { Insights } from "@/components/Insights";
 import { getMyAnalytics, getMyDishes } from "@/lib/data";
+import { buildInsights } from "@/lib/insights";
 import { cn, formatPrice } from "@/lib/utils";
 import type { AnalyticsRow, Dish } from "@/lib/types";
 import { useDashboard } from "./Dashboard";
@@ -216,6 +218,11 @@ export default function Analytics() {
     };
   }, [rows, dishes]);
 
+  const insights = useMemo(
+    () => (rows && dishes ? buildInsights(dishes, rows, restaurant) : []),
+    [rows, dishes, restaurant]
+  );
+
   function exportCsv() {
     const lines = [
       "التاريخ,اليوم,المشاهدات",
@@ -275,6 +282,13 @@ export default function Analytics() {
         </Card>
       ) : (
         <>
+          {/* التوصية قبل الرقم: «١٢٠ مشاهدة» لا تقول للتاجر ماذا يفعل. */}
+          {insights.length > 0 && (
+            <div className="mt-5">
+              <Insights items={insights} />
+            </div>
+          )}
+
           {/* أرقام سريعة */}
           <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {tiles.map((t) => (

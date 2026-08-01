@@ -17,13 +17,22 @@ app/src/
     Landing.tsx         صفحة الهبوط + PricingCards (مُعاد استخدامها في Billing)
     MenuPage.tsx        المنيو العام /:slug — أهم صفحة في المنتج
     Demo.tsx            منيو تجريبي حي /demo (بيانات محلية، بدون شبكة)
-    Login.tsx  Blog.tsx  BlogPost.tsx  Help.tsx  NotFound.tsx  Founder.tsx
+    Login.tsx  ResetPassword.tsx  Stamp.tsx (وضع الكاشير العام)
+    Blog.tsx  BlogPost.tsx  Help.tsx  NotFound.tsx  Founder.tsx
     dashboard/          Dashboard(shell) Overview Dishes Menus Qr Analytics
                         Loyalty Billing Settings
   components/
     ui.tsx              نظام التصميم: Button Card Badge Field Input Modal Toast…
-    site.tsx            Logo / Navbar / Footer
-    ImageUploader.tsx   رفع الصور (ضغط + Supabase Storage)
+    site.tsx            Logo / Navbar / Footer / PreviewMenuButton
+    ImageUploader.tsx   رفع صورة واحدة (يستورد الضغط من lib/image)
+    BulkImages.tsx      رفع صور متعدد + ربط كل صورة بطبقها
+    DishImport.tsx      استيراد أصناف (لصق نص أو CSV) + جدول مراجعة
+    StarterMenu.tsx     قائمة بداية جاهزة حسب نوع المطعم
+    CategoryManager.tsx ترتيب التصنيفات + إعادة التسمية والدمج
+    Reorder.tsx         ReorderList — سحب HTML5 + أزرار ▲▼ (بلا مكتبة)
+    CashierCard.tsx     توليد رمز الكاشير + رابط /stamp وQR
+    Insights.tsx        بطاقة «ماذا أفعل الآن؟»
+    SupportWhatsApp.tsx زر واتساب الدعم (رقمه من site_settings)
     OptionsEditor.tsx   الإضافات (صفوف اسم+سعر)
     AllergenPicker.tsx  مسببات الحساسية (اختيار بالضغط)
     HoursEditor.tsx     ساعات العمل يوماً بيوم
@@ -32,9 +41,14 @@ app/src/
   lib/
     api.ts              rest() restCount() uploadImage() founderAdmin() ApiError
     data.ts             كل الاستعلامات + whitelists الكتابة
-    session.ts auth.tsx GoTrue بدون SDK + سياق React
+    session.ts auth.tsx GoTrue بدون SDK + سياق React (+ استعادة كلمة المرور)
     config.ts plans.ts entitlements.ts themes.ts types.ts utils.ts
     allergens.ts hours.ts nutrition.ts options.ts
+    categories.ts       توحيد أسماء التصنيفات وترتيبها
+    image.ts            ضغط الصور (مشترك بين الرافعَين)
+    import.ts           محلّل النص/CSV → DishPayload
+    insights.ts         التوصيات من التحليلات
+    starterMenus.ts     قوائم البداية حسب نوع المطعم
     storage.ts          مفاتيح localStorage/sessionStorage الموحّدة (K)
 ```
 
@@ -51,7 +65,8 @@ Project ref: `wjqpsbpebpntpeinqccl` · URL في `app/src/lib/config.ts`.
 
 **الجداول:** `restaurants` `menus` `dishes` `analytics` `subscriptions`
 `revenue_log` `support_tickets` `site_settings` `blog_posts` `loyalty_customers`
-`promo_codes` `announcements` `survey_responses` `restaurant_payment_settings`.
+`promo_codes` `announcements` `survey_responses` `restaurant_payment_settings`
+`staff_pins`.
 
 **Edge Functions المنشورة فعلياً** (مؤكَّدة من لوحة Supabase؛ `ai-proxy`
 موجودة لكن لم تُعد الواجهة تستدعيها بعد حذف المستشار الذكي):
@@ -69,12 +84,22 @@ Project ref: `wjqpsbpebpntpeinqccl` · URL في `app/src/lib/config.ts`.
 
 **دوال RPC مُضافة:** `increment_dish_views` (زيادة ذرّية؛ سياسة `dishes_update`
 تمنع الزائر المجهول من PATCH مباشر) · `is_menu_published` (بوليان لقفل النشر) ·
-`track_menu_view` (موجودة مسبقاً، غير مستخدَمة من الواجهة).
+`track_menu_view` (موجودة مسبقاً، غير مستخدَمة من الواجهة) ·
+`staff_stamp` و `set_staff_pin` (وضع الكاشير، انظر §8).
+
+**تريجر `guard_client_subscription`** على `subscriptions BEFORE INSERT`:
+يقصر ما يُدرجه العميل على صف `plan_id='trial'` واحد بحد ١٤ يوماً لنفسه.
+الإدراج من service-role (`moyasar-webhook` و `payments`) غير متأثر لأن
+`auth.uid()` فارغ هناك. **بدونه يستطيع أي مستخدم مصادَق منح نفسه اشتراكاً
+مدفوعاً** — سياسة `subscriptions_insert` تسمح بذلك.
 
 **صيغ مخزَّنة في أعمدة نصّية** — احترمها ولا تكتب فوقها نصاً حراً:
 - `restaurants.working_hours` → JSON `{"sat":{"open","from","to"},…}`
   (بيانات إنتاج فعلية) · القارئ في `lib/hours.ts` يتسامح مع النص الحر.
+- `restaurants.category_order` → JSON `["مشاوي","مقبلات",…]` · `lib/categories.ts`.
 - `menus.theme` → معرّف ثيم أو `custom:#RRGGBB` للثيم بلون العلامة.
+- `menus.window_from` / `window_to` → `HH:MM` بتوقيت الرياض (نافذة ظهور
+  القائمة، تدعم تجاوز منتصف الليل) · `inTimeWindow` في `lib/hours.ts`.
 - `dishes.options` → JSON `[{name,price?}]` · `lib/options.ts`.
 - `dishes.allergens` → `text[]` بمعرّفات `lib/allergens.ts` (مع مرادفات عربية
   للصفوف القديمة).
@@ -119,6 +144,18 @@ cd app && npm run typecheck
 اعرضها للتاجر عبر `lib/nutrition.ts` (يُكرّر التعبيرات حرفياً) ولا تطلبها منه.
 كان `burn_minutes` مُدرجاً في `DishPayload` فكان **كل** حفظ طبق يفشل.
 
+### (هـ) أعمدة عمداً **خارج** الـwhitelists
+ليست سهواً: كل منها يُكتب من شاشة أخرى، وإدراجه في الـpayload كان سيوجب حمله
+في كل حفظ فيدهس ما ضبطه التاجر لتوّه. لكل واحد دالة مستقلّة في `lib/data.ts`:
+
+| العمود | الدالة | لماذا |
+|---|---|---|
+| `restaurants.cover_color` | `updateBrandColor` | يُحرَّر مع الثيم في صفحة القوائم |
+| `restaurants.category_order` | `updateCategoryOrder` | يُضبط بالسحب في مدير التصنيفات |
+| `dishes.image` | `setDishImage` | يُكتب من الربط الدفعي للصور |
+| `dishes.sort_order` | `reorderDishes` | يُضبط بالسحب لا من فورم الطبق |
+| `dishes.available` | `toggleDishAvailability` | مفتاح سريع في القائمة |
+
 ---
 
 ## 4. التسعير والمدفوعات
@@ -154,6 +191,7 @@ cd app && npm run typecheck
 | `cm2_theme` | localStorage | الوضع الداكن/الفاتح |
 | `cm_fsecret` | sessionStorage | سر المؤسس — **لا يُضمَّن في الكود أبداً** |
 | `cm_table` | sessionStorage | رقم الطاولة من `?table=` |
+| `cm_staff` | sessionStorage | رمز الكاشير + slug مطعمه (لا يبقى على جهاز مشترك) |
 | `cm2_loyalty_<id>` | localStorage | بطاقة ولاء الزبون محلياً |
 
 ---
@@ -177,3 +215,47 @@ cd app && npm run typecheck
   بأسماء ملفات مُهشَّرة جديدة. هذا طبيعي.
 - حدود الباقات تُفحص في العميل فقط (`Dishes.tsx`/`Menus.tsx`) — استشارية لا أمنية.
   الحماية الحقيقية يجب أن تكون في RLS/تريجر على قاعدة البيانات.
+- **استعادة كلمة المرور تحتاج إعداداً خارج الكود**: أضِف
+  `<origin>/reset-password` إلى Redirect URLs في Supabase → Authentication →
+  URL Configuration، وإلا رفض GoTrue إعادة التوجيه ولن يعمل الرابط.
+- `Leaked Password Protection` معطّلة في إعدادات Auth (تحذير advisor). تفعيلها
+  قرار مالك، ويستحق مع وجود استعادة كلمة المرور الآن.
+
+---
+
+## 8. وضع الكاشير (`/stamp`)
+
+التاجر لا يريد إعطاء الكاشير حسابه الكامل ولا إنشاء حسابات بريد لموظفيه.
+
+**المبدأ: الرمز لا يمنح أي وصول لقاعدة البيانات.** لا سياسة RLS تسمح للزائر
+المجهول بقراءة `loyalty_customers` ولا `staff_pins`. كل شيء يمرّ من دالتين:
+
+| الدالة | من ينادي | ماذا تفعل |
+|---|---|---|
+| `set_staff_pin(restaurant, pin, name)` | التاجر (authenticated) | تتحقّق من ملكية المطعم ثم تخزّن **هاش** bcrypt؛ مرفوضة لـanon |
+| `staff_stamp(slug, pin, action, query, customer)` | صفحة `/stamp` (anon) | تتحقّق من الرمز ثم `lookup`/`stamp`/`redeem` ذرّياً |
+
+- الرمز يُعرض للمالك **مرة واحدة** عند التوليد (لا نخزّن إلا الهاش). رمز جديد
+  يُبطل السابق فوراً.
+- ١٠ محاولات فاشلة ⇒ قفل ١٥ دقيقة. هذا يفتح باب إزعاج لمن يعرف الـslug، لكن
+  المالك يبدّل الرمز بضغطة فيُفكّ القفل — مقايضة مقصودة.
+- `staff_stamp` تعيد **آخر أربعة أرقام** من جوال الزبون لا الرقم كاملاً.
+- الختم/الصرف يستخدمان `SELECT … FOR UPDATE` ثم زيادة في SQL؛ هذا يصلح سباقاً
+  كان قائماً في `stampLoyalty` (قراءة ثم كتابة من المتصفح تُضيع ختم كاشير ثانٍ).
+- تحذيرا advisor على الدالتين (`SECURITY DEFINER` قابلة للنداء) **متوقّعان**:
+  الأولى عامة بالتصميم والرمز بوابتها، والثانية للمسجّلين وتتحقّق من الملكية.
+
+---
+
+## 9. التجربة المجانية
+
+`startTrial(userId)` تُنشئ صف `subscriptions` بـ`plan_id='trial'` لمدة ١٤ يوماً
+عند إنشاء المطعم. **لا تحتاج أي تغيير خلفي**: `is_menu_published` تسأل فقط عن
+اشتراك نشط لم ينتهِ، فصف التجربة يفتح النشر تلقائياً — وهذا ما يمنع أن يُطفئ
+التحويل إلى `pk_live` منيو تاجر بدأ لتوّه.
+
+- الحالة تُعرض عبر `planLabel(ent)` في `lib/entitlements.ts` — مصدر واحد فلا
+  تختلف الشارات بين الصفحات.
+- عند الدفع لا حاجة لتعطيل صف التجربة: `getActiveSubscription` ترتّب بـ
+  `end_date.desc`، والاشتراك المدفوع (٣٠ يوماً فأكثر) يسبق ما تبقّى من التجربة.
+- الحماية في التريجر `guard_client_subscription` (انظر §2).

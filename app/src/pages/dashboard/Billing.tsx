@@ -155,9 +155,11 @@ export default function Billing() {
           <p className="font-display text-xl font-black text-ink">
             {sub === undefined
               ? "جارٍ التحميل…"
-              : ent.active
-                ? resolvePlan(sub?.plan_id).name
-                : "لا يوجد اشتراك فعّال"}
+              : ent.trial
+                ? "تجربة مجانية"
+                : ent.active
+                  ? resolvePlan(sub?.plan_id).name
+                  : "لا يوجد اشتراك فعّال"}
           </p>
           {sub?.end_date && (
             <p className="mt-0.5 text-xs text-faint">صالح حتى {formatDate(sub.end_date)}</p>
@@ -167,6 +169,26 @@ export default function Billing() {
           {ent.loading || sub === undefined ? "…" : ent.active ? "نشط" : "غير نشط"}
         </Badge>
       </Card>
+
+      {/* عدّاد التجربة — يشتدّ في آخر ثلاثة أيام. */}
+      {ent.trial && (
+        <Card
+          className={cn(
+            "mt-4",
+            ent.trialDaysLeft <= 3 ? "border-bad/40 bg-bad/[.05]" : "border-gold/30 bg-gold/[.04]"
+          )}
+        >
+          <p className="font-display font-extrabold text-ink">
+            {ent.trialDaysLeft <= 1
+              ? "⏳ تجربتك تنتهي اليوم"
+              : `⏳ باقٍ ${ent.trialDaysLeft} يوماً من تجربتك المجانية`}
+          </p>
+          <p className="mt-1 text-sm leading-relaxed text-dim">
+            منيوك يعمل الآن بكل المزايا. اشترك قبل انتهاء التجربة ليبقى متاحاً
+            لزبائنك بلا انقطاع — بياناتك وأطباقك وصورك تبقى محفوظة في كل الأحوال.
+          </p>
+        </Card>
+      )}
 
       {/* مبدّل الدورة */}
       <div className="mt-8 flex justify-center">
