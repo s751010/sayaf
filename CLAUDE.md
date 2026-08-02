@@ -18,9 +18,10 @@ app/src/
     MenuPage.tsx        المنيو العام /:slug — أهم صفحة في المنتج
     Demo.tsx            منيو تجريبي حي /demo (بيانات محلية، بدون شبكة)
     Login.tsx  ResetPassword.tsx  Stamp.tsx (وضع الكاشير العام)
-    Blog.tsx  BlogPost.tsx  Help.tsx  NotFound.tsx  Founder.tsx
+    Blog.tsx  BlogPost.tsx  Help.tsx  NotFound.tsx
     dashboard/          Dashboard(shell) Overview Dishes Menus Qr Analytics
                         Loyalty Billing Settings
+    founder/            Founder(shell+بوابة) Overview Merchants MerchantDetail
   components/
     ui.tsx              نظام التصميم: Button Card Badge Field Input Modal Toast…
     site.tsx            Logo / Navbar / Footer / PreviewMenuButton
@@ -55,6 +56,7 @@ app/src/
     import.ts           محلّل النص/CSV → DishPayload
     insights.ts         التوصيات من التحليلات
     starterMenus.ts     قوائم البداية حسب نوع المطعم
+    founder.ts          استعلامات لوحة المؤسس + سجل التدقيق (rest() لا founderAdmin)
     storage.ts          مفاتيح localStorage/sessionStorage الموحّدة (K)
 ```
 
@@ -72,7 +74,7 @@ Project ref: `wjqpsbpebpntpeinqccl` · URL في `app/src/lib/config.ts`.
 **الجداول:** `restaurants` `menus` `dishes` `analytics` `subscriptions`
 `revenue_log` `support_tickets` `site_settings` `blog_posts` `loyalty_customers`
 `promo_codes` `announcements` `survey_responses` `restaurant_payment_settings`
-`staff_pins`.
+`staff_pins` `founder_audit`.
 
 **Edge Functions المنشورة فعلياً** (مؤكَّدة من لوحة Supabase؛ `ai-proxy`
 موجودة لكن لم تُعد الواجهة تستدعيها بعد حذف المستشار الذكي):
@@ -92,17 +94,25 @@ Project ref: `wjqpsbpebpntpeinqccl` · URL في `app/src/lib/config.ts`.
 تمنع الزائر المجهول من PATCH مباشر) · `is_menu_published` (بوليان لقفل النشر) ·
 `track_menu_view` (موجودة مسبقاً، غير مستخدَمة من الواجهة) ·
 `staff_stamp` و `set_staff_pin` (وضع الكاشير، انظر §8) ·
-`founder_email` (بريد المؤسس — مصدر واحد، انظر §10).
+`founder_email` (بريد المؤسس — مصدر واحد، انظر §10) ·
+`founder_overview` و `founder_merchants` (لوحة المؤسس، انظر §11).
 
 **`is_founder()` صارت `SECURITY DEFINER`** لتقرأ `founder_email()` المحجوبة عن
 `anon` و`authenticated`. لا تُرجعها إلى SQL عادية إلا مع منح EXECUTE على
 `founder_email()` — وإلا انهارت ٤٨ سياسة RLS تعتمد عليها دفعةً واحدة.
 
 **تريجر `guard_client_subscription`** على `subscriptions BEFORE INSERT`:
-يقصر ما يُدرجه العميل على صف `plan_id='trial'` واحد بحد ١٤ يوماً لنفسه.
-الإدراج من service-role (`moyasar-webhook` و `payments`) غير متأثر لأن
-`auth.uid()` فارغ هناك. **بدونه يستطيع أي مستخدم مصادَق منح نفسه اشتراكاً
-مدفوعاً** — سياسة `subscriptions_insert` تسمح بذلك.
+يقصر ما يُدرجه العميل على صف `plan_id='trial'` واحد مدى الحياة، لنفسه، بحد ١٥
+يوماً. **يمرّ منه اثنان بلا فحص**: نداء service-role (`auth.uid()` فارغ —
+`moyasar-webhook` و`payments`)، و**المؤسس** (يمنح الاشتراكات يدوياً من لوحته
+لغيره، فكان التريجر يردّه بـ«لا يمكن إنشاء اشتراك لمستخدم آخر»).
+
+> ⚠️ **درس محفور**: سياسة `subscriptions_insert` كانت تشترط `is_founder()`
+> وحدها، فكان `startTrial` يفشل لكل تاجر — و`Dashboard.tsx` يبتلع الفشل بـ
+> `.catch(() => {})`. النتيجة: ١٩ مطعماً بلا صف اشتراك، وكانت منيوهاتهم
+> ستنطفئ جميعاً لحظة التحويل إلى `pk_live` (لأن `is_menu_published` تشترط
+> اشتراكاً نشطاً). السياسة الآن `is_founder() OR auth.uid() = user_id`
+> والتريجر هو الحارس. **لا تغلق سياسة كتابة يعتمد عليها مسار صامت الفشل.**
 
 **صيغ مخزَّنة في أعمدة نصّية** — احترمها ولا تكتب فوقها نصاً حراً:
 - `restaurants.working_hours` → JSON `{"sat":{"open","from","to"},…}`
@@ -331,3 +341,41 @@ cd app && npm run typecheck
 - تحذير advisor على `is_founder()` (`SECURITY DEFINER` قابلة للنداء من anon)
   **متوقَّع**: لا تعيد إلا بوليان عن جلسة المتصل نفسه ولا تكشف شيئاً. أما
   `founder_email()` فمحجوبة عن anon وauthenticated فلا تظهر في التحذيرات.
+
+---
+
+## 11. لوحة المؤسس (`/founder/*`)
+
+قشرة بتبويبات في `pages/founder/Founder.tsx` (البوابة كما في §10)، وأقسامها
+صفحات مستقلّة. الوصول يمرّ من `is_founder()` وحدها.
+
+### لماذا `rest()` لا `founderAdmin()`
+
+سياسات RLS تمنح المؤسس وصولاً كاملاً **بجلسته هو**: كل سياسات الكتابة على
+`restaurants` و`menus` و`dishes` و`subscriptions` وغيرها تحمل `OR is_founder()`،
+ودور `authenticated` يملك صلاحية على كل الأعمدة. فقاعدة (و) «لا `select=*`»
+تخصّ `anon` وحده ولا تقيّد اللوحة. النتيجة: اللوحة تنادي `rest()` مباشرة كلوحة
+التاجر، بلا قفزة إضافية عبر دالة الحافة.
+
+`founder-admin` تبقى **بوابة السرّ الاحتياطية** فقط. ومن دخل بالسرّ وحده يرى
+تفسيراً صريحاً بدل أقسام فارغة: الدوال المجمّعة تقرأ الـJWT فلا تعمل بلا جلسة.
+
+### الدوال المجمّعة
+
+`founder_overview()` و`founder_merchants()`: `SECURITY DEFINER` بحارس
+`is_founder()` **داخلها** (ترفع `42501` لغيره)، وEXECUTE لـ`authenticated` فقط.
+سببان لوجودها: `auth.users` غير مكشوف لـPostgREST وبريد المالك ضروري، وعدّ
+القوائم/الأطباق/المشاهدات لكل مطعم من المتصفح = N+1.
+
+### حدود لا تُتجاوز (قرار المالك)
+
+| ممنوع | البديل المعتمد |
+|---|---|
+| جوالات زبائن الولاء وأسماؤهم | `loyalty_count` عدداً فقط من `founder_merchants()` |
+| `restaurant_payment_settings.secret_key` | العمود المحسوب `has_secret` |
+| تعليق حساب تاجر | غير موجود — لا عمود ولا واجهة |
+
+### سجل التدقيق
+
+`founder_audit`: **لا سياسة UPDATE ولا DELETE** عمداً — سجل لا يُنقَّح. تُنادى
+`logAudit()` **قبل** كل تغيير، ولا ترمي أبداً (فشل التسجيل لا يمنع الإجراء).

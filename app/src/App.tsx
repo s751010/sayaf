@@ -14,7 +14,7 @@ import NotFound from "@/pages/NotFound";
 const Blog = lazy(() => import("@/pages/Blog"));
 const BlogPostPage = lazy(() => import("@/pages/BlogPost"));
 const Dashboard = lazy(() => import("@/pages/dashboard/Dashboard"));
-const Founder = lazy(() => import("@/pages/Founder"));
+const Founder = lazy(() => import("@/pages/founder/Founder"));
 const Demo = lazy(() => import("@/pages/Demo"));
 const Help = lazy(() => import("@/pages/Help"));
 const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
@@ -46,7 +46,8 @@ export default function App() {
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/stamp" element={<Stamp />} />
                 <Route path="/dashboard/*" element={<Dashboard />} />
-                <Route path="/founder" element={<Founder />} />
+                {/* `/*` لأن اللوحة صارت أقساماً براوتر فرعي داخلها. */}
+                <Route path="/founder/*" element={<Founder />} />
                 {/* slug المطعم — يلتقط أي مسار من مستوى واحد.
                     حاجز خطأ خاص: انهيار منيو مطعم لا يجب أن يُسقط التطبيق كله. */}
                 <Route
