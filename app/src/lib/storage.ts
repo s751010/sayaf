@@ -20,6 +20,13 @@ export const K = {
    * (تاجر × إعلان) ثمنٌ لا يستحقه إخفاء شريط.
    */
   SEEN_ANNOUNCEMENTS: "cm2_seen_ann",
+  /**
+   * سلة الزبون — sessionStorage، ويُلحق بها معرّف المطعم (`cm_cart_<id>`).
+   *
+   * الجلسة لا الدائم: سلة الأمس على طاولة مطعم آخر ليست نيّة الزبون، والسلة
+   * لا تحمل مبلغاً ولا هوية — أسطر ونيّة فقط، والتسعير على الخادم.
+   */
+  CART: "cm_cart",
 } as const;
 
 function store(session: boolean): Storage | null {

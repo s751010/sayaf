@@ -112,6 +112,50 @@ export async function uploadImage(
 }
 
 /**
+ * نداء دالة حافة عادية (`functions/v1/<name>`).
+ *
+ * `anonymous` ضروري لدوال الزبون: صفحة المنيو قد تُفتح على جهاز فيه جلسة تاجر
+ * (المالك يعاين منيوه)، و`rest()` كانت سترسل رمزه — الدالة تنشر بـ
+ * `verify_jwt=false` فلا يضرّ ذلك، لكن إرسال رمز جلسة إلى نداء لا يحتاجه
+ * توسيعٌ للسطح بلا مقابل.
+ *
+ * الخطأ يُعاد بنصّ الرسالة العربية التي أرسلتها الدالة إن وُجدت — الزبون على
+ * الطاولة يحتاج «الدفع غير مفعّل» لا «502».
+ */
+export async function callFunction<T>(
+  name: string,
+  body: unknown,
+  opts: { anonymous?: boolean } = {}
+): Promise<T> {
+  const token = opts.anonymous ? null : await getAccessToken().catch(() => null);
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/${name}`, {
+    method: "POST",
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${token ?? SUPABASE_ANON_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+  const text = await res.text();
+  // بوابة الحافة قد تردّ بـHTML عند عطل خارج الدالة — لا نُسقط الصفحة بـSyntaxError.
+  let parsed: unknown;
+  try {
+    parsed = text ? JSON.parse(text) : undefined;
+  } catch {
+    parsed = undefined;
+  }
+  if (!res.ok) {
+    const message =
+      parsed && typeof parsed === "object" && typeof (parsed as { error?: unknown }).error === "string"
+        ? (parsed as { error: string }).error
+        : `${name} ${res.status}`;
+    throw new ApiError(res.status, message);
+  }
+  return parsed as T;
+}
+
+/**
  * لوحة المؤسس عبر `functions/v1/founder-admin` — العقد نفسه:
  * body = { table, method, query, body }.
  *

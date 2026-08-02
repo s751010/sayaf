@@ -30,6 +30,7 @@ app/src/
     menu/DishCard.tsx    بطاقة الطبق بثلاثة تخطيطات (شبكة/قائمة/عرض)
     menu/DishOfTheDay.tsx بطاقة «طبق اليوم» للطبق المميّز الأول
     menu/ThemePreview.tsx معاينة الطابع المصغّرة في اللوحة
+    menu/Cart.tsx        سلة الزبون + الدفع الإلكتروني (§13)
     ImageUploader.tsx   رفع صورة واحدة (يستورد الضغط من lib/image)
     BulkImages.tsx      رفع صور متعدد + ربط كل صورة بطبقها
     DishImport.tsx      استيراد أصناف (لصق نص أو CSV) + جدول مراجعة
@@ -45,6 +46,7 @@ app/src/
     HoursEditor.tsx     ساعات العمل يوماً بيوم
     SupportBox.tsx      الدعم الفني ← لوحة المؤسس
     AnnouncementBar.tsx إعلانات المؤسس داخل لوحة التاجر (§11)
+    PaymentSettingsCard.tsx ربط بوابة PayLink للتاجر — المفتاح كتابةً فقط (§13)
     ErrorBoundary.tsx   يمنع الشاشة البيضاء
   lib/
     api.ts              rest() restCount() uploadImage() founderAdmin() ApiError
@@ -87,8 +89,9 @@ Project ref: `wjqpsbpebpntpeinqccl` · URL في `app/src/lib/config.ts`.
 
 > `founder-admin` **موجود ونشط**. (توثيق قديم في `web/MIGRATION.md` كان يقول
 > غير ذلك — كان خطأً، والمجلد حُذف.)
-> دوال `paylink-*` و `payments` وجدول `restaurant_payment_settings` موجودة في
-> الخلفية لكن **لا تستدعيها الواجهة بعد** — الدفع داخل المنيو لم يُوصَل.
+> `paylink-order-create` **موصولة الآن بالواجهة** (سلة الزبون — انظر §13).
+> `payments` و`paylink-create`/`paylink-webhook` تخصّ اشتراك التاجر بالمنصّة،
+> ومسار الاشتراك الحيّ ما زال Moyasar.
 
 **Storage buckets** (موجودة، عامة للقراءة، الكتابة لـ `authenticated`):
 `dish-images` · `menu-images` · `restaurant-images`.
@@ -133,7 +136,11 @@ Project ref: `wjqpsbpebpntpeinqccl` · URL في `app/src/lib/config.ts`.
 - `restaurants.season` → `ramadan` | `national` | `founding` | null · `lib/seasons.ts`.
 - `menus.window_from` / `window_to` → `HH:MM` بتوقيت الرياض (نافذة ظهور
   القائمة، تدعم تجاوز منتصف الليل) · `inTimeWindow` في `lib/hours.ts`.
-- `dishes.options` → JSON `[{name,price?}]` · `lib/options.ts`.
+- `dishes.options` → JSON `[{name,price?}]` · `lib/options.ts`. **معرّف الإضافة في
+  الطلب هو موضعها في هذه المصفوفة** — `paylink-order-create` تُكرّر منطق
+  `parseOptions` حرفياً، فأي تغيير في التحليل هنا يوجب تغييراً مطابقاً هناك وإلا
+  أشار الرقم إلى إضافة أخرى. (النسخة الأولى من الدالة افترضت شكلاً مُجمَّعاً
+  `[{items:[{id,…}]}]` لا يكتبه أحد، فكان **كل** طلب بإضافة يُرفض.)
 - `dishes.allergens` → `text[]` بمعرّفات `lib/allergens.ts` (مع مرادفات عربية
   للصفوف القديمة).
 
@@ -213,6 +220,7 @@ cd app && npm run typecheck
 | `dishes.sort_order` | `reorderDishes` | يُضبط بالسحب لا من فورم الطبق |
 | `dishes.available` | `toggleDishAvailability` | مفتاح سريع في القائمة |
 | `dishes.price` | `updateDishPrice` | يُعدَّل من صفّ القائمة مباشرة |
+| `restaurants.online_payment_enabled` | `updateOnlinePayment` | يُحفظ من بطاقة «الدفع الإلكتروني» مع بيانات البوابة |
 
 ---
 
@@ -419,3 +427,48 @@ cd app && npm run typecheck
   الانتحال كانت ستُنشئ صفوفاً باسم المؤسس داخل مطعم التاجر.
 - الدخول يُسجَّل في `founder_audit` بـ«فتح لوحة تاجر»، وشريط الإعلانات لا يظهر
   في هذا الوضع (إعلاناتك موجّهة للتجّار لا لك).
+
+---
+
+## 13. الدفع داخل المنيو (سلة الزبون)
+
+الزبون يطلب من المنيو ويدفع **لحساب المطعم نفسه** عبر PayLink. لا تمرّ الأموال
+بالمنصّة ولا عمولة عليها — هذا ما يجعل التاجر يفتحها بلا تردّد.
+
+### القاعدة الحاكمة: لا مبلغ من العميل
+
+`components/menu/Cart.tsx` تعرض للزبون سعراً **للطمأنة فقط**. ما يُرسَل إلى
+`paylink-order-create` هو `{restaurant_id, items:[{dish_id, qty, option_ids}],
+table, customer}` — **بلا مبلغ ولا سعر إطلاقاً**. الدالة تعيد قراءة الأسعار من
+`dishes` وتُسعّر الإضافات من `dishes.options`. لولا ذلك لدفع أي زائر يعبث بجسم
+الطلب ريالاً مقابل طلب بمئات.
+
+مُتحقَّق منه بالفحص الهجومي (كلها مرفوضة): كمية سالبة/كسرية · معرّف إضافة
+مختلَق أو سالب · إضافة مكرّرة · إضافة على طبق بلا خيارات · طبق من مطعم آخر ·
+مبلغ تحت حدّ PayLink (٥ ر.س) · حقل `price`/`amount` مدسوس في الجسم (يُتجاهل).
+
+### `secret_key` لا يُقرأ في الواجهة أبداً
+
+لا للتاجر ولا للمؤسس. الحقل في `PaymentSettingsCard` **كتابة فقط**، والعرض عبر
+العمود المحسوب `has_secret`. و`getPaymentSettings` تسأل عن أعمدة صريحة
+(`PAYMENT_COLS`) — لا `select=*` على هذا الجدول بحال. الجهة الوحيدة التي تقرأ
+المفتاح هي دالة الحافة بمفتاح الخدمة على الخادم.
+
+`secret_key: null` في `savePaymentSettings` تعني «أبقِ المحفوظ» — لا نملك قيمته
+لنعيد إرسالها، ولو أرسلناها فارغة لمحوناها مع كل حفظ.
+
+### ما يُشغّل السلة
+
+شرطان معاً: `restaurants.online_payment_enabled` (عام، يقرؤه الزبون) **و**
+`restaurant_payment_settings.enabled` مع بيانات اعتماد كاملة (يفحصها الخادم).
+الأول للعرض والثاني للحقيقة — والزبون لا يستطيع سؤال الثاني لأن الجدول محجوب
+عن `anon` بالكامل (فيه المفتاح).
+
+### حدود معروفة
+
+- **PayLink وحدها**: عمود `provider` عليه `CHECK (provider='paylink')`. إضافة
+  ميسر أو فاتورة كمزوّد للتاجر تحتاج ترحيلاً وتنفيذاً مستقلاً — البنية تتّسع
+  لهما ولا يُدّعى دعمهما قبل بنائه.
+- **لا سجل طلبات**: الطلب يعيش في PayLink لا عندنا. التاجر يراه في لوحة PayLink،
+  والزبون يُري شاشة `?order=paid` للموظف. سجل طلبات داخل اللوحة عمل قادم.
+- **`PAYLINK_ENV`** ما زال `test` في أسرار الدوال؛ التحويل للإنتاج قرار مالك.

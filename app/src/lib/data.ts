@@ -5,7 +5,7 @@
  * أي حقل جديد يجب إضافته في: (1) تهيئة الفورم، (2) payload الإضافة هنا،
  * (3) payload التحديث هنا. حقل ناقص = يُسقَط بصمت بلا أي خطأ.
  */
-import { rest, restCount } from "./api";
+import { callFunction, rest, restCount } from "./api";
 import type {
   AnalyticsRow,
   BlogPost,
@@ -35,7 +35,10 @@ const PUBLIC_RESTAURANT_COLS = [
   "working_hours", "social_instagram", "social_twitter", "social_tiktok",
   "social_snapchat", "social_whatsapp", "social_maps", "english_enabled",
   "loyalty_enabled", "loyalty_goal", "loyalty_reward",
-  "prices_include_vat", "vat_number", "category_order", "season", "created_at",
+  "prices_include_vat", "vat_number", "category_order", "season",
+  // الإشارة العامة الوحيدة لتشغيل السلة: `restaurant_payment_settings.enabled`
+  // محجوب عن anon بالكامل (فيه المفتاح السرّي)، فلا يستطيع الزبون سؤاله.
+  "online_payment_enabled", "created_at",
 ].join(",");
 
 const PUBLIC_MENU_COLS = [
@@ -300,6 +303,102 @@ export async function updateBrandColor(id: string, hex: string): Promise<void> {
     headers: { Prefer: "return=minimal" },
     body: { cover_color: hex },
   });
+}
+
+/* ── الدفع الإلكتروني داخل المنيو ─────────────────────────────────── */
+
+/**
+ * إعدادات بوابة الدفع للمطعم — **بلا `secret_key` إطلاقاً**.
+ *
+ * ⚠️ لا تُضِف `secret_key` إلى هذا النوع ولا إلى `PAYMENT_COLS` ولو للمؤسس:
+ * المفتاح يخوّل حاملَه إصدار فواتير باسم المطعم وقبض أمواله. الوجود المشروع
+ * الوحيد له في هذا النظام هو عمود القاعدة، تقرؤه `paylink-order-create` وحدها
+ * بمفتاح الخدمة على الخادم. العمود المحسوب `has_secret` يخبر الواجهة أن مفتاحاً
+ * محفوظ دون كشف شيء منه.
+ */
+export type PaymentSettings = {
+  restaurant_id: string;
+  provider: string;
+  api_id: string | null;
+  enabled: boolean;
+  has_secret: boolean;
+};
+
+const PAYMENT_COLS = "restaurant_id,provider,api_id,enabled,has_secret";
+
+export async function getPaymentSettings(
+  restaurantId: string
+): Promise<PaymentSettings | null> {
+  const rows = await rest<PaymentSettings[]>(
+    `restaurant_payment_settings?restaurant_id=eq.${restaurantId}&select=${PAYMENT_COLS}&limit=1`
+  );
+  return rows[0] ?? null;
+}
+
+/**
+ * حفظ بيانات البوابة. `secret_key: null` تعني «أبقِ المحفوظ كما هو» — والمفتاح
+ * لا يُقرأ أصلاً فلا سبيل لإعادة إرساله، ولو أرسلناه فارغاً لمحوناه بكل حفظ.
+ *
+ * upsert بمفتاح `restaurant_id` (المفتاح الأساسي)، و`merge-duplicates` لا
+ * يلمس عموداً غائباً عن الجسم.
+ */
+export async function savePaymentSettings(input: {
+  restaurant_id: string;
+  user_id: string;
+  api_id: string | null;
+  secret_key: string | null;
+  enabled: boolean;
+}): Promise<void> {
+  const body: Record<string, unknown> = {
+    restaurant_id: input.restaurant_id,
+    user_id: input.user_id,
+    provider: "paylink",
+    api_id: input.api_id,
+    enabled: input.enabled,
+  };
+  if (input.secret_key !== null) body.secret_key = input.secret_key;
+  await rest("restaurant_payment_settings", {
+    method: "POST",
+    headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+    body,
+  });
+}
+
+/**
+ * مفتاح ظهور السلة للزبون (`restaurants.online_payment_enabled`).
+ *
+ * خارج `RestaurantSettingsPayload` عمداً (القاعدة هـ): يُحفظ من بطاقة الدفع مع
+ * بيانات البوابة في نفس الضغطة، وإدراجه في whitelist الإعدادات كان سيجعل زرّ
+ * «حفظ الإعدادات» يحمله فيدهس ما ضبطه التاجر في البطاقة الأخرى.
+ */
+export async function updateOnlinePayment(
+  restaurantId: string,
+  enabled: boolean
+): Promise<void> {
+  await rest(`restaurants?id=eq.${restaurantId}`, {
+    method: "PATCH",
+    headers: { Prefer: "return=minimal" },
+    body: { online_payment_enabled: enabled },
+  });
+}
+
+/** سطر في سلة الزبون. `option_ids` = **مواضع** الإضافات في `parseOptions(dish.options)`. */
+export type OrderLine = { dish_id: string; qty: number; option_ids: string[] };
+
+/**
+ * بدء دفع طلب زبون عبر `paylink-order-create`.
+ *
+ * **لا يُرسَل مبلغ إطلاقاً**: الدالة تعيد قراءة الأسعار من جدول `dishes`
+ * وتُسعّر الإضافات من خيارات الطبق المخزَّنة. ما ترسله السلة هو النيّة فقط
+ * (أي طبق، كم، وأي إضافات)، فلا يستطيع زائر يعبث بجسم الطلب أن يخفّض ثمنه.
+ */
+export async function createOrder(input: {
+  restaurant_id: string;
+  items: OrderLine[];
+  table?: string | null;
+  customer?: { name?: string; mobile?: string };
+}): Promise<{ url: string; transactionNo: string; amount: number }> {
+  return callFunction("paylink-order-create", input, { anonymous: true });
 }
 
 export async function getMyMenus(restaurantId: string): Promise<Menu[]> {

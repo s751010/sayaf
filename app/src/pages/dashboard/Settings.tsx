@@ -17,6 +17,7 @@ import {
 import { ImageUploader } from "@/components/ImageUploader";
 import { HoursEditor } from "@/components/HoursEditor";
 import { SupportBox } from "@/components/SupportBox";
+import { PaymentSettingsCard } from "@/components/PaymentSettingsCard";
 import { updateRestaurant, type RestaurantSettingsPayload } from "@/lib/data";
 import { SEASONS } from "@/lib/seasons";
 import { cn, normalizeDigits, numOrNull, strOrNull } from "@/lib/utils";
@@ -308,6 +309,15 @@ export default function Settings() {
           {busy ? "جارٍ الحفظ…" : "حفظ الإعدادات"}
         </Button>
       </form>
+
+      {/* الدفع الإلكتروني — خارج الفورم: يحفظ جدولين بضغطته الخاصة (انظر الملف). */}
+      <div className="mt-5">
+        <PaymentSettingsCard
+          restaurant={restaurant}
+          userId={user.id}
+          onToggled={(on) => setRestaurant({ ...restaurant, online_payment_enabled: on })}
+        />
+      </div>
 
       {/* الدعم الفني — خارج فورم الإعدادات كي لا يتشابك الإرسال بينهما. */}
       <div className="mt-5">

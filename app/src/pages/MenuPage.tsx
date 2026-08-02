@@ -16,6 +16,15 @@ import { SafeImage, Skeleton } from "@/components/ui";
 import { MenuHeader } from "@/components/menu/MenuHeader";
 import { DishCard, type CardReserve } from "@/components/menu/DishCard";
 import { DishOfTheDay } from "@/components/menu/DishOfTheDay";
+import {
+  AddToCartButton,
+  CartBar,
+  CartReview,
+  OrderResult,
+  unitPrice,
+  useCart,
+  type Cart,
+} from "@/components/menu/Cart";
 import { parseOptions } from "@/lib/options";
 import { displayAllergens } from "@/lib/allergens";
 import {
@@ -219,7 +228,23 @@ function SectionHeading({ name, style }: { name: string; style: HeadingStyle }) 
 }
 
 /* ── نافذة تفاصيل الطبق ───────────────────────────────────────────── */
-function DishModal({ dish, en, onClose }: { dish: Dish; en: boolean; onClose: () => void }) {
+/**
+ * هذه هي نقطة الإضافة الوحيدة التي تسمح باختيار الإضافات — زرّ «＋» على البطاقة
+ * يضيف الطبق أساسياً بلا إضافات، ومن أراد «حار» أو «جبن زيادة» يفتح الطبق.
+ */
+function DishModal({
+  dish,
+  en,
+  cart,
+  onClose,
+}: {
+  dish: Dish;
+  en: boolean;
+  cart: Cart | null;
+  onClose: () => void;
+}) {
+  const [picked, setPicked] = useState<string[]>([]);
+  const [qty, setQty] = useState(1);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     document.addEventListener("keydown", onKey);
@@ -231,6 +256,8 @@ function DishModal({ dish, en, onClose }: { dish: Dish; en: boolean; onClose: ()
   }, [onClose]);
 
   const options = parseOptions(dish.options);
+  // طبق بلا سعر ترفضه دالة الحافة («بلا سعر»)، فلا نعرض له زرّ إضافة أصلاً.
+  const orderable = !!cart?.enabled && Number(dish.price ?? 0) > 0;
   const allergens = displayAllergens(dish.allergens, en);
   const nutrition = [
     dish.calories != null && { label: en ? "Calories" : "سعرات", value: dish.calories, icon: "🔥" },
@@ -333,18 +360,52 @@ function DishModal({ dish, en, onClose }: { dish: Dish; en: boolean; onClose: ()
                 {en ? "Options" : "الخيارات والإضافات"}
               </p>
               <div className="flex flex-col gap-1.5">
-                {options.map((o, i) => (
-                  <div
-                    key={`${o.name}-${i}`}
-                    className="flex items-center justify-between rounded-xl border px-3 py-2 text-sm"
-                    style={{ borderColor: "var(--m-border)", color: "var(--m-text)" }}
-                  >
-                    <span>{o.name}</span>
-                    {o.price != null && (
-                      <span style={{ color: "var(--m-accent)" }}>+{formatPrice(o.price)} ر.س</span>
-                    )}
-                  </div>
-                ))}
+                {options.map((o, i) => {
+                  // المعرّف هو **الموضع**: نفس ما تقرؤه دالة الحافة من العمود.
+                  const id = String(i);
+                  const on = picked.includes(id);
+                  const row = (
+                    <>
+                      <span>
+                        {orderable && (
+                          <span aria-hidden="true" style={{ color: on ? "var(--m-accent)" : "var(--m-muted)" }}>
+                            {on ? "☑ " : "☐ "}
+                          </span>
+                        )}
+                        {o.name}
+                      </span>
+                      {/* «+0 ر.س» ضجيج: إضافة بلا سعر (حار، بلا بصل) اسمها يكفي. */}
+                      {o.price != null && o.price > 0 && (
+                        <span style={{ color: "var(--m-accent)" }}>
+                          +{formatPrice(o.price)} {en ? "SAR" : "ر.س"}
+                        </span>
+                      )}
+                    </>
+                  );
+                  const cls =
+                    "flex items-center justify-between rounded-xl border px-3 py-2 text-start text-sm";
+                  const style = {
+                    borderColor: on ? "var(--m-accent)" : "var(--m-border)",
+                    color: "var(--m-text)",
+                  };
+                  return orderable ? (
+                    <button
+                      key={`${o.name}-${i}`}
+                      onClick={() =>
+                        setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]))
+                      }
+                      aria-pressed={on}
+                      className={cls}
+                      style={style}
+                    >
+                      {row}
+                    </button>
+                  ) : (
+                    <div key={`${o.name}-${i}`} className={cls} style={style}>
+                      {row}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -355,13 +416,55 @@ function DishModal({ dish, en, onClose }: { dish: Dish; en: boolean; onClose: ()
             </p>
           )}
 
-          <button
-            onClick={onClose}
-            className="mt-5 w-full rounded-xl py-2.5 text-sm font-black"
-            style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}
-          >
-            {en ? "Close" : "إغلاق"}
-          </button>
+          {orderable ? (
+            <div className="mt-5 flex items-center gap-2">
+              <div
+                className="flex shrink-0 items-center rounded-xl border"
+                style={{ borderColor: "var(--m-border)" }}
+              >
+                <button
+                  onClick={() => setQty((q) => Math.max(1, q - 1))}
+                  aria-label={en ? "Decrease" : "إنقاص"}
+                  className="h-10 w-9 text-lg font-black"
+                  style={{ color: "var(--m-muted)" }}
+                >
+                  −
+                </button>
+                <span className="w-6 text-center text-sm font-black" style={{ color: "var(--m-text)" }}>
+                  {qty}
+                </span>
+                <button
+                  onClick={() => setQty((q) => Math.min(99, q + 1))}
+                  aria-label={en ? "Increase" : "زيادة"}
+                  className="h-10 w-9 text-lg font-black"
+                  style={{ color: "var(--m-accent)" }}
+                >
+                  ＋
+                </button>
+              </div>
+              <button
+                onClick={() => {
+                  cart!.add(dish.id, picked, qty);
+                  onClose();
+                }}
+                className="flex flex-1 items-center justify-between gap-2 rounded-xl px-4 py-2.5 text-sm font-black"
+                style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}
+              >
+                <span>{en ? "Add to order" : "أضِف للطلب"}</span>
+                <span dir="ltr">
+                  {formatPrice(unitPrice(dish, picked) * qty)} {en ? "SAR" : "ر.س"}
+                </span>
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={onClose}
+              className="mt-5 w-full rounded-xl py-2.5 text-sm font-black"
+              style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}
+            >
+              {en ? "Close" : "إغلاق"}
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -526,6 +629,12 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
   const [openDish, setOpenDish] = useState<Dish | null>(null);
   const [hoursOpen, setHoursOpen] = useState(false);
   const [allergensOpen, setAllergensOpen] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
+  /** عودة الزبون من بوابة الدفع — `?order=paid|cancelled` تبنيهما دالة الحافة. */
+  const orderParam = params.get("order");
+  const [orderResult, setOrderResult] = useState<"paid" | "cancelled" | null>(
+    orderParam === "paid" || orderParam === "cancelled" ? orderParam : null
+  );
   const tracked = useRef(false);
   /**
    * وضع المعاينة: التاجر يفتح منيوه من اللوحة قبل الطباعة.
@@ -618,6 +727,32 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
   const pagePattern = season?.pattern ?? design.pattern;
 
   const en = lang === "en";
+
+  /**
+   * السلة تُستدعى بلا شرط (قاعدة الخطّافات) وتبقى معطّلة حتى يفتح التاجر الدفع
+   * الإلكتروني — والغالبية العظمى من المنيوهات لن تراها إطلاقاً.
+   */
+  const paymentOn =
+    state.status === "ready" && state.restaurant.online_payment_enabled === true;
+  const cart = useCart(state.status === "ready" ? state.restaurant.id : "", paymentOn);
+  const cartOn = cart.enabled;
+
+  // الدفع نجح ⇒ السلة أدّت غرضها. الإلغاء لا يمسّها: الزبون قد يعيد المحاولة.
+  useEffect(() => {
+    if (orderResult === "paid") cart.clear();
+  }, [orderResult, cart.clear]);
+
+  const dishById = useMemo(
+    () =>
+      new Map(
+        state.status === "ready" ? state.dishes.map((d) => [d.id, d] as const) : []
+      ),
+    [state]
+  );
+  const cartTotal = cart.lines.reduce((sum, l) => {
+    const dish = dishById.get(l.dish_id);
+    return dish ? sum + unitPrice(dish, l.option_ids) * l.qty : sum;
+  }, 0);
 
   const { featured, categories } = useMemo(() => {
     if (state.status !== "ready") return { featured: [], categories: [] as { name: string; dishes: Dish[] }[] };
@@ -899,7 +1034,12 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
         )}
       </MenuHeader>
 
-      <main className="mx-auto max-w-3xl px-4">
+      <main className={cn("mx-auto max-w-3xl px-4", cart.count > 0 && "pb-24")}>
+        {/* عودة الزبون من بوابة الدفع — أعلى شيء يراه، قبل الأطباق. */}
+        {orderResult && (
+          <OrderResult status={orderResult} en={en} onDismiss={() => setOrderResult(null)} />
+        )}
+
         {/* التقييم والموقع — أعلى الصفحة حيث يراهما الزبون فعلاً. */}
         {primaryLinks.length > 0 && (
           <div className="mt-5 flex gap-2">
@@ -1045,14 +1185,24 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
               <SectionHeading name={cat.name} style={design.heading} />
               <div className={cn(LAYOUT_CLASS[design.layout], rhythm.gap)}>
                 {cat.dishes.map((d) => (
-                  <DishCard
-                    key={d.id}
-                    dish={d}
-                    en={en}
-                    layout={design.layout}
-                    reserve={sectionReserve(cat.dishes, en)}
-                    onOpen={() => { setOpenDish(d); if (!demo && !preview) trackDishView(d, { table, lang }); }}
-                  />
+                  /* الغلاف `relative` موجود دائماً كي لا يتغيّر شكل الشبكة بين
+                     مطعم فتح الدفع ومطعم لم يفتحه — والزر وحده هو المشروط. */
+                  <div key={d.id} className="relative">
+                    <DishCard
+                      dish={d}
+                      en={en}
+                      layout={design.layout}
+                      reserve={sectionReserve(cat.dishes, en)}
+                      onOpen={() => { setOpenDish(d); if (!demo && !preview) trackDishView(d, { table, lang }); }}
+                    />
+                    {cartOn && Number(d.price ?? 0) > 0 && (
+                      <AddToCartButton
+                        label={en ? `Add ${d.name}` : `أضِف ${d.name}`}
+                        onAdd={() => cart.add(d.id)}
+                        className={design.layout === "list" ? "bottom-3 end-0" : "top-2 end-2"}
+                      />
+                    )}
+                  </div>
                 ))}
               </div>
             </section>
@@ -1141,19 +1291,47 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
         </footer>
       </main>
 
-      {/* «لأعلى» — منيو بستة أقسام يحتاجه؛ يظهر بعد شاشتين فقط. */}
+      {/* «لأعلى» — منيو بستة أقسام يحتاجه؛ يظهر بعد شاشتين فقط.
+          يرتفع فوق شريط السلة حين تكون مشغولة كي لا يتراكبا. */}
       {showTop && (
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
           aria-label={en ? "Back to top" : "العودة لأعلى"}
-          className="fixed bottom-5 end-5 z-40 flex h-11 w-11 items-center justify-center rounded-full shadow-lg transition-transform hover:scale-105"
+          className={cn(
+            "fixed end-5 z-40 flex h-11 w-11 items-center justify-center rounded-full shadow-lg transition-transform hover:scale-105",
+            cart.count > 0 ? "bottom-24" : "bottom-5"
+          )}
           style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}
         >
           ↑
         </button>
       )}
 
-      {openDish && <DishModal dish={openDish} en={en} onClose={() => setOpenDish(null)} />}
+      {cartOn && (
+        <CartBar count={cart.count} total={cartTotal} en={en} onOpen={() => setCartOpen(true)} />
+      )}
+
+      {cartOpen && (
+        <MenuSheet title={en ? "Your order" : "طلبك"} onClose={() => setCartOpen(false)}>
+          <CartReview
+            cart={cart}
+            dishById={dishById}
+            en={en}
+            restaurantId={restaurant.id}
+            table={table}
+            onClose={() => setCartOpen(false)}
+          />
+        </MenuSheet>
+      )}
+
+      {openDish && (
+        <DishModal
+          dish={openDish}
+          en={en}
+          cart={cartOn ? cart : null}
+          onClose={() => setOpenDish(null)}
+        />
+      )}
 
       {hoursOpen && (
         <MenuSheet
