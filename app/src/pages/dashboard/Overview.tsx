@@ -1,9 +1,10 @@
 /** نظرة عامة: أرقام سريعة + أفضل الأطباق + رابط المنيو. */
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Badge, Card, Skeleton, useToast } from "@/components/ui";
+import { Badge, Card, Skeleton } from "@/components/ui";
 import { PreviewMenuButton } from "@/components/site";
 import { Insights } from "@/components/Insights";
+import { ShareMenu } from "@/components/ShareMenu";
 import { getMyAnalytics, getMyDishes } from "@/lib/data";
 import { buildInsights } from "@/lib/insights";
 import { planLabel } from "@/lib/entitlements";
@@ -14,7 +15,6 @@ import { useDashboard } from "./Dashboard";
 
 export default function Overview() {
   const { user, restaurant, menus, ent } = useDashboard();
-  const toast = useToast();
   const [dishes, setDishes] = useState<Dish[] | null>(null);
   const [rows, setRows] = useState<AnalyticsRow[] | null>(null);
 
@@ -35,6 +35,38 @@ export default function Overview() {
   const menuUrl = `${window.location.origin}/${restaurant.slug}`;
   const publicUrl = restaurant.slug ? menuUrl : null;
   const top = [...(dishes ?? [])].sort((a, b) => (b.views ?? 0) - (a.views ?? 0)).slice(0, 5);
+
+  /**
+   * نبض الأسبوع — سبب العودة إلى اللوحة.
+   *
+   * يُحسب من نفس صفوف التحليلات المجلوبة أصلاً، فلا استعلام إضافي. وبعد رفع
+   * المنيو لم يكن في اللوحة ما يستدعي فتحها مرة ثانية؛ رقمٌ يتحرّك أسبوعياً
+   * ومقارنة بالأسبوع الذي قبله هو أبسط ما يستدعيها.
+   */
+  const week = useMemo(() => {
+    if (!rows) return null;
+    const day = 86400_000;
+    const since = (n: number) => new Date(Date.now() - n * day).toISOString().slice(0, 10);
+    const d7 = since(7);
+    const d14 = since(14);
+    let now = 0;
+    let prev = 0;
+    for (const r of rows) {
+      if (r.dish_id || !r.date) continue; // فتح طبق لا مشاهدة منيو
+      if (r.date >= d7) now += r.views ?? 0;
+      else if (r.date >= d14) prev += r.views ?? 0;
+    }
+    const delta = prev > 0 ? Math.round(((now - prev) / prev) * 100) : null;
+    return { now, prev, delta };
+  }, [rows]);
+
+  /** منذ متى لم يُضف طبق؟ منيو راكد يفقد سبب مسحه مرة ثانية. */
+  const staleDays = useMemo(() => {
+    if (!dishes?.length) return null;
+    const newest = Math.max(...dishes.map((d) => +new Date(d.created_at ?? 0)));
+    if (!Number.isFinite(newest) || newest <= 0) return null;
+    return Math.floor((Date.now() - newest) / 86400_000);
+  }, [dishes]);
 
   const steps = [
     { label: "أنشئ قائمة", done: (menus?.length ?? 0) > 0, to: "/dashboard/menus", cta: "القوائم" },
@@ -72,35 +104,27 @@ export default function Overview() {
         </Badge>
       </div>
 
-      {/* رابط المنيو */}
-      <Card className="mt-6 flex flex-wrap items-center justify-between gap-3 border-gold/25 bg-gold/[.04]">
-        <div className="min-w-0">
-          <p className="text-sm font-bold text-ink">رابط منيوك العام</p>
-          <p className="truncate text-sm text-gold" dir="ltr">
-            {publicUrl ?? `${SITE_URL}/…`}
-          </p>
-        </div>
-        <div className="flex gap-2">
+      {/* رابط المنيو ومشاركته — «نسخ» وحده كان يترك التاجر يبحث عن واتساب بنفسه. */}
+      <Card className="mt-6 border-gold/25 bg-gold/[.04]">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-sm font-bold text-ink">رابط منيوك العام</p>
+            <p className="truncate text-sm text-gold" dir="ltr">
+              {publicUrl ?? `${SITE_URL}/…`}
+            </p>
+          </div>
           {publicUrl && (
-            <>
-              <button
-                onClick={() => {
-                  navigator.clipboard?.writeText(publicUrl).then(
-                    () => toast("نُسخ الرابط ✓"),
-                    () => toast("تعذّر النسخ", "err")
-                  );
-                }}
-                className="rounded-xl border border-line-gold px-4 py-2 text-sm font-bold text-ink hover:bg-gold/10"
-              >
-                📋 نسخ
-              </button>
-              <PreviewMenuButton
-                slug={restaurant.slug}
-                className="border-transparent bg-gold text-on-gold hover:bg-gold2"
-              />
-            </>
+            <PreviewMenuButton
+              slug={restaurant.slug}
+              className="border-transparent bg-gold text-on-gold hover:bg-gold2"
+            />
           )}
         </div>
+        {publicUrl && (
+          <div className="mt-3 border-t border-gold/15 pt-3">
+            <ShareMenu name={restaurant.name} url={publicUrl} />
+          </div>
+        )}
       </Card>
 
 
@@ -149,6 +173,51 @@ export default function Overview() {
         </Card>
       )}
 
+      {/* نبض الأسبوع — لا يظهر إلا بعد أول مشاهدة، فالتاجر الجديد يبقى مع
+          دليل الخطوات بدل رقمٍ صفريّ محبِط. */}
+      {week && week.now + week.prev > 0 && (
+        <Card className="mt-5">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <p className="font-display font-extrabold text-ink">📈 هذا الأسبوع</p>
+            <Link to="/dashboard/analytics" className="text-xs font-bold text-gold hover:underline">
+              التفاصيل ←
+            </Link>
+          </div>
+          <p className="mt-2 text-sm text-dim">
+            منيوك شوهد <span className="font-display text-xl font-black text-ink">{week.now}</span>{" "}
+            مرة
+            {week.delta !== null && (
+              <span className={week.delta >= 0 ? "font-bold text-good" : "font-bold text-bad"}>
+                {" "}
+                ({week.delta >= 0 ? "+" : ""}
+                {week.delta}% عن الأسبوع الماضي)
+              </span>
+            )}
+            {top[0] && (top[0].views ?? 0) > 0 && (
+              <>
+                {" · "}أكثر طبق فُتح: <span className="font-bold text-ink">{top[0].name}</span>
+              </>
+            )}
+          </p>
+        </Card>
+      )}
+
+      {/* منيو راكد — تذكير لطيف بفعل صغير يُبقيه حيّاً. */}
+      {staleDays !== null && staleDays >= 21 && (
+        <Card className="mt-5 flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm text-dim">
+            لم تضف طبقاً منذ <span className="font-bold text-ink">{staleDays} يوماً</span> — طبق
+            جديد أو عرض اليوم يعطي زبونك سبباً ليمسح الكود مرة ثانية.
+          </p>
+          <Link
+            to="/dashboard/dishes"
+            className="rounded-xl border border-line-gold px-4 py-2 text-sm font-bold text-ink hover:bg-gold/10"
+          >
+            ＋ أضف طبقاً
+          </Link>
+        </Card>
+      )}
+
       {/* أرقام */}
       <div className="mt-5 grid gap-4 sm:grid-cols-3">
         {stats.map((s) => (
@@ -167,6 +236,22 @@ export default function Overview() {
           </Card>
         ))}
       </div>
+
+      {/* مدخل الطابع — أجمل ما في المنتج كان مدفوناً في صفحة «القوائم» التي لا
+          يعود إليها صاحب القائمة الواحدة. المُنتقي يبقى مكانه؛ هذا مدخل إليه. */}
+      <Link
+        to="/dashboard/menus"
+        className="mt-5 flex items-center gap-3 rounded-2xl border border-line bg-panel px-4 py-3 transition-colors hover:border-gold/40"
+      >
+        <span className="text-2xl">🎨</span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-bold text-ink">صمّم منيوك</span>
+          <span className="block text-xs text-dim">
+            أربعة طوابع كاملة — زخرفة وترويسة وشكل عرض، بلونك أنت.
+          </span>
+        </span>
+        <span className="text-sm font-bold text-gold">اختر ←</span>
+      </Link>
 
       {/* أفضل الأطباق */}
       <section className="mt-8">

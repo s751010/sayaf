@@ -460,6 +460,57 @@ export async function toggleDishAvailability(id: string, available: boolean): Pr
 }
 
 /**
+ * تعديل السعر من قائمة الأطباق مباشرة.
+ *
+ * خارج `DishPayload` عن قصد (نفس سابقة `toggleDishAvailability` أعلاه): تمرير
+ * الـpayload كاملاً لتغيير رقم واحد كان سيوجب تحميل الطبق كله ثم إعادة إرساله،
+ * فيدهس أي حقل لم يُحمَّل. تغيير السعر أكثر فعل يومي عند المطعم فيجب أن يكون
+ * أرخص نداء لا أغلاه.
+ */
+export async function updateDishPrice(id: string, price: number): Promise<void> {
+  await rest(`dishes?id=eq.${id}`, {
+    method: "PATCH",
+    headers: { Prefer: "return=minimal" },
+    body: { price },
+  });
+}
+
+/**
+ * ينسخ طبقاً بكل حقوله عدا المحسوبة.
+ *
+ * الأحجام والنكهات (وسط/كبير، حار/عادي) أكثر ما يتكرّر في منيو سعودي، وإعادة
+ * إدخال ستة عشر حقلاً لتغيير كلمة واحدة هو ما يجعل التاجر يتوقّف عند الطبق
+ * الثالث. الأعمدة المحسوبة (`burn_minutes` وأختاها) **لا تُنسخ** — إرسالها
+ * يجعل Postgres يرفض الطلب كاملاً (القاعدة د).
+ */
+export async function duplicateDish(
+  d: Dish,
+  refs: { menu_id: string; restaurant_id: string; user_id: string }
+): Promise<Dish> {
+  return createDish(
+    {
+      name: `${d.name} (نسخة)`,
+      name_en: d.name_en,
+      description: d.description,
+      description_en: d.description_en,
+      price: d.price ?? 0,
+      category: d.category,
+      emoji: d.emoji ?? "🍽",
+      image: d.image,
+      // النسخة ليست مميّزة: «طبق اليوم» واحد، ونسخُه يفسد بطاقته في المنيو.
+      featured: false,
+      available: d.available ?? true,
+      calories: d.calories,
+      sodium_mg: d.sodium_mg,
+      caffeine_mg: d.caffeine_mg,
+      allergens: d.allergens ?? [],
+      options: d.options,
+    },
+    { ...refs, sort_order: (d.sort_order ?? 0) + 1 }
+  );
+}
+
+/**
  * ترتيب الأطباق بعد السحب.
  *
  * خارج `DishPayload` عن قصد (كسابقة `updateBrandColor` و`setDishImage`): الترتيب

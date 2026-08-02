@@ -4,7 +4,7 @@
  * أي حقل جديد في جدول dishes يُضاف في الحالتين معاً وإلا يسقط بصمت.
  */
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import {
   Badge,
   Button,
@@ -31,11 +31,14 @@ import {
   countDishes,
   createDish,
   createDishes,
+  createMenu,
   deleteDish,
+  duplicateDish,
   getMyDishes,
   setDishImage,
   toggleDishAvailability,
   updateDish,
+  updateDishPrice,
   type DishPayload,
 } from "@/lib/data";
 import {
@@ -154,23 +157,79 @@ const QUICK_EMOJIS = ["🍔", "🍕", "🍗", "🥩", "🍤", "🍝", "🥗", "�
 /** اسم التصنيف الافتراضي — يطابق ما يعرضه `MenuPage` للزبون. */
 const UNCATEGORIZED = "أخرى";
 
+/**
+ * السعر قابلاً للتعديل في مكانه.
+ *
+ * تغيير سعر هو أكثر فعل يومي عند المطعم، وكان يكلّف فتح نموذج بعشرة حقول. هنا
+ * ضغطة واحدة ثم Enter. Escape يتراجع، والخروج من الحقل يحفظ — لأن التاجر على
+ * الجوال يضغط خارج الحقل أكثر مما يضغط Enter.
+ */
+function PriceCell({ dish: d, onSave }: { dish: Dish; onSave: (p: number) => void }) {
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState("");
+
+  function commit() {
+    setEditing(false);
+    const n = numOrNull(value);
+    if (n === null || n < 0 || n === (d.price ?? 0)) return;
+    onSave(n);
+  }
+
+  if (!editing) {
+    return (
+      <button
+        onClick={() => {
+          setValue(String(d.price ?? 0));
+          setEditing(true);
+        }}
+        title="اضغط لتعديل السعر"
+        className="-mx-1 shrink-0 rounded-lg px-1 py-0.5 text-sm font-bold text-gold hover:bg-gold/10"
+      >
+        {formatPrice(d.price ?? 0)} ر.س
+      </button>
+    );
+  }
+  return (
+    <input
+      autoFocus
+      dir="ltr"
+      inputMode="decimal"
+      value={value}
+      onChange={(e) => setValue(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") commit();
+        if (e.key === "Escape") setEditing(false);
+      }}
+      className="w-20 shrink-0 rounded-lg border border-gold/50 bg-panel2 px-2 py-1 text-center text-sm font-bold text-ink"
+    />
+  );
+}
+
 function DishRow({
   dish: d,
   showCategory,
   onToggle,
   onEdit,
   onRemove,
+  onPrice,
+  onDuplicate,
 }: {
   dish: Dish;
   showCategory?: boolean;
   onToggle: () => void;
   onEdit: () => void;
   onRemove: () => void;
+  onPrice: (p: number) => void;
+  onDuplicate: () => void;
 }) {
   return (
+    /* على الجوال ينزل شريط الأدوات سطراً ثانياً: الصف يحمل مقبض سحب وصورة
+       واسماً وسعراً ومفتاحاً وثلاثة أزرار، وحشرُها في سطر واحد على ٣٩٠px كان
+       يترك لاسم الطبق ٢٩ بكسل — أي يمحوه. الاسم أهمّ من توفير سطر. */
     <Card
       className={cn(
-        "flex items-center gap-3 border-transparent bg-transparent p-0 shadow-none",
+        "flex flex-wrap items-center gap-y-1.5 gap-x-2 border-transparent bg-transparent p-0 shadow-none sm:flex-nowrap sm:gap-x-3",
         d.available === false && "opacity-55"
       )}
     >
@@ -181,23 +240,42 @@ function DishRow({
         wrapperClassName="h-12 w-12 shrink-0 rounded-xl bg-panel2 text-2xl"
         fallback={d.emoji ?? "🍽"}
       />
-      <div className="min-w-0 flex-1">
+      <div className="min-w-0 flex-1 basis-[55%] sm:basis-auto">
         <p className="truncate font-bold text-ink">
           {d.name} {d.featured && <span className="text-gold">★</span>}
+          {/* «نفد» شارة لا مجرّد شفافية: التاجر يمرّ على القائمة سريعاً، والحالة
+              التي تُغيّر ما يراه زبونه يجب أن تُقرأ لا تُستنتج. */}
+          {d.available === false && (
+            <span className="ms-1.5 rounded-md bg-bad/15 px-1.5 py-0.5 text-[10px] font-black text-bad">
+              نفد
+            </span>
+          )}
         </p>
-        <p className="text-xs text-faint">
-          {showCategory && `${d.category ?? "بدون تصنيف"} · `}👁️ {d.views ?? 0}
+        {/* السعر تحت الاسم لا بجانبه: الصف يحمل ثمانية عناصر على عرض ٣٩٠px،
+            ووضعُه أفقياً كان يسحق اسم الطبق حتى يختفي. وهنا يبقى **ظاهراً على
+            الجوال** — كان `hidden sm:block`، أي أن أهمّ حقل غائب عن الشاشة التي
+            يعمل عليها التاجر فعلاً. */}
+        <p className="flex items-center gap-2 text-xs text-faint">
+          <PriceCell dish={d} onSave={onPrice} />
+          <span>
+            {showCategory && `${d.category ?? "بدون تصنيف"} · `}👁️ {d.views ?? 0}
+          </span>
         </p>
       </div>
-      <span className="hidden font-bold text-gold sm:block">
-        {formatPrice(d.price ?? 0)} ر.س
-      </span>
       <Switch checked={d.available ?? true} onChange={onToggle} label="متاح" />
       <button
         onClick={onEdit}
         className="rounded-lg px-2.5 py-1.5 text-sm font-bold text-dim hover:bg-ink/6 hover:text-ink"
       >
         تعديل
+      </button>
+      <button
+        onClick={onDuplicate}
+        aria-label="تكرار"
+        title="تكرار الطبق"
+        className="hidden rounded-lg px-2 py-1.5 text-sm text-dim hover:bg-ink/6 hover:text-ink sm:block"
+      >
+        ⧉
       </button>
       <button
         onClick={onRemove}
@@ -211,7 +289,7 @@ function DishRow({
 }
 
 export default function Dishes() {
-  const { user, restaurant, setRestaurant, menus, ent } = useDashboard();
+  const { user, restaurant, setRestaurant, menus, refreshMenus, ent } = useDashboard();
   const toast = useToast();
   const [dishes, setDishes] = useState<Dish[] | null>(null);
   const [filter, setFilter] = useState("");
@@ -257,10 +335,31 @@ export default function Dishes() {
   const set = <K extends keyof DishForm>(k: K, v: DishForm[K]) =>
     setForm((f) => ({ ...f, [k]: v }));
 
+  /**
+   * يضمن وجود قائمة يُسنَد إليها الطبق.
+   *
+   * كان التاجر بلا قائمة يصطدم بجدار «تحتاج قائمة قبل إضافة الأطباق» ويُرسَل
+   * إلى صفحة أخرى ليتعلّم مفهوماً لا يعنيه — و١٠ من ١٩ مطعماً في الإنتاج بلا
+   * قائمة أصلاً لأن إنشاءها التلقائي أُضيف متأخراً. الآن تُنشأ عند الحاجة
+   * ضمن نفس الحركة، ويُخبَر بما حدث بدل أن يقع صامتاً.
+   */
+  async function ensureMenu(): Promise<string> {
+    if (form.menu_id) return form.menu_id;
+    const existing = menus?.[0]?.id;
+    if (existing) return existing;
+    const m = await createMenu({
+      name: "القائمة الرئيسية",
+      restaurant_id: restaurant.id,
+      user_id: user.id,
+    });
+    await refreshMenus();
+    toast("أنشأنا لك «القائمة الرئيسية» تلقائياً ✓");
+    return m.id;
+  }
+
   async function save(e: FormEvent) {
     e.preventDefault();
     if (!form.name.trim()) return setError("اسم الطبق مطلوب.");
-    if (!form.menu_id) return setError("اختر القائمة.");
     // السعر كان يسقط إلى صفر بصمت عند إدخال غير قابل للتحويل (أرقام عربية،
     // «45 ريال»…) فيُنشر الطبق مجاناً في المنيو.
     const price = numOrNull(form.price);
@@ -270,6 +369,7 @@ export default function Dishes() {
     setError("");
     try {
       const payload = toPayload(form);
+      const menuId = await ensureMenu();
       if (editing === "new") {
         // فرض حدّ الأصناف حسب الباقة.
         if (ent.maxDishes !== null) {
@@ -281,16 +381,16 @@ export default function Dishes() {
           }
         }
         const created = await createDish(payload, {
-          menu_id: form.menu_id,
+          menu_id: menuId,
           restaurant_id: restaurant.id,
           user_id: user.id,
         });
         setDishes((ds) => [created, ...(ds ?? [])]);
         toast("أُضيف الطبق ✓");
       } else if (editing) {
-        await updateDish(editing.id, { ...payload, menu_id: form.menu_id });
+        await updateDish(editing.id, { ...payload, menu_id: menuId });
         setDishes((ds) =>
-          ds?.map((d) => (d.id === editing.id ? { ...d, ...payload, menu_id: form.menu_id } : d)) ?? null
+          ds?.map((d) => (d.id === editing.id ? { ...d, ...payload, menu_id: menuId } : d)) ?? null
         );
         toast("حُفظت التعديلات ✓");
       }
@@ -432,6 +532,34 @@ export default function Dishes() {
     }
   }
 
+  /** تعديل السعر من القائمة — تفاؤلي مع تراجع عند الفشل، كنمط `toggle`. */
+  async function setPrice(d: Dish, price: number) {
+    const before = d.price;
+    setDishes((ds) => ds?.map((x) => (x.id === d.id ? { ...x, price } : x)) ?? null);
+    try {
+      await updateDishPrice(d.id, price);
+      toast(`سعر «${d.name}» صار ${formatPrice(price)} ر.س ✓`);
+    } catch {
+      setDishes((ds) => ds?.map((x) => (x.id === d.id ? { ...x, price: before } : x)) ?? null);
+      toast("تعذّر تحديث السعر.", "err");
+    }
+  }
+
+  async function duplicate(d: Dish) {
+    try {
+      const copy = await duplicateDish(d, {
+        menu_id: d.menu_id ?? menus?.[0]?.id ?? "",
+        restaurant_id: restaurant.id,
+        user_id: user.id,
+      });
+      setDishes((ds) => [copy, ...(ds ?? [])]);
+      toast("نُسخ الطبق — عدّل الاسم والسعر ✓");
+      openEdit(copy);
+    } catch {
+      toast("تعذّر تكرار الطبق.", "err");
+    }
+  }
+
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -442,45 +570,35 @@ export default function Dishes() {
             {ent.maxDishes !== null && ` من أصل ${ent.maxDishes} في باقتك`}
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <PreviewMenuButton slug={restaurant.slug} />
-          <Button variant="outline" onClick={() => setImporting(true)}>
-            ⬆️ استيراد أصناف
-          </Button>
-          {(dishes?.length ?? 0) > 0 && (
-            <>
-              <Button variant="outline" onClick={() => setBulkImages(true)}>
-                📷 صور دفعة واحدة
-              </Button>
-              <Button variant="outline" onClick={() => setManagingCats(true)}>
-                🗂️ التصنيفات
-              </Button>
-            </>
-          )}
-          <Button onClick={openNew}>＋ طبق جديد</Button>
-        </div>
+        {/* شريط الأدوات يختفي كلياً عند صفر طبق: الشاشة الفارغة أدناه تحمل
+            نفس الأفعال، فكان التاجر يرى «استيراد» و«طبق جديد» مرّتين — أربعة
+            أزرار لفعلين على شاشة جوال ضيقة. */}
+        {(dishes?.length ?? 0) > 0 && (
+          <div className="flex flex-wrap items-center gap-2">
+            <PreviewMenuButton slug={restaurant.slug} />
+            <Button variant="outline" onClick={() => setImporting(true)}>
+              ⬆️ استيراد أصناف
+            </Button>
+            <Button variant="outline" onClick={() => setBulkImages(true)}>
+              📷 صور دفعة واحدة
+            </Button>
+            <Button variant="outline" onClick={() => setManagingCats(true)}>
+              🗂️ التصنيفات
+            </Button>
+            <Button onClick={openNew}>＋ طبق جديد</Button>
+          </div>
+        )}
       </div>
 
-      {/* لا تُعرض هذه التعليمة إلا بعد أن تُحسم القوائم فعلاً — كانت تظهر
-          لكل تاجر في كل تحميل لأن الافتراضي كان مصفوفة فارغة. */}
-      {menus !== null && menus.length === 0 && (
-        <Card className="mt-6 flex flex-wrap items-center justify-between gap-3 border-gold/30 bg-gold/[.04] text-sm text-ink">
-          <span>تحتاج قائمة قبل إضافة الأطباق — أنشئها في خطوة واحدة.</span>
-          <Link
-            to="/dashboard/menus"
-            className="rounded-xl bg-gold px-4 py-2 text-sm font-bold text-on-gold"
-          >
-            أنشئ قائمة
-          </Link>
-        </Card>
+      {/* البحث يظهر حين يصير له معنى فقط — كان مربّعاً فوق صفر طبق. */}
+      {(dishes?.length ?? 0) > 8 && (
+        <Input
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+          placeholder="🔍 ابحث باسم الطبق أو التصنيف…"
+          className="mt-5"
+        />
       )}
-
-      <Input
-        value={filter}
-        onChange={(e) => setFilter(e.target.value)}
-        placeholder="🔍 ابحث باسم الطبق أو التصنيف…"
-        className="mt-5"
-      />
 
       {dishes === null ? (
         <div className="mt-5 flex flex-col gap-3">
@@ -531,6 +649,8 @@ export default function Dishes() {
               onToggle={() => toggle(d)}
               onEdit={() => openEdit(d)}
               onRemove={() => remove(d)}
+              onPrice={(p) => setPrice(d, p)}
+              onDuplicate={() => duplicate(d)}
             />
           ))}
         </div>
@@ -553,6 +673,8 @@ export default function Dishes() {
                     onToggle={() => toggle(d)}
                     onEdit={() => openEdit(d)}
                     onRemove={() => remove(d)}
+                    onPrice={(p) => setPrice(d, p)}
+                    onDuplicate={() => duplicate(d)}
                   />
                 )}
               />
@@ -620,14 +742,19 @@ export default function Dishes() {
               />
             )}
           </Field>
-          <Field label="القائمة">
-            <Select value={form.menu_id} onChange={(e) => set("menu_id", e.target.value)} required>
-              <option value="" disabled>اختر…</option>
-              {(menus ?? []).map((m) => (
-                <option key={m.id} value={m.id}>{m.name}</option>
-              ))}
-            </Select>
-          </Field>
+          {/* حقل القائمة يظهر فقط لمن عنده أكثر من واحدة. صاحب القائمة الواحدة
+              (وهو الأغلب) لا يُطلب منه اختيار لا خيار فيه — و`ensureMenu` تتكفّل
+              بإنشائها إن لم توجد. صفحة «القوائم» باقية لمن يحتاج أكثر. */}
+          {(menus?.length ?? 0) > 1 && (
+            <Field label="القائمة">
+              <Select value={form.menu_id} onChange={(e) => set("menu_id", e.target.value)} required>
+                <option value="" disabled>اختر…</option>
+                {(menus ?? []).map((m) => (
+                  <option key={m.id} value={m.id}>{m.name}</option>
+                ))}
+              </Select>
+            </Field>
+          )}
           <div className="sm:col-span-2">
             <ImageUploader
               label="صورة الطبق (اختيارية)"

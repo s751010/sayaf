@@ -7,7 +7,15 @@ import {
   useState,
   type FormEvent,
 } from "react";
-import { Link, NavLink, Navigate, Route, Routes, useNavigate } from "react-router-dom";
+import {
+  Link,
+  NavLink,
+  Navigate,
+  Route,
+  Routes,
+  useNavigate,
+  useSearchParams,
+} from "react-router-dom";
 import { AnnouncementBar } from "@/components/AnnouncementBar";
 import { Logo, PreviewMenuButton } from "@/components/site";
 import {
@@ -36,6 +44,7 @@ import {
   isFounder,
   startTrial,
 } from "@/lib/data";
+import { getRestaurantById, logAudit } from "@/lib/founder";
 import { hasStarter } from "@/lib/starterMenus";
 import { cn, slugify } from "@/lib/utils";
 import type { Menu, Restaurant } from "@/lib/types";
@@ -60,6 +69,14 @@ interface DashboardCtx {
   refreshMenus: () => Promise<void>;
   ent: Entitlements;
   refreshEnt: () => Promise<void>;
+  /**
+   * وضع «الدخول كتاجر»: المؤسس يشاهد لوحة تاجر آخر — **قراءة فقط**.
+   *
+   * السبب تقني لا تحفّظي: كل كتابة من اللوحة تحمل `user.id` من هذا السياق،
+   * فالكتابة هنا كانت ستُنشئ صفوفاً باسم المؤسس داخل مطعم التاجر — تلويث
+   * بيانات لا دعم. الصفحات تعطّل أزرارها المُعدِّلة بهذه الراية.
+   */
+  readOnly: boolean;
 }
 
 const Ctx = createContext<DashboardCtx | null>(null);
@@ -95,10 +112,15 @@ function Onboarding({ user, onDone }: { user: SessionUser; onDone: (r: Restauran
         type,
         user_id: user.id,
       });
-      // قائمة أولى جاهزة حتى يبدأ بإضافة الأطباق فوراً.
-      await createMenu({ name: "القائمة الرئيسية", restaurant_id: r.id, user_id: user.id }).catch(() => {});
-      // تجربة مجانية ١٤ يوماً بمنيو شغّال — فشلها لا يُوقف التسجيل.
-      await startTrial(user.id).catch(() => {});
+      // قائمة أولى وتجربة مجانية — لا يُوقف فشلهما التسجيل، لكنه **يُسجَّل**.
+      // ابتلاعُ فشل `startTrial` صامتاً هو ما أخفى عطلاً عن ١٩ تاجراً حتى
+      // اكتُشف بالمصادفة؛ و`ensureMenu` في صفحة الأطباق تعوّض القائمة لاحقاً.
+      await createMenu({ name: "القائمة الرئيسية", restaurant_id: r.id, user_id: user.id }).catch(
+        (err) => console.error("تعذّر إنشاء القائمة الأولى:", err)
+      );
+      await startTrial(user.id).catch((err) =>
+        console.error("تعذّر بدء التجربة المجانية:", err)
+      );
       onDone(r);
     } catch {
       setError("تعذّر الإنشاء — قد يكون الرابط مستخدماً لمطعم آخر.");
@@ -202,7 +224,18 @@ function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode
     ));
 
   return (
-    <div className="flex min-h-dvh">
+    <>
+      {/* شريط الانتحال — في تدفّق الصفحة لا `fixed`: الترويسة على الجوال
+          `sticky top-0`، فشريط ثابت كان سيغطّيها. */}
+      {ctx.readOnly && (
+        <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 bg-gold px-4 py-1.5 text-center text-xs font-black text-on-gold">
+          <span>👁️ تشاهد لوحة «{ctx.restaurant.name}» كمؤسس — العرض فقط</span>
+          <Link to={`/founder/merchants/${ctx.restaurant.id}`} className="underline">
+            خروج ←
+          </Link>
+        </div>
+      )}
+      <div className="flex min-h-dvh">
       {/* جانبي (شاشات واسعة) */}
       <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col border-l border-line bg-panel px-3 py-5 lg:flex">
         <Link to="/" className="mb-6 px-2"><Logo /></Link>
@@ -250,19 +283,36 @@ function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode
               </button>
             </div>
           </div>
-          <nav className="flex gap-1 overflow-x-auto px-3 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {links(true)}
-          </nav>
+          {/* التبويبات ثمانية ولا تتّسع لها شاشة جوال: «الاشتراك» و«الإعدادات»
+              خارجها بلا أي إشارة تدلّ عليهما. التدرّج على الحافة يقول «خلفي
+              المزيد» — بلا حذف تبويب ولا إعادة ترتيب. */}
+          <div className="relative">
+            <nav className="flex gap-1 overflow-x-auto px-3 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {links(true)}
+            </nav>
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-y-0 start-0 w-8 bg-gradient-to-l from-transparent to-page"
+            />
+          </div>
         </header>
 
         <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-7 sm:px-6">
           {/* إعلانات المؤسس — تصل التاجر هنا بلا بريد ولا واتساب.
-              `ent.loading` تُستثنى: لا نصنّف الجمهور قبل أن تُحسم حالة الاشتراك. */}
-          {!ctx.ent.loading && <AnnouncementBar subscribed={ctx.ent.active} />}
-          {children}
+              `ent.loading` تُستثنى: لا نصنّف الجمهور قبل أن تُحسم حالة الاشتراك.
+              وفي وضع الانتحال لا تُعرض: إعلاناتك موجّهة للتجّار لا لك. */}
+          {!ctx.readOnly && !ctx.ent.loading && <AnnouncementBar subscribed={ctx.ent.active} />}
+          {/* حارس القراءة-فقط: `fieldset[disabled]` تُعطّل **كل** زر وحقل متفرّع
+              عنها بآلية HTML أصلية. اخترتُها بدل نثر `disabled` في ست صفحات لأن
+              تلك تُنسى في صفحة جديدة، وهذه لا تُنسى — والروابط تبقى تعمل فيظل
+              التنقّل ممكناً. */}
+          <fieldset disabled={ctx.readOnly} className="m-0 min-w-0 border-0 p-0">
+            {children}
+          </fieldset>
         </main>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
 
@@ -270,25 +320,62 @@ function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode
 export default function Dashboard() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const [params] = useSearchParams();
   const [restaurant, setRestaurant] = useState<Restaurant | null | undefined>(undefined);
   const [menus, setMenus] = useState<Menu[] | null>(null);
   const [ent, setEnt] = useState<Entitlements>(DEFAULT_ENTITLEMENTS);
+  /**
+   * `?as=<restaurantId>` — الدخول كتاجر.
+   *
+   * الحارس ليس وجود الوسيط بل `is_founder()` في القاعدة: أي تاجر يكتب الوسيط
+   * يدوياً يُتجاهَل ويرى لوحته هو. و`null` تعني «لم يُحسم بعد» فلا نجلب لوحة
+   * خاطئة في الأثناء.
+   */
+  const asId = params.get("as");
+  const [viewAs, setViewAs] = useState<boolean | null>(asId ? null : false);
+
+  useEffect(() => {
+    if (!asId) return setViewAs(false);
+    let alive = true;
+    isFounder().then((ok) => alive && setViewAs(ok));
+    return () => {
+      alive = false;
+    };
+  }, [asId]);
 
   const refreshMenus = useCallback(async () => {
     if (restaurant) setMenus(await getMyMenus(restaurant.id));
   }, [restaurant]);
 
+  /** صلاحيات **مالك المطعم** في وضع الانتحال، لا صلاحيات المؤسس. */
+  const entOwner = viewAs && restaurant?.user_id ? restaurant.user_id : user?.id;
   const refreshEnt = useCallback(async () => {
-    if (user) setEnt(await fetchEntitlements(user.id));
-  }, [user]);
+    if (entOwner) setEnt(await fetchEntitlements(entOwner));
+  }, [entOwner]);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || viewAs === null) return;
+    if (viewAs && asId) {
+      getRestaurantById(asId)
+        .then((r) => {
+          setRestaurant(r);
+          void logAudit("فتح لوحة تاجر", {
+            table: "restaurants",
+            id: r.id,
+            name: r.name,
+          });
+        })
+        .catch(() => setRestaurant(null));
+      return;
+    }
     getMyRestaurant(user.id)
       .then(setRestaurant)
       .catch(() => setRestaurant(null));
-    refreshEnt();
-  }, [user, refreshEnt]);
+  }, [user, viewAs, asId]);
+
+  useEffect(() => {
+    void refreshEnt();
+  }, [refreshEnt]);
 
   useEffect(() => {
     // فشل الجلب يحسم الحالة إلى «فارغة» بدل تركها معلّقة على هيكل تحميل أبدي.
@@ -303,7 +390,7 @@ export default function Dashboard() {
     );
   }
   if (!user) return <Navigate to="/login" replace />;
-  if (restaurant === undefined) {
+  if (restaurant === undefined || viewAs === null) {
     return (
       <div className="flex min-h-dvh items-center justify-center">
         <Spinner className="h-8 w-8" />
@@ -332,6 +419,7 @@ export default function Dashboard() {
     refreshMenus,
     ent,
     refreshEnt,
+    readOnly: viewAs,
   };
 
   return (

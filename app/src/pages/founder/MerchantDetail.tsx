@@ -227,6 +227,13 @@ export default function MerchantDetail() {
               افتح منيوه ↗
             </a>
           )}
+          {/* الدخول كتاجر — ترى لوحته كما يراها ليسهل دعمه. قراءة فقط. */}
+          <Link
+            to={`/dashboard?as=${restaurant.id}`}
+            className="rounded-xl border border-line-gold px-3 py-2 text-sm font-bold text-ink hover:bg-gold/10"
+          >
+            👁️ افتح لوحته
+          </Link>
           <Button variant="outline" onClick={() => setEditing((v) => !v)}>
             {editing ? "إلغاء" : "✏️ تعديل"}
           </Button>
