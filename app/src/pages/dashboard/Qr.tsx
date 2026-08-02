@@ -1,7 +1,7 @@
 /** استوديو QR — توليد أكواد للمنيو ولكل طاولة، وتنزيل PNG/SVG. */
 import { useEffect, useMemo, useState } from "react";
 import QRCode from "qrcode";
-import { Button, Card, ErrorNote, Field, Input, useToast } from "@/components/ui";
+import { Button, Card, ErrorNote, Field, Input, Switch, useToast } from "@/components/ui";
 import { PreviewMenuButton } from "@/components/site";
 import { useDashboard } from "./Dashboard";
 
@@ -25,6 +25,64 @@ function escapeHtml(s: string): string {
     .replace(/'/g, "&#39;");
 }
 
+function loadImage(src: string, cors = false): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    // بدون `crossOrigin` تُلوَّث اللوحة فيرمي `toDataURL` خطأ أمني — وSupabase
+    // Storage يرسل ترويسات CORS فيمرّ الطلب.
+    if (cors) img.crossOrigin = "anonymous";
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("image"));
+    img.src = src;
+  });
+}
+
+/**
+ * كود QR بشعار المطعم في وسطه.
+ *
+ * الشعار يحجب جزءاً من الكود، لذا يرتفع تصحيح الأخطاء إلى `H` (يتحمّل ~٣٠٪ تلفاً)
+ * **فقط حين يوجد شعار** — رفعه دائماً يزيد كثافة الوحدات بلا سبب فيصعب مسحه من
+ * بعيد على الطاولة.
+ *
+ * وأي فشل (شعار لا يُحمَّل، أو CORS يلوّث اللوحة) **يعود بالكود العادي**: كود
+ * بلا شعار خير من زرّ تنزيل لا يعمل.
+ */
+async function qrDataUrl(
+  url: string,
+  logo: string | null,
+  size = 640
+): Promise<string> {
+  const base = await QRCode.toDataURL(url, {
+    width: size,
+    margin: 2,
+    color: { dark: "#141210", light: "#ffffff" },
+    errorCorrectionLevel: logo ? "H" : "M",
+  });
+  if (!logo) return base;
+  try {
+    const [qrImg, logoImg] = await Promise.all([loadImage(base), loadImage(logo, true)]);
+    const canvas = document.createElement("canvas");
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return base;
+    ctx.drawImage(qrImg, 0, 0, size, size);
+
+    const box = Math.round(size * 0.2);
+    const at = Math.round((size - box) / 2);
+    const pad = Math.round(size * 0.015);
+    // خلفية بيضاء خلف الشعار: بدونها تختلط وحدات الكود بحوافّ الشعار فيفشل المسح.
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath();
+    ctx.roundRect(at - pad, at - pad, box + pad * 2, box + pad * 2, pad * 2);
+    ctx.fill();
+    ctx.drawImage(logoImg, at, at, box, box);
+    return canvas.toDataURL("image/png");
+  } catch {
+    return base;
+  }
+}
+
 export default function Qr() {
   const { restaurant } = useDashboard();
   const toast = useToast();
@@ -32,6 +90,7 @@ export default function Qr() {
   const [dataUrl, setDataUrl] = useState("");
   const [batchBusy, setBatchBusy] = useState(false);
   const [tablesCount, setTablesCount] = useState("10");
+  const [withLogo, setWithLogo] = useState(true);
 
   // slug قد يكون null نظرياً؛ توليد كود يشير إلى «/null» أسوأ من عدم توليده.
   const slug = restaurant.slug?.trim() || null;
@@ -45,20 +104,18 @@ export default function Qr() {
     document.title = "أكواد QR — كلاود منيو";
   }, []);
 
+  const logo = withLogo ? (restaurant.logo_image?.trim() || null) : null;
+
   useEffect(() => {
     if (!url) return setDataUrl("");
     let active = true;
-    QRCode.toDataURL(url, {
-      width: 640,
-      margin: 2,
-      color: { dark: "#141210", light: "#ffffff" },
-    })
+    qrDataUrl(url, logo)
       .then((d) => active && setDataUrl(d))
       .catch(() => active && setDataUrl(""));
     return () => {
       active = false;
     };
-  }, [url]);
+  }, [url, logo]);
 
   async function downloadSvg() {
     if (!url) return;
@@ -82,26 +139,37 @@ export default function Qr() {
     const n = Math.min(Math.max(parseInt(tablesCount) || 0, 1), 100);
     setBatchBusy(true);
     try {
+      const name = escapeHtml(restaurant.name);
       const cards = await Promise.all(
         [...Array(n)].map(async (_, i) => {
           const t = i + 1;
-          const d = await QRCode.toDataURL(
-            `${window.location.origin}/${slug}?table=${t}`,
-            { width: 480, margin: 2, color: { dark: "#141210", light: "#ffffff" } }
-          );
-          return `<div class="card"><img src="${d}"><p class="t">طاولة ${t}</p><p class="r">${escapeHtml(restaurant.name)}</p></div>`;
+          const d = await qrDataUrl(`${window.location.origin}/${slug}?table=${t}`, logo, 480);
+          return `<div class="card">
+  <p class="brand">${name}</p>
+  <img src="${d}" alt="">
+  <p class="cta">امسح الكود لعرض المنيو</p>
+  <p class="table">طاولة <b>${t}</b></p>
+</div>`;
         })
       );
       const w = window.open("", "_blank");
       if (!w) throw new Error("popup blocked");
-      w.document.write(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>أكواد QR — ${escapeHtml(restaurant.name)}</title>
+      /* بطاقة طاولة تُوضع أمام الزبون لا شبكةُ أكواد عارية: الاسم فوق ليعرف
+         أنه في المكان الصحيح، وجملة تقول له ماذا يفعل (كثير من الزبائن لا
+         يعرفون أن الكاميرا وحدها تكفي)، ورقم الطاولة أسفل ليقرأه الموظف.
+         عمودان لا ثلاثة: البطاقة تُقصّ وتُوقَف على الطاولة فتحتاج حجماً. */
+      w.document.write(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>بطاقات الطاولات — ${name}</title>
 <style>
-  body{font-family:Tahoma,Arial,sans-serif;margin:24px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-  .card{border:2px dashed #999;border-radius:16px;padding:14px;text-align:center;break-inside:avoid}
-  .card img{width:100%;max-width:220px}
-  .t{font-size:20px;font-weight:900;margin:6px 0 0}
-  .r{font-size:12px;color:#666;margin:2px 0 0}
-  @media print{.card{border-color:#ccc}}
+  @page{margin:10mm}
+  body{font-family:Tahoma,Arial,sans-serif;margin:0;display:grid;grid-template-columns:repeat(2,1fr);gap:8mm}
+  .card{border:1.5px dashed #b9b2a4;border-radius:18px;padding:8mm 6mm;text-align:center;
+        break-inside:avoid;display:flex;flex-direction:column;align-items:center;gap:3mm}
+  .brand{font-size:17px;font-weight:900;margin:0;color:#141210;letter-spacing:.2px}
+  .card img{width:100%;max-width:46mm;display:block}
+  .cta{font-size:12px;margin:0;color:#5b5347}
+  .table{font-size:13px;margin:0;color:#141210;border-top:1px solid #e6e1d8;padding-top:2.5mm;width:100%}
+  .table b{font-size:20px;font-weight:900}
+  @media print{.card{border-color:#ddd}}
 </style></head><body>${cards.join("")}</body></html>`);
       w.document.close();
       w.focus();
@@ -152,6 +220,17 @@ export default function Qr() {
               ممكناً.
             </ErrorNote>
           )}
+          {restaurant.logo_image?.trim() && (
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-line bg-panel2 px-4 py-3">
+              <div>
+                <p className="text-sm font-bold text-ink">🏷️ شعارك داخل الكود</p>
+                <p className="text-xs text-faint">
+                  يميّز كودك ويطمئن الزبون أنه كود مطعمك.
+                </p>
+              </div>
+              <Switch checked={withLogo} onChange={setWithLogo} label="الشعار في الكود" />
+            </div>
+          )}
           {dataUrl && (
             <div className="flex gap-2">
               <Button
@@ -165,6 +244,17 @@ export default function Qr() {
               <Button variant="outline" className="flex-1" onClick={downloadSvg}>
                 ⬇️ SVG
               </Button>
+            </div>
+          )}
+          {dataUrl && logo && (
+            <div>
+              {/* SVG متجه للطباعة الكبيرة (لوحة، ستاند) ولا يحمل الشعار: دمج
+                  صورة نقطية داخله يُفقده ميزته الوحيدة. نقولها بدل أن يكتشفها
+                  التاجر بعد الطباعة. */}
+              <p className="text-xs text-faint">
+                ملاحظة: ملف SVG (للطباعة الكبيرة) يُصدَّر بلا شعار — استخدم PNG
+                إن أردت الشعار داخل الكود.
+              </p>
             </div>
           )}
         </Card>
