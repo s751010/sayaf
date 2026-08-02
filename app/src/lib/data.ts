@@ -444,6 +444,94 @@ export async function setupLoyalty(
   });
 }
 
+/* ── Webhooks ─────────────────────────────────────────────────────── */
+
+/** وجهة ويبهوك كما يراها التاجر — **بلا `secret`** (محجوب على مستوى العمود). */
+export type Webhook = {
+  id: string;
+  restaurant_id: string;
+  url: string;
+  events: string[];
+  enabled: boolean;
+  created_at: string;
+};
+
+export const WEBHOOK_EVENTS = [
+  { id: "menu.viewed", label: "فتح المنيو", hint: "كل مرة يفتح زبون منيوك" },
+  { id: "dish.unavailable", label: "نفاد صنف", hint: "عند إطفاء طبق — الأنسب لنقطة البيع" },
+  { id: "loyalty.stamped", label: "ختم ولاء", hint: "عدد الأختام فقط، بلا بيانات الزبون" },
+] as const;
+
+const WEBHOOK_COLS = "id,restaurant_id,url,events,enabled,created_at";
+
+export async function getWebhooks(restaurantId: string): Promise<Webhook[]> {
+  return rest<Webhook[]>(
+    `webhooks?restaurant_id=eq.${restaurantId}&select=${WEBHOOK_COLS}&order=created_at.desc`
+  );
+}
+
+/**
+ * يُنشئ وجهة ويعيد **سرّ التوقيع مرة واحدة**.
+ *
+ * السرّ يولّده الخادم (`gen_random_bytes` في `DEFAULT`) لا التاجر، ويصل هنا من
+ * ردّ `RETURNING` وحده — العمود محجوب عن `SELECT` فلا يُقرأ بعدها أبداً. بهذا
+ * لا يستطيع من يصل للوحة لاحقاً انتحال توقيعنا تجاه خادم التاجر.
+ */
+export async function createWebhook(input: {
+  restaurant_id: string;
+  user_id: string;
+  url: string;
+  events: string[];
+}): Promise<{ hook: Webhook; secret: string }> {
+  const rows = await rest<(Webhook & { secret: string })[]>(
+    "webhooks?select=" + WEBHOOK_COLS + ",secret",
+    {
+      method: "POST",
+      body: {
+        restaurant_id: input.restaurant_id,
+        user_id: input.user_id,
+        url: input.url.trim(),
+        events: input.events,
+        enabled: true,
+      },
+    }
+  );
+  const { secret, ...hook } = rows[0];
+  return { hook, secret };
+}
+
+export async function setWebhookEnabled(id: string, enabled: boolean): Promise<void> {
+  await rest(`webhooks?id=eq.${id}`, {
+    method: "PATCH",
+    headers: { Prefer: "return=minimal" },
+    body: { enabled },
+  });
+}
+
+export async function deleteWebhook(id: string): Promise<void> {
+  await rest(`webhooks?id=eq.${id}`, {
+    method: "DELETE",
+    headers: { Prefer: "return=minimal" },
+  });
+}
+
+export type WebhookDelivery = {
+  id: number;
+  event: string;
+  attempts: number;
+  delivered_at: string | null;
+  last_error: string | null;
+  created_at: string;
+};
+
+/** آخر التسليمات — يجيب سؤال «لماذا لم يصلني شيء؟» بلا مراسلة الدعم. */
+export async function getWebhookDeliveries(restaurantId: string): Promise<WebhookDelivery[]> {
+  return rest<WebhookDelivery[]>(
+    `webhook_events?restaurant_id=eq.${restaurantId}` +
+      "&select=id,event,attempts,delivered_at,last_error,created_at&order=id.desc&limit=15"
+  );
+}
+
 /* ── مفاتيح API ───────────────────────────────────────────────────── */
 
 /**

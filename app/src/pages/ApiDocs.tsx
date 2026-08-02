@@ -221,6 +221,56 @@ export default function ApiDocs() {
         </Card>
 
         <Card className="mt-5">
+          <h2 className={h2}>الإشعارات (Webhooks)</h2>
+          <p className="mt-1 text-sm text-dim">
+            بدل أن تسأل الـAPI كل دقيقة، نرسل لخادمك <code dir="ltr">POST</code>{" "}
+            لحظة وقوع الحدث. تُضبط الوجهة من إعدادات لوحتك.
+          </p>
+          <ul className="mt-3 space-y-1.5 text-sm text-dim">
+            <li>
+              • <code dir="ltr">menu.viewed</code> — فتح زبون المنيو
+            </li>
+            <li>
+              • <code dir="ltr">dish.unavailable</code> — أُطفئ صنف
+            </li>
+            <li>
+              • <code dir="ltr">loyalty.stamped</code> — خُتمت بطاقة ولاء (عدد
+              الأختام فقط، بلا اسم الزبون ولا جواله)
+            </li>
+          </ul>
+
+          <p className="mt-4 text-sm font-bold text-ink">شكل الطلب</p>
+          <Code>{`POST <رابطك>
+X-CloudMenu-Event: dish.unavailable
+X-CloudMenu-Timestamp: 1785686400
+X-CloudMenu-Signature: sha256=<hex>
+
+{
+  "event": "dish.unavailable",
+  "restaurant_id": "…",
+  "data": { "dish_id": "…", "name": "برجر", "price": 32 },
+  "sent_at": "2026-08-02T16:00:00.000Z"
+}`}</Code>
+
+          <p className="mt-4 text-sm font-bold text-ink">تحقّق من التوقيع</p>
+          <p className="mt-1 text-xs text-dim">
+            وقّع <code dir="ltr">&quot;&lt;timestamp&gt;.&lt;body&gt;&quot;</code> بسرّك
+            وقارن. ارفض ما يزيد عمره على خمس دقائق لتمنع إعادة التشغيل.
+          </p>
+          <Code>{`const mine = "sha256=" + crypto
+  .createHmac("sha256", SECRET)
+  .update(req.headers["x-cloudmenu-timestamp"] + "." + rawBody)
+  .digest("hex");
+
+if (mine !== req.headers["x-cloudmenu-signature"]) return res.sendStatus(401);`}</Code>
+          <p className="mt-3 text-xs leading-relaxed text-faint">
+            استخدم <b className="text-ink">الجسم الخام</b> لا الكائن بعد التحليل —
+            إعادة ترتيب المفاتيح تُبطل التوقيع. وردّ بأي حالة <code dir="ltr">2xx</code>؛
+            غير ذلك نعيد المحاولة حتى ست مرات، ثم يظهر آخر خطأ في لوحتك.
+          </p>
+        </Card>
+
+        <Card className="mt-5">
           <h2 className={h2}>حماية مفتاحك</h2>
           <ul className="mt-2 space-y-1.5 text-sm text-dim">
             <li>

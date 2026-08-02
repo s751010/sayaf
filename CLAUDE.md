@@ -48,6 +48,7 @@ app/src/
     AnnouncementBar.tsx إعلانات المؤسس داخل لوحة التاجر (§11)
     PaymentSettingsCard.tsx ربط بوابة PayLink للتاجر — المفتاح كتابةً فقط (§13)
     ApiKeysCard.tsx     مفاتيح API للتاجر — السرّ يُعرض مرة واحدة (§14)
+    WebhooksCard.tsx    وجهات الويبهوك + سجل التسليم (§16)
     ErrorBoundary.tsx   يمنع الشاشة البيضاء
   lib/
     api.ts              rest() restCount() uploadImage() founderAdmin() ApiError
@@ -82,13 +83,14 @@ Project ref: `wjqpsbpebpntpeinqccl` · URL في `app/src/lib/config.ts`.
 **الجداول:** `restaurants` `menus` `dishes` `analytics` `subscriptions`
 `revenue_log` `support_tickets` `site_settings` `blog_posts` `loyalty_customers`
 `promo_codes` `announcements` `survey_responses` `restaurant_payment_settings`
-`staff_pins` `founder_audit` `api_keys` `api_usage`.
+`staff_pins` `founder_audit` `api_keys` `api_usage` `webhooks` `webhook_events`
+`internal_secrets`.
 
 **Edge Functions المنشورة فعلياً** (مؤكَّدة من لوحة Supabase؛ `ai-proxy`
 موجودة لكن لم تُعد الواجهة تستدعيها بعد حذف المستشار الذكي):
 `founder-admin` · `moyasar-webhook` · `notify-support` ·
 `dynamic-task` · `payments` · `paylink-create` · `paylink-webhook` ·
-`paylink-order-create` · `api` (واجهة التجّار — انظر §14).
+`paylink-order-create` · `api` (§14) · `webhook-dispatch` (§16).
 
 > `founder-admin` **موجود ونشط**. (توثيق قديم في `web/MIGRATION.md` كان يقول
 > غير ذلك — كان خطأً، والمجلد حُذف.)
@@ -559,3 +561,56 @@ CSP تسمح بـ`script-src 'self' <نطاقات مسمّاة>` **بلا `unsaf
 مُتحقَّق بخادم محلّي يطبّق CSP الإنتاج حرفياً: منيو بلا معرّفات ⇒ صفر طلبات طرف
 ثالث · منيو بالمعرّفات الثلاثة ⇒ المزوّدون الثلاثة يُحمَّلون · **صفر خروقات CSP
 في الحالتين**.
+
+---
+
+## 16. Webhooks (إشعار خادم التاجر)
+
+ثلاثة أحداث تُرسَل إلى رابط التاجر لحظة وقوعها: `menu.viewed` ·
+`dish.unavailable` · `loyalty.stamped`. تظهر البطاقة مع بوّابة `api_enabled`
+نفسها (§14) — من يستقبل ويبهوكات لديه خادم، ومن لديه خادم يريد الـAPI أيضاً.
+
+> **`order.paid` أُسقط عمداً**: لا شيء يُطلقه — طلبات الزبائن تعيش في PayLink لا
+> عندنا (§13). عرض حدث لا يصل أبداً كخيار وعدٌ كاذب: يضبط التاجر خادمه وينتظر ما
+> لا يأتي. يعود متى وُجد سجل طلبات فعلي.
+
+### صندوق صادر لا نداء مباشر
+
+التريجرات تنادي `enqueue_webhook` فتكتب صفّاً في `webhook_events` **داخل معاملة
+الفعل الأصلي** — كتابة رخيصة وذرّية. فلا يفشل ختمُ ولاء ولا إطفاءُ صنف لأن خادم
+التاجر معطّل. مُتحقَّق: أُطفئ صنف ووجهته تردّ خطأً ⇒ الصنف انطفأ فعلاً والحدث
+بقي في الصندوق يُعاد.
+
+و`enqueue_webhook` **لا تكتب شيئاً إن لم يكن لأحد اشتراك في الحدث** — وإلا نما
+الجدول بصفوف لا وجهة لها.
+
+### `webhook-dispatch` لا `pg_net` للتسليم
+
+`pg_cron` يوقظ الدالة كل دقيقة عبر `pg_net` (وهذا استخدام صحيح: لا يهمّنا الردّ).
+أما **التسليم** فمن دالة الحافة لأن `pg_net` غير متزامنة: لمعرفة النتيجة يجب
+استطلاع `net._http_response` لاحقاً والربط بـ`request_id`، فيصير منطق إعادة
+المحاولة آلة حالة موزّعة عبر جدولين. الدالة تنتظر الردّ فتضبط `attempts`
+و`last_error` و`delivered_at` في نفس الدورة. حدّ ست محاولات، ثم يبقى الخطأ
+معروضاً للتاجر في لوحته.
+
+### الأسرار
+
+- **سرّ توقيع التاجر**: يولّده الخادم (`gen_random_bytes` في `DEFAULT`)، ويصل
+  الواجهة من ردّ `RETURNING` **مرة واحدة**؛ العمود محجوب عن `SELECT` بمنح على
+  مستوى العمود. فمن يصل للوحة لاحقاً لا ينتحل توقيعنا تجاه خادم التاجر.
+- **سرّ إيقاظ الدالة**: في جدول `internal_secrets` (RLS مفعّلة **بلا أي سياسة**،
+  والمنح مسحوبة من `anon` و`authenticated` — كـ`api_usage`). في القاعدة لا في
+  متغيّر بيئة لأن الموقِظ `pg_cron` **داخل القاعدة**: مصدر واحد بلا خطوة يدوية
+  في لوحة Supabase تُنسى فتتوقّف الويبهوكات بصمت. والمقارنة بزمن ثابت.
+
+### التوقيع
+
+`X-CloudMenu-Signature: sha256=<hex>` = HMAC-SHA256 لـ`<timestamp>.<body>`
+بسرّ التاجر، والطابع في ترويسة `X-CloudMenu-Timestamp` — إدراجه في المُوقَّع يمنع
+إعادة تشغيل طلب قديم. `https` فقط (قيد `CHECK` على العمود): التوقيع يحمي من
+التزوير لا من التنصّت.
+
+### الخصوصية
+
+`loyalty.stamped` يحمل `customer_id` و`stamps` و`total_visits` **فقط** — لا اسم
+ولا جوال (§11). مُتحقَّق بفحص الجسم الواصل فعلاً إلى نقطة التقاط خارجية.
