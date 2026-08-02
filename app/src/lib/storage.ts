@@ -14,6 +14,12 @@ export const K = {
    * بعد إغلاق المتصفح، وكي لا يعيد الكاشير إدخاله مع كل زبون.
    */
   STAFF: "cm_staff",
+  /**
+   * الإعلانات التي أخفاها التاجر — localStorage، معرّفات مفصولة بفواصل.
+   * الإخفاء محلي عمداً: لا عمود «مقروء لكل تاجر» في القاعدة، وكتابة صف لكل
+   * (تاجر × إعلان) ثمنٌ لا يستحقه إخفاء شريط.
+   */
+  SEEN_ANNOUNCEMENTS: "cm2_seen_ann",
 } as const;
 
 function store(session: boolean): Storage | null {

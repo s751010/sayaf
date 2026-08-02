@@ -8,6 +8,7 @@ import {
   type FormEvent,
 } from "react";
 import { Link, NavLink, Navigate, Route, Routes, useNavigate } from "react-router-dom";
+import { AnnouncementBar } from "@/components/AnnouncementBar";
 import { Logo, PreviewMenuButton } from "@/components/site";
 import {
   Badge,
@@ -254,7 +255,12 @@ function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode
           </nav>
         </header>
 
-        <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-7 sm:px-6">{children}</main>
+        <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-7 sm:px-6">
+          {/* إعلانات المؤسس — تصل التاجر هنا بلا بريد ولا واتساب.
+              `ent.loading` تُستثنى: لا نصنّف الجمهور قبل أن تُحسم حالة الاشتراك. */}
+          {!ctx.ent.loading && <AnnouncementBar subscribed={ctx.ent.active} />}
+          {children}
+        </main>
       </div>
     </div>
   );

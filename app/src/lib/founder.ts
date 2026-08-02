@@ -103,6 +103,197 @@ export async function getMerchants(): Promise<FounderMerchant[]> {
   return rest<FounderMerchant[]>("rpc/founder_merchants", { method: "POST", body: {} });
 }
 
+/* ── المال والنمو ─────────────────────────────────────────────────── */
+
+export interface FunnelStep {
+  ord: number;
+  step: string;
+  n: number;
+}
+export interface MonthRevenue {
+  month: string;
+  total: number;
+  n: number;
+}
+export interface RevenueOrphan {
+  id: string;
+  user_id: string | null;
+  user_name: string | null;
+  plan_name: string | null;
+  amount: number | null;
+  payment_ref: string | null;
+  created_at: string;
+  owner_email: string | null;
+}
+
+export async function getFunnel(): Promise<FunnelStep[]> {
+  return rest<FunnelStep[]>("rpc/founder_funnel", { method: "POST", body: {} });
+}
+
+export async function getMonthlyRevenue(months = 12): Promise<MonthRevenue[]> {
+  return rest<MonthRevenue[]>("rpc/founder_revenue_monthly", {
+    method: "POST",
+    body: { p_months: months },
+  });
+}
+
+/** صفوف إيراد بلا اشتراك مدفوع يقابلها — تناقض يُعرَض لا يُخفى. */
+export async function getRevenueOrphans(): Promise<RevenueOrphan[]> {
+  return rest<RevenueOrphan[]>("rpc/founder_revenue_orphans", { method: "POST", body: {} });
+}
+
+export interface PromoCode {
+  id: string;
+  code: string;
+  discount: number;
+  max_uses: number | null;
+  uses: number | null;
+  expiry_date: string | null;
+  description: string | null;
+  active: boolean | null;
+  created_at: string | null;
+}
+
+export async function getPromos(): Promise<PromoCode[]> {
+  return rest<PromoCode[]>("promo_codes?select=*&order=created_at.desc");
+}
+
+export async function createPromo(p: {
+  code: string;
+  discount: number;
+  max_uses: number | null;
+  expiry_date: string | null;
+  description: string | null;
+}): Promise<void> {
+  await rest("promo_codes", {
+    method: "POST",
+    headers: { Prefer: "return=minimal" },
+    body: { ...p, code: p.code.trim().toUpperCase(), active: true, uses: 0 },
+  });
+}
+
+export async function setPromoActive(id: string, active: boolean): Promise<void> {
+  await rest(`promo_codes?id=eq.${id}`, {
+    method: "PATCH",
+    headers: { Prefer: "return=minimal" },
+    body: { active },
+  });
+}
+
+export async function deletePromo(id: string): Promise<void> {
+  await rest(`promo_codes?id=eq.${id}`, {
+    method: "DELETE",
+    headers: { Prefer: "return=minimal" },
+  });
+}
+
+/* ── الإعلانات والمدونة ───────────────────────────────────────────── */
+
+export type AnnouncementType = "info" | "warn" | "success";
+/** `all` للجميع · `active` للمشتركين · `inactive` لمن لا اشتراك نشط له. */
+export type AnnouncementAudience = "all" | "active" | "inactive";
+
+export interface Announcement {
+  id: string;
+  title: string;
+  body: string;
+  type: AnnouncementType | null;
+  audience: AnnouncementAudience | null;
+  status: string | null;
+  created_at: string | null;
+}
+
+export async function getAnnouncements(): Promise<Announcement[]> {
+  return rest<Announcement[]>("announcements?select=*&order=created_at.desc");
+}
+
+export async function createAnnouncement(a: {
+  title: string;
+  body: string;
+  type: AnnouncementType;
+  audience: AnnouncementAudience;
+}): Promise<void> {
+  await rest("announcements", {
+    method: "POST",
+    headers: { Prefer: "return=minimal" },
+    body: { ...a, status: "active" },
+  });
+}
+
+export async function setAnnouncementStatus(id: string, status: string): Promise<void> {
+  await rest(`announcements?id=eq.${id}`, {
+    method: "PATCH",
+    headers: { Prefer: "return=minimal" },
+    body: { status },
+  });
+}
+
+export async function deleteAnnouncement(id: string): Promise<void> {
+  await rest(`announcements?id=eq.${id}`, {
+    method: "DELETE",
+    headers: { Prefer: "return=minimal" },
+  });
+}
+
+export interface BlogPost {
+  id: string;
+  slug: string | null;
+  title: string;
+  excerpt: string | null;
+  content: string | null;
+  cover_image: string | null;
+  author: string | null;
+  published: boolean | null;
+  category: string | null;
+  tags: string | null;
+  seo_title: string | null;
+  seo_description: string | null;
+  views: number | null;
+  created_at: string | null;
+  published_at: string | null;
+}
+
+export type BlogPayload = Pick<
+  BlogPost,
+  | "slug"
+  | "title"
+  | "excerpt"
+  | "content"
+  | "cover_image"
+  | "category"
+  | "tags"
+  | "seo_title"
+  | "seo_description"
+  | "published"
+>;
+
+export async function getBlogPosts(): Promise<BlogPost[]> {
+  return rest<BlogPost[]>("blog_posts?select=*&order=created_at.desc");
+}
+
+export async function createBlogPost(p: BlogPayload): Promise<void> {
+  await rest("blog_posts", {
+    method: "POST",
+    headers: { Prefer: "return=minimal" },
+    body: { ...p, published_at: p.published ? new Date().toISOString() : null },
+  });
+}
+
+export async function updateBlogPost(id: string, p: BlogPayload): Promise<void> {
+  await rest(`blog_posts?id=eq.${id}`, {
+    method: "PATCH",
+    headers: { Prefer: "return=minimal" },
+    body: { ...p, published_at: p.published ? new Date().toISOString() : null },
+  });
+}
+
+export async function deleteBlogPost(id: string): Promise<void> {
+  await rest(`blog_posts?id=eq.${id}`, {
+    method: "DELETE",
+    headers: { Prefer: "return=minimal" },
+  });
+}
+
 /* ── سجل التدقيق ──────────────────────────────────────────────────── */
 
 /**
@@ -139,6 +330,43 @@ export async function logAudit(
 
 export async function getAudit(limit = 100): Promise<AuditEntry[]> {
   return rest<AuditEntry[]>(`founder_audit?select=*&order=at.desc&limit=${limit}`);
+}
+
+/* ── الصحة وإعدادات المنصة ────────────────────────────────────────── */
+
+export interface HealthItem {
+  kind: string;
+  severity: "high" | "medium" | "low";
+  title: string;
+  detail: string;
+  restaurant_id: string | null;
+  restaurant_name: string | null;
+}
+
+export async function getHealth(): Promise<HealthItem[]> {
+  return rest<HealthItem[]>("rpc/founder_health", { method: "POST", body: {} });
+}
+
+export interface SiteSetting {
+  key: string;
+  value: unknown;
+  updated_at: string | null;
+}
+
+export async function getSiteSettings(): Promise<SiteSetting[]> {
+  return rest<SiteSetting[]>("site_settings?select=*&order=key.asc");
+}
+
+/**
+ * يكتب مفتاح إعداد. `Prefer: resolution=merge-duplicates` يجعلها upsert على
+ * المفتاح الأولي — فلا نحتاج معرفة هل الصف موجود مسبقاً.
+ */
+export async function setSiteSetting(key: string, value: unknown): Promise<void> {
+  await rest("site_settings", {
+    method: "POST",
+    headers: { Prefer: "return=minimal,resolution=merge-duplicates" },
+    body: { key, value, updated_at: new Date().toISOString() },
+  });
 }
 
 /* ── التحكّم بالاشتراكات ───────────────────────────────────────────── */

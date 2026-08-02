@@ -22,6 +22,7 @@ app/src/
     dashboard/          Dashboard(shell) Overview Dishes Menus Qr Analytics
                         Loyalty Billing Settings
     founder/            Founder(shell+بوابة) Overview Merchants MerchantDetail
+                        Money Comms Health
   components/
     ui.tsx              نظام التصميم: Button Card Badge Field Input Modal Toast…
     site.tsx            Logo / Navbar / Footer / PreviewMenuButton
@@ -42,6 +43,7 @@ app/src/
     AllergenPicker.tsx  مسببات الحساسية (اختيار بالضغط)
     HoursEditor.tsx     ساعات العمل يوماً بيوم
     SupportBox.tsx      الدعم الفني ← لوحة المؤسس
+    AnnouncementBar.tsx إعلانات المؤسس داخل لوحة التاجر (§11)
     ErrorBoundary.tsx   يمنع الشاشة البيضاء
   lib/
     api.ts              rest() restCount() uploadImage() founderAdmin() ApiError
@@ -95,7 +97,9 @@ Project ref: `wjqpsbpebpntpeinqccl` · URL في `app/src/lib/config.ts`.
 `track_menu_view` (موجودة مسبقاً، غير مستخدَمة من الواجهة) ·
 `staff_stamp` و `set_staff_pin` (وضع الكاشير، انظر §8) ·
 `founder_email` (بريد المؤسس — مصدر واحد، انظر §10) ·
-`founder_overview` و `founder_merchants` (لوحة المؤسس، انظر §11).
+`founder_overview` · `founder_merchants` · `founder_funnel` ·
+`founder_revenue_monthly` · `founder_revenue_orphans` · `founder_health`
+(لوحة المؤسس، انظر §11).
 
 **`is_founder()` صارت `SECURITY DEFINER`** لتقرأ `founder_email()` المحجوبة عن
 `anon` و`authenticated`. لا تُرجعها إلى SQL عادية إلا مع منح EXECUTE على
@@ -379,3 +383,18 @@ cd app && npm run typecheck
 
 `founder_audit`: **لا سياسة UPDATE ولا DELETE** عمداً — سجل لا يُنقَّح. تُنادى
 `logAudit()` **قبل** كل تغيير، ولا ترمي أبداً (فشل التسجيل لا يمنع الإجراء).
+
+### أقسام اللوحة والوصل بلوحة التاجر
+
+| القسم | ما يفعله | أثره عند التاجر |
+|---|---|---|
+| نظرة عامة | أرقام المنصة + «يحتاج انتباهك» مشتقّاً منها + تذاكر الدعم | ردّ التذكرة يظهر في `SupportBox.tsx` |
+| التجّار | سجل + بطاقة لكل تاجر + تحكّم بالاشتراك والبيانات والحذف | الاشتراك يظهر فوراً في `planLabel` وقفل النشر (نفس الجدول) |
+| المال والنمو | قمع التحويل · الإيراد شهرياً · إيراد بلا اشتراك · أكواد الخصم | — (الأكواد غير موصولة بمسار الدفع بعد) |
+| التواصل | إعلانات + محرّر المدونة | `AnnouncementBar` في أعلى لوحة كل تاجر مطابق للجمهور |
+| الصحة | تنبيهات عملية + سجل التدقيق + `site_settings` | رقم واتساب الدعم يقرؤه `SupportWhatsApp.tsx` |
+
+> **باب أُغلق**: كانت `tickets_insert` تسمح لدور `anon` بالإدراج إن كان
+> `user_id IS NULL`، ومفتاح anon عام بحكم التصميم — فأي زائر يستطيع إغراق صندوق
+> الدعم (وقد حدث: تذكرة مجهولة «HACK/spam»). ولا مسار في التطبيق ينشئ تذكرة بلا
+> حساب. السياسة الآن `authenticated` فقط بشرط `auth.uid() = user_id`.

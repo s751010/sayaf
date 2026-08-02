@@ -36,10 +36,16 @@ import { cn } from "@/lib/utils";
 import Overview from "./Overview";
 import Merchants from "./Merchants";
 import MerchantDetail from "./MerchantDetail";
+import Money from "./Money";
+import Comms from "./Comms";
+import Health from "./Health";
 
 const NAV = [
   { to: "/founder", label: "نظرة عامة", icon: "📊", end: true },
   { to: "/founder/merchants", label: "التجّار", icon: "🏪" },
+  { to: "/founder/money", label: "المال والنمو", icon: "💰" },
+  { to: "/founder/comms", label: "التواصل", icon: "📣" },
+  { to: "/founder/health", label: "الصحة", icon: "🩺" },
 ];
 
 export default function Founder() {
@@ -275,6 +281,9 @@ export default function Founder() {
             <Route index element={<Overview />} />
             <Route path="merchants" element={<Merchants />} />
             <Route path="merchants/:id" element={<MerchantDetail />} />
+            <Route path="money" element={<Money />} />
+            <Route path="comms" element={<Comms />} />
+            <Route path="health" element={<Health />} />
             <Route path="*" element={<Navigate to="/founder" replace />} />
           </Routes>
         )}
