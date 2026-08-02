@@ -614,3 +614,18 @@ CSP تسمح بـ`script-src 'self' <نطاقات مسمّاة>` **بلا `unsaf
 
 `loyalty.stamped` يحمل `customer_id` و`stamps` و`total_visits` **فقط** — لا اسم
 ولا جوال (§11). مُتحقَّق بفحص الجسم الواصل فعلاً إلى نقطة التقاط خارجية.
+
+### دوال التريجرات مسحوبة من سطح الـAPI
+
+PostgREST يعرض **كل** دالة في `public` على `/rest/v1/rpc/<name>`، فكانت دوال
+التريجرات والحرّاس مرئية لـ`anon`. غير قابلة للاستغلال (Postgres يرفض نداء دالة
+تريجر خارج سياقها)، لكن سُحب `EXECUTE` عنها جميعاً: `tg_webhook_*` ·
+`guard_api_enabled` · `guard_api_key_count` · `guard_client_subscription` ·
+`analytics_fill_owner`. **لا يؤثّر ذلك على التريجرات**: التريجر ينفّذ دالته
+بصلاحية مالك الجدول لا المتصل — مُتحقَّق بإطفاء صنف بعد السحب فوصل الحدث للصندوق.
+
+يبقى في تحذيرات advisor ما هو متوقَّع وموثَّق: `is_founder` و`staff_stamp`
+و`increment_dish_views` و`is_menu_published` (عامة بالتصميم، §8 و§10)،
+و`api_usage`/`internal_secrets` بلا سياسات (مقصود — لا يصلها إلا مفتاح الخدمة)،
+و`pg_net` في `public` (تثبيت Supabase الافتراضي)، وحماية كلمات المرور المسرّبة
+(قرار مالك، §7).
