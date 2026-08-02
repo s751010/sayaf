@@ -1,9 +1,16 @@
-/** صفحة الهبوط — واجهة المنصة التسويقية. */
-import { useState } from "react";
+/**
+ * صفحة الهبوط — واجهة المنصة التسويقية.
+ *
+ * الحركة هنا مبنيّة على `lib/reveal.ts` (مراقب تقاطع + حرّاس تقليل الحركة) لا
+ * على مكتبة حركة: الحزمة الرئيسية تخدم **صفحة المنيو** التي تُفتح من كود QR على
+ * بيانات جوال، فكل كيلوبايت يُضاف لتسويقنا يدفعه زبون التاجر.
+ */
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { Navbar, Footer } from "@/components/site";
 import { Badge, Card } from "@/components/ui";
 import { CURRENCY, PLANS, effectiveMonthly, planPrice, type BillingCycle } from "@/lib/plans";
+import { prefersReducedMotion, useCountUp, useReveal, useTilt } from "@/lib/reveal";
 import { cn, formatPrice } from "@/lib/utils";
 
 /* ── معاينة هاتف حيّة (عرض تسويقي ثابت) ────────────────────────────── */
@@ -15,12 +22,14 @@ const DEMO_DISHES = [
 ];
 
 function PhonePreview() {
+  const tilt = useTilt<HTMLAnchorElement>(10);
   return (
     // المعاينة تفتح المنيو التجريبي الحقيقي — كانت صورة ثابتة لا تؤدي لشيء.
     <Link
+      ref={tilt}
       to="/demo"
       aria-label="افتح المنيو التجريبي"
-      className="anim-float relative mx-auto block w-[270px] select-none transition-transform hover:scale-[1.02]"
+      className="tilt anim-float relative mx-auto block w-[270px] select-none"
     >
       <div className="rounded-[2.6rem] border border-line-gold bg-[#141210] p-2.5 shadow-[0_40px_80px_-30px_rgba(0,0,0,.6)]">
         <div className="overflow-hidden rounded-[2rem] bg-[#1b1813] pb-4">
@@ -70,10 +79,128 @@ function PhonePreview() {
   );
 }
 
+
+/* ── حركة ───────────────────────────────────────────────────────────── */
+
+/**
+ * غلاف الكشف عند التمرير.
+ *
+ * `delay` بالمللي ثانية لتتابع الأبناء: ظهور ثمانِ بطاقات دفعةً واحدة يبدو
+ * وميضاً، وظهورها بفارق ٦٠ مللي يبدو ترتيباً مقصوداً.
+ */
+function Reveal({
+  children,
+  delay = 0,
+  className,
+}: {
+  children: ReactNode;
+  delay?: number;
+  className?: string;
+}) {
+  const { ref, shown } = useReveal();
+  return (
+    <div
+      ref={ref}
+      className={cn("reveal", shown && "is-shown", className)}
+      style={shown ? { animationDelay: `${delay}ms` } : undefined}
+    >
+      {children}
+    </div>
+  );
+}
+
+/** رقم يعدّ عند ظهوره — الأرقام الثابتة لا تُقرأ، والمتحرّكة تُلاحَظ. */
+function Stat({ to, suffix, label }: { to: number; suffix?: string; label: string }) {
+  const { ref, shown } = useReveal<HTMLDivElement>();
+  const n = useCountUp(to, shown);
+  return (
+    <div ref={ref} className="text-center">
+      <p className="font-display text-4xl font-black text-gold-grad" dir="ltr">
+        {n}
+        {suffix}
+      </p>
+      <p className="mt-1 text-sm text-dim">{label}</p>
+    </div>
+  );
+}
+
+/**
+ * معاينة بطاقة الكاشير — تُرسم بـ`renderCard()` **نفسها** التي تُنتج ملف
+ * التاجر، فما يراه الزائر هو المُخرَج الحقيقي لا صورة تسويقية مُجمَّلة.
+ *
+ * الوحدة تُستورد ديناميكياً: `lib/cards.ts` تجرّ معها `qrcode` والطوابع
+ * والزخارف، ولا داعي لأن يحملها زائر لا يمرّر إلى هذا القسم أصلاً.
+ */
+const SHOWCASE_STYLES = ["dark", "brand", "heritage", "light"] as const;
+
+function CardShowcase() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { ref, shown } = useReveal<HTMLDivElement>();
+  const [i, setI] = useState(0);
+
+  useEffect(() => {
+    if (!shown) return;
+    let alive = true;
+    void (async () => {
+      const { renderCard } = await import("@/lib/cards");
+      if (!alive || !canvasRef.current) return;
+      await renderCard(
+        canvasRef.current,
+        {
+          size: "counter",
+          style: SHOWCASE_STYLES[i],
+          name: "مطعم الديوان",
+          logo: null,
+          emoji: "🍽️",
+          themeId: "najdi",
+          brandHex: null,
+          url: `${window.location.origin}/demo`,
+          table: "5",
+          promo: "قهوتك الثانية مجاناً ☕",
+        },
+        0.4
+      );
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [i, shown]);
+
+  useEffect(() => {
+    // التقليب حركة مستمرة، فمن يطلب تقليلها يرى نمطاً واحداً ثابتاً.
+    if (!shown || prefersReducedMotion()) return;
+    const t = window.setInterval(() => setI((n) => (n + 1) % SHOWCASE_STYLES.length), 3200);
+    return () => window.clearInterval(t);
+  }, [shown]);
+
+  return (
+    <div ref={ref} className="flex flex-col items-center gap-4">
+      <canvas
+        ref={canvasRef}
+        aria-label="معاينة بطاقة الكاشير"
+        className="anim-float w-[230px] rounded-2xl shadow-[0_40px_80px_-30px_rgba(0,0,0,.65)] sm:w-[260px]"
+      />
+      <div className="flex gap-1.5">
+        {SHOWCASE_STYLES.map((s, n) => (
+          <button
+            key={s}
+            onClick={() => setI(n)}
+            aria-label={`نمط ${n + 1}`}
+            className={cn(
+              "h-1.5 rounded-full transition-all",
+              n === i ? "w-6 bg-gold" : "w-1.5 bg-ink/20 hover:bg-ink/35"
+            )}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /* ── الأقسام ───────────────────────────────────────────────────────── */
 const FEATURES = [
   { emoji: "📱", title: "منيو QR فوري", desc: "زبونك يمسح الكود ويتصفح المنيو في ثانية — بلا تطبيق، بلا انتظار، وبثيمات فاخرة تناسب هوية مطعمك." },
-  { emoji: "🎨", title: "ثيمات + لون علامتك", desc: "ثمانية ثيمات فاخرة، أو اختر لون مشروعك وسنبني منه ثيماً كاملاً متناسقاً." },
+  { emoji: "🎨", title: "ثيمات + لون علامتك", desc: "اثنا عشر ثيماً فاخراً بينها طوابع تراثية سعودية، أو اختر لون مشروعك وسنبني منه ثيماً كاملاً متناسقاً." },
   { emoji: "📊", title: "إحصائيات مباشرة", desc: "اعرف أكثر الأطباق مشاهدةً وأوقات الذروة يوماً بيوم، وخذ قراراتك بالأرقام لا بالتخمين." },
   { emoji: "🍎", title: "معلومات غذائية وSFDA", desc: "سعرات، صوديوم، كافيين، ومسببات الحساسية لكل طبق — التزام كامل بمتطلبات هيئة الغذاء والدواء." },
   { emoji: "💛", title: "بطاقة ولاء رقمية", desc: "كافئ زبائنك المتكررين بنظام نقاط مدمج في المنيو نفسه — بلا بطاقات ورقية تضيع." },
@@ -85,7 +212,21 @@ const FEATURES = [
 const STEPS = [
   { n: "١", title: "سجّل وأنشئ مطعمك", desc: "حساب جديد ورابط خاص بمطعمك في أقل من دقيقة." },
   { n: "٢", title: "أضف أطباقك", desc: "أصناف، صور، أسعار، ومعلومات غذائية — من لوحة تحكم عربية سهلة." },
-  { n: "٣", title: "اطبع كود QR", desc: "نزّل أكواداً لكل طاولة وضعها على الطاولات — وخلاص، منيوك صار رقمياً." },
+  { n: "٣", title: "نزّل بطاقتك واطبعها", desc: "بطاقة كاشير جاهزة بهوية مطعمك — أو كوداً لكل طاولة. ضعها على الطاولة وخلاص." },
+];
+
+/** أرقام من المنتج نفسه لا ادّعاءات سوق — كلٌّ منها يقابله شيء يراه الزائر. */
+const STATS: { to: number; suffix?: string; label: string }[] = [
+  { to: 12, label: "ثيماً فاخراً للمنيو" },
+  { to: 4, label: "أشكال بطاقة كاشير" },
+  { to: 300, suffix: " DPI", label: "دقة ملف الطباعة" },
+  { to: 0, label: "تطبيقات يحمّلها زبونك" },
+];
+
+const CARD_POINTS = [
+  { t: "شعار مطعمك واسمه", d: "يُسحبان من حسابك تلقائياً — ويظهر شعارك داخل الكود نفسه." },
+  { t: "ألوان هويتك وثيم منيوك", d: "البطاقة تأخذ ألوانها من ثيم منيوك، فتتطابق مع ما يراه الزبون بعد المسح." },
+  { t: "رقم الطاولة وعرض ترويجي", d: "سطران اختياريان: الكود يفتح المنيو على الطاولة، والعرض يظهر تحته." },
 ];
 
 const FAQS = [
@@ -219,23 +360,38 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* أرقام المنتج */}
+      <section className="border-y border-line bg-panel/40">
+        <div className="mx-auto grid max-w-5xl grid-cols-2 gap-8 px-5 py-10 sm:grid-cols-4">
+          {STATS.map((s, i) => (
+            <Reveal key={s.label} delay={i * 80}>
+              <Stat to={s.to} suffix={s.suffix} label={s.label} />
+            </Reveal>
+          ))}
+        </div>
+      </section>
+
       {/* المزايا */}
       <section id="features" className="mx-auto w-full max-w-6xl scroll-mt-20 px-5 py-16">
-        <div className="mb-10 text-center">
+        <Reveal className="mb-10 text-center">
           <h2 className="font-display text-3xl font-black text-ink">
             كل ما يحتاجه مطعمك… <span className="text-gold">في مكان واحد</span>
           </h2>
           <p className="mt-2 text-dim">منصة متكاملة، وليست مجرد منيو.</p>
-        </div>
+        </Reveal>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {FEATURES.map((f) => (
-            <Card key={f.title} className="transition-transform hover:-translate-y-1 hover:border-gold/30">
-              <span className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-gold/12 text-2xl">
-                {f.emoji}
-              </span>
-              <h3 className="font-display font-extrabold text-ink">{f.title}</h3>
-              <p className="mt-1.5 text-sm leading-relaxed text-dim">{f.desc}</p>
-            </Card>
+          {FEATURES.map((f, i) => (
+            // التتابع بمضاعفات الصف لا بالفهرس: ثمانِ بطاقات × ٦٠ = نصف ثانية
+            // انتظار لآخرها، والزائر يكون قد مرّ عليها.
+            <Reveal key={f.title} delay={(i % 4) * 70} className="h-full">
+              <Card className="lift h-full">
+                <span className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-gold/12 text-2xl">
+                  {f.emoji}
+                </span>
+                <h3 className="font-display font-extrabold text-ink">{f.title}</h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-dim">{f.desc}</p>
+              </Card>
+            </Reveal>
           ))}
         </div>
       </section>
@@ -243,31 +399,77 @@ export default function Landing() {
       {/* كيف تعمل */}
       <section className="border-y border-line bg-panel/50">
         <div className="mx-auto max-w-5xl px-5 py-16">
-          <h2 className="mb-10 text-center font-display text-3xl font-black text-ink">
-            ثلاث خطوات <span className="text-gold">وتنطلق</span>
-          </h2>
+          <Reveal>
+            <h2 className="mb-10 text-center font-display text-3xl font-black text-ink">
+              ثلاث خطوات <span className="text-gold">وتنطلق</span>
+            </h2>
+          </Reveal>
           <div className="grid gap-6 sm:grid-cols-3">
-            {STEPS.map((s) => (
-              <div key={s.n} className="text-center">
-                <span className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-line-gold bg-gold/10 font-display text-2xl font-black text-gold">
-                  {s.n}
-                </span>
-                <h3 className="font-display font-extrabold text-ink">{s.title}</h3>
-                <p className="mt-1.5 text-sm text-dim">{s.desc}</p>
-              </div>
+            {STEPS.map((s, i) => (
+              <Reveal key={s.n} delay={i * 110}>
+                <div className="text-center">
+                  <span className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-line-gold bg-gold/10 font-display text-2xl font-black text-gold">
+                    {s.n}
+                  </span>
+                  <h3 className="font-display font-extrabold text-ink">{s.title}</h3>
+                  <p className="mt-1.5 text-sm text-dim">{s.desc}</p>
+                </div>
+              </Reveal>
             ))}
           </div>
         </div>
       </section>
 
+      {/* بطاقة الكاشير */}
+      <section className="mx-auto w-full max-w-6xl px-5 py-16">
+        <div className="grid items-center gap-10 lg:grid-cols-2">
+          <Reveal>
+            <Badge className="mb-5">🪧 جديد</Badge>
+            <h2 className="font-display text-3xl font-black leading-[1.25] text-ink">
+              بطاقة كاشير <span className="text-gold-grad">بهويتك أنت</span>
+            </h2>
+            <p className="mt-4 max-w-md leading-relaxed text-dim">
+              لا تفتح كانفا ولا تبحث عن مصمّم: نجهّز لك البطاقة من بيانات مطعمك،
+              وتنزّلها ملفّ PNG بدقة ٣٠٠ DPI يقبله أي مطبعة — أو تطبعها بنفسك على
+              ورقة A4 بخطوط قصّ جاهزة.
+            </p>
+            <ul className="mt-6 flex flex-col gap-3.5">
+              {CARD_POINTS.map((p) => (
+                <li key={p.t} className="flex gap-3">
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-good/15 text-[11px] font-black text-good">
+                    ✓
+                  </span>
+                  <span>
+                    <b className="block text-sm font-bold text-ink">{p.t}</b>
+                    <span className="text-sm leading-relaxed text-dim">{p.d}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-7 flex flex-wrap items-center gap-3">
+              <Link
+                to="/login?mode=signup"
+                className="rounded-xl bg-gold px-6 py-3 font-bold text-on-gold shadow-[0_8px_30px_-8px_var(--c-glow)] transition-transform hover:bg-gold2 active:scale-[.98]"
+              >
+                جهّز بطاقتك مجاناً
+              </Link>
+              <span className="text-xs text-faint">متاحة لكل تاجر — بما فيهم أيام التجربة.</span>
+            </div>
+          </Reveal>
+          <Reveal delay={120}>
+            <CardShowcase />
+          </Reveal>
+        </div>
+      </section>
+
       {/* الأسعار */}
       <section id="pricing" className="mx-auto w-full max-w-6xl scroll-mt-20 px-5 py-16">
-        <div className="mb-8 text-center">
+        <Reveal className="mb-8 text-center">
           <h2 className="font-display text-3xl font-black text-ink">
             أسعار <span className="text-gold">واضحة وعادلة</span>
           </h2>
           <p className="mt-2 text-dim">بدون رسوم خفية — ألغِ في أي وقت.</p>
-        </div>
+        </Reveal>
         <div className="mb-8 flex justify-center">
           <div className="inline-flex rounded-xl border border-line bg-panel p-1">
             {(["monthly", "yearly"] as const).map((c) => (
@@ -297,9 +499,11 @@ export default function Landing() {
 
       {/* الأسئلة الشائعة */}
       <section className="mx-auto w-full max-w-3xl px-5 pb-20">
-        <h2 className="mb-8 text-center font-display text-3xl font-black text-ink">
-          أسئلة <span className="text-gold">شائعة</span>
-        </h2>
+        <Reveal>
+          <h2 className="mb-8 text-center font-display text-3xl font-black text-ink">
+            أسئلة <span className="text-gold">شائعة</span>
+          </h2>
+        </Reveal>
         <div className="flex flex-col gap-3">
           {FAQS.map((f, i) => (
             <Card key={f.q} className="cursor-pointer p-0">
@@ -321,7 +525,7 @@ export default function Landing() {
 
       {/* دعوة أخيرة */}
       <section className="glow-bg border-t border-line">
-        <div className="mx-auto max-w-3xl px-5 py-16 text-center">
+        <Reveal className="mx-auto max-w-3xl px-5 py-16 text-center">
           <h2 className="font-display text-3xl font-black text-ink">
             جاهز ترقّي تجربة <span className="text-gold-grad">مطعمك؟</span>
           </h2>
@@ -332,7 +536,7 @@ export default function Landing() {
           >
             أنشئ منيوك الآن
           </Link>
-        </div>
+        </Reveal>
       </section>
 
       <Footer />

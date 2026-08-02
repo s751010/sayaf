@@ -211,3 +211,68 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ── حركة صفحة الهبوط ──────────────────────────────────────────────── */
+/**
+ * كل ما هنا **مشروط بـ`no-preference`**: الحارس العام في آخر الملف يوقف
+ * الحركة، لكن العنصر المخفي بـ`opacity:0` ينتظر حركةً أُوقفت فيبقى مخفياً
+ * للأبد. فحالة «مكشوف» هي الافتراضية، والإخفاء لا يبدأ إلا لمن يقبل الحركة.
+ */
+.reveal {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .reveal {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  .reveal.is-shown {
+    animation: reveal-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+}
+
+@keyframes reveal-up {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/** شفق بطيء خلف القسم البطل — دورة ١٨ ثانية لا تلفت النظر عن النصّ. */
+@keyframes aurora {
+  0%,
+  100% {
+    background-position: 0% 50%, 100% 50%;
+  }
+  50% {
+    background-position: 100% 50%, 0% 50%;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .glow-bg {
+    background-size: 200% 200%, 200% 200%;
+    animation: aurora 18s ease-in-out infinite;
+  }
+}
+
+/** بطاقة ترتفع وتتوهّج حافتها عند المرور. */
+.lift {
+  transition:
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.35s ease,
+    box-shadow 0.35s ease;
+}
+.lift:hover {
+  transform: translateY(-6px);
+  border-color: var(--c-line-gold);
+  box-shadow: 0 18px 40px -22px var(--c-glow);
+}
+
+/** الهاتف يميل مع المؤشّر — الانتقال يجعل العودة ناعمة لا قافزة. */
+.tilt {
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  transform-style: preserve-3d;
+  will-change: transform;
+}
