@@ -54,6 +54,7 @@ import Overview from "./Overview";
 import Menus from "./Menus";
 import Dishes from "./Dishes";
 import Qr from "./Qr";
+import Cards from "./Cards";
 import Analytics from "./Analytics";
 import Loyalty from "./Loyalty";
 import Settings from "./Settings";
@@ -176,7 +177,9 @@ const NAV = [
   { to: "/dashboard", label: "نظرة عامة", icon: "🏠", end: true },
   { to: "/dashboard/dishes", label: "الأطباق", icon: "🍽️" },
   { to: "/dashboard/menus", label: "القوائم", icon: "📋" },
-  { to: "/dashboard/qr", label: "أكواد QR", icon: "🔳" },
+  // بطاقة الكاشير وأكواد QR فعلٌ واحد عند التاجر («أجهّز ما يُطبع»)، وعنصران
+  // منفصلان كانا سيرفعان القائمة إلى تسعة على شريط جوال ضيّق.
+  { to: "/dashboard/cards", label: "الطباعة", icon: "🖨️" },
   { to: "/dashboard/analytics", label: "التحليلات", icon: "📊" },
   { to: "/dashboard/loyalty", label: "الولاء", icon: "💛" },
   { to: "/dashboard/billing", label: "الاشتراك", icon: "💳" },
@@ -429,6 +432,7 @@ export default function Dashboard() {
           <Route index element={<Overview />} />
           <Route path="menus" element={<Menus />} />
           <Route path="dishes" element={<Dishes />} />
+          <Route path="cards" element={<Cards />} />
           <Route path="qr" element={<Qr />} />
           <Route path="analytics" element={<Analytics />} />
           <Route path="loyalty" element={<Loyalty />} />

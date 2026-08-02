@@ -1,9 +1,11 @@
 /** استوديو QR — توليد أكواد للمنيو ولكل طاولة، وتنزيل PNG/SVG. */
 import { useEffect, useMemo, useState } from "react";
 import QRCode from "qrcode";
+import { qrDataUrl } from "@/lib/qr";
 import { Button, Card, ErrorNote, Field, Input, Switch, useToast } from "@/components/ui";
 import { PreviewMenuButton } from "@/components/site";
 import { useDashboard } from "./Dashboard";
+import { PrintTabs } from "./PrintTabs";
 
 function download(href: string, filename: string) {
   const a = document.createElement("a");
@@ -23,64 +25,6 @@ function escapeHtml(s: string): string {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
-}
-
-function loadImage(src: string, cors = false): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    // بدون `crossOrigin` تُلوَّث اللوحة فيرمي `toDataURL` خطأ أمني — وSupabase
-    // Storage يرسل ترويسات CORS فيمرّ الطلب.
-    if (cors) img.crossOrigin = "anonymous";
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error("image"));
-    img.src = src;
-  });
-}
-
-/**
- * كود QR بشعار المطعم في وسطه.
- *
- * الشعار يحجب جزءاً من الكود، لذا يرتفع تصحيح الأخطاء إلى `H` (يتحمّل ~٣٠٪ تلفاً)
- * **فقط حين يوجد شعار** — رفعه دائماً يزيد كثافة الوحدات بلا سبب فيصعب مسحه من
- * بعيد على الطاولة.
- *
- * وأي فشل (شعار لا يُحمَّل، أو CORS يلوّث اللوحة) **يعود بالكود العادي**: كود
- * بلا شعار خير من زرّ تنزيل لا يعمل.
- */
-async function qrDataUrl(
-  url: string,
-  logo: string | null,
-  size = 640
-): Promise<string> {
-  const base = await QRCode.toDataURL(url, {
-    width: size,
-    margin: 2,
-    color: { dark: "#141210", light: "#ffffff" },
-    errorCorrectionLevel: logo ? "H" : "M",
-  });
-  if (!logo) return base;
-  try {
-    const [qrImg, logoImg] = await Promise.all([loadImage(base), loadImage(logo, true)]);
-    const canvas = document.createElement("canvas");
-    canvas.width = size;
-    canvas.height = size;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return base;
-    ctx.drawImage(qrImg, 0, 0, size, size);
-
-    const box = Math.round(size * 0.2);
-    const at = Math.round((size - box) / 2);
-    const pad = Math.round(size * 0.015);
-    // خلفية بيضاء خلف الشعار: بدونها تختلط وحدات الكود بحوافّ الشعار فيفشل المسح.
-    ctx.fillStyle = "#ffffff";
-    ctx.beginPath();
-    ctx.roundRect(at - pad, at - pad, box + pad * 2, box + pad * 2, pad * 2);
-    ctx.fill();
-    ctx.drawImage(logoImg, at, at, box, box);
-    return canvas.toDataURL("image/png");
-  } catch {
-    return base;
-  }
 }
 
 export default function Qr() {
@@ -191,6 +135,8 @@ export default function Qr() {
         {/* عاين قبل الطباعة لا بعدها — الطباعة خطوة لا رجعة فيها عملياً. */}
         <PreviewMenuButton slug={slug} label="عاين قبل الطباعة" />
       </div>
+
+      <PrintTabs />
 
       <div className="mt-6 grid gap-5 md:grid-cols-2">
         <Card className="flex flex-col gap-4">
