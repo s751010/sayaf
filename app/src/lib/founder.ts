@@ -458,3 +458,24 @@ export async function deleteRestaurant(id: string): Promise<void> {
     headers: { Prefer: "return=minimal" },
   });
 }
+
+/**
+ * فتح/إغلاق بوّابة واجهة API لمطعم — قرار منصّة لا إعداد تاجر.
+ *
+ * دالة مستقلّة عن `RestaurantSettingsPayload` (القاعدة هـ): إدراج العمود في
+ * whitelist الإعدادات كان سيجعل كل حفظ إعدادات من التاجر يحمله، وهو ما يرفضه
+ * تريجر `guard_api_enabled` أصلاً — فيفشل حفظ الإعدادات كله.
+ *
+ * الحارس الحقيقي في القاعدة لا هنا: التريجر يرفض تغيير العمود لغير
+ * `is_founder()`، فتاجر ينادي PostgREST مباشرة يُردّ بالخطأ نفسه.
+ */
+export async function setApiEnabled(
+  restaurantId: string,
+  enabled: boolean
+): Promise<void> {
+  await rest(`restaurants?id=eq.${restaurantId}`, {
+    method: "PATCH",
+    headers: { Prefer: "return=minimal" },
+    body: { api_enabled: enabled },
+  });
+}

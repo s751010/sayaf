@@ -17,6 +17,7 @@ const Dashboard = lazy(() => import("@/pages/dashboard/Dashboard"));
 const Founder = lazy(() => import("@/pages/founder/Founder"));
 const Demo = lazy(() => import("@/pages/Demo"));
 const Help = lazy(() => import("@/pages/Help"));
+const ApiDocs = lazy(() => import("@/pages/ApiDocs"));
 const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 const Stamp = lazy(() => import("@/pages/Stamp"));
 
@@ -39,6 +40,7 @@ export default function App() {
                 <Route path="/" element={<Landing />} />
                 <Route path="/demo" element={<Demo />} />
                 <Route path="/help" element={<Help />} />
+                <Route path="/docs/api" element={<ApiDocs />} />
                 <Route path="/blog" element={<Blog />} />
                 <Route path="/blog/:slug" element={<BlogPostPage />} />
                 <Route path="/login" element={<Login />} />

@@ -6,6 +6,7 @@
  * (3) payload التحديث هنا. حقل ناقص = يُسقَط بصمت بلا أي خطأ.
  */
 import { callFunction, rest, restCount } from "./api";
+import { generateApiKey, hashApiKey, prefixOf } from "./apiKeys";
 import type {
   AnalyticsRow,
   BlogPost,
@@ -379,6 +380,76 @@ export async function updateOnlinePayment(
     method: "PATCH",
     headers: { Prefer: "return=minimal" },
     body: { online_payment_enabled: enabled },
+  });
+}
+
+/* ── مفاتيح API ───────────────────────────────────────────────────── */
+
+/**
+ * صفّ مفتاح كما يراه التاجر — **بلا `key_hash`**.
+ *
+ * الحجب على مستوى العمود في القاعدة لا في هذا النوع: `GRANT SELECT` على
+ * `api_keys` يستثني `key_hash` صراحةً، فحتى `select=*` لا يكشفه. النوع هنا
+ * يعكس ذلك فقط.
+ */
+export type ApiKey = {
+  id: string;
+  restaurant_id: string;
+  name: string;
+  prefix: string;
+  scopes: string[];
+  last_used_at: string | null;
+  revoked_at: string | null;
+  created_at: string;
+};
+
+const API_KEY_COLS =
+  "id,restaurant_id,name,prefix,scopes,last_used_at,revoked_at,created_at";
+
+export async function getApiKeys(restaurantId: string): Promise<ApiKey[]> {
+  return rest<ApiKey[]>(
+    `api_keys?restaurant_id=eq.${restaurantId}&select=${API_KEY_COLS}&order=created_at.desc`
+  );
+}
+
+/**
+ * يُنشئ المفتاح ويعيد **السرّ كاملاً مرة واحدة**. لا سبيل لاستعادته بعدها —
+ * القاعدة لا تحمل إلا هاشه.
+ *
+ * الحارسان في القاعدة لا هنا: سياسة `api_keys_insert` تشترط أن يكون
+ * `restaurants.api_enabled` مفتوحاً (يفتحه المؤسس)، وتريجر يحدّ بخمسة مفاتيح
+ * حيّة. فتاجر يتجاوز الواجهة بنداء PostgREST مباشر يُردّ بالسياسة نفسها.
+ */
+export async function createApiKey(input: {
+  restaurant_id: string;
+  user_id: string;
+  name: string;
+  canWrite: boolean;
+}): Promise<{ key: ApiKey; secret: string }> {
+  const secret = generateApiKey();
+  const rows = await rest<ApiKey[]>(`api_keys?select=${API_KEY_COLS}`, {
+    method: "POST",
+    body: {
+      restaurant_id: input.restaurant_id,
+      user_id: input.user_id,
+      name: input.name.trim() || "مفتاح",
+      key_hash: await hashApiKey(secret),
+      prefix: prefixOf(secret),
+      scopes: input.canWrite ? ["read", "write"] : ["read"],
+    },
+  });
+  return { key: rows[0], secret };
+}
+
+/**
+ * الإبطال لا الحذف: الصف يبقى ليظلّ `founder_audit` وسجل الاستخدام مفهومَين،
+ * ودالة الحافة ترفض أي مفتاح بـ`revoked_at` غير فارغ. والحذف متاح للمؤسس وحده.
+ */
+export async function revokeApiKey(id: string): Promise<void> {
+  await rest(`api_keys?id=eq.${id}`, {
+    method: "PATCH",
+    headers: { Prefer: "return=minimal" },
+    body: { revoked_at: new Date().toISOString() },
   });
 }
 

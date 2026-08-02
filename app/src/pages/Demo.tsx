@@ -66,6 +66,7 @@ const restaurant: Restaurant = {
   ]),
   reviews_enabled: true,
   online_payment_enabled: false,
+  api_enabled: false,
 };
 
 const menus: Menu[] = [

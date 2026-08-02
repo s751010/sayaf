@@ -46,6 +46,11 @@ export interface Restaurant {
    * الإعدادات عبر `updateOnlinePayment` — خارج whitelist الإعدادات (القاعدة هـ).
    */
   online_payment_enabled: boolean | null;
+  /**
+   * بوّابة واجهة API — **يفتحها المؤسس وحده** (تريجر `guard_api_enabled` يرفض
+   * تغييرها لغيره)، ثم يولّد التاجر مفتاحه بنفسه من إعداداته. انظر §14.
+   */
+  api_enabled: boolean | null;
   created_at: string;
 }
 

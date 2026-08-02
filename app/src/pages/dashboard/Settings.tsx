@@ -18,6 +18,7 @@ import { ImageUploader } from "@/components/ImageUploader";
 import { HoursEditor } from "@/components/HoursEditor";
 import { SupportBox } from "@/components/SupportBox";
 import { PaymentSettingsCard } from "@/components/PaymentSettingsCard";
+import { ApiKeysCard } from "@/components/ApiKeysCard";
 import { updateRestaurant, type RestaurantSettingsPayload } from "@/lib/data";
 import { SEASONS } from "@/lib/seasons";
 import { cn, normalizeDigits, numOrNull, strOrNull } from "@/lib/utils";
@@ -318,6 +319,14 @@ export default function Settings() {
           onToggled={(on) => setRestaurant({ ...restaurant, online_payment_enabled: on })}
         />
       </div>
+
+      {/* واجهة API — تظهر لمن فتح له المؤسس البوّابة فقط (§14). قسم معطَّل
+          لكل تاجر ضجيج في شاشة مزدحمة أصلاً. */}
+      {restaurant.api_enabled && (
+        <div className="mt-5">
+          <ApiKeysCard restaurant={restaurant} userId={user.id} />
+        </div>
+      )}
 
       {/* الدعم الفني — خارج فورم الإعدادات كي لا يتشابك الإرسال بينهما. */}
       <div className="mt-5">

@@ -18,7 +18,7 @@ app/src/
     MenuPage.tsx        المنيو العام /:slug — أهم صفحة في المنتج
     Demo.tsx            منيو تجريبي حي /demo (بيانات محلية، بدون شبكة)
     Login.tsx  ResetPassword.tsx  Stamp.tsx (وضع الكاشير العام)
-    Blog.tsx  BlogPost.tsx  Help.tsx  NotFound.tsx
+    Blog.tsx  BlogPost.tsx  Help.tsx  ApiDocs.tsx  NotFound.tsx
     dashboard/          Dashboard(shell) Overview Dishes Menus Qr Analytics
                         Loyalty Billing Settings
     founder/            Founder(shell+بوابة) Overview Merchants MerchantDetail
@@ -47,6 +47,7 @@ app/src/
     SupportBox.tsx      الدعم الفني ← لوحة المؤسس
     AnnouncementBar.tsx إعلانات المؤسس داخل لوحة التاجر (§11)
     PaymentSettingsCard.tsx ربط بوابة PayLink للتاجر — المفتاح كتابةً فقط (§13)
+    ApiKeysCard.tsx     مفاتيح API للتاجر — السرّ يُعرض مرة واحدة (§14)
     ErrorBoundary.tsx   يمنع الشاشة البيضاء
   lib/
     api.ts              rest() restCount() uploadImage() founderAdmin() ApiError
@@ -63,6 +64,7 @@ app/src/
     starterMenus.ts     قوائم البداية حسب نوع المطعم
     founder.ts          استعلامات لوحة المؤسس + سجل التدقيق (rest() لا founderAdmin)
     storage.ts          مفاتيح localStorage/sessionStorage الموحّدة (K)
+    apiKeys.ts          توليد مفاتيح API في المتصفح + هاشها (§14)
 ```
 
 اللغة: عربية RTL. الخطوط ذاتية الاستضافة عبر `@fontsource` (لا Google Fonts).
@@ -79,13 +81,13 @@ Project ref: `wjqpsbpebpntpeinqccl` · URL في `app/src/lib/config.ts`.
 **الجداول:** `restaurants` `menus` `dishes` `analytics` `subscriptions`
 `revenue_log` `support_tickets` `site_settings` `blog_posts` `loyalty_customers`
 `promo_codes` `announcements` `survey_responses` `restaurant_payment_settings`
-`staff_pins` `founder_audit`.
+`staff_pins` `founder_audit` `api_keys` `api_usage`.
 
 **Edge Functions المنشورة فعلياً** (مؤكَّدة من لوحة Supabase؛ `ai-proxy`
 موجودة لكن لم تُعد الواجهة تستدعيها بعد حذف المستشار الذكي):
 `founder-admin` · `moyasar-webhook` · `notify-support` ·
 `dynamic-task` · `payments` · `paylink-create` · `paylink-webhook` ·
-`paylink-order-create`.
+`paylink-order-create` · `api` (واجهة التجّار — انظر §14).
 
 > `founder-admin` **موجود ونشط**. (توثيق قديم في `web/MIGRATION.md` كان يقول
 > غير ذلك — كان خطأً، والمجلد حُذف.)
@@ -103,7 +105,7 @@ Project ref: `wjqpsbpebpntpeinqccl` · URL في `app/src/lib/config.ts`.
 `founder_email` (بريد المؤسس — مصدر واحد، انظر §10) ·
 `founder_overview` · `founder_merchants` · `founder_funnel` ·
 `founder_revenue_monthly` · `founder_revenue_orphans` · `founder_health`
-(لوحة المؤسس، انظر §11).
+(لوحة المؤسس، انظر §11) · `api_rate_hit` (حدّ معدّل الـAPI، انظر §14).
 
 **`is_founder()` صارت `SECURITY DEFINER`** لتقرأ `founder_email()` المحجوبة عن
 `anon` و`authenticated`. لا تُرجعها إلى SQL عادية إلا مع منح EXECUTE على
@@ -472,3 +474,52 @@ table, customer}` — **بلا مبلغ ولا سعر إطلاقاً**. الدا
 - **لا سجل طلبات**: الطلب يعيش في PayLink لا عندنا. التاجر يراه في لوحة PayLink،
   والزبون يُري شاشة `?order=paid` للموظف. سجل طلبات داخل اللوحة عمل قادم.
 - **`PAYLINK_ENV`** ما زال `test` في أسرار الدوال؛ التحويل للإنتاج قرار مالك.
+
+---
+
+## 14. واجهة API للتجّار (`/functions/v1/api/v1/*`)
+
+**النموذج: المؤسس يفتح الباب، والتاجر يولّد مفتاحه بنفسه.** فالسرّ لا يمرّ في
+قناة محادثة ولا يمرّ بالمؤسس، ويبقى المؤسس البوّابة.
+
+### البوّابة
+
+`restaurants.api_enabled` (افتراضي `false`، **ليس** في `PUBLIC_RESTAURANT_COLS`
+ولا ممنوح لـ`anon`). يفتحه المؤسس من بطاقة التاجر عبر `setApiEnabled` — دالة
+مستقلّة عن `RestaurantSettingsPayload` (القاعدة هـ).
+
+**تريجر `guard_api_enabled` لا سياسة**: السياسات والمنح تعمل على مستوى الدور،
+والمؤسس والتاجر كلاهما `authenticated` — فلا سبيل لتمييزهما إلا داخل الجسم.
+وسياسة `restaurants` تسمح للتاجر بتحديث صفّه، فبلا التريجر يفتح البوّابة لنفسه
+بـPATCH مباشر. **ويمرّ منه service-role بلا فحص** (`auth.uid()` فارغة) — نفس
+استثناء `guard_client_subscription`، وبدونه كان الترحيل الإداري نفسه يُرفض.
+
+### المفتاح
+
+- يُولَّد **في المتصفح** (`lib/apiKeys.ts`) بـ`crypto.getRandomValues`:
+  `cm_live_` + ٣٢ محرفاً من أبجدية ٥٧ رمزاً = **١٨٧ بت**. التوزيع منتظم بالرفض
+  (`byte % 57` كان سيجعل أوّل ٢٦ رمزاً أكثر احتمالاً).
+- يُرسَل **مُجزَّأً فقط** (SHA-256)، ويُعرض للتاجر **مرة واحدة**. لا استعادة.
+- **SHA-256 لا bcrypt**: bcrypt بطيء عمداً لأسرار منخفضة الإنتروبيا (رمز الكاشير
+  ٦ أرقام)، و١٨٧ بت لا تُخمَّن — فبطؤه هنا ضريبة على كل نداء API بلا مقابل.
+- `key_hash` **محجوب على مستوى العمود**: `GRANT SELECT` يستثنيه، فحتى `select=*`
+  لا يكشفه.
+- حدّ **خمسة مفاتيح حيّة** لكل مطعم (تريجر `guard_api_key_count` — سياسة
+  `WITH CHECK` لا تستطيع عدّ الصفوف القائمة).
+- `scopes` قابل للإدراج لا للتحديث: التاجر يختار المدى عند الإنشاء ولا يرفعه
+  بعده. وهذا ليس تصعيد صلاحية أصلاً — يملك الشيء نفسه من لوحته.
+
+### الدالة
+
+`api` (`verify_jwt=false`؛ التوثيق بالمفتاح). **`restaurant_id` يُشتق من صفّ
+المفتاح ويُفرض على كل استعلام وكتابة** — أي `restaurant_id` في الجسم أو
+الاستعلام يُرفض. الكتابة بقوائم بيضاء مطابقة لـ`DishPayload`، و**الحقل غير
+المسموح يُرفض صراحةً** بدل أن يُسقَط بصمت (القاعدة د: `burn_minutes` وأخواتها).
+`/v1/loyalty/summary` أعداد فقط — لا جوال ولا اسم (§11).
+
+حدّ **٦٠ طلباً/دقيقة** لكل مفتاح عبر `api_rate_hit` + جدول `api_usage`: جدول لا
+ذاكرة، لأن دالة الحافة عابرة وتعمل بنسخ متعدّدة فعدّاد الذاكرة يحرس نسخة واحدة
+ويترك الباقي مفتوحاً. مُتحقَّق: ٩٠ طلباً متوازياً ⇒ **٦٠ ناجحاً و٣٠ بـ429**.
+
+التوثيق العام في `pages/ApiDocs.tsx` على `/docs/api` — بلا جلسة عمداً: مطوّر
+نقطة البيع ليس مالك الحساب.

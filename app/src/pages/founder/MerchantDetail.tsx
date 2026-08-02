@@ -38,6 +38,7 @@ import {
   getSubscriptionsOf,
   grantSubscription,
   logAudit,
+  setApiEnabled,
   type FounderMerchant,
   type Subscription,
 } from "@/lib/founder";
@@ -166,6 +167,26 @@ export default function MerchantDetail() {
     );
   }
 
+  /**
+   * `api_enabled` خارج `RestaurantSettingsPayload` عمداً (القاعدة هـ): قرار
+   * منصّة لا إعداد تاجر، وتريجر `guard_api_enabled` في القاعدة يرفض تغييره
+   * لغير المؤسس — فحتى لو نادى تاجر PostgREST مباشرة رُدّ.
+   */
+  async function toggleApi(value: boolean) {
+    if (!restaurant) return;
+    await act(
+      "تحديث واجهة API",
+      () => setApiEnabled(restaurant.id, value),
+      () =>
+        logAudit(value ? "فتح واجهة API لتاجر" : "إغلاق واجهة API عن تاجر", {
+          table: "restaurants",
+          id: restaurant.id,
+          name: restaurant.name,
+          details: { api_enabled: value },
+        })
+    );
+  }
+
   async function doDelete() {
     if (!restaurant || confirmName.trim() !== restaurant.name) return;
     setBusy(true);
@@ -284,7 +305,22 @@ export default function MerchantDetail() {
               onChange={(v) => toggleFeature("prices_include_vat", v)}
               label="الأسعار شاملة الضريبة"
             />
+            {/* بوّابة الـAPI: أنت تفتحها، والتاجر يولّد مفتاحه بنفسه من إعداداته
+                فلا يمرّ السرّ بك ولا بقناة محادثة. خارج `toggleFeature` لأن
+                العمود خارج whitelist الإعدادات (القاعدة هـ). */}
+            <Switch
+              checked={restaurant.api_enabled ?? false}
+              onChange={(v) => toggleApi(v)}
+              label="🔌 واجهة API"
+            />
           </div>
+          {restaurant.api_enabled && (
+            <p className="mt-3 text-xs text-faint">
+              البوّابة مفتوحة — يولّد التاجر مفاتيحه من إعداداته (حتى خمسة)، وأنت
+              لا ترى أسرارها. إغلاقها هنا يمنع توليد جديد؛ ولإيقاف مفتاح قائم
+              فوراً أبطِله من لوحة التاجر.
+            </p>
+          )}
           <p className="mt-3 text-xs text-faint">
             الرابط ({restaurant.slug ?? "—"}) لا يُعدَّل من هنا: تغييره يكسر أكواد QR مطبوعة عند
             التاجر.
