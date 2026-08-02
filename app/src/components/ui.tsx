@@ -44,6 +44,52 @@ export function Button({
 }
 
 /* ── بطاقة ─────────────────────────────────────────────────────────── */
+/**
+ * بطاقة قابلة للطيّ — `<details>` أصلي لا حالة React.
+ *
+ * السبب عملي لا أسلوبي: العنصر الأصلي يحمل الفتح/الإغلاق بلوحة المفاتيح وبقارئ
+ * الشاشة مجاناً، ويبقى **قابلاً للبحث بـCtrl+F داخل الصفحة** حتى وهو مطويّ في
+ * المتصفحات الحديثة — وحالة React كانت ستُزيل المحتوى من DOM فيختفي من البحث.
+ * ويعمل داخل `<fieldset disabled>` (وضع الانتحال، §12) بلا استثناء خاص.
+ */
+export function CollapsibleCard({
+  title,
+  subtitle,
+  defaultOpen = false,
+  className,
+  children,
+}: {
+  title: ReactNode;
+  subtitle?: ReactNode;
+  defaultOpen?: boolean;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <details
+      open={defaultOpen}
+      className={cn(
+        "group rounded-2xl border border-line bg-panel shadow-[0_1px_0_rgba(255,255,255,0.03)_inset]",
+        className
+      )}
+    >
+      <summary className="flex cursor-pointer list-none items-center gap-3 p-5 [&::-webkit-details-marker]:hidden">
+        <span className="min-w-0 flex-1">
+          <span className="block font-display text-lg font-extrabold text-ink">{title}</span>
+          {subtitle && <span className="mt-0.5 block text-xs text-faint">{subtitle}</span>}
+        </span>
+        <span
+          aria-hidden="true"
+          className="shrink-0 text-dim transition-transform group-open:rotate-180"
+        >
+          ▾
+        </span>
+      </summary>
+      <div className="border-t border-line p-5">{children}</div>
+    </details>
+  );
+}
+
 export function Card({
   className,
   children,

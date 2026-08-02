@@ -320,6 +320,12 @@ export default function Dishes() {
     );
   }, [dishes, filter]);
 
+  /** الأطباق بلا صورة — عتبة ٣ كي لا يزعج تاجراً نسي طبقاً واحداً. */
+  const missingImages = useMemo(
+    () => (dishes ?? []).filter((d) => !d.image?.trim()),
+    [dishes]
+  );
+
   function openNew() {
     setForm({ ...EMPTY_FORM, menu_id: menus?.[0]?.id ?? "" });
     setError("");
@@ -589,6 +595,23 @@ export default function Dishes() {
           </div>
         )}
       </div>
+
+      {/* أكبر فجوة قائمة عند التجّار الفعليين: أنشطهم عنده ١٢ طبقاً و**صفر
+          صورة**. الصورة ليست تجميلاً — هي الفرق بين منيو يُتصفَّح ومنيو يُقرأ،
+          والتنبيه يفتح الرفع الدفعي مباشرة لا يرسله يبحث عنه. */}
+      {missingImages.length >= 3 && (
+        <Card className="mt-5 flex flex-wrap items-center justify-between gap-3 border-gold/40">
+          <div className="min-w-0">
+            <p className="text-sm font-bold text-ink">
+              📷 {missingImages.length} من أطباقك بلا صورة
+            </p>
+            <p className="mt-0.5 text-xs text-faint">
+              ارفعها دفعة واحدة واسحب كل صورة على طبقها — دقيقتان لكل منيوك.
+            </p>
+          </div>
+          <Button onClick={() => setBulkImages(true)}>ارفع الصور الآن</Button>
+        </Card>
+      )}
 
       {/* البحث يظهر حين يصير له معنى فقط — كان مربّعاً فوق صفر طبق. */}
       {(dishes?.length ?? 0) > 8 && (

@@ -1,17 +1,55 @@
 /** الولاء (لوحة التاجر): قائمة العملاء + ختم الزيارات + صرف المكافآت. */
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Badge, Button, Card, EmptyState, Input, Skeleton, useToast } from "@/components/ui";
+import {
+  Badge,
+  Button,
+  Card,
+  EmptyState,
+  Field,
+  Input,
+  Skeleton,
+  useToast,
+} from "@/components/ui";
 import { CashierCard } from "@/components/CashierCard";
-import { getLoyaltyCustomers, redeemLoyalty, stampLoyalty } from "@/lib/data";
+import { getLoyaltyCustomers, redeemLoyalty, setupLoyalty, stampLoyalty } from "@/lib/data";
+import { normalizeDigits } from "@/lib/utils";
 import type { LoyaltyCustomer } from "@/lib/types";
 import { useDashboard } from "./Dashboard";
 
 export default function Loyalty() {
-  const { restaurant } = useDashboard();
+  const { restaurant, setRestaurant } = useDashboard();
   const toast = useToast();
   const [customers, setCustomers] = useState<LoyaltyCustomer[] | null>(null);
   const [q, setQ] = useState("");
+  const [setupGoal, setSetupGoal] = useState(String(restaurant.loyalty_goal ?? 5));
+  const [setupReward, setSetupReward] = useState(restaurant.loyalty_reward ?? "");
+  const [activating, setActivating] = useState(false);
+
+  async function activate() {
+    const g = Number(normalizeDigits(setupGoal));
+    if (!setupReward.trim()) return toast("اكتب المكافأة أولاً.", "err");
+    setActivating(true);
+    const patch = {
+      enabled: true,
+      goal: Number.isFinite(g) ? g : 5,
+      reward: setupReward.trim(),
+    };
+    try {
+      await setupLoyalty(restaurant.id, patch);
+      setRestaurant({
+        ...restaurant,
+        loyalty_enabled: true,
+        loyalty_goal: Math.min(20, Math.max(1, Math.round(patch.goal))),
+        loyalty_reward: patch.reward,
+      });
+      toast("💛 فُعّلت بطاقة الولاء — ظاهرة لزبائنك الآن.");
+    } catch {
+      toast("تعذّر التفعيل. حاول مجدداً.", "err");
+    } finally {
+      setActivating(false);
+    }
+  }
 
   useEffect(() => {
     document.title = "الولاء — كلاود منيو";
@@ -65,20 +103,60 @@ export default function Loyalty() {
         </Badge>
       </div>
 
-      <Card className="mt-5 text-sm text-dim">
-        المكافأة بعد <span className="font-bold text-gold">{goal}</span> زيارات:{" "}
-        <span className="font-bold text-ink">{restaurant.loyalty_reward ?? "غير محددة"}</span>.{" "}
-        <Link to="/dashboard/settings" className="font-bold text-gold hover:underline">
-          تعديل الإعدادات
-        </Link>
-        {!restaurant.loyalty_enabled && (
-          <span className="mt-1 block text-xs text-bad">
-            ⚠️ البرنامج غير ظاهر للزبائن — فعّله من الإعدادات.
-          </span>
-        )}
-      </Card>
+      {/* ⚠️ التفعيل هنا لا في الإعدادات — انظر `setupLoyalty`: من فتح هذه
+          الصفحة جاء ليفعّل، فإرساله لصفحة أخرى هو ما جعل ١٨ من ١٩ لا يفعّلون. */}
+      {!restaurant.loyalty_enabled ? (
+        <Card className="mt-5 flex flex-col gap-4 border-gold/40">
+          <div>
+            <h2 className="font-display text-lg font-extrabold text-ink">
+              💛 فعّل بطاقة الولاء
+            </h2>
+            <p className="mt-1 text-sm text-dim">
+              بطاقة أختام رقمية تظهر أسفل منيوك. الزبون ينضم بنفسه من جواله،
+              وموظفك يختم له بضغطة — سبب يرجّعه إليك بدل المطعم المجاور.
+            </p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="عدد الزيارات للمكافأة">
+              <Input
+                type="number"
+                inputMode="numeric"
+                min="2"
+                max="20"
+                dir="ltr"
+                value={setupGoal}
+                onChange={(e) => setSetupGoal(e.target.value)}
+              />
+            </Field>
+            <Field label="المكافأة" hint="اكتبها كما يفهمها زبونك">
+              <Input
+                value={setupReward}
+                onChange={(e) => setSetupReward(e.target.value)}
+                placeholder="قهوة مجانية"
+              />
+            </Field>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button onClick={activate} disabled={activating}>
+              {activating ? "جارٍ التفعيل…" : "فعّل الآن"}
+            </Button>
+            <span className="text-xs text-faint">
+              يظهر للزبائن فوراً في منيوك — وتقدر تطفئه متى شئت.
+            </span>
+          </div>
+        </Card>
+      ) : (
+        <Card className="mt-5 text-sm text-dim">
+          المكافأة بعد <span className="font-bold text-gold">{goal}</span> زيارات:{" "}
+          <span className="font-bold text-ink">{restaurant.loyalty_reward ?? "غير محددة"}</span>.{" "}
+          <Link to="/dashboard/settings" className="font-bold text-gold hover:underline">
+            تعديل الإعدادات
+          </Link>
+        </Card>
+      )}
 
-      <CashierCard restaurant={restaurant} />
+      {/* رمز الكاشير بلا معنى قبل التفعيل — لا بطاقات ليختمها. */}
+      {restaurant.loyalty_enabled && <CashierCard restaurant={restaurant} />}
 
       <Input
         value={q}

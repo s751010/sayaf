@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Badge, Button, Card, ErrorNote, useToast } from "@/components/ui";
 import { MOYASAR_PK } from "@/lib/config";
-import { getActiveSubscription } from "@/lib/data";
+import { getActiveSubscription, getMyPayments, type PaymentRow } from "@/lib/data";
 import {
   CURRENCY,
   PLANS,
@@ -83,10 +83,13 @@ export default function Billing() {
   const [cycle, setCycle] = useState<BillingCycle>("monthly");
   const [plan, setPlan] = useState<Plan | null>(null);
   const [sub, setSub] = useState<Subscription | null | undefined>(undefined);
+  /** `null` = يُحمَّل · `[]` = لم يدفع بعد (القاعدة ج). */
+  const [payments, setPayments] = useState<PaymentRow[] | null>(null);
 
   useEffect(() => {
     document.title = "الاشتراك — كلاود منيو";
     getActiveSubscription(user.id).then(setSub).catch(() => setSub(null));
+    getMyPayments(user.id).then(setPayments).catch(() => setPayments([]));
     // العودة من بوابة الدفع.
     if (new URLSearchParams(window.location.search).get("payment") === "done") {
       toast("وصل إشعار الدفع — يُفعَّل اشتراكك خلال لحظات.");
@@ -186,6 +189,36 @@ export default function Billing() {
           <p className="mt-1 text-sm leading-relaxed text-dim">
             منيوك يعمل الآن بكل المزايا. اشترك قبل انتهاء التجربة ليبقى متاحاً
             لزبائنك بلا انقطاع — بياناتك وأطباقك وصورك تبقى محفوظة في كل الأحوال.
+          </p>
+        </Card>
+      )}
+
+      {/* سجل الدفعات — يظهر لمن دفع فعلاً فقط.
+          ⚠️ **إيصال لا فاتورة ضريبية**: الفاتورة الضريبية تحتاج رقماً ضريبياً
+          للطرفين وترقيماً متسلسلاً وصيغة ZATCA، وهي مؤجَّلة بقرار المالك. لا
+          يُسمّى هذا فاتورة في أي نصّ معروض. */}
+      {payments && payments.length > 0 && (
+        <Card className="mt-4">
+          <p className="font-display font-extrabold text-ink">🧾 سجل دفعاتك</p>
+          <ul className="mt-3 flex flex-col divide-y divide-line">
+            {payments.map((p) => (
+              <li key={p.id} className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5 py-2.5">
+                <span className="text-sm font-bold text-ink">{formatDate(p.created_at)}</span>
+                <span className="text-xs text-dim">{p.plan_name ?? "اشتراك"}</span>
+                {p.payment_ref && (
+                  <code dir="ltr" className="text-[11px] text-faint">
+                    {p.payment_ref.slice(0, 20)}
+                  </code>
+                )}
+                <span className="ms-auto font-bold text-gold" dir="ltr">
+                  {formatPrice(Number(p.amount ?? 0))} {CURRENCY}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-3 text-xs text-faint">
+            هذا سجل دفعاتك لدينا. تحتاج فاتورة ضريبية بصيغة الهيئة؟ راسلنا من صندوق
+            الدعم ونصدرها لك.
           </p>
         </Card>
       )}

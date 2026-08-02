@@ -8,8 +8,10 @@
  * سلسلة واحدة بلون `--c-chart` (مُدقَّق بمدقّق dataviz على السطحين).
  */
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { Badge, Button, Card, Skeleton } from "@/components/ui";
 import { Insights } from "@/components/Insights";
+import { ShareMenu } from "@/components/ShareMenu";
 import { getMyAnalytics, getMyDishes } from "@/lib/data";
 import { buildInsights } from "@/lib/insights";
 import { cn, formatPrice } from "@/lib/utils";
@@ -272,13 +274,31 @@ export default function Analytics() {
           <Skeleton className="h-56 rounded-2xl" />
         </div>
       ) : stats.total === 0 && stats.dishOpens === 0 ? (
+        /* ١٧ من ١٩ تاجراً يهبطون هنا. الشاشة كانت تقول «شارك كود QR» بلا أي
+           طريقة لفعل ذلك — نصيحة بلا زر هي طريق مسدود. الآن الفعلان حاضران. */
         <Card className="mt-6 flex flex-col items-center gap-3 py-12 text-center">
           <span className="text-4xl">📊</span>
           <p className="font-bold text-ink">لا مشاهدات بعد</p>
           <p className="max-w-sm text-sm text-dim">
-            شارك كود QR على طاولاتك وستظهر الأرقام هنا لحظياً — مشاهدات المنيو،
-            أكثر الأطباق فتحاً، وأوقات الذروة.
+            الأرقام تبدأ من أول زبون يفتح منيوك. أسرع طريقتين: كود QR على
+            الطاولات، ورابط منيوك في واتساب وحالة إنستقرام.
           </p>
+          <div className="mt-1 flex flex-wrap justify-center gap-2">
+            <Link
+              to="/dashboard/qr"
+              className="rounded-xl bg-gold px-5 py-2.5 text-sm font-bold text-on-gold hover:bg-gold2"
+            >
+              🔳 اطبع كود QR
+            </Link>
+          </div>
+          {restaurant.slug && (
+            <div className="mt-2">
+              <ShareMenu
+                name={restaurant.name}
+                url={`${window.location.origin}/${restaurant.slug}`}
+              />
+            </div>
+          )}
         </Card>
       ) : (
         <>

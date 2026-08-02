@@ -6,7 +6,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import {
   Button,
-  Card,
+  CollapsibleCard,
   ErrorNote,
   Field,
   Input,
@@ -109,8 +109,6 @@ export default function Settings() {
     }
   }
 
-  const section = "font-display text-lg font-extrabold text-ink";
-
   return (
     <div>
       <h1 className="font-display text-2xl font-black text-ink">الإعدادات</h1>
@@ -119,8 +117,12 @@ export default function Settings() {
       </p>
 
       <form onSubmit={save} className="mt-6 flex flex-col gap-5">
-        <Card className="grid gap-4 sm:grid-cols-2">
-          <h2 className={`${section} sm:col-span-2`}>🏷️ الهوية</h2>
+        <CollapsibleCard
+          title="🏷️ الهوية"
+          subtitle="الاسم والشعار والغلاف وساعات العمل"
+          defaultOpen
+        >
+        <div className="grid gap-4 sm:grid-cols-2">
           <Field label="اسم المطعم">
             <Input value={f.name} onChange={(e) => set("name", e.target.value)} required />
           </Field>
@@ -158,10 +160,14 @@ export default function Settings() {
           <Field label="تنبيه الحساسية العام" hint="يظهر أسفل المنيو لكل الزبائن" className="sm:col-span-2">
             <Textarea value={f.allergens_text} onChange={(e) => set("allergens_text", e.target.value)} placeholder="أطباقنا قد تحتوي مكسرات أو جلوتين…" />
           </Field>
-        </Card>
+        </div>
+        </CollapsibleCard>
 
-        <Card className="grid gap-4 sm:grid-cols-2">
-          <h2 className={`${section} sm:col-span-2`}>🔗 التواصل والتقييم</h2>
+        <CollapsibleCard
+          title="🔗 التواصل والتقييم"
+          subtitle="تقييم قوقل، الموقع على الخريطة، وحسابات التواصل"
+        >
+        <div className="grid gap-4 sm:grid-cols-2">
           <Field label="رابط تقييم قوقل" className="sm:col-span-2">
             <Input dir="ltr" value={f.google_review_url} onChange={(e) => set("google_review_url", e.target.value)} placeholder="https://g.page/r/…" />
           </Field>
@@ -183,10 +189,14 @@ export default function Settings() {
           <Field label="الموقع (خرائط قوقل)">
             <Input dir="ltr" value={f.social_maps} onChange={(e) => set("social_maps", e.target.value)} />
           </Field>
-        </Card>
+        </div>
+        </CollapsibleCard>
 
-        <Card className="flex flex-col gap-4">
-          <h2 className={section}>✨ مزايا المنيو</h2>
+        <CollapsibleCard
+          title="✨ مزايا المنيو"
+          subtitle="اللغة الإنجليزية وبطاقة الولاء"
+        >
+        <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between rounded-xl border border-line bg-panel2 px-4 py-3">
             <div>
               <p className="text-sm font-bold text-ink">🌐 منيو ثنائي اللغة (عربي/إنجليزي)</p>
@@ -233,16 +243,14 @@ export default function Settings() {
               </Field>
             </div>
           )}
-        </Card>
+        </div>
+        </CollapsibleCard>
 
         {/* زينة موسمية — تُضاف فوق طابع منيوك بلا أن تبدّله. */}
-        <Card className="flex flex-col gap-4">
-          <div>
-            <h2 className={section}>🌙 زينة الموسم</h2>
-            <p className="mt-1 text-sm text-dim">
-              لمسة موسمية أعلى منيوك وزخرفة خفيفة في الخلفية — تُشغّلها وتُطفئها متى شئت.
-            </p>
-          </div>
+        <CollapsibleCard
+          title="🌙 زينة الموسم"
+          subtitle="لمسة موسمية أعلى منيوك — تُشغّلها وتُطفئها متى شئت"
+        >
           <div className="grid gap-2 sm:grid-cols-4">
             {[{ id: "", name: "بلا زينة", emoji: "—" }, ...SEASONS].map((s) => {
               const on = f.season === s.id;
@@ -264,11 +272,18 @@ export default function Settings() {
               );
             })}
           </div>
-        </Card>
+        </CollapsibleCard>
 
         {/* الزبون السعودي يسأل «هل السعر شامل الضريبة؟» — الجواب يظهر في المنيو. */}
-        <Card className="flex flex-col gap-4">
-          <h2 className={section}>🧾 الضريبة</h2>
+        <CollapsibleCard
+          title="🧾 الضريبة"
+          subtitle={
+            f.prices_include_vat
+              ? "الأسعار شاملة ضريبة القيمة المضافة 15%"
+              : "الأسعار غير شاملة الضريبة"
+          }
+        >
+        <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between gap-3 rounded-xl border border-line bg-panel2 px-4 py-3">
             <div>
               <p className="text-sm font-bold text-ink">
@@ -303,7 +318,8 @@ export default function Settings() {
               الرقم الضريبي السعودي ١٥ رقماً — كتبت {f.vat_number.length}.
             </p>
           )}
-        </Card>
+        </div>
+        </CollapsibleCard>
 
         {error && <ErrorNote>{error}</ErrorNote>}
         <Button type="submit" disabled={busy} className="w-full py-3 sm:w-auto sm:self-start sm:px-10">

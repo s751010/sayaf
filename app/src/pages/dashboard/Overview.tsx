@@ -80,6 +80,63 @@ export default function Overview() {
   const settled = dishes !== null && menus !== null && views30 !== null;
   const allDone = !settled || doneCount === STEP_COUNT;
 
+  /**
+   * اكتمال المنيو — يخلف دليل الخطوات لا ينافسه.
+   *
+   * دليل الخطوات يسأل «هل بدأت؟»، وهذا يسأل «هل منيوك يستحق أن يُمسح؟». والفرق
+   * ليس شكلياً: أنشط تاجر عندنا أكمل الخطوات الأربع كلها وعنده ١٢ طبقاً
+   * و**صفر صورة**. فبعد اختفاء الدليل لم يبق ما يقول له أن شيئاً ناقص.
+   *
+   * البنود بنسبة لا ببوليان حيث يصحّ ذلك: «٣ من ١٢ طبقاً بصورة» ليست «تمّ».
+   */
+  const quality = useMemo(() => {
+    if (!dishes || !settled) return null;
+    const n = dishes.length;
+    if (n === 0) return null;
+    const withImage = dishes.filter((d) => d.image?.trim()).length;
+    const withDesc = dishes.filter((d) => d.description?.trim()).length;
+    const items = [
+      {
+        label: "شعار مطعمك",
+        ratio: restaurant.logo_image?.trim() ? 1 : 0,
+        hint: "أول ما يراه الزبون أعلى المنيو",
+        to: "/dashboard/settings",
+      },
+      {
+        label: "ساعات العمل",
+        ratio: restaurant.working_hours?.trim() ? 1 : 0,
+        hint: "يعرف الزبون «مفتوح الآن» بلا اتصال",
+        to: "/dashboard/settings",
+      },
+      {
+        label: `صور الأطباق (${withImage}/${n})`,
+        ratio: withImage / n,
+        hint: "الصورة أكثر ما يرفع الطلب",
+        to: "/dashboard/dishes",
+      },
+      {
+        label: `أوصاف الأطباق (${withDesc}/${n})`,
+        ratio: withDesc / n,
+        hint: "الوصف يُغني عن سؤال الموظف",
+        to: "/dashboard/dishes",
+      },
+      {
+        label: "رابط تقييم قوقل",
+        ratio: restaurant.google_review_url?.trim() ? 1 : 0,
+        hint: "أرخص قناة نمو لمطعمك",
+        to: "/dashboard/settings",
+      },
+      {
+        label: "موقعك على الخريطة",
+        ratio: restaurant.social_maps?.trim() ? 1 : 0,
+        hint: "يوصلك زبون جديد بضغطة",
+        to: "/dashboard/settings",
+      },
+    ];
+    const pct = Math.round((items.reduce((s, i) => s + i.ratio, 0) / items.length) * 100);
+    return { pct, missing: items.filter((i) => i.ratio < 1) };
+  }, [dishes, settled, restaurant]);
+
   const stats = [
     { label: "مشاهدات ٣٠ يوماً", value: views30, icon: "👁️" },
     { label: "الأطباق", value: dishes?.length ?? null, icon: "🍽️" },
@@ -167,6 +224,35 @@ export default function Overview() {
                     {s.cta} ←
                   </Link>
                 )}
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
+
+      {/* اكتمال المنيو — بعد الدليل لا معه: شريطا تقدّم متجاوران يُربكان. */}
+      {allDone && quality && quality.missing.length > 0 && (
+        <Card className="mt-5">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <p className="font-display font-extrabold text-ink">✨ اكتمال منيوك</p>
+            <span className="font-display text-2xl font-black text-gold">
+              {quality.pct}%
+            </span>
+          </div>
+          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-ink/8">
+            <div
+              className="h-full rounded-full bg-gold transition-all"
+              style={{ width: `${quality.pct}%` }}
+            />
+          </div>
+          <ul className="mt-4 flex flex-col gap-2.5">
+            {quality.missing.map((m) => (
+              <li key={m.label} className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-sm">
+                <span className="text-ink">{m.label}</span>
+                <span className="text-xs text-faint">— {m.hint}</span>
+                <Link to={m.to} className="ms-auto text-xs font-bold text-gold hover:underline">
+                  أكمله ←
+                </Link>
               </li>
             ))}
           </ul>

@@ -383,6 +383,62 @@ export async function updateOnlinePayment(
   });
 }
 
+/** صفّ دفعة كما يراه التاجر في صفحة الاشتراك. */
+export type PaymentRow = {
+  id: string;
+  plan_name: string | null;
+  amount: number | null;
+  payment_ref: string | null;
+  created_at: string;
+};
+
+/**
+ * سجل دفعات التاجر من `revenue_log`.
+ *
+ * لا حاجة لترحيل: سياسة `revenue_select` القائمة هي
+ * `auth.uid() = user_id OR is_founder()` — التاجر يقرأ صفوفه أصلاً، والإدراج
+ * محصور بالمؤسس فلا يستطيع تلفيق دفعة.
+ *
+ * ⚠️ هذا **إيصال لا فاتورة ضريبية**: الفاتورة الضريبية تتطلّب رقماً ضريبياً
+ * للطرفين وترقيماً متسلسلاً وصيغة ZATCA — مؤجَّلة بقرار المالك. لا تُسمِّه
+ * فاتورة في الواجهة.
+ */
+export async function getMyPayments(userId: string): Promise<PaymentRow[]> {
+  return rest<PaymentRow[]>(
+    `revenue_log?user_id=eq.${userId}` +
+      "&select=id,plan_name,amount,payment_ref,created_at&order=created_at.desc&limit=50"
+  );
+}
+
+/**
+ * تشغيل بطاقة الولاء وضبطها **من صفحة الولاء نفسها**.
+ *
+ * دالة مستقلّة عن `RestaurantSettingsPayload` (القاعدة هـ) رغم أن الحقول الثلاثة
+ * موجودة فيه: صفحة الولاء لا تحمل بقية إعدادات المطعم، وإرسال الـpayload كاملاً
+ * منها كان سيدهس ما ضبطه التاجر في الإعدادات لتوّه.
+ *
+ * سبب وجودها أصلاً: البرنامج مفعَّل عند **مطعم واحد من ١٩**، وصفحة الولاء كانت
+ * تقول «فعّله من الإعدادات» — رحلة صفحتين لمن جاء ليفعّله. الآن تتمّ في مكانها.
+ */
+export async function setupLoyalty(
+  restaurantId: string,
+  input: { enabled: boolean; goal?: number | null; reward?: string | null }
+): Promise<void> {
+  const body: Record<string, unknown> = { loyalty_enabled: input.enabled };
+  if (input.goal !== undefined) {
+    // نفس الحصر في صفحة الإعدادات: بطاقة الزبون ترسم `Array(goal)` وقيمة خارج
+    // المدى كانت تُسقط صفحة المنيو بـRangeError.
+    body.loyalty_goal =
+      input.goal === null ? null : Math.min(20, Math.max(1, Math.round(input.goal)));
+  }
+  if (input.reward !== undefined) body.loyalty_reward = input.reward;
+  await rest(`restaurants?id=eq.${restaurantId}`, {
+    method: "PATCH",
+    headers: { Prefer: "return=minimal" },
+    body,
+  });
+}
+
 /* ── مفاتيح API ───────────────────────────────────────────────────── */
 
 /**
