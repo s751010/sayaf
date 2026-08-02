@@ -3,7 +3,7 @@
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: microphone=(), camera=(), geolocation=()
-  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' https://cdn.moyasar.com; style-src 'self' 'unsafe-inline' https://cdn.moyasar.com; font-src 'self' data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co https://api.moyasar.com https://cdn.moyasar.com; frame-src https://*.moyasar.com; worker-src 'self'; manifest-src 'self'
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' https://cdn.moyasar.com https://connect.facebook.net https://www.googletagmanager.com https://sc-static.net; style-src 'self' 'unsafe-inline' https://cdn.moyasar.com; font-src 'self' data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co https://api.moyasar.com https://cdn.moyasar.com https://www.facebook.com https://connect.facebook.net https://www.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://tr.snapchat.com https://sc-static.net; frame-src https://*.moyasar.com; worker-src 'self'; manifest-src 'self'
 
 /index.html
   Cache-Control: public, max-age=0, must-revalidate

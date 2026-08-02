@@ -49,6 +49,7 @@ import { parseCategoryOrder, sortCategories } from "@/lib/categories";
 import { getTheme, RHYTHM, type DishLayout, type HeadingStyle } from "@/lib/themes";
 import { patternImage, PATTERN_SIZE } from "@/lib/patterns";
 import { getSeason } from "@/lib/seasons";
+import { installPixels } from "@/lib/pixels";
 import { loadSession } from "@/lib/session";
 import { ENFORCE_MENU_PUBLISHING } from "@/lib/config";
 import { K, getItem, getJSON, setItem, setJSON } from "@/lib/storage";
@@ -741,6 +742,22 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
   useEffect(() => {
     if (orderResult === "paid") cart.clear();
   }, [orderResult, cart.clear]);
+
+  /**
+   * بكسلات التاجر — في صفحة المنيو وحدها، وبعد استقرار البيانات.
+   *
+   * تُستثنى المعاينة والديمو: التاجر يتصفّح منيوه فلا يجوز أن يُحسب زبوناً في
+   * إحصاءات إعلانه، تماماً كما لا يُحسب في مشاهداته (`trackMenuView`).
+   */
+  useEffect(() => {
+    if (state.status !== "ready" || demo || preview) return;
+    const r = state.restaurant;
+    installPixels({
+      meta: r.meta_pixel_id?.trim() || null,
+      ga: r.ga_measurement_id?.trim() || null,
+      snap: r.snap_pixel_id?.trim() || null,
+    });
+  }, [state, demo, preview]);
 
   const dishById = useMemo(
     () =>

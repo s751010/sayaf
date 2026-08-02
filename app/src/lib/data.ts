@@ -39,7 +39,9 @@ const PUBLIC_RESTAURANT_COLS = [
   "prices_include_vat", "vat_number", "category_order", "season",
   // الإشارة العامة الوحيدة لتشغيل السلة: `restaurant_payment_settings.enabled`
   // محجوب عن anon بالكامل (فيه المفتاح السرّي)، فلا يستطيع الزبون سؤاله.
-  "online_payment_enabled", "created_at",
+  "online_payment_enabled",
+  // بكسلات التتبّع — يقرؤها المتصفح ليحقنها في صفحة المنيو (§15).
+  "meta_pixel_id", "ga_measurement_id", "snap_pixel_id", "created_at",
 ].join(",");
 
 const PUBLIC_MENU_COLS = [
@@ -278,6 +280,9 @@ export type RestaurantSettingsPayload = {
   prices_include_vat: boolean;
   vat_number: string | null;
   season: string | null;
+  meta_pixel_id: string | null;
+  ga_measurement_id: string | null;
+  snap_pixel_id: string | null;
 };
 
 export async function updateRestaurant(

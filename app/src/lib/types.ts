@@ -51,6 +51,14 @@ export interface Restaurant {
    * تغييرها لغيره)، ثم يولّد التاجر مفتاحه بنفسه من إعداداته. انظر §14.
    */
   api_enabled: boolean | null;
+  /**
+   * بكسلات التتبّع — معرّفات عامة يضبطها التاجر ليقيس إعلاناته.
+   * ⚠️ القاعدة (و): لكل منها `GRANT SELECT … TO anon` في القاعدة **و** إدراج في
+   * `PUBLIC_RESTAURANT_COLS`؛ أحدهما بلا الآخر يكسر منيوهات الجميع أو يُخفي العمود.
+   */
+  meta_pixel_id: string | null;
+  ga_measurement_id: string | null;
+  snap_pixel_id: string | null;
   created_at: string;
 }
 

@@ -55,6 +55,9 @@ export default function Settings() {
     prices_include_vat: restaurant.prices_include_vat ?? true,
     vat_number: restaurant.vat_number ?? "",
     season: restaurant.season ?? "",
+    meta_pixel_id: restaurant.meta_pixel_id ?? "",
+    ga_measurement_id: restaurant.ga_measurement_id ?? "",
+    snap_pixel_id: restaurant.snap_pixel_id ?? "",
   }));
 
   useEffect(() => {
@@ -97,6 +100,9 @@ export default function Settings() {
       prices_include_vat: f.prices_include_vat,
       vat_number: strOrNull(f.vat_number),
       season: strOrNull(f.season),
+      meta_pixel_id: strOrNull(f.meta_pixel_id),
+      ga_measurement_id: strOrNull(f.ga_measurement_id),
+      snap_pixel_id: strOrNull(f.snap_pixel_id),
     };
     try {
       await updateRestaurant(restaurant.id, payload);
@@ -319,6 +325,49 @@ export default function Settings() {
             </p>
           )}
         </div>
+        </CollapsibleCard>
+
+        {/* بكسلات التتبّع — اختيارية ومطفأة تماماً بلا معرّف (§15). */}
+        <CollapsibleCard
+          title="📊 التتبّع والإعلانات"
+          subtitle="اربط منيوك بمنصّات إعلاناتك لتقيس من أين يأتي زبائنك"
+        >
+          <div className="flex flex-col gap-4">
+            <p className="rounded-xl border border-line bg-panel2 px-4 py-3 text-xs leading-relaxed text-dim">
+              ⚠️ تشغيل أيٍّ من هذه يعني أن سلوك زبائنك في منيوك يُشارَك مع تلك
+              المنصّة. اتركها فارغة إن لم تكن تعلن — منيوك لا يحمّل أي سكربت
+              خارجي بدونها إطلاقاً.
+            </p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Meta (فيسبوك/إنستقرام) Pixel ID" hint="أرقام فقط">
+                <Input
+                  dir="ltr"
+                  inputMode="numeric"
+                  value={f.meta_pixel_id}
+                  onChange={(e) => set("meta_pixel_id", e.target.value.replace(/\D/g, "").slice(0, 20))}
+                  placeholder="123456789012345"
+                />
+              </Field>
+              <Field label="Google Analytics 4" hint="يبدأ بـ G-">
+                <Input
+                  dir="ltr"
+                  value={f.ga_measurement_id}
+                  onChange={(e) =>
+                    set("ga_measurement_id", e.target.value.trim().toUpperCase().slice(0, 20))
+                  }
+                  placeholder="G-XXXXXXXXXX"
+                />
+              </Field>
+              <Field label="Snapchat Pixel ID" className="sm:col-span-2">
+                <Input
+                  dir="ltr"
+                  value={f.snap_pixel_id}
+                  onChange={(e) => set("snap_pixel_id", e.target.value.trim().slice(0, 60))}
+                  placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                />
+              </Field>
+            </div>
+          </div>
         </CollapsibleCard>
 
         {error && <ErrorNote>{error}</ErrorNote>}

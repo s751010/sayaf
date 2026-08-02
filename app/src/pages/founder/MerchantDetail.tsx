@@ -73,6 +73,9 @@ function payloadOf(r: Restaurant): RestaurantSettingsPayload {
     prices_include_vat: r.prices_include_vat ?? true,
     vat_number: r.vat_number,
     season: r.season,
+    meta_pixel_id: r.meta_pixel_id,
+    ga_measurement_id: r.ga_measurement_id,
+    snap_pixel_id: r.snap_pixel_id,
   };
 }
 

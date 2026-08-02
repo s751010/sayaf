@@ -67,6 +67,9 @@ const restaurant: Restaurant = {
   reviews_enabled: true,
   online_payment_enabled: false,
   api_enabled: false,
+  meta_pixel_id: null,
+  ga_measurement_id: null,
+  snap_pixel_id: null,
 };
 
 const menus: Menu[] = [
