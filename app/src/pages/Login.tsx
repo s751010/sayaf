@@ -1,9 +1,10 @@
 /** الدخول وإنشاء الحساب — نفس حسابات Supabase الحالية تعمل هنا. */
-import { useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Logo } from "@/components/site";
 import { Button, Card, ErrorNote, Field, Input, Spinner, ThemeToggle } from "@/components/ui";
 import { useAuth } from "@/lib/auth";
+import { isFounder } from "@/lib/data";
 import { cn } from "@/lib/utils";
 
 /** «forgot» وضع ثالث في نفس البطاقة — لا صفحة منفصلة لخطوة من حقل واحد. */
@@ -25,9 +26,20 @@ export default function Login() {
     document.title = "دخول التجّار — كلاود منيو";
   }, []);
 
+  /**
+   * وجهة ما بعد الدخول — لوحة المؤسس لصاحب المنصة، ولوحة التاجر لغيره.
+   *
+   * كانت الوجهة `/dashboard` دائماً، ولا رابط إلى `/founder` في الواجهة كلها،
+   * فكان صاحب المنصة ينتهي في لوحة التجار ولا يصل إلى لوحته إلا بكتابة العنوان
+   * يدوياً. القرار من القاعدة (`is_founder()`) لا من بريد منسوخ هنا.
+   */
+  const goAfterAuth = useCallback(async () => {
+    navigate((await isFounder()) ? "/founder" : "/dashboard", { replace: true });
+  }, [navigate]);
+
   useEffect(() => {
-    if (!loading && user) navigate("/dashboard", { replace: true });
-  }, [user, loading, navigate]);
+    if (!loading && user) void goAfterAuth();
+  }, [user, loading, goAfterAuth]);
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -54,10 +66,10 @@ export default function Login() {
     try {
       if (mode === "login") {
         await login(email.trim(), password);
-        navigate("/dashboard", { replace: true });
+        await goAfterAuth();
       } else {
         const done = await signup(email.trim(), password, name.trim());
-        if (done) navigate("/dashboard", { replace: true });
+        if (done) await goAfterAuth();
         else setNotice("تم إنشاء الحساب! تحقق من بريدك لتفعيل الحساب ثم سجّل الدخول.");
       }
     } catch (err) {

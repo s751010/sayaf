@@ -272,6 +272,14 @@ export default function Founder() {
         <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-5">
           <Link to="/"><Logo /></Link>
           <div className="flex items-center gap-2">
+            {/* الدخول صار يفتح هذه اللوحة تلقائياً لصاحب المنصة، فلا بدّ من
+                طريق واضح إلى لوحة التاجر — وهو يملك مطعماً أيضاً. */}
+            <Link
+              to="/dashboard"
+              className="rounded-xl px-3 py-1.5 text-xs font-bold text-dim hover:bg-ink/5 hover:text-ink"
+            >
+              🍽️ لوحة التاجر
+            </Link>
             <Badge>🛡️ المؤسس</Badge>
             <ThemeToggle />
           </div>

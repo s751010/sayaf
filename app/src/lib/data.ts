@@ -82,6 +82,25 @@ export async function isMenuPublished(slug: string): Promise<boolean> {
   return v === true;
 }
 
+/**
+ * هل الحساب المسجَّل حالياً هو حساب المؤسس؟
+ *
+ * الجواب من `public.is_founder()` في القاعدة — **نفسها** التي تحكم ٤٨ سياسة
+ * RLS. البديل (نسخ بريد المؤسس إلى الواجهة) كان سيكرّر مصدر الحقيقة ويجعل
+ * تغيير البريد تغييراً في مكانين. الدالة لا تكشف شيئاً: بوليان عن جلسة المتصل
+ * نفسه لا غير.
+ *
+ * لا ترمي أبداً: فشل الشبكة يعني «ليس المؤسس» فيمضي الدخول إلى لوحة التاجر
+ * كالمعتاد — تاجر عادي لا يجوز أن يعلق لأن نداءً تأخّر.
+ */
+export async function isFounder(): Promise<boolean> {
+  try {
+    return (await rest<boolean>("rpc/is_founder", { method: "POST", body: {} })) === true;
+  } catch {
+    return false;
+  }
+}
+
 export async function getActiveMenus(restaurantId: string): Promise<Menu[]> {
   const rows = await rest<Menu[]>(
     `menus?restaurant_id=eq.${restaurantId}&select=${PUBLIC_MENU_COLS}&order=created_at.asc`,

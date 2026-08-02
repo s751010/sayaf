@@ -32,6 +32,7 @@ import {
   createRestaurant,
   getMyMenus,
   getMyRestaurant,
+  isFounder,
   startTrial,
 } from "@/lib/data";
 import { hasStarter } from "@/lib/starterMenus";
@@ -159,12 +160,28 @@ const NAV = [
   { to: "/dashboard/settings", label: "الإعدادات", icon: "⚙️" },
 ];
 
+/** عنصر لا يراه إلا صاحب المنصة — يُلحق بـ`NAV` عند التحقّق فقط. */
+const FOUNDER_NAV = { to: "/founder", label: "لوحة المؤسس", icon: "🛡️", end: false };
+
 function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode }) {
   const { logout } = useAuth();
   const navigate = useNavigate();
+  /**
+   * `null` = لم يُحسم بعد (قاعدة «لا تكسر حالات التحميل»): لا نومض بعنصر
+   * «لوحة المؤسس» ثم نخفيه، ولا نُظهره لتاجر بالخطأ. القرار من القاعدة.
+   */
+  const [founder, setFounder] = useState<boolean | null>(null);
+  useEffect(() => {
+    let alive = true;
+    isFounder().then((v) => alive && setFounder(v));
+    return () => {
+      alive = false;
+    };
+  }, []);
+  const nav = founder === true ? [...NAV, FOUNDER_NAV] : NAV;
 
   const links = (compact: boolean) =>
-    NAV.map((n) => (
+    nav.map((n) => (
       <NavLink
         key={n.to}
         to={n.to}
