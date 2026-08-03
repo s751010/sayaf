@@ -355,7 +355,7 @@ export default function MerchantDetail() {
                   <Button
                     key={d}
                     variant="outline"
-                    className="px-3 py-1.5 text-xs"
+                    size="sm"
                     disabled={busy}
                     onClick={() =>
                       act(
@@ -378,7 +378,7 @@ export default function MerchantDetail() {
                   <>
                     <Button
                       variant="outline"
-                      className="px-3 py-1.5 text-xs"
+                      size="sm"
                       disabled={busy}
                       onClick={() =>
                         act(
@@ -398,7 +398,7 @@ export default function MerchantDetail() {
                     </Button>
                     <Button
                       variant="danger"
-                      className="px-3 py-1.5 text-xs"
+                      size="sm"
                       disabled={busy}
                       onClick={() =>
                         act(

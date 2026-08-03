@@ -259,7 +259,7 @@ export function BillingConsole({
                   {gateway.env === "production" ? "إنتاج" : "تجريبي"}
                 </Badge>
               )}
-              <Button variant="outline" className="px-3 py-1.5 text-xs" onClick={check} disabled={checking}>
+              <Button variant="outline" size="sm" onClick={check} disabled={checking}>
                 <Icon name="clock" size={14} /> أعِد الفحص
               </Button>
             </div>

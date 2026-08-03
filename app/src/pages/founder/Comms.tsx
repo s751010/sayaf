@@ -294,10 +294,10 @@ export default function Comms() {
                     <Badge variant={a.status === "active" ? "green" : "neutral"}>
                       {a.status === "active" ? "ظاهر" : "مؤرشف"}
                     </Badge>
-                    <Button variant="outline" className="px-3 py-1.5 text-xs" onClick={() => toggleAnn(a)}>
+                    <Button variant="outline" size="sm" onClick={() => toggleAnn(a)}>
                       {a.status === "active" ? "أرشفة" : "إظهار"}
                     </Button>
-                    <Button variant="danger" className="px-3 py-1.5 text-xs" onClick={() => removeAnn(a)}>
+                    <Button variant="danger" size="sm" onClick={() => removeAnn(a)}>
                       حذف
                     </Button>
                   </div>
@@ -314,7 +314,7 @@ export default function Comms() {
                 {editing ? "تعديل مقال" : "مقال جديد"}
               </h2>
               {editing && (
-                <Button variant="ghost" className="px-3 py-1.5 text-xs" onClick={() => openPost(null)}>
+                <Button variant="ghost" size="sm" onClick={() => openPost(null)}>
                   مقال جديد بدلاً منه
                 </Button>
               )}
@@ -376,10 +376,10 @@ export default function Comms() {
                     <Badge variant={p.published ? "green" : "neutral"}>
                       {p.published ? "منشور" : "مسودة"}
                     </Badge>
-                    <Button variant="outline" className="px-3 py-1.5 text-xs" onClick={() => openPost(p)}>
+                    <Button variant="outline" size="sm" onClick={() => openPost(p)}>
                       تعديل
                     </Button>
-                    <Button variant="danger" className="px-3 py-1.5 text-xs" onClick={() => removePost(p)}>
+                    <Button variant="danger" size="sm" onClick={() => removePost(p)}>
                       حذف
                     </Button>
                   </div>

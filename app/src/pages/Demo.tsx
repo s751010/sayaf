@@ -236,7 +236,7 @@ export default function Demo() {
         </span>
         <Link
           to="/login?mode=signup"
-          className="text-xs font-black text-gold hover:underline"
+          className="inline-flex min-h-11 items-center text-xs font-black text-gold hover:underline"
         >
           أنشئ منيوك مجاناً →
         </Link>

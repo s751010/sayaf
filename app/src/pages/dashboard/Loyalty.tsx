@@ -239,11 +239,11 @@ export default function Loyalty() {
                   </Badge>
                   <span className="text-xs text-faint">إجمالي {c.total_visits ?? 0} زيارة</span>
                   {complete ? (
-                    <Button className="px-3 py-1.5 text-xs" onClick={() => redeem(c)}>
+                    <Button size="sm" onClick={() => redeem(c)}>
                       صرف المكافأة
                     </Button>
                   ) : (
-                    <Button variant="outline" className="px-3 py-1.5 text-xs" onClick={() => stamp(c)}>
+                    <Button variant="outline" size="sm" onClick={() => stamp(c)}>
                       ＋ ختم زيارة
                     </Button>
                   )}

@@ -19,23 +19,42 @@ import { Icon, type IconName } from "@/lib/icons";
 
 /* ── زر ────────────────────────────────────────────────────────────── */
 type ButtonVariant = "gold" | "outline" | "ghost" | "danger";
+/**
+ * محور المقاس — صريح لا بتجاوزات `className` متفرّقة.
+ *
+ * كان الأساس `py-2.5 text-sm` ⇒ **٤٠px**، دون حدّ ٤٤×٤٤ الذي تفرضه إرشادات
+ * اللمس، وكانت المواضع الكثيفة تُصغّره بـ`px-3 py-1.5 text-xs` ⇒ **٢٨px**.
+ * فصار المقاس محوراً معلناً: `md` هو ٤٤ ولا يُخترق، و`sm` هو ٣٦ — فوق حدّ
+ * WCAG 2.2 AA (٢٤px) — ولا يُستعمل إلا في أسطح داخلية كثيفة (لوحة المؤسّس)
+ * لا يمسّها زبون واقف بجواله في مطعم.
+ */
+type ButtonSize = "md" | "sm";
 
 export function Button({
   variant = "gold",
+  size = "md",
   className,
   ...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: ButtonVariant }) {
+}: ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+}) {
   const styles: Record<ButtonVariant, string> = {
     gold: "bg-gold text-on-gold hover:bg-gold2 shadow-[0_4px_18px_-4px_var(--c-glow)]",
     outline: "border border-line-gold text-ink hover:bg-gold/10",
     ghost: "text-dim hover:text-ink hover:bg-ink/5",
     danger: "border border-bad/40 text-bad hover:bg-bad/10",
   };
+  const sizes: Record<ButtonSize, string> = {
+    md: "min-h-11 px-4 py-2.5 text-sm",
+    sm: "min-h-9 px-3 py-1.5 text-xs",
+  };
   return (
     <button
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition-all",
+        "inline-flex items-center justify-center gap-2 rounded-xl font-bold transition-all",
         "disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]",
+        sizes[size],
         styles[variant],
         className
       )}
@@ -142,8 +161,9 @@ export function Badge({
 }
 
 /* ── حقول النماذج ──────────────────────────────────────────────────── */
+/** `min-h-11` = ٤٤px — الحقل هدف لمس كالزرّ تماماً، وكان ٤٠. */
 export const fieldClass =
-  "w-full rounded-xl border border-line bg-panel2 px-3.5 py-2.5 text-sm text-ink placeholder:text-faint transition-colors focus:border-gold/50 focus:bg-panel";
+  "w-full min-h-11 rounded-xl border border-line bg-panel2 px-3.5 py-2.5 text-sm text-ink placeholder:text-faint transition-colors focus:border-gold/50 focus:bg-panel";
 
 export function Field({
   label,

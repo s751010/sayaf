@@ -96,7 +96,7 @@ function Allergens({ dish, en }: { dish: Dish; en: boolean }) {
 function Calories({ dish, en }: { dish: Dish; en: boolean }) {
   if (dish.calories == null) return null;
   return (
-    <span className="whitespace-nowrap text-[10px]" style={{ color: "var(--m-muted)" }}>
+    <span className="whitespace-nowrap text-xs" style={{ color: "var(--m-muted)" }}>
       <Icon name="flame" size={12} /> {dish.calories} {en ? "cal" : "سعرة"}
     </span>
   );

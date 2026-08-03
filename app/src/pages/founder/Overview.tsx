@@ -209,7 +209,7 @@ export default function Overview() {
                   )}
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" className="px-3 py-1.5 text-xs" onClick={() => replyTicket(t)}>
+                  <Button variant="outline" size="sm" onClick={() => replyTicket(t)}>
                     {t.admin_reply ? "تعديل الرد" : "ردّ"}
                   </Button>
                   <Badge variant={t.status === "open" ? "red" : "green"}>
@@ -217,7 +217,7 @@ export default function Overview() {
                   </Badge>
                   <Button
                     variant="outline"
-                    className="px-3 py-1.5 text-xs"
+                    size="sm"
                     onClick={() => setStatus(t, t.status === "open" ? "closed" : "open")}
                   >
                     {t.status === "open" ? "إغلاق" : "إعادة فتح"}

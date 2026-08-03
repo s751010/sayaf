@@ -87,7 +87,7 @@ function buildAllergenIndex(dishes: Dish[], en: boolean) {
 
 function Chip({ children, onClick, href }: { children: ReactNode; onClick?: () => void; href?: string }) {
   const cls =
-    "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-bold transition-transform hover:scale-[1.03]";
+    "inline-flex min-h-11 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-bold transition-transform hover:scale-[1.03]";
   const style = {
     borderColor: "var(--m-border)",
     background: "var(--m-surface)",
@@ -152,7 +152,7 @@ function MenuSheet({
           <button
             onClick={onClose}
             aria-label="إغلاق"
-            className="flex h-8 w-8 items-center justify-center rounded-full"
+            className="flex h-11 w-11 items-center justify-center rounded-full"
             style={{ color: "var(--m-muted)", background: "var(--m-surface)" }}
           >
             <Icon name="close" size={16} />
@@ -388,7 +388,7 @@ function DishModal({
                     </>
                   );
                   const cls =
-                    "flex items-center justify-between rounded-xl border px-3 py-2 text-start text-sm";
+                    "flex min-h-11 items-center justify-between rounded-xl border px-3 py-2 text-start text-sm";
                   const style = {
                     borderColor: on ? "var(--m-accent)" : "var(--m-border)",
                     color: "var(--m-text)",
@@ -416,8 +416,12 @@ function DishModal({
           )}
 
           {dish.sfda_compliant && (
-            <p className="mt-4 text-center text-[11px]" style={{ color: "var(--m-muted)" }}>
-              ✅ {en ? "SFDA-compliant nutrition info" : "معلومات غذائية متوافقة مع هيئة الغذاء والدواء"}
+            <p
+              className="mt-4 flex items-center justify-center gap-1.5 text-center text-xs"
+              style={{ color: "var(--m-muted)" }}
+            >
+              <Icon name="check" size={13} />
+              {en ? "SFDA-compliant nutrition info" : "معلومات غذائية متوافقة مع هيئة الغذاء والدواء"}
             </p>
           )}
 
@@ -430,7 +434,7 @@ function DishModal({
                 <button
                   onClick={() => setQty((q) => Math.max(1, q - 1))}
                   aria-label={en ? "Decrease" : "إنقاص"}
-                  className="h-10 w-9 text-lg font-black"
+                  className="h-11 w-11 text-lg font-black"
                   style={{ color: "var(--m-muted)" }}
                 >
                   −
@@ -441,7 +445,7 @@ function DishModal({
                 <button
                   onClick={() => setQty((q) => Math.min(99, q + 1))}
                   aria-label={en ? "Increase" : "زيادة"}
-                  className="h-10 w-9 text-lg font-black"
+                  className="h-11 w-11 text-lg font-black"
                   style={{ color: "var(--m-accent)" }}
                 >
                   ＋
@@ -452,7 +456,7 @@ function DishModal({
                   cart!.add(dish.id, picked, qty);
                   onClose();
                 }}
-                className="flex flex-1 items-center justify-between gap-2 rounded-xl px-4 py-2.5 text-sm font-black"
+                className="flex min-h-11 flex-1 items-center justify-between gap-2 rounded-xl px-4 py-2.5 text-sm font-black"
                 style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}
               >
                 <span>{en ? "Add to order" : "أضِف للطلب"}</span>
@@ -464,7 +468,7 @@ function DishModal({
           ) : (
             <button
               onClick={onClose}
-              className="mt-5 w-full rounded-xl py-2.5 text-sm font-black"
+              className="mt-5 min-h-11 w-full rounded-xl py-2.5 text-sm font-black"
               style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}
             >
               {en ? "Close" : "إغلاق"}
@@ -543,7 +547,7 @@ function LoyaltyCard({ restaurant, en }: { restaurant: Restaurant; en: boolean }
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder={en ? "Your name" : "اسمك"}
-            className="rounded-xl border bg-transparent px-3.5 py-2.5 text-sm"
+            className="min-h-11 rounded-xl border bg-transparent px-3.5 py-2.5 text-sm"
             style={{ borderColor: "var(--m-border)", color: "var(--m-text)" }}
           />
           <input
@@ -552,7 +556,7 @@ function LoyaltyCard({ restaurant, en }: { restaurant: Restaurant; en: boolean }
             placeholder={en ? "Phone number" : "رقم الجوال"}
             dir="ltr"
             inputMode="tel"
-            className="rounded-xl border bg-transparent px-3.5 py-2.5 text-sm"
+            className="min-h-11 rounded-xl border bg-transparent px-3.5 py-2.5 text-sm"
             style={{ borderColor: "var(--m-border)", color: "var(--m-text)" }}
           />
           {msg && (
@@ -563,7 +567,7 @@ function LoyaltyCard({ restaurant, en }: { restaurant: Restaurant; en: boolean }
           <button
             onClick={join}
             disabled={busy}
-            className="rounded-xl py-2.5 text-sm font-black disabled:opacity-50"
+            className="min-h-11 rounded-xl py-2.5 text-sm font-black disabled:opacity-50"
             style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}
           >
             {busy ? "…" : en ? "Join now" : "انضم الآن"}
@@ -595,7 +599,7 @@ function LoyaltyCard({ restaurant, en }: { restaurant: Restaurant; en: boolean }
                 ? `${goal - stamps} visits left — staff stamps your card on each visit.`
                 : `باقي ${goal - stamps} زيارة — الموظف يختم بطاقتك عند كل زيارة.`}
           </p>
-          <p className="mt-2 text-center text-[11px]" style={{ color: "var(--m-muted)" }}>
+          <p className="mt-2 text-center text-xs" style={{ color: "var(--m-muted)" }}>
             {en ? "Card holder:" : "صاحب البطاقة:"} {card.name}
           </p>
         </div>
@@ -1023,10 +1027,10 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
       <MenuHeader restaurant={restaurant} theme={theme}>
         {table && (
           <span
-            className="rounded-full px-3 py-1 text-xs font-black"
+            className="inline-flex min-h-9 items-center gap-1.5 rounded-full px-3 py-1 text-xs font-black"
             style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}
           >
-            🪑 {en ? "Table" : "طاولة"} {table}
+            <Icon name="tag" size={13} /> {en ? "Table" : "طاولة"} {table}
           </span>
         )}
         {/* ساعات العمل: **شريحة واحدة** تحمل الحالة الحيّة وتفتح جدول الأسبوع.
@@ -1035,7 +1039,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
         {week ? (
           <button
             onClick={() => setHoursOpen(true)}
-            className="rounded-full px-3 py-1 text-xs font-black transition-opacity hover:opacity-85"
+            className="inline-flex min-h-9 items-center rounded-full px-3 py-1 text-xs font-black transition-opacity hover:opacity-85"
             style={
               live?.open
                 ? { background: "var(--m-accent)", color: "var(--m-on-accent)" }
@@ -1054,10 +1058,10 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
           restaurant.working_hours && (
             <button
               onClick={() => setHoursOpen(true)}
-              className="rounded-full border px-3 py-1 text-xs"
+              className="inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3 py-1 text-xs"
               style={{ borderColor: "var(--m-border)", color: "var(--m-muted)" }}
             >
-              🕐 {restaurant.working_hours} ›
+              <Icon name="clock" size={13} /> {restaurant.working_hours} ›
             </button>
           )
         )}
@@ -1071,7 +1075,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
               <button
                 key={l}
                 onClick={() => setLang(l)}
-                className="px-2.5 py-1 transition-colors"
+                className="min-h-9 px-3 py-1 transition-colors"
                 style={
                   lang === l
                     ? { background: "var(--m-accent)", color: "var(--m-on-accent)" }
@@ -1149,7 +1153,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
                   key={c.name}
                   href={`#${categoryId(c.name)}`}
                   ref={(el) => { catRefs.current[c.name] = el; }}
-                  className="flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-bold transition-colors"
+                  className="flex min-h-11 shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-bold transition-colors"
                   style={
                     activeCat === c.name
                       ? { background: "var(--m-accent)", color: "var(--m-on-accent)" }
@@ -1172,7 +1176,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
                 onBlur={() => !search && setSearchOpen(false)}
                 placeholder={en ? "Search…" : "ابحث…"}
                 aria-label={en ? "Search the menu" : "ابحث في المنيو"}
-                className="w-28 shrink-0 rounded-full border bg-transparent px-3 py-1.5 text-sm sm:w-40"
+                className="min-h-11 w-28 shrink-0 rounded-full border bg-transparent px-3 py-1.5 text-sm sm:w-40"
                 style={{
                   borderColor: "var(--m-border)",
                   background: "var(--m-surface)",
@@ -1183,7 +1187,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
               <button
                 onClick={() => setSearchOpen(true)}
                 aria-label={en ? "Search the menu" : "ابحث في المنيو"}
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border"
                 style={{ borderColor: "var(--m-border)", color: "var(--m-muted)" }}
               >
                 <Icon name="search" size={16} />
@@ -1284,8 +1288,12 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
               }}
             >
               <span>
-                <span className="block text-sm font-black" style={{ color: "var(--m-text)" }}>
-                  ⚠️ {en ? "Allergen guide" : "دليل مسببات الحساسية"}
+                <span
+                  className="flex items-center gap-1.5 text-sm font-black"
+                  style={{ color: "var(--m-text)" }}
+                >
+                  <Icon name="warn" size={15} />
+                  {en ? "Allergen guide" : "دليل مسببات الحساسية"}
                 </span>
                 <span className="mt-0.5 block text-xs" style={{ color: "var(--m-muted)" }}>
                   {en
@@ -1343,8 +1351,12 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
 
         {/* توقيع المنصة */}
         <footer className={cn(rhythm.section, "flex flex-col items-center gap-2 opacity-70")}>
-          <Link to="/" className="scale-90">
-            <Logo />
+          {/* التصغير على المحتوى لا على الرابط: `scale-90` على الرابط نفسه
+              يصغّر منطقة اللمس معه (٤٤ ⇐ ٤٠). */}
+          <Link to="/" className="inline-flex min-h-11 items-center">
+            <span className="scale-90">
+              <Logo />
+            </span>
           </Link>
         </footer>
       </main>

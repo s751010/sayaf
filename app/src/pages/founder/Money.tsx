@@ -349,14 +349,14 @@ export default function Money() {
                     </Badge>
                     <Button
                       variant="outline"
-                      className="px-3 py-1.5 text-xs"
+                      size="sm"
                       onClick={() => togglePromo(p)}
                     >
                       {p.active ? "إيقاف" : "تفعيل"}
                     </Button>
                     <Button
                       variant="danger"
-                      className="px-3 py-1.5 text-xs"
+                      size="sm"
                       onClick={() => removePromo(p)}
                     >
                       حذف

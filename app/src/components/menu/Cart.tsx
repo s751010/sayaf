@@ -262,7 +262,7 @@ export function CartReview({
               {r.dish ? (en && r.dish.name_en ? r.dish.name_en : r.dish.name) : en ? "Unavailable item" : "صنف لم يعد متاحاً"}
             </p>
             {r.labels.length > 0 && (
-              <p className="truncate text-[11px]" style={{ color: "var(--m-muted)" }}>
+              <p className="truncate text-xs" style={{ color: "var(--m-muted)" }}>
                 {r.labels.join("، ")}
               </p>
             )}
@@ -369,7 +369,7 @@ export function CartReview({
           >
             {en ? "Empty the order" : "إفراغ الطلب"}
           </button>
-          <p className="text-center text-[11px] leading-relaxed" style={{ color: "var(--m-muted)" }}>
+          <p className="text-center text-xs leading-relaxed" style={{ color: "var(--m-muted)" }}>
             {en
               ? "Payment is made directly to the restaurant through a secure gateway."
               : "الدفع يتم مباشرة لحساب المطعم عبر بوابة دفع آمنة."}

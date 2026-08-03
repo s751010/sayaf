@@ -56,7 +56,7 @@ export function DishOfTheDay({
 
       <div className="flex min-w-0 flex-1 flex-col justify-center gap-1 p-3.5">
         <span
-          className="inline-flex w-fit items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-black"
+          className="inline-flex w-fit items-center gap-1 rounded-full px-2 py-0.5 text-xs font-black"
           style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}
         >
           <Icon name="star" size={13} /> {en ? "Today's pick" : "طبق اليوم"}
