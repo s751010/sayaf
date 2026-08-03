@@ -52,7 +52,7 @@ import { loadThemeFont } from "@/lib/fonts";
 import { getSeason } from "@/lib/seasons";
 import { installPixels } from "@/lib/pixels";
 import { loadSession } from "@/lib/session";
-import { ENFORCE_MENU_PUBLISHING } from "@/lib/config";
+import { getBillingSettings } from "@/lib/billing";
 import { K, getItem, getJSON, setItem, setJSON } from "@/lib/storage";
 import { categoryId, cn, formatPrice, httpUrl, whatsappUrl } from "@/lib/utils";
 import type { Dish, LoyaltyCustomer, Menu, Restaurant } from "@/lib/types";
@@ -686,8 +686,14 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
         const previewing =
           tryOwner && !!restaurant.user_id && session!.user.id === restaurant.user_id;
         setPreview(previewing);
-        // قفل النشر — نشط فقط عند تشغيل الدفع الحقيقي (انظر ENFORCE_MENU_PUBLISHING).
-        if (ENFORCE_MENU_PUBLISHING && !previewing) {
+        /**
+         * قفل النشر — قرار المؤسّس في `site_settings.billing` لا اشتقاق من
+         * مفتاح بوّابة. و`getBillingSettings` تسقط إلى «مفتوح» عند أي فشل،
+         * فعطلٌ عابر عندنا لا يُطفئ منيو تاجر (انظر `lib/billing.ts`).
+         */
+        const billing = await getBillingSettings();
+        if (cancelled) return;
+        if (billing.enforce_publishing && !previewing) {
           const published = await isMenuPublished(slug).catch(() => true);
           if (cancelled) return;
           if (!published) {

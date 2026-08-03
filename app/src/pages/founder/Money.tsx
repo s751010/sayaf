@@ -34,8 +34,10 @@ import {
   type PromoCode,
   type RevenueOrphan,
 } from "@/lib/founder";
+import { getSiteSettings, type SiteSetting } from "@/lib/founder";
 import { formatDate, formatPrice } from "@/lib/utils";
 import { Icon } from "@/lib/icons";
+import { BillingConsole } from "./BillingConsole";
 
 export default function Money() {
   const toast = useToast();
@@ -44,6 +46,7 @@ export default function Money() {
   const [months, setMonths] = useState<MonthRevenue[] | null>(null);
   const [orphans, setOrphans] = useState<RevenueOrphan[] | null>(null);
   const [promos, setPromos] = useState<PromoCode[] | null>(null);
+  const [settings, setSettings] = useState<SiteSetting[] | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -55,18 +58,20 @@ export default function Money() {
   const load = useCallback(async () => {
     setError("");
     try {
-      const [o, f, m, orp, p] = await Promise.all([
+      const [o, f, m, orp, p, st] = await Promise.all([
         getOverview(),
         getFunnel(),
         getMonthlyRevenue(24),
         getRevenueOrphans(),
         getPromos(),
+        getSiteSettings(),
       ]);
       setStats(o);
       setFunnel(f);
       setMonths(m);
       setOrphans(orp);
       setPromos(p);
+      setSettings(st);
     } catch {
       setError("تعذّر تحميل بيانات المال والنمو.");
     }
@@ -139,6 +144,15 @@ export default function Money() {
   return (
     <div>
       <h1 className="font-display text-2xl font-black text-ink">المال والنمو</h1>
+
+      {/* ⚠️ الاستلام **قبل** النمو: عرض قمع تحويل فوق بوّابة مقطوعة يُطمئن
+          كذباً — لا معنى لتحسين التحويل إن كان الدفع لا يصل أصلاً. */}
+      <BillingConsole
+        settings={settings}
+        onSettingsChange={() => void getSiteSettings().then(setSettings).catch(() => {})}
+      />
+
+      <div className="my-10 border-t border-line" />
 
       {/* قمع التحويل — أول ما يُرى عمداً */}
       <section className="mt-6">

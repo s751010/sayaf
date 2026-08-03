@@ -236,9 +236,9 @@ export default function Founder() {
                 to="/dashboard"
                 className="rounded-xl px-3 py-1.5 text-xs font-bold text-dim hover:bg-ink/5 hover:text-ink"
               >
-                🍽️ لوحة التاجر
+                <Icon name="plate" size={15} /> لوحة التاجر
               </Link>
-              <Badge>🛡️ المؤسس</Badge>
+              <Badge><Icon name="shield" size={13} /> المؤسس</Badge>
               <ThemeToggle />
             </div>
           </div>

@@ -20,7 +20,8 @@
  * المجمّع فقط، وهو يأتي من `founder_merchants()`. هؤلاء زبائن التجّار لا زبائن
  * المنصة. وكذلك `restaurant_payment_settings.secret_key` لا يُقرأ إطلاقاً.
  */
-import { rest } from "./api";
+import { callFunction, rest } from "./api";
+import { K, getItem } from "./storage";
 import type { Dish, Menu, Restaurant } from "./types";
 
 /* ── الأنواع ──────────────────────────────────────────────────────── */
@@ -478,4 +479,81 @@ export async function setApiEnabled(
     headers: { Prefer: "return=minimal" },
     body: { api_enabled: enabled },
   });
+}
+
+/* ── الفوترة والاستلام ─────────────────────────────────────────────── */
+
+/**
+ * حالة بوّابة الدفع — من `billing-admin` لا من القاعدة.
+ *
+ * ⚠️ **لا تحمل السرّ ولا جزءاً منه.** `api_id_tail` آخر ثلاثة محارف من
+ * **المعرّف** لا المفتاح السرّي: تكفي لتعرف أي حساب موصول ولا تكفي لانتحاله.
+ * والمفاتيح نفسها لا تُقرأ برمجياً ولا تُكتب من الواجهة — أسرار دوال Supabase
+ * وحدها (قرار المالك).
+ */
+export interface GatewayStatus {
+  credentials_set: boolean;
+  connected: boolean;
+  env: "test" | "production";
+  api_id_tail: string;
+  checked_at: string;
+  error: string | null;
+  webhook_url: string;
+  callback_url: string;
+  cancel_url: string;
+}
+
+export async function getGatewayStatus(): Promise<GatewayStatus> {
+  const secret = getItem(K.FSECRET, true) ?? "";
+  return callFunction<GatewayStatus>("billing-admin", {}, { headers: secret ? { "x-founder-secret": secret } : {} });
+}
+
+/** صفّ تحصيل واحد — عن التاجر لا عن زبائنه (§11). */
+export interface BillingRow {
+  restaurant_id: string;
+  user_id: string;
+  name: string | null;
+  slug: string | null;
+  email: string | null;
+  phone: string | null;
+  plan_id: string | null;
+  end_date: string | null;
+  days_left: number | null;
+  is_trial: boolean;
+  last_paid_at: string | null;
+  paid_total: number;
+}
+
+export async function getBillingRows(): Promise<BillingRow[]> {
+  return rest<BillingRow[]>("rpc/founder_billing", { method: "POST", body: {} });
+}
+
+export interface BillingFlags {
+  enabled: boolean;
+  enforce_publishing: boolean;
+}
+
+export const BILLING_DEFAULTS: BillingFlags = { enabled: true, enforce_publishing: false };
+
+export function readBillingFlags(settings: SiteSetting[] | null): BillingFlags {
+  const row = settings?.find((s) => s.key === "billing")?.value;
+  if (!row || typeof row !== "object") return BILLING_DEFAULTS;
+  const v = row as Record<string, unknown>;
+  return { enabled: v.enabled !== false, enforce_publishing: v.enforce_publishing === true };
+}
+
+/**
+ * يكتب مفاتيح التحصيل.
+ *
+ * ⚠️ `logAudit` **قبل** التغيير لا بعده (§11): مفتاح `enforce_publishing`
+ * يُطفئ منيوهات، ومفتاح `enabled` يوقف المال — وسجلٌ لا يُكتب إلا عند النجاح
+ * يفقد أهمّ ما يُراد تسجيله.
+ */
+export async function setBillingFlags(next: BillingFlags): Promise<void> {
+  await logAudit("تغيير إعدادات التحصيل", {
+    table: "site_settings",
+    name: "billing",
+    details: { ...next },
+  });
+  await setSiteSetting("billing", next);
 }

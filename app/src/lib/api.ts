@@ -125,7 +125,8 @@ export async function uploadImage(
 export async function callFunction<T>(
   name: string,
   body: unknown,
-  opts: { anonymous?: boolean } = {}
+  /** `headers` لبوّابات خاصّة (مثل `x-founder-secret` الاحتياطية). */
+  opts: { anonymous?: boolean; headers?: Record<string, string> } = {}
 ): Promise<T> {
   const token = opts.anonymous ? null : await getAccessToken().catch(() => null);
   const res = await fetch(`${SUPABASE_URL}/functions/v1/${name}`, {
@@ -134,6 +135,7 @@ export async function callFunction<T>(
       apikey: SUPABASE_ANON_KEY,
       Authorization: `Bearer ${token ?? SUPABASE_ANON_KEY}`,
       "Content-Type": "application/json",
+      ...opts.headers,
     },
     body: JSON.stringify(body),
   });

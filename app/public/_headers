@@ -1,9 +1,27 @@
+# ═══ CSP ═══
+#
+# ⚠️ **انكمشت مع الانتقال إلى PayLink، ولم يُضَف بديل.**
+#
+# Moyasar كانت نموذجاً **مضمَّناً**: سكربت وستايل من `cdn.moyasar.com` داخل
+# صفحة يملك فيها التاجر جلسة، وإطار من `*.moyasar.com`. فحُذفت من `script-src`
+# و`style-src` و`connect-src` و`frame-src`.
+#
+# PayLink **تحويل** لا تضمين: نغادر إلى نطاقها، فلا سكربت طرف ثالث ولا إطار
+# ولا `connect-src` — ولا يمرّ رقم بطاقة بصفحتنا إطلاقاً.
+#
+# وأُضيف بدلها ضيقان لا واسعان:
+#   • `form-action` يحصر وجهة أي إرسال نموذج بنا وبـPayLink.
+#   • `frame-ancestors 'self'` يمنع تأطير صفحاتنا (clickjacking) — أقوى من
+#     `X-Frame-Options` وأحدث، والاثنان يبقيان للمتصفحات القديمة.
+#
+# الباقي (فيسبوك · قوقل · سناب) بكسلات التتبّع (§15) — تبقى كما هي.
+
 /*
   X-Frame-Options: SAMEORIGIN
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: microphone=(), camera=(), geolocation=()
-  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' https://cdn.moyasar.com https://connect.facebook.net https://www.googletagmanager.com https://sc-static.net; style-src 'self' 'unsafe-inline' https://cdn.moyasar.com; font-src 'self' data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co https://api.moyasar.com https://cdn.moyasar.com https://www.facebook.com https://connect.facebook.net https://www.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://tr.snapchat.com https://sc-static.net; frame-src https://*.moyasar.com; worker-src 'self'; manifest-src 'self'
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' https://connect.facebook.net https://www.googletagmanager.com https://sc-static.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co https://www.facebook.com https://connect.facebook.net https://www.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://tr.snapchat.com https://sc-static.net; form-action 'self' https://*.paylink.sa; frame-ancestors 'self'; worker-src 'self'; manifest-src 'self'
 
 /index.html
   Cache-Control: public, max-age=0, must-revalidate
