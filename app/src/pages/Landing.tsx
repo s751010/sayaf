@@ -131,7 +131,13 @@ function Stat({ to, suffix, label }: { to: number; suffix?: string; label: strin
  * الوحدة تُستورد ديناميكياً: `lib/cards.ts` تجرّ معها `qrcode` والطوابع
  * والزخارف، ولا داعي لأن يحملها زائر لا يمرّر إلى هذا القسم أصلاً.
  */
-const SHOWCASE_STYLES = ["dark", "brand", "heritage", "light"] as const;
+/** يقلّب على **النمط والتخطيط معاً** — الفرق الحقيقي في التخطيط لا في اللون. */
+const SHOWCASE = [
+  { style: "dark", layout: "centered" },
+  { style: "heritage", layout: "split" },
+  { style: "brand", layout: "framed" },
+  { style: "night", layout: "banner" },
+] as const;
 
 function CardShowcase() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -148,7 +154,8 @@ function CardShowcase() {
         canvasRef.current,
         {
           size: "counter",
-          style: SHOWCASE_STYLES[i],
+          style: SHOWCASE[i].style,
+          layout: SHOWCASE[i].layout,
           name: "مطعم الديوان",
           logo: null,
           emoji: "🍽️",
@@ -169,7 +176,7 @@ function CardShowcase() {
   useEffect(() => {
     // التقليب حركة مستمرة، فمن يطلب تقليلها يرى نمطاً واحداً ثابتاً.
     if (!shown || prefersReducedMotion()) return;
-    const t = window.setInterval(() => setI((n) => (n + 1) % SHOWCASE_STYLES.length), 3200);
+    const t = window.setInterval(() => setI((n) => (n + 1) % SHOWCASE.length), 3200);
     return () => window.clearInterval(t);
   }, [shown]);
 
@@ -181,9 +188,9 @@ function CardShowcase() {
         className="anim-float w-[230px] rounded-2xl shadow-[0_40px_80px_-30px_rgba(0,0,0,.65)] sm:w-[260px]"
       />
       <div className="flex gap-1.5">
-        {SHOWCASE_STYLES.map((s, n) => (
+        {SHOWCASE.map((s, n) => (
           <button
-            key={s}
+            key={s.style}
             onClick={() => setI(n)}
             aria-label={`نمط ${n + 1}`}
             className={cn(

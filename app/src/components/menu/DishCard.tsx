@@ -13,11 +13,18 @@
 import type { CSSProperties } from "react";
 import { SafeImage } from "@/components/ui";
 import { displayAllergens } from "@/lib/allergens";
-import type { DishLayout } from "@/lib/themes";
+import type { ImageShape, MenuDesign, PriceStyle } from "@/lib/themes";
 import type { Dish } from "@/lib/types";
 import { cn, formatPrice } from "@/lib/utils";
 
 const mFont: CSSProperties = { fontFamily: "var(--m-font)" };
+
+/** نصف قطر صورة الطبق حسب شكل الطابع. */
+function imageRadius(shape: ImageShape): string {
+  if (shape === "square") return "0";
+  if (shape === "circle") return "9999px";
+  return "var(--m-radius)";
+}
 
 function name(d: Dish, en: boolean): string {
   return en && d.name_en ? d.name_en : d.name;
@@ -26,14 +33,39 @@ function desc(d: Dish, en: boolean): string | null {
   return en && d.description_en ? d.description_en : d.description;
 }
 
-function Price({ dish, big }: { dish: Dish; big?: boolean }) {
+/**
+ * السعر — نصّاً أو شارة.
+ *
+ * `leader` ليس شكلاً للسعر نفسه بل للمسافة قبله (الخطّ المنقّط)، فيُرسم كـ
+ * `plain` هنا ويتكفّل تخطيط القائمة بالخطّ.
+ */
+function Price({ dish, big, style }: { dish: Dish; big?: boolean; style: PriceStyle }) {
+  const text = (
+    <>
+      {formatPrice(dish.price ?? 0)} <span className="text-[10px] font-bold">ر.س</span>
+    </>
+  );
+  if (style === "badge") {
+    return (
+      <span
+        className={cn(
+          "whitespace-nowrap rounded-full px-2.5 py-0.5 font-black",
+          big ? "text-sm" : "text-xs"
+        )}
+        style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}
+        dir="ltr"
+      >
+        {text}
+      </span>
+    );
+  }
   return (
     <span
       className={big ? "text-base font-black" : "text-sm font-black"}
       style={{ color: "var(--m-accent)" }}
       dir="ltr"
     >
-      {formatPrice(dish.price ?? 0)} <span className="text-[10px] font-bold">ر.س</span>
+      {text}
     </span>
   );
 }
@@ -118,21 +150,23 @@ export interface CardReserve {
 export function DishCard({
   dish,
   en,
-  layout,
+  design,
   reserve,
   onOpen,
 }: {
   dish: Dish;
   en: boolean;
-  layout: DishLayout;
+  design: MenuDesign;
   reserve?: CardReserve;
   onOpen: () => void;
 }) {
+  const { layout, imageShape, priceStyle, divider } = design;
   const surface: CSSProperties = {
     background: "var(--m-surface)",
     borderColor: "var(--m-border)",
     borderRadius: "var(--m-radius)",
   };
+  const radius = imageRadius(imageShape);
 
   /* ── قائمة رأسية أنيقة ─────────────────────────────────────────────── */
   if (layout === "list") {
@@ -140,7 +174,11 @@ export function DishCard({
     return (
       <button
         onClick={onOpen}
-        className="flex w-full items-start gap-3 border-b px-1 py-4 text-start transition-opacity hover:opacity-80"
+        className={cn(
+          "flex w-full items-start gap-3 px-1 py-4 text-start transition-opacity hover:opacity-80",
+          divider === "rule" && "border-b",
+          divider === "dots" && "border-b border-dashed"
+        )}
         style={{ borderColor: "var(--m-border)" }}
       >
         {hasImage && (
@@ -149,7 +187,7 @@ export function DishCard({
             alt={name(dish, en)}
             className="h-16 w-16 shrink-0 object-cover"
             wrapperClassName="h-16 w-16 shrink-0"
-            style={{ borderRadius: "var(--m-radius)", background: "var(--m-bg-2)" } as CSSProperties}
+            style={{ borderRadius: radius, background: "var(--m-bg-2)" } as CSSProperties}
             fallback={<span />}
           />
         )}
@@ -162,13 +200,19 @@ export function DishCard({
               {name(dish, en)}
               {dish.featured && <span style={{ color: "var(--m-accent)" }}> ★</span>}
             </span>
-            {/* الخط النقطي يقود العين من الاسم إلى السعر — تقليد المنيوهات الراقية. */}
+            {/* الخط النقطي يقود العين من الاسم إلى السعر — تقليد المنيوهات الراقية.
+                وهو خيار طابع الآن: منيو مينيمال يريد المسافة فارغة لا منقّطة.
+                ولونه من `--m-muted` لا `--m-border`: الحدود على الطوابع الداكنة
+                شفافة جداً (‏.20 مثلاً) فكان الخطّ يختفي تماماً ويضيع الغرض منه. */}
             <span
               aria-hidden="true"
-              className="mx-1 min-w-4 flex-1 translate-y-[-3px] border-b border-dotted"
-              style={{ borderColor: "var(--m-border)" }}
+              className={cn(
+                "mx-1 min-w-4 flex-1 translate-y-[-3px]",
+                priceStyle === "leader" && "border-b border-dotted opacity-45"
+              )}
+              style={{ borderColor: "var(--m-muted)" }}
             />
-            <Price dish={dish} big />
+            <Price dish={dish} big style={priceStyle} />
           </span>
           {desc(dish, en) && (
             <span
@@ -198,6 +242,8 @@ export function DishCard({
         className="group flex h-full w-full flex-col overflow-hidden border text-start transition-transform hover:-translate-y-0.5"
         style={surface}
       >
+        {/* الصورة العريضة لا تأخذ `imageShape`: قصّها دائرةً يقطع الطبق نفسه،
+            وهذا التخطيط قائم على الصورة الكبيرة. */}
         <SafeImage
           src={dish.image}
           alt={name(dish, en)}
@@ -231,7 +277,7 @@ export function DishCard({
           )}
           <div className="mt-auto flex items-center justify-between gap-3 pt-1">
             <span className="min-w-0 flex-1">{meta}</span>
-            <Price dish={dish} big />
+            <Price dish={dish} big style={priceStyle} />
           </div>
         </div>
       </button>
@@ -246,22 +292,25 @@ export function DishCard({
       style={surface}
     >
       {/* مربّع تماماً: صور التجّار تأتي بأبعاد شتّى، و`object-cover` على نسبة
-          واحدة يجعلها كلها بحجم واحد. الرافع يضغط بـ`square` أصلاً. */}
-      <SafeImage
-        src={dish.image}
-        alt={name(dish, en)}
-        className="aspect-square w-full object-cover"
-        wrapperClassName="aspect-square w-full text-5xl"
-        style={{ background: "var(--m-bg-2)" } as CSSProperties}
-        fallback={
-          <div
-            className="flex aspect-square w-full items-center justify-center text-5xl"
-            style={{ background: "var(--m-bg-2)" } as CSSProperties}
-          >
-            {dish.emoji ?? "🍽"}
-          </div>
-        }
-      />
+          واحدة يجعلها كلها بحجم واحد. الرافع يضغط بـ`square` أصلاً.
+          و`circle` تحتاج حشوة حولها وإلا لامست الدائرةُ حوافَّ البطاقة. */}
+      <div className={cn("w-full", imageShape === "circle" && "p-3 pb-0")}>
+        <SafeImage
+          src={dish.image}
+          alt={name(dish, en)}
+          className="aspect-square w-full object-cover"
+          wrapperClassName="aspect-square w-full text-5xl"
+          style={{ background: "var(--m-bg-2)", borderRadius: radius } as CSSProperties}
+          fallback={
+            <div
+              className="flex aspect-square w-full items-center justify-center text-5xl"
+              style={{ background: "var(--m-bg-2)", borderRadius: radius } as CSSProperties}
+            >
+              {dish.emoji ?? "🍽"}
+            </div>
+          }
+        />
+      </div>
       <div className="flex flex-1 flex-col gap-1 p-3">
         <p
           className={cn(NAME_2_LINES, "text-sm font-bold leading-snug")}
@@ -280,7 +329,7 @@ export function DishCard({
             وحده على سطره أسهل مسحاً بالعين نزولاً في عمود واحد. */}
         <div className="mt-auto flex flex-col gap-1 pt-2">
           {meta}
-          <Price dish={dish} />
+          <Price dish={dish} style={priceStyle} />
         </div>
       </div>
     </button>

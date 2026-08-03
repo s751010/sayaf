@@ -179,7 +179,7 @@ export function MenuHeader({
 
         <h1
           className="mt-3 text-2xl font-black"
-          style={{ fontFamily: "var(--m-font)", color: "var(--m-text)" }}
+          style={{ fontFamily: "var(--m-display, var(--m-font))", color: "var(--m-text)" }}
         >
           {restaurant.name}
         </h1>

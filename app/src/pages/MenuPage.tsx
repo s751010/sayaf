@@ -48,6 +48,7 @@ import {
 import { parseCategoryOrder, sortCategories } from "@/lib/categories";
 import { getTheme, RHYTHM, type DishLayout, type HeadingStyle } from "@/lib/themes";
 import { patternImage, PATTERN_SIZE } from "@/lib/patterns";
+import { loadThemeFont } from "@/lib/fonts";
 import { getSeason } from "@/lib/seasons";
 import { installPixels } from "@/lib/pixels";
 import { loadSession } from "@/lib/session";
@@ -58,6 +59,8 @@ import type { Dish, LoyaltyCustomer, Menu, Restaurant } from "@/lib/types";
 
 /* ── أدوات عرض صغيرة ──────────────────────────────────────────────── */
 const mFont: CSSProperties = { fontFamily: "var(--m-font)" };
+/** خطّ العناوين — يسقط إلى خطّ النصّ لكل طابع بلا اقتران. */
+const dFont: CSSProperties = { fontFamily: "var(--m-display, var(--m-font))" };
 
 function dishName(d: Dish, en: boolean): string {
   return en && d.name_en ? d.name_en : d.name;
@@ -191,7 +194,7 @@ function SectionHeading({ name, style }: { name: string; style: HeadingStyle }) 
     return (
       <div className="mb-4 flex items-center gap-3">
         <span className="h-px flex-1" style={{ background: "var(--m-border)" }} />
-        <h2 className="text-lg font-black tracking-wide" style={{ ...mFont, color: "var(--m-text)" }}>
+        <h2 className="text-lg font-black tracking-wide" style={{ ...dFont, color: "var(--m-text)" }}>
           {name}
         </h2>
         <span className="h-px flex-1" style={{ background: "var(--m-border)" }} />
@@ -202,7 +205,7 @@ function SectionHeading({ name, style }: { name: string; style: HeadingStyle }) 
     return (
       <h2
         className="mb-3 flex items-center gap-2 text-lg font-black"
-        style={{ ...mFont, color: "var(--m-text)" }}
+        style={{ ...dFont, color: "var(--m-text)" }}
       >
         <span aria-hidden="true" style={{ color: "var(--m-accent)" }}>
           ❖
@@ -221,7 +224,7 @@ function SectionHeading({ name, style }: { name: string; style: HeadingStyle }) 
   return (
     <h2
       className="mb-3 inline-block border-b-2 pb-1 text-lg font-black"
-      style={{ ...mFont, borderColor: "var(--m-accent)", color: "var(--m-text)" }}
+      style={{ ...dFont, borderColor: "var(--m-accent)", color: "var(--m-text)" }}
     >
       {name}
     </h2>
@@ -722,6 +725,21 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
   );
   const design = theme.design;
   const rhythm = RHYTHM[design.density];
+
+  /**
+   * خطّ الطابع يُطلب هنا لا في `main.tsx`.
+   *
+   * لا يُنتظَر ولا يُحبس عليه العرض: الصفحة تظهر بخطّ احتياطي ثم تُبدَّل الحروف
+   * عند وصوله (`font-display: swap` في حزم @fontsource). منيو محبوس على تنزيل
+   * خطّ أسوأ من منيو يُقرأ بخطّ آخر لجزء من الثانية.
+   */
+  useEffect(() => {
+    // الاثنان: خطّ النصّ وخطّ العناوين. طلبُ الأول وحده يترك عناوين الطابع
+    // المقترن تُرسم بخطّ احتياطي بينما أسماء أطباقه سليمة — وهو أسوأ من
+    // الاثنين احتياطيين لأنه يبدو خطأً لا اختياراً.
+    void loadThemeFont(theme.vars["--m-font"]);
+    void loadThemeFont(theme.vars["--m-display"]);
+  }, [theme.vars]);
   const season = getSeason(state.status === "ready" ? state.restaurant.season : null);
   // الزينة تُبدّل الزخرفة ولون التمييز الثانوي فقط — الخلفية والنص يبقيان
   // كما ضبطهما الطابع، فلا ينكسر التباين مهما اختار التاجر.
@@ -1208,7 +1226,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
                     <DishCard
                       dish={d}
                       en={en}
-                      layout={design.layout}
+                      design={design}
                       reserve={sectionReserve(cat.dishes, en)}
                       onOpen={() => { setOpenDish(d); if (!demo && !preview) trackDishView(d, { table, lang }); }}
                     />

@@ -25,7 +25,15 @@
  * فالاستعمال التجاري لكل ما هنا سليم.
  */
 
-export type PatternId = "sadu" | "mashrabiya" | "girih" | "palm" | "crescent" | "none";
+export type PatternId =
+  | "sadu"
+  | "mashrabiya"
+  | "girih"
+  | "palm"
+  | "crescent"
+  | "qatt"
+  | "najma"
+  | "none";
 
 /**
  * SVG → قيمة `background-image`.
@@ -61,21 +69,83 @@ function wrap(size: number, body: string): string {
 }
 
 /**
- * نسيج السدو النجدي — أشرطة معيّنات ومثلثات متعاقبة.
+ * نسيج السدو النجدي — أشرطة معيّنات ومثلثات **متلاصقة** بخيوط فاصلة.
  * أشهر نمط بصري سعودي، ويقرأه الزبون فوراً بلا شرح.
+ *
+ * ⚠️ النسخة الأولى كانت معيّنات متباعدة ومثلثات متفرّقة، فتُقرأ **سهاماً** لا
+ * نسيجاً — وقد ظهر هذا صارخاً على البطاقة المطبوعة حيث تكبر البلاطة. السدو
+ * الحقيقي محكم النسج: الأشكال تتلامس عند رؤوسها فتُنتج سلسلة متّصلة، وتفصل
+ * بينها **خيوط سداة** رفيعة. المسافة بين الأشكال هي ما كسر الإيحاء.
  */
 function sadu(color: string, opacity: number): string {
   return wrap(
-    60,
+    64,
     `<g fill='${color}' fill-opacity='${opacity}'>
-      <path d='M0 8 L10 0 L20 8 L10 16 Z'/>
-      <path d='M20 8 L30 0 L40 8 L30 16 Z'/>
-      <path d='M40 8 L50 0 L60 8 L50 16 Z'/>
-      <path d='M0 30 h60 v3 H0 Z'/>
-      <path d='M0 44 L10 52 L0 60 Z'/>
-      <path d='M20 44 L30 52 L20 60 Z'/>
-      <path d='M40 44 L50 52 L40 60 Z'/>
-      <path d='M10 44 h10 v2 H10 Z M30 44 h10 v2 H30 Z M50 44 h10 v2 H50 Z'/>
+      <path d='M0 8 L8 0 L16 8 L8 16 Z M16 8 L24 0 L32 8 L24 16 Z
+               M32 8 L40 0 L48 8 L40 16 Z M48 8 L56 0 L64 8 L56 16 Z'/>
+      <path d='M0 19 h64 v2 H0 Z M0 24 h64 v1 H0 Z'/>
+      <path d='M0 44 L8 28 L16 44 Z M16 28 L24 44 L32 28 Z
+               M32 44 L40 28 L48 44 Z M48 28 L56 44 L64 28 Z'/>
+      <path d='M0 47 h64 v1 H0 Z M0 51 h64 v2 H0 Z'/>
+      <path d='M2 58 L8 52 L14 58 L8 64 Z M18 58 L24 52 L30 58 L24 64 Z
+               M34 58 L40 52 L46 58 L40 64 Z M50 58 L56 52 L62 58 L56 64 Z'/>
+     </g>`
+  );
+}
+
+/**
+ * القطّ العسيري — نقش نساء عسير على جدران البيوت، المدرَج في قائمة اليونسكو
+ * للتراث الثقافي غير المادي (٢٠١٧).
+ *
+ * **إنشاء أصلي** بأشكال هندسية بسيطة تتبع بنية النقش الموصوفة في المراجع:
+ * أشرطة أفقية متعاقبة، كل شريط بوحدة واحدة مكرّرة — مثلثات، ثم أعمدة قصيرة
+ * («الأسنان»)، ثم صفّ نقاط. لم أجد بلاطة متكرّرة بترخيص CC0 تصلح (بحث
+ * OpenClipart وWikimedia Commons عن «al-qatt» و«Asir painting» يعيد صوراً
+ * فوتوغرافية بـCC BY-SA لا أنماطاً متجهة)، فأُنشئت من الصفر.
+ */
+function qatt(color: string, opacity: number): string {
+  return wrap(
+    56,
+    `<g fill='${color}' fill-opacity='${opacity}'>
+      <path d='M0 14 L7 2 L14 14 Z M14 14 L21 2 L28 14 Z
+               M28 14 L35 2 L42 14 Z M42 14 L49 2 L56 14 Z'/>
+      <path d='M0 17 h56 v2 H0 Z'/>
+      <path d='M3 22 h4 v9 H3 Z M17 22 h4 v9 h-4 Z M31 22 h4 v9 h-4 Z M45 22 h4 v9 h-4 Z'/>
+      <path d='M10 25 h4 v6 h-4 Z M24 25 h4 v6 h-4 Z M38 25 h4 v6 h-4 Z M52 25 h4 v6 h-4 Z'/>
+      <path d='M0 34 h56 v2 H0 Z'/>
+      <path d='M0 42 L7 54 L14 42 Z M14 42 L21 54 L28 42 Z
+               M28 42 L35 54 L42 42 Z M42 42 L49 54 L56 42 Z'/>
+     </g>`
+  );
+}
+
+/**
+ * نجمة ثمانية (نجمة سليمان) — مربّعان متراكبان أحدهما مُدار ٤٥°.
+ *
+ * **إنشاء أصلي**: البناء الهندسي للنجمة الثمانية عمره قرون وهو مِلكية عامة
+ * بذاته، والرسم هنا مسارَا مربّعين بإحداثيات محسوبة على بلاطة ٦٤ — دون عتبة
+ * الأصالة أصلاً، فلا حقوق عليه لأحد.
+ */
+function najma(color: string, opacity: number): string {
+  /**
+   * ⚠️ **ضلعا المربّعين متساويان أو لا تكون نجمة.**
+   *
+   * أول محاولة أعطت المربّع المُدار قطراً ٥٨ (ضلع ٤١) والمربّع القائم ضلعاً
+   * ٤٥٫٣ — فخرج شكل مائل لا نجمة منتظمة: رؤوس أطول من رؤوس. الضلع واحد هنا
+   * (`S`)، فيُشتقّ نصف القطر منه بـ`S·√2/2` لا العكس.
+   */
+  const S = 44;
+  const half = S / 2; //           المربّع القائم: 32 ± 22
+  const diag = (S * Math.SQRT2) / 2; // المُدار: 32 ± 31.1 (يتجاوز البلاطة قليلاً
+  //                                   فتتّصل رؤوسه برؤوس البلاطة المجاورة)
+  const r = (n: number) => Math.round(n * 100) / 100;
+  return wrap(
+    64,
+    `<g stroke='${color}' stroke-opacity='${opacity}' stroke-width='1.4' fill='none'
+        stroke-linejoin='miter'>
+      <path d='M${32 - half} ${32 - half} H${32 + half} V${32 + half} H${32 - half} Z'/>
+      <path d='M32 ${r(32 - diag)} L${r(32 + diag)} 32 L32 ${r(32 + diag)} L${r(32 - diag)} 32 Z'/>
+      <circle cx='32' cy='32' r='5'/>
      </g>`
   );
 }
@@ -170,6 +240,8 @@ const BUILDERS: Record<Exclude<PatternId, "none">, (c: string, o: number) => str
   girih,
   palm,
   crescent,
+  qatt,
+  najma,
 };
 
 /**
@@ -183,10 +255,31 @@ export function patternImage(id: PatternId, color: string, opacity = 0.06): stri
 
 /** مقاس تكرار الزخرفة — يُضبط مع `background-size` كي لا تتمدّد على الشاشات العريضة. */
 export const PATTERN_SIZE: Record<PatternId, string> = {
-  sadu: "60px 60px",
+  sadu: "64px 64px",
   mashrabiya: "48px 48px",
   girih: "96px 96px",
   palm: "72px 72px",
   crescent: "72px 72px",
+  qatt: "56px 56px",
+  najma: "64px 64px",
   none: "auto",
+};
+
+/**
+ * مقاس البلاطة **بالمليمتر** — للطباعة لا للشاشة.
+ *
+ * البطاقة كانت تكرّر الزخرفة ببلاطة = ٢٢٪ من عرضها ≈ ٢٦مم، فتخرج كتلاً كبيرة
+ * لا نسيجاً (بدا السدو على الستاند المثلث كأسهم عملاقة). النسيج يُقرأ نسيجاً
+ * عند مقاس فيزيائي ثابت مهما كبرت الورقة — تماماً كقماش حقيقي: بلاطته لا تكبر
+ * لأن الثوب كبر.
+ */
+export const PATTERN_MM: Record<PatternId, number> = {
+  sadu: 12,
+  mashrabiya: 10,
+  girih: 20,
+  palm: 16,
+  crescent: 16,
+  qatt: 11,
+  najma: 14,
+  none: 0,
 };

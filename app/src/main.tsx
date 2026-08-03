@@ -1,13 +1,12 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+// كايرو وطجوال وحدهما ثابتان — واجهة التطبيق كلها مبنيّة عليهما. خطوط الطوابع
+// (أميري، ريم كوفي، وما بعدهما) تُحمَّل عند الطلب عبر `lib/fonts.ts`: كانت
+// تُنزَّل لكل زائر منيو ولو لم يستعملها طابع مطعمه.
 import "@fontsource-variable/cairo";
 import "@fontsource/tajawal/400.css";
 import "@fontsource/tajawal/500.css";
 import "@fontsource/tajawal/700.css";
-import "@fontsource/reem-kufi/400.css";
-import "@fontsource/reem-kufi/600.css";
-import "@fontsource/amiri/400.css";
-import "@fontsource/amiri/700.css";
 import "./styles/global.css";
 import App from "./App";
 import { applyStoredTheme } from "./components/ui";

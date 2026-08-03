@@ -5,7 +5,7 @@
  * ولا صف في قاعدة البيانات. العميل المحتمل يجرّب التجربة الحقيقية كاملة (بحث،
  * تصنيفات، تفاصيل الطبق، الإضافات، بطاقة الولاء) قبل أن يسجّل.
  */
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useEffect } from "react";
 import MenuPage, { type MenuData } from "./MenuPage";
 import type { Dish, Menu, Restaurant } from "@/lib/types";
@@ -209,9 +209,23 @@ const dishes: Dish[] = [
 const DEMO: MenuData = { restaurant, menus, dishes };
 
 export default function Demo() {
+  const [params] = useSearchParams();
   useEffect(() => {
     document.title = "منيو تجريبي — كلاود منيو";
   }, []);
+
+  /**
+   * `?theme=` يعاين أي طابع على منيو كامل.
+   *
+   * مُنتقي الطوابع في اللوحة يعرض بطاقة مصغّرة، وهي تكفي للمفاضلة السريعة لكنها
+   * لا تُري التاجر منيواً حقيقياً بذلك الطابع قبل أن يطبّقه على منيوه أمام
+   * زبائنه. القيمة تمرّ على `getTheme` كأي قيمة مخزَّنة، فالمعرّف المجهول يسقط
+   * إلى الافتراضي ولا يكسر شيئاً.
+   */
+  const theme = params.get("theme")?.trim();
+  const data: MenuData = theme
+    ? { ...DEMO, menus: DEMO.menus.map((m) => ({ ...m, theme })) }
+    : DEMO;
 
   return (
     <div className="relative">
@@ -228,7 +242,7 @@ export default function Demo() {
         </Link>
       </div>
 
-      <MenuPage demo={DEMO} />
+      <MenuPage demo={data} />
     </div>
   );
 }

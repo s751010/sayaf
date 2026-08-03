@@ -2,10 +2,17 @@
 
 /* ── رموز التصميم (semantic tokens) — تنقلب مع data-theme ─────────── */
 :root {
+  /* ⚠️ الاسم هنا يجب أن يطابق `font-family` داخل حزمة @fontsource حرفياً.
+     كان `--font-reem` يطلب «Reem Kufi Variable» بينما الحزمة المثبَّتة ساكنة
+     وتسجّل «Reem Kufi» — فكانت الطوابع الثلاثة التي تستعمله (نجدي، زمردي،
+     بحري) تُرسم بخطّ النظام بصمت. الاسمان معاً: يعمل مع أي من الحزمتين. */
   --font-cairo: "Cairo Variable", "Segoe UI", system-ui, sans-serif;
   --font-tajawal: "Tajawal", "Segoe UI", system-ui, sans-serif;
-  --font-reem: "Reem Kufi Variable", "Segoe UI", system-ui, sans-serif;
+  --font-reem: "Reem Kufi", "Reem Kufi Variable", "Segoe UI", system-ui, sans-serif;
   --font-amiri: "Amiri", "Times New Roman", serif;
+  --font-noto-kufi: "Noto Kufi Arabic", "Segoe UI", system-ui, sans-serif;
+  --font-almarai: "Almarai", "Segoe UI", system-ui, sans-serif;
+  --font-ruqaa: "Aref Ruqaa", "Amiri", "Times New Roman", serif;
 
   /* الوضع الداكن (الافتراضي) — أسود دافئ + ذهبي */
   --c-page: #0e0c09;

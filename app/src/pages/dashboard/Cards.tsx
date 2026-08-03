@@ -13,13 +13,17 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Button, Card, ErrorNote, Field, Input, useToast } from "@/components/ui";
 import { PreviewMenuButton } from "@/components/site";
 import {
+  BLEED_MM,
   CARD_SIZES,
   CARD_STYLES,
   cardFileName,
+  defaultLayout,
+  layoutsFor,
   mmToPx,
   renderCard,
   sizeOf,
   type CardInput,
+  type CardLayoutId,
   type CardSizeId,
   type CardStyleId,
 } from "@/lib/cards";
@@ -35,9 +39,12 @@ export default function Cards() {
   const previewRef = useRef<HTMLCanvasElement>(null);
   const [size, setSize] = useState<CardSizeId>("counter");
   const [style, setStyle] = useState<CardStyleId>("dark");
+  const [layout, setLayout] = useState<CardLayoutId>(() => defaultLayout("counter"));
   const [table, setTable] = useState("");
   const [promo, setPromo] = useState("");
   const [headline, setHeadline] = useState("");
+  const [useBrand, setUseBrand] = useState(false);
+  const [bleed, setBleed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [drawing, setDrawing] = useState(true);
   /** طابع منيو التاجر — لنمط «ألوان منيوك». */
@@ -54,10 +61,21 @@ export default function Cards() {
       .catch(() => setThemeId(null));
   }, [restaurant.id]);
 
+  /**
+   * تبديل القياس قد يُبطل التخطيط المختار (الشريط السفلي لا يليق بالستاند
+   * المثلث مثلاً). الضبط هنا لا في `onClick`: التخطيط قد يصير غير مسموح من أي
+   * مسار يغيّر القياس، وحارسٌ واحد أضمن من تذكّره في كل مكان.
+   */
+  const allowed = layoutsFor(size);
+  const activeLayout = allowed.some((l) => l.id === layout) ? layout : defaultLayout(size);
+
   const input: CardInput | null = url
     ? {
         size,
         style,
+        layout: activeLayout,
+        useBrand,
+        bleed,
         name: restaurant.name,
         logo: restaurant.logo_image?.trim() || null,
         emoji: restaurant.logo?.trim() || null,
@@ -82,7 +100,8 @@ export default function Cards() {
       setDrawing(false);
     }
   }, [
-    input?.size, input?.style, input?.name, input?.logo, input?.emoji,
+    input?.size, input?.style, input?.layout, input?.useBrand, input?.bleed,
+    input?.name, input?.logo, input?.emoji,
     input?.themeId, input?.brandHex, input?.url, input?.table, input?.promo,
     input?.headline,
   ]);
@@ -100,7 +119,7 @@ export default function Cards() {
       const href = canvas.toDataURL("image/png");
       const a = document.createElement("a");
       a.href = href;
-      a.download = cardFileName(slug, size, style);
+      a.download = cardFileName(slug, size, style, activeLayout);
       a.click();
       toast("نُزّلت البطاقة بدقة الطباعة ✓");
     } catch {
@@ -117,7 +136,9 @@ export default function Cards() {
     try {
       const meta = sizeOf(size);
       const canvas = document.createElement("canvas");
-      await renderCard(canvas, input);
+      // بلا حدود قصّ هنا مهما اختار التاجر: الـbleed للمطبعة التي تقصّ بسكّين،
+      // وطابعة المكتب لا تقصّ — فتُطبع ٣مم زائدة على كل جهة وتضيع المحاذاة.
+      await renderCard(canvas, { ...input, bleed: false });
       const png = canvas.toDataURL("image/png");
       const w = window.open("", "_blank");
       if (!w) throw new Error("popup");
@@ -215,6 +236,29 @@ export default function Cards() {
                   </button>
                 ))}
               </div>
+              {/* لون العلامة لم يعد يدهس الأنماط الثابتة — صار اختياراً صريحاً. */}
+              {style !== "brand" && style !== "mono" && restaurant.cover_color && (
+                <label className="flex cursor-pointer items-start gap-2.5 rounded-xl border border-line p-3">
+                  <input
+                    type="checkbox"
+                    checked={useBrand}
+                    onChange={(e) => setUseBrand(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 accent-[var(--c-gold)]"
+                  />
+                  <span>
+                    <span className="flex items-center gap-2 text-sm font-bold text-ink">
+                      استخدم لون علامتي
+                      <span
+                        className="inline-block h-3.5 w-3.5 rounded-full border border-line"
+                        style={{ background: restaurant.cover_color }}
+                      />
+                    </span>
+                    <span className="mt-0.5 block text-xs text-faint">
+                      يستبدل لون النمط بلون علامتك. اتركه مطفأً لتحصل على النمط كما صُمّم.
+                    </span>
+                  </span>
+                </label>
+              )}
               {!restaurant.logo_image?.trim() && (
                 <p className="text-xs text-faint">
                   💡 ارفع شعار مطعمك من الإعدادات ليظهر على البطاقة وداخل الكود.
@@ -222,9 +266,44 @@ export default function Cards() {
               )}
             </Card>
 
+            <Card className="flex flex-col gap-3">
+              <div>
+                <h2 className="font-display text-base font-extrabold text-ink">٣. التخطيط</h2>
+                <p className="mt-0.5 text-xs text-faint">
+                  ترتيب العناصر على البطاقة — يتغيّر بتغيّر الشكل.
+                </p>
+              </div>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {allowed.map((l) => (
+                  <button
+                    key={l.id}
+                    type="button"
+                    onClick={() => setLayout(l.id)}
+                    aria-pressed={activeLayout === l.id}
+                    className={cn(
+                      "rounded-xl border px-3.5 py-3 text-start transition-colors",
+                      activeLayout === l.id
+                        ? "border-gold bg-gold/10"
+                        : "border-line hover:border-line-gold"
+                    )}
+                  >
+                    <span className="block text-sm font-bold text-ink">{l.name}</span>
+                    <span className="mt-0.5 block text-xs text-faint">{l.desc}</span>
+                  </button>
+                ))}
+              </div>
+              {size === "tent" && (
+                <p className="rounded-xl bg-panel2 p-3 text-xs leading-relaxed text-dim">
+                  🪧 <b className="text-ink">كيف تُطوى:</b> اطبعها على وجه واحد، ثم اثنِها من
+                  الخطّ المتقطّع في المنتصف فتقف على الطاولة بوجهين — كلاهما معتدل، ويُقرأ
+                  من الجهتين.
+                </p>
+              )}
+            </Card>
+
             <Card className="grid gap-4 sm:grid-cols-2">
               <h2 className="font-display text-base font-extrabold text-ink sm:col-span-2">
-                ٣. لمسات اختيارية
+                ٤. لمسات اختيارية
               </h2>
               <Field label="رقم الطاولة" hint="يفتح المنيو على هذه الطاولة">
                 <Input
@@ -278,6 +357,25 @@ export default function Cards() {
                     🖨️ اطبع ورقة ({meta.perSheet} في A4)
                   </Button>
                 </div>
+
+                <label className="flex w-full cursor-pointer items-start gap-2.5 rounded-xl border border-line p-3">
+                  <input
+                    type="checkbox"
+                    checked={bleed}
+                    onChange={(e) => setBleed(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 accent-[var(--c-gold)]"
+                  />
+                  <span>
+                    <span className="block text-sm font-bold text-ink">
+                      حدود قصّ للمطبعة ({BLEED_MM}mm)
+                    </span>
+                    <span className="mt-0.5 block text-xs text-faint">
+                      تمدّ الخلفية خارج حدّ القصّ وتضع علاماته. فعّلها إن أرسلتها لمطبعة —
+                      بدونها قد يظهر خطّ أبيض على الحافة عند أي انحراف في السكّين.
+                    </span>
+                  </span>
+                </label>
+
                 {/* المطبعة تسأل عن الدقة، فنكتبها بدل أن يخمّنها التاجر. */}
                 <p className="text-center text-xs leading-relaxed text-faint">
                   ملف PNG بدقة <b className="text-dim">300 DPI</b> ({printPx} بكسل) —

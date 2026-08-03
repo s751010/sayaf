@@ -15,6 +15,12 @@ export type HeaderShape = "arch" | "band" | "frame" | "soft";
 /** تخطيط الأطباق — هذا ما يجعل الفرق بين الطوابع يُرى لا يُقرأ. */
 export type DishLayout = "grid" | "list" | "showcase";
 export type HeadingStyle = "ornament" | "rule" | "plain";
+/** شكل صورة الطبق — دائري للكافيهات، مربّع حادّ للمينيمال، ودارج للباقي. */
+export type ImageShape = "rounded" | "square" | "circle";
+/** كيف يُقدَّم السعر: نصّاً، أو شارة ملوّنة، أو خطّاً منقّطاً يقود إليه. */
+export type PriceStyle = "plain" | "badge" | "leader";
+/** الفاصل بين صفوف القائمة الرأسية. */
+export type RowDivider = "none" | "dots" | "rule";
 
 export interface MenuDesign {
   pattern: PatternId;
@@ -24,6 +30,14 @@ export interface MenuDesign {
   layout: DishLayout;
   heading: HeadingStyle;
   density: "cozy" | "airy";
+  /**
+   * ثلاثة محاور أُضيفت لاحقاً. سببها أن الطوابع كانت تتمايز بخمسة حقول فقط،
+   * وهذا سقفٌ يجعل أي طابع جديد إعادةَ توزيعٍ لنفس الخمسة. وكلٌّ منها له قيمة
+   * تحفظ الشكل القائم، فلا يتغيّر منيو تاجر لم نقصد تغييره.
+   */
+  imageShape: ImageShape;
+  priceStyle: PriceStyle;
+  divider: RowDivider;
 }
 
 export interface MenuTheme {
@@ -47,22 +61,53 @@ export const RHYTHM = {
   airy: { block: "mt-8", section: "pt-14", gap: "gap-5", head: "mb-5" },
 } as const;
 
-/** طابع الثيمات اللونية القديمة — يحفظ شكل منيو كل تاجر قائم كما هو. */
-const CLASSIC_DESIGN: MenuDesign = {
+/**
+ * الأساس الذي تُبنى عليه الطوابع — قيمه هي **الشكل القائم اليوم حرفياً**، فأي
+ * طابع لا يذكر حقلاً يبقى كما كان. وُجد لأن `MenuDesign` صار تسعة حقول، وتكرارها
+ * كاملةً في كل طابع يخفي ما يميّزه وسط ما يشترك فيه.
+ */
+const BASE_DESIGN: MenuDesign = {
   pattern: "none",
   patternOpacity: 0,
   header: "soft",
   layout: "grid",
   heading: "plain",
   density: "cozy",
+  imageShape: "rounded",
+  priceStyle: "plain",
+  divider: "rule",
 };
 
+const design = (over: Partial<MenuDesign> = {}): MenuDesign => ({ ...BASE_DESIGN, ...over });
+
+/**
+ * خطوط الطوابع.
+ *
+ * كايرو وطجوال ثابتان في الحزمة (واجهة التطبيق كلها عليهما)، وما عداهما
+ * **يُحمَّل عند الطلب** عبر `lib/fonts.ts` — فطابعٌ بخطّ عارف رقعة لا يكلّف
+ * زبونَ مطعمٍ آخر بايتاً واحداً.
+ */
 const FONT = {
   cairo: "var(--font-cairo)",
   tajawal: "var(--font-tajawal)",
   reem: "var(--font-reem)",
   amiri: "var(--font-amiri)",
+  kufi: "var(--font-noto-kufi)",
+  almarai: "var(--font-almarai)",
+  ruqaa: "var(--font-ruqaa)",
 };
+
+/**
+ * ⚠️ **اقتران خطّين: عرضٌ للعناوين وقراءةٌ للأصناف.**
+ *
+ * `--m-font` كان يحكم كل شيء — اسم المطعم وعناوين الأقسام وأسماء الأطباق معاً.
+ * فلمّا جُرِّب خطّ رقعة على الطابع الملكي خرج اسم المطعم بديعاً و**أسماء الأطباق
+ * شبه غير مقروءة**: الرقعة خطّ عرضٍ مترابط لا خطّ نصٍّ يُمسح بالعين في مطعم
+ * مُضاء بخفوت. والمنيو يُقرأ قبل أن يُعجب.
+ *
+ * فصار `--m-display` للعناوين وحدها، ويسقط إلى `--m-font` لكل طابع لا يذكره —
+ * فلا يتغيّر شيء لمن لم يطلب اقتراناً.
+ */
 
 /**
  * الطوابع المصمَّمة — لكل واحد هوية كاملة لا لون.
@@ -87,14 +132,14 @@ export const DESIGN_THEMES: MenuTheme[] = [
       "--m-font": FONT.reem,
       "--m-radius": "0.5rem",
     },
-    design: {
+    design: design({
       pattern: "sadu",
       patternOpacity: 0.07,
       header: "band",
-      layout: "grid",
       heading: "ornament",
-      density: "cozy",
-    },
+      imageShape: "square",
+      priceStyle: "badge",
+    }),
   },
   {
     id: "luxe",
@@ -111,16 +156,20 @@ export const DESIGN_THEMES: MenuTheme[] = [
       "--m-on-accent": "#0b0b0c",
       "--m-border": "rgba(201,162,39,.28)",
       "--m-font": FONT.amiri,
+      "--m-display": FONT.ruqaa,
       "--m-radius": "0.25rem",
     },
-    design: {
+    design: design({
       pattern: "girih",
       patternOpacity: 0.035,
       header: "frame",
       layout: "list",
       heading: "rule",
       density: "airy",
-    },
+      imageShape: "square",
+      priceStyle: "leader",
+      divider: "none",
+    }),
   },
   {
     id: "hijazi",
@@ -140,14 +189,13 @@ export const DESIGN_THEMES: MenuTheme[] = [
       "--m-font": FONT.cairo,
       "--m-radius": "1.25rem",
     },
-    design: {
+    design: design({
       pattern: "mashrabiya",
       patternOpacity: 0.06,
       header: "arch",
-      layout: "grid",
-      heading: "plain",
-      density: "cozy",
-    },
+      imageShape: "circle",
+      priceStyle: "badge",
+    }),
   },
   {
     id: "modern",
@@ -166,25 +214,142 @@ export const DESIGN_THEMES: MenuTheme[] = [
       "--m-font": FONT.cairo,
       "--m-radius": "1rem",
     },
-    design: {
-      pattern: "none",
-      patternOpacity: 0,
-      header: "soft",
+    design: design({
       layout: "showcase",
-      heading: "plain",
       density: "airy",
+      imageShape: "square",
+    }),
+  },
+
+  /* ── طوابع أُضيفت في جولة التصميم ───────────────────────────────────── */
+  {
+    id: "qatt",
+    name: "عسيري (القطّ)",
+    tagline: "أشرطة القطّ العسيري الزاهية على أبيض — أجرأ ما في القائمة",
+    vars: {
+      // بياض جدران عسير، والأحمر والأخضر لونا النقش الغالبان فيه.
+      "--m-bg": "#fffdf8",
+      "--m-bg-2": "#fdf3e7",
+      "--m-surface": "#ffffff",
+      "--m-text": "#2a1a12",
+      "--m-muted": "#8a6f5e",
+      "--m-accent": "#c0392b",
+      "--m-accent-2": "#1e7a4b",
+      "--m-on-accent": "#ffffff",
+      "--m-border": "rgba(192,57,43,.22)",
+      "--m-font": FONT.kufi,
+      "--m-radius": "0.35rem",
     },
+    design: design({
+      pattern: "qatt",
+      patternOpacity: 0.075,
+      header: "band",
+      heading: "ornament",
+      imageShape: "square",
+      priceStyle: "badge",
+    }),
+  },
+  {
+    id: "sahra",
+    name: "صحراوي",
+    tagline: "رمل ونخيل ومساحات واسعة — هدوء يليق بالمقاهي",
+    vars: {
+      "--m-bg": "#f7f1e6",
+      "--m-bg-2": "#efe4d2",
+      "--m-surface": "#fffdf8",
+      "--m-text": "#3b2f22",
+      "--m-muted": "#94806a",
+      "--m-accent": "#a9744a",
+      "--m-accent-2": "#d9b382",
+      "--m-on-accent": "#ffffff",
+      "--m-border": "rgba(59,47,34,.12)",
+      "--m-font": FONT.almarai,
+      "--m-radius": "1.4rem",
+    },
+    design: design({
+      pattern: "palm",
+      patternOpacity: 0.05,
+      header: "soft",
+      heading: "rule",
+      density: "airy",
+      imageShape: "circle",
+    }),
+  },
+  {
+    id: "specialty",
+    name: "كافيه تخصّصي",
+    tagline: "عاجيّ نظيف وصور كبيرة وطباعة هادئة — أسلوب المحامص",
+    vars: {
+      "--m-bg": "#faf9f7",
+      "--m-bg-2": "#f0eeea",
+      "--m-surface": "#ffffff",
+      "--m-text": "#1c1b19",
+      "--m-muted": "#7d7a74",
+      "--m-accent": "#3f6f52",
+      "--m-accent-2": "#8fae9b",
+      "--m-on-accent": "#ffffff",
+      "--m-border": "rgba(28,27,25,.09)",
+      "--m-font": FONT.almarai,
+      "--m-radius": "0.2rem",
+    },
+    design: design({
+      layout: "showcase",
+      heading: "rule",
+      density: "airy",
+      imageShape: "square",
+      divider: "none",
+    }),
+  },
+  {
+    id: "urban",
+    name: "حضري ليلي",
+    tagline: "فحميّ عميق بلون كهربائي — للمطاعم التي تفتح متأخّراً",
+    vars: {
+      "--m-bg": "#0b0d12",
+      "--m-bg-2": "#151922",
+      "--m-surface": "rgba(255,255,255,.045)",
+      "--m-text": "#eef1f7",
+      "--m-muted": "#8b95a8",
+      "--m-accent": "#5b93ff",
+      "--m-accent-2": "#8ab4ff",
+      // ‏#5b93ff تباينه مع الأبيض 3.0:1 ومع الغامق 6.2 — `bestOnAccent` تختار الغامق.
+      "--m-on-accent": "#0b0d12",
+      "--m-border": "rgba(91,147,255,.24)",
+      "--m-font": FONT.kufi,
+      "--m-radius": "0.75rem",
+    },
+    design: design({
+      pattern: "najma",
+      patternOpacity: 0.05,
+      layout: "showcase",
+      heading: "rule",
+      density: "airy",
+      imageShape: "square",
+      priceStyle: "badge",
+    }),
   },
 ];
 
 /**
- * لوحات ألوان كلاسيكية — تخطيط واحد لكلها، تبقى لمن اختارها من قبل.
- * `design` يُضاف لها آلياً في `THEMES` أدناه فلا يتكرّر ثماني مرات.
+ * اللوحات الثمانية — كانت **ألواناً بلا تصميم**.
+ *
+ * رأس هذا الملف يقول إن الثيم صار «طابعاً كاملاً»، وكان ذلك صحيحاً لأربعة منها
+ * فقط: هذه الثمانية كانت تتقاسم `CLASSIC_DESIGN` حرفياً — نفس الزخرفة (لا شيء)،
+ * نفس الترويسة، نفس التخطيط، نفس الإيقاع. أي أن الفرق بين «زمردي فاخر» و«أحمر
+ * شهي» يُقرأ في الاسم ولا يُرى على الشاشة.
+ *
+ * ⚠️ **ألوان كل واحدة تبقى حرفياً كما هي**: ثمانية مطاعم حقيقية تستعملها اليوم،
+ * و`dark-gold` هو `DEFAULT_THEME` أي شكل المنتج لمن لم يختر شيئاً. الذي تغيّر
+ * هو البناء والخطّ والزخرفة والإيقاع لا لوحة الألوان.
+ *
+ * و`dark-gold` تحديداً أُبقي تخطيطها `grid`: تبديل تخطيط الافتراضي يقلب شكل
+ * منيو كل من لم يختر، وهذا أبعد ممّا يبرّره تحسينُ مظهر.
  */
-const CLASSIC_PALETTES: Omit<MenuTheme, "design" | "tagline">[] = [
+const CLASSIC_THEMES: MenuTheme[] = [
   {
     id: "dark-gold",
     name: "ليلي ذهبي",
+    tagline: "ذهب على أسود دافئ، بزخرفة جيري وإطار شعري",
     vars: {
       "--m-bg": "#141210",
       "--m-bg-2": "#1b1813",
@@ -195,13 +360,15 @@ const CLASSIC_PALETTES: Omit<MenuTheme, "design" | "tagline">[] = [
       "--m-accent-2": "#f0c96a",
       "--m-on-accent": "#141210",
       "--m-border": "rgba(212,168,67,.20)",
-      "--m-font": FONT.tajawal,
+      "--m-font": FONT.kufi,
       "--m-radius": "1rem",
     },
+    design: design({ pattern: "girih", patternOpacity: 0.03, header: "frame", heading: "ornament", density: "airy", imageShape: "square", priceStyle: "badge" }),
   },
   {
     id: "light-luxe",
     name: "أبيض راقٍ",
+    tagline: "عاجيّ راقٍ بقائمة رأسية وخطوط منقّطة تقود إلى السعر",
     vars: {
       "--m-bg": "#f6f2ea",
       "--m-bg-2": "#efe8da",
@@ -215,10 +382,12 @@ const CLASSIC_PALETTES: Omit<MenuTheme, "design" | "tagline">[] = [
       "--m-font": FONT.amiri,
       "--m-radius": "0.85rem",
     },
+    design: design({ pattern: "mashrabiya", patternOpacity: 0.04, header: "frame", layout: "list", heading: "rule", density: "airy", imageShape: "square", priceStyle: "leader", divider: "none" }),
   },
   {
     id: "emerald",
     name: "زمردي فاخر",
+    tagline: "زمرّد وذهب بشريط سدو وزخرفة جيري",
     vars: {
       "--m-bg": "#0b1f16",
       "--m-bg-2": "#0f2a1f",
@@ -232,10 +401,12 @@ const CLASSIC_PALETTES: Omit<MenuTheme, "design" | "tagline">[] = [
       "--m-font": FONT.reem,
       "--m-radius": "1rem",
     },
+    design: design({ pattern: "girih", patternOpacity: 0.045, header: "band", heading: "ornament", imageShape: "rounded", priceStyle: "badge" }),
   },
   {
     id: "royal",
     name: "أرجواني ملكي",
+    tagline: "أرجوان ونجوم ثمانية، بخطّ رقعة على قائمة رأسية",
     vars: {
       "--m-bg": "#190f26",
       "--m-bg-2": "#221634",
@@ -247,12 +418,15 @@ const CLASSIC_PALETTES: Omit<MenuTheme, "design" | "tagline">[] = [
       "--m-on-accent": "#190f26",
       "--m-border": "rgba(212,175,55,.22)",
       "--m-font": FONT.amiri,
+      "--m-display": FONT.ruqaa,
       "--m-radius": "1.1rem",
     },
+    design: design({ pattern: "najma", patternOpacity: 0.05, header: "frame", layout: "list", heading: "rule", density: "airy", imageShape: "square", priceStyle: "leader", divider: "none" }),
   },
   {
     id: "coffee",
     name: "قهوة دافئة",
+    tagline: "بنّي دافئ وصور كبيرة — للمحامص والمقاهي",
     vars: {
       "--m-bg": "#20150f",
       "--m-bg-2": "#2a1c14",
@@ -266,10 +440,12 @@ const CLASSIC_PALETTES: Omit<MenuTheme, "design" | "tagline">[] = [
       "--m-font": FONT.tajawal,
       "--m-radius": "0.9rem",
     },
+    design: design({ pattern: "sadu", patternOpacity: 0.05, header: "band", layout: "showcase", density: "airy", imageShape: "rounded" }),
   },
   {
     id: "crimson",
     name: "أحمر شهي",
+    tagline: "أحمر شهيّ بأشرطة القطّ العسيري وصور دائرية",
     vars: {
       "--m-bg": "#1a0d0d",
       "--m-bg-2": "#251111",
@@ -283,10 +459,12 @@ const CLASSIC_PALETTES: Omit<MenuTheme, "design" | "tagline">[] = [
       "--m-font": FONT.cairo,
       "--m-radius": "0.85rem",
     },
+    design: design({ pattern: "qatt", patternOpacity: 0.05, heading: "ornament", imageShape: "circle", priceStyle: "badge" }),
   },
   {
     id: "ocean",
     name: "أزرق بحري",
+    tagline: "أزرق بحري بقوس روشان وشبكة مشربية",
     vars: {
       "--m-bg": "#0a1822",
       "--m-bg-2": "#0e2230",
@@ -300,10 +478,12 @@ const CLASSIC_PALETTES: Omit<MenuTheme, "design" | "tagline">[] = [
       "--m-font": FONT.reem,
       "--m-radius": "1rem",
     },
+    design: design({ pattern: "mashrabiya", patternOpacity: 0.05, header: "arch", density: "airy", imageShape: "circle" }),
   },
   {
     id: "minimal",
     name: "مينيمال",
+    tagline: "أبيض خالص بقائمة رأسية بلا زخرفة — أقصى ما يمكن من هدوء",
     vars: {
       "--m-bg": "#ffffff",
       "--m-bg-2": "#f4f4f5",
@@ -314,17 +494,14 @@ const CLASSIC_PALETTES: Omit<MenuTheme, "design" | "tagline">[] = [
       "--m-accent-2": "#3f3f46",
       "--m-on-accent": "#ffffff",
       "--m-border": "rgba(0,0,0,.10)",
-      "--m-font": FONT.cairo,
+      "--m-font": FONT.almarai,
       "--m-radius": "0.6rem",
     },
+    design: design({ layout: "list", density: "airy", imageShape: "square", divider: "rule" }),
   },
 ];
 
-export const THEMES: MenuTheme[] = CLASSIC_PALETTES.map((p) => ({
-  ...p,
-  tagline: "لوحة ألوان كلاسيكية",
-  design: CLASSIC_DESIGN,
-}));
+export const THEMES: MenuTheme[] = CLASSIC_THEMES;
 
 /** كل ما يظهر في المُنتقي — الطوابع المصمَّمة أولاً. */
 export const ALL_THEMES: MenuTheme[] = [...DESIGN_THEMES, ...THEMES];
@@ -439,8 +616,10 @@ export function buildCustomTheme(hex: string): MenuTheme {
   return {
     id: customThemeId(accent),
     name: "لون علامتي",
-    tagline: "لون علامتك على تخطيط كلاسيكي",
-    design: CLASSIC_DESIGN,
+    tagline: "لون علامتك على تخطيط بسيط ومحايد",
+    // محايد عمداً: هذا الوضع يقول «لوني أنا»، فأي زخرفة أو تخطيط مميّز يزاحم
+    // اللون الذي اختاره التاجر بدل أن يبرزه.
+    design: design(),
     vars: {
       "--m-bg": bg,
       "--m-bg-2": bg2,
