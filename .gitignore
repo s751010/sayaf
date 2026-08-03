@@ -14,6 +14,8 @@ node_modules/
 .netlify/
 dist/
 
-# graphify — مخرجات تحليل مولّدة (graph.json/graph.html) وذاكرة الاستخراج
-# تُعاد بالأمر: graphify app  — لا داعي لحفظها في المستودع
+# graphify — مخرجات تحليل مولّدة (graph.json/GRAPH_REPORT.md/studio) وذاكرة الاستخراج
+# تُعاد بالأمر: /graphify .  — لا داعي لحفظها في المستودع
+# (graphify-out/ مسار قديم من نسخة أسبق؛ المسار الحالي .graphify/)
+.graphify/
 graphify-out/
