@@ -10,6 +10,7 @@
  */
 import { normalizeDigits, numOrNull, strOrNull } from "./utils";
 import { matchKnownCategory } from "./categories";
+import { iconValue, type IconName } from "./icons";
 import type { DishPayload } from "./data";
 
 export type ParsedRow = {
@@ -45,31 +46,46 @@ function stripPrice(raw: string, price: number): string {
   return base.replace(CURRENCY, " ").replace(/[\s.\-–—:،|]+$/g, "").trim();
 }
 
-/* ── الإيموجي المقترح ─────────────────────────────────────────────── */
+/* ── الرمز المقترح ────────────────────────────────────────────────── */
 
-const EMOJI_HINTS: [RegExp, string][] = [
-  [/برجر|برغر|burger/i, "🍔"],
-  [/بيتزا|pizza/i, "🍕"],
-  [/دجاج|فراخ|بروست|chicken/i, "🍗"],
-  [/لحم|ستيك|كباب|steak|meat/i, "🥩"],
-  [/روبيان|جمبري|سمك|فيليه|shrimp|fish/i, "🍤"],
-  [/باستا|مكرونة|معكرونة|pasta/i, "🍝"],
-  [/سلطة|فتوش|تبولة|salad/i, "🥗"],
-  [/كبسة|مندي|مظبي|رز|أرز|برياني|rice/i, "🍚"],
-  [/شاورما|راب|تورتيلا|wrap/i, "🌯"],
-  [/فلافل|كبة|سمبوسة|معجنات/i, "🧆"],
-  [/كيك|تشيز|حلى|حلا|كنافة|بسبوسة|cake|dessert/i, "🍰"],
-  [/دونات|كوكيز|براوني|donut|cookie/i, "🍩"],
-  [/قهوة|إسبريسو|اسبريسو|لاتيه|كابتشينو|أمريكانو|coffee|latte/i, "☕"],
-  [/شاي|ماتشا|موهيتو|tea|matcha/i, "🧋"],
-  [/عصير|ليمون|مشروب|صودا|بيبسي|كولا|ماء|juice|soda/i, "🥤"],
-  [/موكتيل|كوكتيل|سموذي|smoothie/i, "🍹"],
+/**
+ * ⚠️ **الترتيب جزء من المنطق** (كـ`HINTS` في `starterMenus.ts`): الأخصّ أولاً
+ * وإلا سبق العامّ الخاصّ. «آيس لاتيه» يحتوي «لاتيه» و«آيس» معاً، ولولا أن
+ * الباردة تسبق لخرج بفنجان ساخن.
+ */
+const ICON_HINTS: [RegExp, IconName][] = [
+  [/آيس|ايس|مثلج|كولد برو|بارد|iced|cold/i, "icedcup"],
+  [/برجر|برغر|برقر|burger/i, "burger"],
+  [/بيتزا|باستا|مكرونة|معكرونة|pizza|pasta/i, "pizza"],
+  [/شاورما|ساندوي|سندوي|راب|sandwich|wrap/i, "sandwich"],
+  [/بروست|مقلي|بطاطس|كرسبي|broast|fries/i, "fries"],
+  [/شيش|كباب|تكة|مشوي|مشاوي|ريش|ستيك|kebab|grill|steak/i, "skewer"],
+  [/روبيان|جمبري|سمك|هامور|فيليه|shrimp|fish/i, "fish"],
+  [/كبسة|مندي|مظبي|برياني|رز|أرز|ارز|rice/i, "kabsa"],
+  [/مرقوق|جريش|قرصان|مطازيز|شوربة|شوربه|حساء|فول|soup/i, "pot"],
+  [/سلطة|سلطه|فتوش|تبولة|تبوله|salad/i, "salad"],
+  [/حمص|متبل|بابا غنوج|مقبلات|كبة|كبه|سمبوسة|فلافل|معجنات محشية/i, "mezze"],
+  [/بيض|شكشوكة|شكشوكه|عجة|أومليت|omelet|egg/i, "egg"],
+  [/تميس|خبز|رغيف|صامولي|bread/i, "bread"],
+  [/كروسان|كرواسون|فطيرة|فطاير|دونات|croissant|donut/i, "croissant"],
+  [/كيك|تشيز|حلى|حلا|كنافة|كنافه|بسبوسة|معمول|كوكيز|آيس كريم|cake|dessert|cookie/i, "cake"],
+  [/قهوة سعودية|قهوه سعوديه|دلة|دله/i, "dallah"],
+  [/قهوة|قهوه|إسبريسو|اسبريسو|لاتيه|كابتشينو|أمريكانو|امريكانو|coffee|latte/i, "cup"],
+  [/شاي|شاهي|كرك|ماتشا|نعناع ساخن|tea|matcha/i, "istikana"],
+  [/عصير|ليمون|فريش|كوكتيل|موكتيل|سموذي|شيك|juice|smoothie|shake/i, "juice"],
+  [/مشروب|صودا|بيبسي|كولا|ماء|مياه|غازي|soda|water/i, "bottle"],
 ];
 
-/** إيموجي مبدئي من اسم الصنف — التاجر يعدّله لاحقاً بضغطة. */
-export function suggestEmoji(name: string): string {
-  for (const [re, emoji] of EMOJI_HINTS) if (re.test(name)) return emoji;
-  return "🍽";
+/**
+ * رمز مبدئي من اسم الصنف — التاجر يعدّله لاحقاً بضغطة.
+ *
+ * يعيد قيمة `cm:` جاهزة للتخزين في `dishes.emoji`. وما لا يُطابق يبقى **بلا
+ * رمز** (`""`) لا بـ`🍽`: الصحن العامّ لا يقول شيئاً، وتركه فارغاً يجعل
+ * `DishGlyph` تعرض الافتراضي مرة واحدة في مكان واحد.
+ */
+export function suggestIcon(name: string): string {
+  for (const [re, icon] of ICON_HINTS) if (re.test(name)) return iconValue(icon);
+  return "";
 }
 
 /* ── تطبيع التصنيف ────────────────────────────────────────────────── */
@@ -122,7 +138,7 @@ export function parseMenuText(raw: string, known: string[] = []): ParsedRow[] {
         price,
         category: category ? normalizeCategory(category, known) : current,
         description: strOrNull(cols[3] ?? ""),
-        emoji: suggestEmoji(cols[0]),
+        emoji: suggestIcon(cols[0]),
         line: i + 1,
       });
       if (headings.length) headings[headings.length - 1].count++;
@@ -143,7 +159,7 @@ export function parseMenuText(raw: string, known: string[] = []): ParsedRow[] {
       price,
       category: current,
       description: null,
-      emoji: suggestEmoji(name),
+      emoji: suggestIcon(name),
       line: i + 1,
     });
     if (headings.length) headings[headings.length - 1].count++;
@@ -157,7 +173,7 @@ export function parseMenuText(raw: string, known: string[] = []): ParsedRow[] {
       price: null,
       category: null,
       description: null,
-      emoji: suggestEmoji(h.name),
+      emoji: suggestIcon(h.name),
       line: h.line,
     }));
 
@@ -232,7 +248,7 @@ export function parseMenuCsv(text: string, known: string[] = []): ParsedRow[] {
         price: priceOf(at(cols, map.price)),
         category: category ? normalizeCategory(category, known) : null,
         description: strOrNull(at(cols, map.description)),
-        emoji: suggestEmoji(name),
+        emoji: suggestIcon(name),
         line: start + i + 1,
       },
     ];
@@ -254,7 +270,8 @@ export function rowToPayload(row: ParsedRow): DishPayload {
     description: row.description,
     price: row.price ?? 0,
     category: row.category,
-    emoji: row.emoji || "🍽",
+    // فراغ لا `🍽`: الصحن الافتراضي يقرّره `DishGlyph` في مكان واحد.
+    emoji: row.emoji,
     image: null,
     featured: false,
     available: true,

@@ -22,6 +22,7 @@ import {
 } from "@/lib/data";
 import { cn, formatDate } from "@/lib/utils";
 import type { Restaurant } from "@/lib/types";
+import { Icon } from "@/lib/icons";
 
 export function WebhooksCard({
   restaurant,
@@ -101,7 +102,9 @@ export function WebhooksCard({
   return (
     <Card className="flex flex-col gap-4">
       <div>
-        <h2 className="font-display text-lg font-extrabold text-ink">🔔 إشعارات لخادمك (Webhooks)</h2>
+        <h2 className="inline-flex items-center gap-2 font-display text-lg font-extrabold text-ink">
+          <Icon name="bell" size={17} className="shrink-0 text-gold" />{" "}
+          إشعارات لخادمك (Webhooks)</h2>
         <p className="mt-1 text-sm text-dim">
           نرسل طلب <code dir="ltr">POST</code> إلى رابطك لحظة وقوع الحدث — لتزامن
           نقطة البيع أو تُشعِل تنبيهاً عندك.
@@ -110,7 +113,9 @@ export function WebhooksCard({
 
       {fresh && (
         <div className="rounded-xl border border-gold bg-gold/10 p-4">
-          <p className="text-sm font-black text-ink">⚠️ سرّ التوقيع — انسخه الآن، لن يظهر ثانية.</p>
+          <p className="inline-flex items-center gap-2 text-sm font-black text-ink">
+          <Icon name="warn" size={17} className="shrink-0 text-gold" />{" "}
+          سرّ التوقيع — انسخه الآن، لن يظهر ثانية.</p>
           <p className="mt-1 text-xs text-dim">
             خادمك يتحقّق به أن الطلب منّا: احسب{" "}
             <code dir="ltr">HMAC-SHA256(&quot;&lt;timestamp&gt;.&lt;body&gt;&quot;)</code> بهذا السرّ
@@ -129,7 +134,7 @@ export function WebhooksCard({
                 )
               }
             >
-              📋 نسخ
+              <Icon name="copy" size={15} /> نسخ
             </Button>
           </div>
           <button

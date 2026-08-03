@@ -38,7 +38,7 @@ export default function Blog() {
         </header>
 
         {failed && (
-          <EmptyState emoji="📡" title="تعذّر تحميل المقالات" desc="تحقق من اتصالك ثم أعد المحاولة." />
+          <EmptyState icon="warn" title="تعذّر تحميل المقالات" desc="تحقق من اتصالك ثم أعد المحاولة." />
         )}
 
         {!failed && posts === null && (
@@ -50,7 +50,7 @@ export default function Blog() {
         )}
 
         {posts !== null && posts.length === 0 && (
-          <EmptyState emoji="✍️" title="لا توجد مقالات بعد" desc="عد قريباً — نكتب لك محتوى مفيداً." />
+          <EmptyState icon="doc" title="لا توجد مقالات بعد" desc="عد قريباً — نكتب لك محتوى مفيداً." />
         )}
 
         {posts !== null && posts.length > 0 && (

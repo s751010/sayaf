@@ -9,6 +9,7 @@
  * وواتساب صريح دائماً لأنه الوجهة الفعلية في ٩ من ١٠ حالات.
  */
 import { Button, useToast } from "@/components/ui";
+import { Icon } from "@/lib/icons";
 
 export function ShareMenu({ name, url }: { name: string; url: string }) {
   const toast = useToast();
@@ -31,7 +32,7 @@ export function ShareMenu({ name, url }: { name: string; url: string }) {
         rel="noopener noreferrer"
         className="inline-flex items-center gap-1.5 rounded-xl bg-good/15 px-4 py-2 text-sm font-bold text-good hover:bg-good/25"
       >
-        💬 واتساب
+        <Icon name="share" size={16} /> واتساب
       </a>
       <Button
         variant="outline"
@@ -42,11 +43,11 @@ export function ShareMenu({ name, url }: { name: string; url: string }) {
           );
         }}
       >
-        📋 نسخ الرابط
+        <Icon name="copy" size={16} /> نسخ الرابط
       </Button>
       {typeof navigator !== "undefined" && "share" in navigator && (
         <Button variant="outline" onClick={nativeShare}>
-          📤 مشاركة
+          <Icon name="share" size={16} /> مشاركة
         </Button>
       )}
     </div>

@@ -38,6 +38,7 @@ import { cn } from "@/lib/utils";
 import type { Menu } from "@/lib/types";
 import { useDashboard } from "./Dashboard";
 import { MenuTabs } from "./Tabs";
+import { Icon } from "@/lib/icons";
 
 /**
  * خيارات شكل العرض. `null` = «اترك افتراضي الطابع» — وهو خيار حقيقي لا غياب
@@ -291,7 +292,7 @@ export default function Menus() {
         ))}
         {menus !== null && menus.length === 0 && (
           <EmptyState
-            emoji="📋"
+            icon="plate"
             title="لا توجد قوائم بعد"
             desc="أنشئ قائمتك الأولى (مثل: القائمة الرئيسية) ثم أضف إليها أطباقك."
             action={<Button onClick={() => setAdding(true)}>＋ أنشئ القائمة الأولى</Button>}
@@ -303,7 +304,9 @@ export default function Menus() {
       <section className="mt-10">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="font-display text-lg font-extrabold text-ink">🎨 طابع منيوك</h2>
+            <h2 className="inline-flex items-center gap-2 font-display text-lg font-extrabold text-ink">
+          <Icon name="palette" size={17} className="shrink-0 text-gold" />{" "}
+          طابع منيوك</h2>
             <p className="mt-1 text-sm text-dim">
               كل طابع تصميم كامل — زخرفة وترويسة وتخطيط أطباق، لا لوناً فقط.
             </p>

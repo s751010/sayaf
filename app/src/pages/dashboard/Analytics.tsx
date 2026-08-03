@@ -18,6 +18,7 @@ import { cn, formatPrice } from "@/lib/utils";
 import type { AnalyticsRow, Dish } from "@/lib/types";
 import { useDashboard } from "./Dashboard";
 import { InsightTabs } from "./Tabs";
+import { Icon, DishGlyph } from "@/lib/icons";
 
 const DOW_AR = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
 const RANGE_DAYS = 30;
@@ -265,7 +266,7 @@ export default function Analytics() {
           </p>
         </div>
         <Button variant="outline" onClick={exportCsv} disabled={loading}>
-          ⬇️ تصدير CSV
+          <Icon name="download" size={15} /> تصدير CSV
         </Button>
       </div>
 
@@ -328,7 +329,9 @@ export default function Analytics() {
           {/* المشاهدات اليومية */}
           <Card className="mt-5">
             <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-              <h2 className="font-display font-extrabold text-ink">📈 المشاهدات اليومية</h2>
+              <h2 className="inline-flex items-center gap-2 font-display font-extrabold text-ink">
+          <Icon name="pulse" size={17} className="shrink-0 text-gold" />{" "}
+          المشاهدات اليومية</h2>
               <button
                 onClick={() => setShowTable((v) => !v)}
                 className="text-xs font-bold text-gold hover:underline"
@@ -365,14 +368,18 @@ export default function Analytics() {
           <div className="mt-5 grid gap-5 lg:grid-cols-2">
             {/* أيام الأسبوع */}
             <Card>
-              <h2 className="mb-2 font-display font-extrabold text-ink">📅 أيام الأسبوع</h2>
+              <h2 className="inline-flex items-center gap-2 mb-2 font-display font-extrabold text-ink">
+          <Icon name="clock" size={17} className="shrink-0 text-gold" />{" "}
+          أيام الأسبوع</h2>
               <p className="mb-2 text-xs text-dim">أي أيام الأسبوع أكثر زيارةً — مفيد للعروض والجدولة.</p>
               <BarChart points={stats.dow} ariaLabel="المشاهدات حسب يوم الأسبوع" />
             </Card>
 
             {/* ساعات الذروة */}
             <Card>
-              <h2 className="mb-2 font-display font-extrabold text-ink">🕐 ساعات الذروة</h2>
+              <h2 className="inline-flex items-center gap-2 mb-2 font-display font-extrabold text-ink">
+          <Icon name="clock" size={17} className="shrink-0 text-gold" />{" "}
+          ساعات الذروة</h2>
               <p className="mb-2 text-xs text-dim">بتوقيت الرياض.</p>
               <BarChart points={stats.hours} ariaLabel="المشاهدات حسب الساعة" />
             </Card>
@@ -380,7 +387,9 @@ export default function Analytics() {
 
           {/* الأطباق */}
           <Card className="mt-5">
-            <h2 className="font-display font-extrabold text-ink">🍽️ الأطباق الأكثر فتحاً</h2>
+            <h2 className="inline-flex items-center gap-2 font-display font-extrabold text-ink">
+          <Icon name="plate" size={17} className="shrink-0 text-gold" />{" "}
+          الأطباق الأكثر فتحاً</h2>
             <p className="mt-1 text-xs text-dim">
               خلال آخر {RANGE_DAYS} يوماً — يُقاس عند فتح الزبون تفاصيل الطبق.
             </p>
@@ -394,7 +403,7 @@ export default function Analytics() {
                     className="flex items-center gap-3 rounded-xl border border-line bg-panel2 px-3 py-2"
                   >
                     <span className="w-5 text-center font-display font-black text-faint">{i + 1}</span>
-                    <span className="text-lg">{r.dish.emoji ?? "🍽"}</span>
+                    <DishGlyph value={r.dish.emoji} size={20} className="text-dim" />
                     <span className="min-w-0 flex-1 truncate text-sm font-bold text-ink">
                       {r.dish.name}
                     </span>
@@ -425,7 +434,9 @@ export default function Analytics() {
           {/* الطاولات واللغة */}
           <div className="mt-5 grid gap-5 lg:grid-cols-2">
             <Card>
-              <h2 className="mb-2 font-display font-extrabold text-ink">🪑 أكثر الطاولات</h2>
+              <h2 className="inline-flex items-center gap-2 mb-2 font-display font-extrabold text-ink">
+          <Icon name="tag" size={17} className="shrink-0 text-gold" />{" "}
+          أكثر الطاولات</h2>
               {stats.tables.length === 0 ? (
                 <p className="text-xs text-faint">
                   لا بيانات طاولات بعد — استخدم أكواد QR المرقّمة لكل طاولة من صفحة «أكواد QR».
@@ -443,7 +454,9 @@ export default function Analytics() {
             </Card>
 
             <Card>
-              <h2 className="mb-2 font-display font-extrabold text-ink">🌐 لغة العرض</h2>
+              <h2 className="inline-flex items-center gap-2 mb-2 font-display font-extrabold text-ink">
+          <Icon name="link" size={17} className="shrink-0 text-gold" />{" "}
+          لغة العرض</h2>
               {stats.langSplit.ar + stats.langSplit.en === 0 ? (
                 <p className="text-xs text-faint">لا بيانات بعد.</p>
               ) : (

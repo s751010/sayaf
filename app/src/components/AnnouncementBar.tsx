@@ -21,11 +21,12 @@ import { rest } from "@/lib/api";
 import { K, getItem, setItem } from "@/lib/storage";
 import type { Announcement, AnnouncementAudience } from "@/lib/founder";
 import { cn } from "@/lib/utils";
+import { Icon, type IconName } from "@/lib/icons";
 
-const TONE: Record<string, { box: string; icon: string }> = {
-  info: { box: "border-gold/30 bg-gold/[.07]", icon: "📣" },
-  warn: { box: "border-bad/40 bg-bad/[.07]", icon: "⚠️" },
-  success: { box: "border-good/40 bg-good/[.07]", icon: "✅" },
+const TONE: Record<string, { box: string; icon: IconName }> = {
+  info: { box: "border-gold/30 bg-gold/[.07]", icon: "megaphone" as const },
+  warn: { box: "border-bad/40 bg-bad/[.07]", icon: "warn" as const },
+  success: { box: "border-good/40 bg-good/[.07]", icon: "check" as const },
 };
 
 function seenIds(): string[] {
@@ -78,7 +79,7 @@ export function AnnouncementBar({ subscribed }: { subscribed: boolean }) {
             key={a.id}
             className={cn("flex items-start gap-3 rounded-2xl border px-4 py-3", tone.box)}
           >
-            <span className="text-lg leading-none">{tone.icon}</span>
+            <Icon name={tone.icon} size={18} className="mt-0.5 shrink-0" />
             <div className="min-w-0 flex-1">
               <p className="text-sm font-black text-ink">{a.title}</p>
               <p className="mt-0.5 whitespace-pre-line text-sm text-dim">{a.body}</p>

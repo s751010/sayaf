@@ -32,6 +32,7 @@ import { qrDataUrl, loadImage } from "./qr";
 import { ALL_THEMES, bestOnAccent, isHex, normalizeHex } from "./themes";
 import { patternImage, PATTERN_MM, type PatternId } from "./patterns";
 import { loadThemeFont } from "./fonts";
+import { iconNameOf, paintIcon } from "./icons";
 
 /* ── القياسات ──────────────────────────────────────────────────────── */
 
@@ -654,10 +655,28 @@ async function paintLogo(
       /* يسقط إلى الإيموجي أدناه — انظر رأس الملف. */
     }
   }
-  ctx.fillStyle = p.frugal ? p.text : glyph;
-  ctx.textBaseline = "middle";
-  ctx.font = `${Math.round(r * 1.05)}px ${FALLBACK_FONT}`;
-  ctx.fillText(input.emoji || "🍽", cx, cy + r * 0.04);
+  /**
+   * ⚠️ **الرمز يُرسم مساراً لا نصّاً.**
+   *
+   * كان هنا `fillText(input.emoji)`، فيأتي شكل الإيموجي من **خطّ نظام
+   * التشغيل**: `🍽` على ماك غيره على ويندوز غيره على أندرويد. أي أن الملف
+   * المُنزَّل يختلف عن المعاينة التي رآها التاجر على الشاشة — وهذا نقضٌ صريح
+   * لقاعدة الاستوديو «معاينة بمنطق رسم آخر تكذب على التاجر»، ولا يُكتشف إلا
+   * بعد أن تُطبع مئة بطاقة.
+   *
+   * `paintIcon` تستعمل **نفس مسارات** `Icon` في الـDOM، فما يُطبع هو ما يُرى.
+   * والإيموجي القديم يبقى مرسوماً بالنصّ كما كان — لا نبدّل رمز تاجر محفوظ.
+   */
+  const color = p.frugal ? p.text : glyph;
+  const icon = iconNameOf(input.emoji);
+  if (icon) {
+    paintIcon(ctx, icon, cx, cy, r * 1.5, color, { weight: 1.9 });
+  } else {
+    ctx.fillStyle = color;
+    ctx.textBaseline = "middle";
+    ctx.font = `${Math.round(r * 1.05)}px ${FALLBACK_FONT}`;
+    ctx.fillText(input.emoji || "🍽", cx, cy + r * 0.04);
+  }
   ctx.restore();
 }
 

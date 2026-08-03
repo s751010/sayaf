@@ -100,7 +100,7 @@ export function ImageUploader({
               onClick={() => inputRef.current?.click()}
               className="inline-flex items-center gap-1.5 rounded-lg border border-line-gold px-3 py-1.5 text-xs font-bold text-ink transition-colors hover:bg-gold/10 disabled:opacity-50"
             >
-              {busy ? "جارٍ الرفع…" : value ? "استبدال الصورة" : "📤 رفع صورة"}
+              {busy ? "جارٍ الرفع…" : value ? "استبدال الصورة" : "رفع صورة"}
             </button>
             {value && !busy && (
               <button

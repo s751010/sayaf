@@ -27,6 +27,7 @@ import {
   type SiteSetting,
 } from "@/lib/founder";
 import { cn, formatDate } from "@/lib/utils";
+import { Icon } from "@/lib/icons";
 
 const SEVERITY: Record<HealthItem["severity"], { label: string; badge: "red" | "gold" | "neutral"; ord: number }> = {
   high: { label: "حرج", badge: "red", ord: 0 },
@@ -112,7 +113,9 @@ export default function Health() {
 
       {/* التنبيهات */}
       <section className="mt-6">
-        <h2 className="mb-3 font-display text-lg font-extrabold text-ink">🩺 ما يحتاج علاجاً</h2>
+        <h2 className="inline-flex items-center gap-2 mb-3 font-display text-lg font-extrabold text-ink">
+          <Icon name="pulse" size={17} className="shrink-0 text-gold" />{" "}
+          ما يحتاج علاجاً</h2>
         {groups === null ? (
           <Skeleton className="h-56" />
         ) : groups.length === 0 ? (
@@ -155,7 +158,9 @@ export default function Health() {
 
       {/* إعدادات المنصة */}
       <section className="mt-10">
-        <h2 className="mb-3 font-display text-lg font-extrabold text-ink">⚙️ إعدادات المنصة</h2>
+        <h2 className="mb-3 inline-flex items-center gap-2 font-display text-lg font-extrabold text-ink">
+          <Icon name="sliders" size={17} className="shrink-0 text-gold" /> إعدادات المنصة
+        </h2>
         <Card>
           <div className="flex flex-wrap items-end gap-3">
             <Field
@@ -184,7 +189,9 @@ export default function Health() {
 
       {/* سجل التدقيق */}
       <section className="mt-10">
-        <h2 className="mb-3 font-display text-lg font-extrabold text-ink">🧾 سجل التدقيق</h2>
+        <h2 className="inline-flex items-center gap-2 mb-3 font-display text-lg font-extrabold text-ink">
+          <Icon name="card" size={17} className="shrink-0 text-gold" />{" "}
+          سجل التدقيق</h2>
         {audit === null ? (
           <Skeleton className="h-32" />
         ) : audit.length === 0 ? (

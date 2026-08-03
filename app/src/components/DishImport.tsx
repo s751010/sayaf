@@ -17,6 +17,7 @@ import {
 import { normalizeCategory, parseMenuCsv, parseMenuText, type ParsedRow } from "@/lib/import";
 import { numOrNull } from "@/lib/utils";
 import type { Menu } from "@/lib/types";
+import { Icon } from "@/lib/icons";
 
 const SAMPLE = `مقبلات
 حمص بالطحينة 18
@@ -214,7 +215,9 @@ export function DishImport({
                           onChange={(e) => edit(i, { name: e.target.value })}
                         />
                         {duplicate && (
-                          <p className="mt-1 text-xs text-gold">⚠️ لديك صنف بهذا الاسم</p>
+                          <p className="inline-flex items-center gap-2 mt-1 text-xs text-gold">
+          <Icon name="warn" size={17} className="shrink-0 text-gold" />{" "}
+          لديك صنف بهذا الاسم</p>
                         )}
                       </td>
                       <td className="p-2 w-24">

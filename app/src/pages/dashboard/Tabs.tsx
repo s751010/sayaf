@@ -10,10 +10,12 @@
  */
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { Icon, type IconName } from "@/lib/icons";
 
 export interface Tab {
   to: string;
   label: string;
+  icon: IconName;
   /** يطابق المسار تماماً — للتبويب الذي مساره أب لغيره. */
   end?: boolean;
 }
@@ -29,10 +31,12 @@ export function Tabs({ tabs }: { tabs: Tab[] }) {
           className={({ isActive }) =>
             cn(
               "rounded-lg px-4 py-2 text-sm font-bold transition-colors",
+              "inline-flex items-center gap-2",
               isActive ? "bg-gold text-on-gold" : "text-dim hover:text-ink"
             )
           }
         >
+          <Icon name={t.icon} size={16} />
           {t.label}
         </NavLink>
       ))}
@@ -45,8 +49,8 @@ export function PrintTabs() {
   return (
     <Tabs
       tabs={[
-        { to: "/dashboard/cards", label: "🪧 بطاقات الكاشير" },
-        { to: "/dashboard/qr", label: "🔳 أكواد QR" },
+        { to: "/dashboard/cards", label: "بطاقات الكاشير", icon: "card" },
+        { to: "/dashboard/qr", label: "أكواد QR", icon: "qr" },
       ]}
     />
   );
@@ -57,8 +61,8 @@ export function MenuTabs() {
   return (
     <Tabs
       tabs={[
-        { to: "/dashboard/dishes", label: "🍽️ الأطباق" },
-        { to: "/dashboard/menus", label: "📋 القوائم" },
+        { to: "/dashboard/dishes", label: "الأطباق", icon: "plate" },
+        { to: "/dashboard/menus", label: "القوائم", icon: "doc" },
       ]}
     />
   );
@@ -69,8 +73,8 @@ export function InsightTabs() {
   return (
     <Tabs
       tabs={[
-        { to: "/dashboard/analytics", label: "📊 الأرقام" },
-        { to: "/dashboard/loyalty", label: "💛 الولاء" },
+        { to: "/dashboard/analytics", label: "الأرقام", icon: "bars" },
+        { to: "/dashboard/loyalty", label: "الولاء", icon: "heart" },
       ]}
     />
   );

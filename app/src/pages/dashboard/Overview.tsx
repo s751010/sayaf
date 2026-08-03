@@ -17,6 +17,8 @@ import { formatPrice } from "@/lib/utils";
 import { SITE_URL } from "@/lib/config";
 import type { AnalyticsRow, Dish } from "@/lib/types";
 import { useDashboard } from "./Dashboard";
+import { DishGlyph } from "@/lib/icons";
+import { Icon } from "@/lib/icons";
 
 export default function Overview() {
   const { user, restaurant, menus, ent } = useDashboard();
@@ -120,7 +122,7 @@ export default function Overview() {
           <p className="text-xs font-bold text-gold">خطوتك التالية</p>
           <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-3">
             <span className="text-2xl" aria-hidden="true">
-              {next.action.icon}
+              <Icon name={next.action.icon} size={22} />
             </span>
             <p className="min-w-0 flex-1 text-sm leading-relaxed text-ink">
               {next.action.text}
@@ -145,7 +147,7 @@ export default function Overview() {
                     key={i.id}
                     className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-sm"
                   >
-                    <span aria-hidden="true">{i.icon}</span>
+                    <Icon name={i.icon} size={16} className="mt-0.5 shrink-0" />
                     <span className="min-w-0 flex-1 text-dim">{i.text}</span>
                     {i.action && (
                       <Link
@@ -169,7 +171,9 @@ export default function Overview() {
       {week && week.now + week.prev > 0 && (
         <Card className="mt-5">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <p className="font-display font-extrabold text-ink">📈 هذا الأسبوع</p>
+            <p className="inline-flex items-center gap-2 font-display font-extrabold text-ink">
+            <Icon name="pulse" size={17} className="text-gold" /> هذا الأسبوع
+          </p>
             <Link to="/dashboard/analytics" className="text-xs font-bold text-gold hover:underline">
               التفاصيل ←
             </Link>
@@ -200,7 +204,9 @@ export default function Overview() {
       {/* أفضل الأطباق */}
       <section className="mt-8">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="font-display text-lg font-extrabold text-ink">🔥 الأكثر مشاهدة</h2>
+          <h2 className="inline-flex items-center gap-2 font-display text-lg font-extrabold text-ink">
+          <Icon name="flame" size={17} className="shrink-0 text-gold" />{" "}
+          الأكثر مشاهدة</h2>
           <Link to="/dashboard/dishes" className="text-sm font-bold text-gold hover:underline">
             كل الأطباق ←
           </Link>
@@ -223,7 +229,7 @@ export default function Overview() {
             {top.map((d, i) => (
               <Card key={d.id} className="flex items-center gap-3 py-3">
                 <span className="w-6 text-center font-display font-black text-faint">{i + 1}</span>
-                <span className="text-2xl">{d.emoji ?? "🍽"}</span>
+                <DishGlyph value={d.emoji} size={24} className="text-dim" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-bold text-ink">{d.name}</p>
                   <p className="text-xs text-faint">{d.category ?? "بدون تصنيف"}</p>

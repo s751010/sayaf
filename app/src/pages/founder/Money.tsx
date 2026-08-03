@@ -35,6 +35,7 @@ import {
   type RevenueOrphan,
 } from "@/lib/founder";
 import { formatDate, formatPrice } from "@/lib/utils";
+import { Icon } from "@/lib/icons";
 
 export default function Money() {
   const toast = useToast();
@@ -141,7 +142,9 @@ export default function Money() {
 
       {/* قمع التحويل — أول ما يُرى عمداً */}
       <section className="mt-6">
-        <h2 className="mb-3 font-display text-lg font-extrabold text-ink">🔻 أين يتسرّب التجّار</h2>
+        <h2 className="inline-flex items-center gap-2 mb-3 font-display text-lg font-extrabold text-ink">
+          <Icon name="bars" size={17} className="shrink-0 text-gold" />{" "}
+          أين يتسرّب التجّار</h2>
         {funnel === null ? (
           <Skeleton className="h-56" />
         ) : (
@@ -187,7 +190,9 @@ export default function Money() {
 
       {/* الإيراد */}
       <section className="mt-10">
-        <h2 className="mb-3 font-display text-lg font-extrabold text-ink">💰 الإيراد</h2>
+        <h2 className="inline-flex items-center gap-2 mb-3 font-display text-lg font-extrabold text-ink">
+          <Icon name="money" size={17} className="shrink-0 text-gold" />{" "}
+          الإيراد</h2>
         <div className="grid gap-4 sm:grid-cols-3">
           {[
             { l: "الإجمالي", v: `${formatPrice(stats?.revenue_total ?? 0)} ر.س` },
@@ -232,8 +237,9 @@ export default function Money() {
       {/* التناقض */}
       {orphans !== null && orphans.length > 0 && (
         <section className="mt-10">
-          <h2 className="mb-3 font-display text-lg font-extrabold text-ink">
-            ⚠️ إيراد بلا اشتراك يقابله
+          <h2 className="inline-flex items-center gap-2 mb-3 font-display text-lg font-extrabold text-ink">
+          <Icon name="warn" size={17} className="shrink-0 text-gold" />{" "}
+          إيراد بلا اشتراك يقابله
           </h2>
           <Card className="border-bad/30">
             <p className="text-sm text-dim">
@@ -260,7 +266,9 @@ export default function Money() {
 
       {/* أكواد الخصم */}
       <section className="mt-10">
-        <h2 className="mb-3 font-display text-lg font-extrabold text-ink">🏷️ أكواد الخصم</h2>
+        <h2 className="inline-flex items-center gap-2 mb-3 font-display text-lg font-extrabold text-ink">
+          <Icon name="tag" size={17} className="shrink-0 text-gold" />{" "}
+          أكواد الخصم</h2>
         <Card>
           <form onSubmit={addPromo} className="flex flex-wrap items-end gap-3">
             <Field label="الكود" className="w-40">
@@ -345,8 +353,9 @@ export default function Money() {
             })}
           </div>
         )}
-        <p className="mt-3 text-xs text-faint">
-          ⚠️ الأكواد تُحفظ وتُدار هنا، لكن صفحة الاشتراك عند التاجر لا تطلبها بعد — ربطها بمسار
+        <p className="inline-flex items-center gap-2 mt-3 text-xs text-faint">
+          <Icon name="warn" size={17} className="shrink-0 text-gold" />{" "}
+          الأكواد تُحفظ وتُدار هنا، لكن صفحة الاشتراك عند التاجر لا تطلبها بعد — ربطها بمسار
           الدفع خطوة تالية تحتاج تعديل بوابة الدفع.
         </p>
       </section>

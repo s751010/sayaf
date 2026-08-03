@@ -8,12 +8,13 @@
  * لا استعلام جديد ولا عمود جديد. كل توصية تحمل وجهتها: الزر يفتح مكان الإصلاح.
  */
 import type { AnalyticsRow, Dish, Restaurant } from "./types";
+import type { IconName } from "./icons";
 
 export type Insight = {
   id: string;
   /** high = يكلّفه مبيعات الآن · info = تحسين يستحق. */
   severity: "high" | "info";
-  icon: string;
+  icon: IconName;
   text: string;
   action?: { label: string; to: string };
 };
@@ -47,7 +48,7 @@ export function buildInsights(
     out.push({
       id: "popular-no-image",
       severity: "high",
-      icon: "📷",
+      icon: "image",
       text: `${names} من الأكثر فتحاً وما فيه صورة — أضف صورة وسترتفع الطلبات عليه.`,
       action: { label: "أضف الصور", to: "/dashboard/dishes" },
     });
@@ -59,7 +60,7 @@ export function buildInsights(
     out.push({
       id: "dead-dishes",
       severity: "info",
-      icon: "🕳️",
+      icon: "warn",
       text: `${dead.length} طبقاً لم يفتحه أحد خلال الفترة — راجع صورته ووصفه وتصنيفه، أو أخفِه ليبرز الباقي.`,
       action: { label: "راجع الأطباق", to: "/dashboard/dishes" },
     });
@@ -71,7 +72,7 @@ export function buildInsights(
     out.push({
       id: "low-open-rate",
       severity: "high",
-      icon: "👀",
+      icon: "eye",
       text: `${openRate}% فقط ممن فتحوا المنيو فتحوا طبقاً. غالباً الصور قليلة أو التصنيفات كثيرة — قلّل الأقسام وأضف صوراً للأطباق الأولى.`,
       action: { label: "رتّب التصنيفات", to: "/dashboard/dishes" },
     });
@@ -89,7 +90,7 @@ export function buildInsights(
       out.push({
         id: "peak-hour",
         severity: "info",
-        icon: "⏰",
+        icon: "clock",
         text: `ذروتك الساعة ${peak}:00 بتوقيت الرياض — انشر عرضك أو رسالتك قبلها بساعة.`,
       });
     }
@@ -100,7 +101,7 @@ export function buildInsights(
     out.push({
       id: "no-google",
       severity: "high",
-      icon: "⭐",
+      icon: "star",
       text: `${views} زائراً فتحوا منيوك ولا يوجد زر تقييم قوقل — أضف رابطك وحوّلهم إلى تقييمات.`,
       action: { label: "أضف الرابط", to: "/dashboard/settings" },
     });
@@ -111,7 +112,7 @@ export function buildInsights(
     out.push({
       id: "loyalty-off",
       severity: "info",
-      icon: "💛",
+      icon: "heart",
       text: "بطاقة الولاء مطفأة — فعّلها ليعود الزبون مرة أخرى بدل أن يجرّب غيرك.",
       action: { label: "فعّل الولاء", to: "/dashboard/settings" },
     });
@@ -123,7 +124,7 @@ export function buildInsights(
     out.push({
       id: "english-off",
       severity: "info",
-      icon: "🌐",
+      icon: "link",
       text: `${enViews} مشاهدة بالإنجليزية ومبدّل اللغة مطفأ — فعّله وأضف الأسماء الإنجليزية.`,
       action: { label: "فعّل الإنجليزية", to: "/dashboard/settings" },
     });
@@ -135,7 +136,7 @@ export function buildInsights(
     out.push({
       id: "sfda",
       severity: "info",
-      icon: "🥗",
+      icon: "salad",
       text: `${incomplete.length} طبقاً بلا سعرات أو صوديوم — إكمالها يعرض شارة التوافق مع هيئة الغذاء والدواء للزبون.`,
       action: { label: "أكمل البيانات", to: "/dashboard/dishes" },
     });
@@ -146,7 +147,7 @@ export function buildInsights(
     out.unshift({
       id: "no-images",
       severity: "high",
-      icon: "🖼️",
+      icon: "image",
       text: "لا يوجد صورة واحدة في منيوك — الصور أكثر ما يرفع الطلب. ارفعها دفعة واحدة في دقيقتين.",
       action: { label: "ارفع الصور", to: "/dashboard/dishes" },
     });

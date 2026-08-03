@@ -24,6 +24,7 @@ import {
   useToast,
 } from "@/components/ui";
 import { SupportWhatsAppButton } from "@/components/SupportWhatsApp";
+import { Icon } from "@/lib/icons";
 
 export function SupportBox({
   userId,
@@ -76,7 +77,9 @@ export function SupportBox({
   return (
     <Card className="flex flex-col gap-4">
       <div>
-        <h2 className="font-display text-lg font-extrabold text-ink">🎧 الدعم الفني</h2>
+        <h2 className="inline-flex items-center gap-2 font-display text-lg font-extrabold text-ink">
+          <Icon name="bell" size={17} className="shrink-0 text-gold" />{" "}
+          الدعم الفني</h2>
         <p className="mt-1 text-sm text-dim">
           اكتب مشكلتك أو طلبك وسيصل مباشرة لفريق كلاود منيو — وستجد الرد هنا.
         </p>

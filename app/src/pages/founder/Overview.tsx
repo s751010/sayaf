@@ -11,6 +11,7 @@ import { Badge, Button, Card, ErrorNote, Skeleton, useToast } from "@/components
 import { rest } from "@/lib/api";
 import { getOverview, logAudit, type FounderOverview } from "@/lib/founder";
 import { formatDate, formatPrice } from "@/lib/utils";
+import { Icon } from "@/lib/icons";
 
 type Ticket = {
   id: string;
@@ -157,7 +158,9 @@ export default function Overview() {
         <Skeleton className="mt-6 h-24" />
       ) : attention.length > 0 ? (
         <Card className="mt-6">
-          <h2 className="font-display text-base font-extrabold text-ink">⚠️ يحتاج انتباهك</h2>
+          <h2 className="inline-flex items-center gap-2 font-display text-base font-extrabold text-ink">
+          <Icon name="warn" size={17} className="shrink-0 text-gold" />{" "}
+          يحتاج انتباهك</h2>
           <ul className="mt-3 flex flex-col gap-2">
             {attention.map((a) => (
               <li key={a.text} className="flex flex-wrap items-center gap-2 text-sm">
@@ -177,7 +180,9 @@ export default function Overview() {
       )}
 
       <section className="mt-10">
-        <h2 className="mb-4 font-display text-lg font-extrabold text-ink">🎫 تذاكر الدعم</h2>
+        <h2 className="inline-flex items-center gap-2 mb-4 font-display text-lg font-extrabold text-ink">
+          <Icon name="ticket" size={17} className="shrink-0 text-gold" />{" "}
+          تذاكر الدعم</h2>
         {tickets === null ? (
           <Skeleton className="h-40" />
         ) : tickets.length === 0 ? (

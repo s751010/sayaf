@@ -19,6 +19,7 @@
  * العرض لا تعرف من أين جاء البند.
  */
 import { buildInsights, type Insight } from "./insights";
+import type { IconName } from "./icons";
 import type { AnalyticsRow, Dish, Restaurant } from "./types";
 import type { Menu } from "./types";
 
@@ -52,7 +53,7 @@ export function buildNextStep(
     out.push({
       id: "no-dishes",
       severity: "high",
-      icon: "🍽️",
+      icon: "plate",
       text: "منيوك فارغ — أضف أصنافك ليصير للكود الذي تطبعه ما يعرضه.",
       action: { label: "ابدأ منيوك", to: "/dashboard/dishes" },
     });
@@ -65,7 +66,7 @@ export function buildNextStep(
     out.push({
       id: "dishes-no-image",
       severity: noImage.length > n / 2 ? "high" : "info",
-      icon: "📷",
+      icon: "image",
       text:
         noImage.length === n
           ? `كل أطباقك (${n}) بلا صورة — الصورة أكثر ما يرفع الطلب على الصنف.`
@@ -78,11 +79,11 @@ export function buildNextStep(
   out.push(...buildInsights(dishes, rows, restaurant));
 
   /* ٤) نواقص تُرى في المنيو. */
-  const gaps: [boolean, string, string, string, string][] = [
-    [!restaurant.logo_image?.trim(), "logo", "🏷️", "منيوك بلا شعار — أول ما تراه عين الزبون أعلى الصفحة.", "/dashboard/design"],
-    [!restaurant.working_hours?.trim(), "hours", "🕐", "ساعات العمل غير محدّدة — الزبون لا يعرف «مفتوح الآن» بلا اتصال.", "/dashboard/settings"],
-    [!restaurant.google_review_url?.trim(), "review", "⭐", "لا رابط تقييم قوقل — أرخص قناة نمو لمطعمك.", "/dashboard/settings"],
-    [!restaurant.social_maps?.trim(), "maps", "📍", "موقعك غير مربوط بالخريطة — زبون جديد يصلك بضغطة.", "/dashboard/settings"],
+  const gaps: [boolean, string, IconName, string, string][] = [
+    [!restaurant.logo_image?.trim(), "logo", "tag", "منيوك بلا شعار — أول ما تراه عين الزبون أعلى الصفحة.", "/dashboard/design"],
+    [!restaurant.working_hours?.trim(), "hours", "clock", "ساعات العمل غير محدّدة — الزبون لا يعرف «مفتوح الآن» بلا اتصال.", "/dashboard/settings"],
+    [!restaurant.google_review_url?.trim(), "review", "star", "لا رابط تقييم قوقل — أرخص قناة نمو لمطعمك.", "/dashboard/settings"],
+    [!restaurant.social_maps?.trim(), "maps", "pin", "موقعك غير مربوط بالخريطة — زبون جديد يصلك بضغطة.", "/dashboard/settings"],
   ];
   for (const [missing, id, icon, text, to] of gaps) {
     if (missing) out.push({ id: `gap-${id}`, severity: "info", icon, text, action: { label: "أكمله", to } });
@@ -97,7 +98,7 @@ export function buildNextStep(
     out.push({
       id: "stale",
       severity: "info",
-      icon: "🌱",
+      icon: "sparkle",
       text: `لم تُضف طبقاً منذ ${staleDays} يوماً — جديدٌ أو عرضُ اليوم يعطي زبونك سبباً ليمسح الكود ثانيةً.`,
       action: { label: "أضف طبقاً", to: "/dashboard/dishes" },
     });

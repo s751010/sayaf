@@ -45,7 +45,7 @@ import {
   trackDishView,
   trackMenuView,
 } from "@/lib/data";
-import { parseCategoryOrder, sortCategories } from "@/lib/categories";
+import { categoryIcon, parseCategoryOrder, sortCategories } from "@/lib/categories";
 import { getTheme, RHYTHM, type DishLayout, type HeadingStyle } from "@/lib/themes";
 import { patternImage, PATTERN_SIZE } from "@/lib/patterns";
 import { loadThemeFont } from "@/lib/fonts";
@@ -56,6 +56,7 @@ import { ENFORCE_MENU_PUBLISHING } from "@/lib/config";
 import { K, getItem, getJSON, setItem, setJSON } from "@/lib/storage";
 import { categoryId, cn, formatPrice, httpUrl, whatsappUrl } from "@/lib/utils";
 import type { Dish, LoyaltyCustomer, Menu, Restaurant } from "@/lib/types";
+import { DishGlyph, Icon, type IconName } from "@/lib/icons";
 
 /* ── أدوات عرض صغيرة ──────────────────────────────────────────────── */
 const mFont: CSSProperties = { fontFamily: "var(--m-font)" };
@@ -154,7 +155,7 @@ function MenuSheet({
             className="flex h-8 w-8 items-center justify-center rounded-full"
             style={{ color: "var(--m-muted)", background: "var(--m-surface)" }}
           >
-            ✕
+            <Icon name="close" size={16} />
           </button>
         </div>
         {children}
@@ -295,7 +296,7 @@ function DishModal({
               className="flex h-44 w-full items-center justify-center text-7xl"
               style={{ background: "var(--m-bg)" } as CSSProperties}
             >
-              {dish.emoji ?? "🍽"}
+              <DishGlyph value={dish.emoji} size={30} />
             </div>
           }
         />
@@ -935,17 +936,21 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
    */
   const primaryLinks = [
     restaurant.google_review_url && {
-      icon: "⭐",
+      icon: "star" as const,
       label: en ? "Rate us on Google" : "قيّمنا على قوقل",
       url: httpUrl(restaurant.google_review_url),
     },
     restaurant.social_maps && {
-      icon: "📍",
+      icon: "pin" as const,
       label: en ? "Find us" : "موقعنا",
       url: httpUrl(restaurant.social_maps),
     },
-  ].filter(Boolean) as { icon: string; label: string; url: string }[];
+  ].filter(Boolean) as { icon: IconName; label: string; url: string }[];
 
+  /**
+   * ⚠️ شعارات المنصّات تبقى إيموجي عمداً: هي **علامات تجارية** يعرفها الزبون
+   * بشكلها، ورسمُ تقريبٍ لها يجعلها أسوأ لا أفضل.
+   */
   const socials = [
     restaurant.social_whatsapp && { icon: "💬", label: en ? "WhatsApp" : "واتساب", url: whatsappUrl(restaurant.social_whatsapp) },
     restaurant.social_instagram && { icon: "📸", label: en ? "Instagram" : "إنستغرام", url: httpUrl(restaurant.social_instagram) },
@@ -992,7 +997,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
           className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 px-4 py-2 text-center text-xs font-black"
           style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}
         >
-          <span>👁️ معاينة — هذا ما يراه الزبون. لا تُحتسب في مشاهداتك.</span>
+          <span className="inline-flex items-center gap-1.5"><Icon name="eye" size={14} /> معاينة — هذا ما يراه الزبون. لا تُحتسب في مشاهداتك.</span>
           <Link to="/dashboard" className="underline underline-offset-2">
             ← عُد للوحة
           </Link>
@@ -1031,7 +1036,12 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
                 : { border: "1px solid var(--m-border)", color: "var(--m-muted)" }
             }
           >
-            {live?.open ? "🟢" : "⚪"} {live?.label}
+            <span
+              aria-hidden="true"
+              className="inline-block h-2 w-2 rounded-full"
+              style={{ background: live?.open ? "var(--m-accent)" : "var(--m-muted)" }}
+            />{" "}
+            {live?.label}
             {live?.open && live.until ? ` · ${en ? "until" : "حتى"} ${live.until}` : ""} ›
           </button>
         ) : (
@@ -1091,7 +1101,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
                   borderRadius: "var(--m-radius)",
                 }}
               >
-                {s.icon} {s.label}
+                <Icon name={s.icon} size={15} /> {s.label}
               </a>
             ))}
           </div>
@@ -1133,13 +1143,16 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
                   key={c.name}
                   href={`#${categoryId(c.name)}`}
                   ref={(el) => { catRefs.current[c.name] = el; }}
-                  className="shrink-0 rounded-full px-3.5 py-1.5 text-sm font-bold transition-colors"
+                  className="flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-bold transition-colors"
                   style={
                     activeCat === c.name
                       ? { background: "var(--m-accent)", color: "var(--m-on-accent)" }
                       : { background: "var(--m-surface)", color: "var(--m-muted)" }
                   }
                 >
+                  {/* الرمز يرث لون الشريحة عبر `currentColor` — وهذا ما لا
+                      يفعله الإيموجي: كان `💛` أصفر فوق كل طابع من الستّة عشر. */}
+                  <Icon name={categoryIcon(c.name)} size={15} />
                   {c.name}
                 </a>
               ))}
@@ -1167,7 +1180,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
                 className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border"
                 style={{ borderColor: "var(--m-border)", color: "var(--m-muted)" }}
               >
-                🔍
+                <Icon name="search" size={16} />
               </button>
             )}
           </nav>
@@ -1183,7 +1196,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
               borderRadius: "var(--m-radius)",
             }}
           >
-            <p className="text-3xl">{search ? "🔍" : "🍽️"}</p>
+            <Icon name={search ? "search" : "plate"} size={34} className="mx-auto" strokeWidth={1.4} />
             <p className="mt-2 text-sm font-bold" style={{ color: "var(--m-text)" }}>
               {search
                 ? en
@@ -1295,7 +1308,11 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
             className={cn(rhythm.block, "space-y-1 text-center text-xs leading-relaxed")}
             style={{ color: "var(--m-muted)" }}
           >
-            {restaurant.address && <p>📍 {restaurant.address}</p>}
+            {restaurant.address && (
+              <p className="inline-flex items-center gap-1.5">
+                <Icon name="pin" size={13} /> {restaurant.address}
+              </p>
+            )}
             {restaurant.phone && <p dir="ltr">📞 {restaurant.phone}</p>}
             {restaurant.allergens_text && <p>⚠️ {restaurant.allergens_text}</p>}
             {/* أرقام غربية و«%» — نفس اتفاقية formatPrice ونِسب التحليلات،

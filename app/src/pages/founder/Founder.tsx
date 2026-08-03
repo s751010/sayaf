@@ -39,13 +39,14 @@ import MerchantDetail from "./MerchantDetail";
 import Money from "./Money";
 import Comms from "./Comms";
 import Health from "./Health";
+import { Icon } from "@/lib/icons";
 
 const NAV = [
-  { to: "/founder", label: "نظرة عامة", icon: "📊", end: true },
-  { to: "/founder/merchants", label: "التجّار", icon: "🏪" },
-  { to: "/founder/money", label: "المال والنمو", icon: "💰" },
-  { to: "/founder/comms", label: "التواصل", icon: "📣" },
-  { to: "/founder/health", label: "الصحة", icon: "🩺" },
+  { to: "/founder", label: "نظرة عامة", icon: "bars", end: true },
+  { to: "/founder/merchants", label: "التجّار", icon: "store" },
+  { to: "/founder/money", label: "المال والنمو", icon: "money" },
+  { to: "/founder/comms", label: "التواصل", icon: "megaphone" },
+  { to: "/founder/health", label: "الصحة", icon: "pulse" },
 ];
 
 export default function Founder() {
@@ -255,7 +256,7 @@ export default function Founder() {
                   )
                 }
               >
-                <span>{n.icon}</span>
+                <Icon name={n.icon} size={17} />
                 {n.label}
               </NavLink>
             ))}

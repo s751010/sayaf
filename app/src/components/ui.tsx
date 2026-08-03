@@ -15,6 +15,7 @@ import {
 } from "react";
 import { cn } from "@/lib/utils";
 import { K, getItem, setItem } from "@/lib/storage";
+import { Icon, type IconName } from "@/lib/icons";
 
 /* ── زر ────────────────────────────────────────────────────────────── */
 type ButtonVariant = "gold" | "outline" | "ghost" | "danger";
@@ -250,19 +251,20 @@ export function Skeleton({ className }: { className?: string }) {
 }
 
 export function EmptyState({
-  emoji,
+  icon,
   title,
   desc,
   action,
 }: {
-  emoji: string;
+  icon: IconName;
   title: string;
   desc?: string;
   action?: ReactNode;
 }) {
   return (
-    <Card className="flex flex-col items-center gap-2 py-12 text-center">
-      <span className="text-4xl">{emoji}</span>
+    <Card className="flex flex-col items-center gap-2.5 py-12 text-center">
+      {/* رمز بحدّ رفيع ولون خافت — شاشة الفراغ لا يجب أن تصرخ. */}
+      <Icon name={icon} size={38} className="text-faint" strokeWidth={1.4} />
       <p className="font-bold text-ink">{title}</p>
       {desc && <p className="max-w-sm text-sm text-dim">{desc}</p>}
       {action && <div className="mt-3">{action}</div>}
@@ -452,7 +454,7 @@ export function ThemeToggle({ className }: { className?: string }) {
         className
       )}
     >
-      {light ? "🌙" : "☀️"}
+      <Icon name={light ? "moon" : "sun"} size={17} />
     </button>
   );
 }

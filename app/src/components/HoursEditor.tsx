@@ -18,6 +18,7 @@ import {
 } from "@/lib/hours";
 import { cn } from "@/lib/utils";
 import { Badge, Switch } from "@/components/ui";
+import { Icon } from "@/lib/icons";
 
 export function HoursEditor({
   value,
@@ -70,7 +71,7 @@ export function HoursEditor({
           onClick={() => push(defaultWeek())}
           className="inline-flex items-center gap-1.5 rounded-lg border border-line-gold px-3 py-1.5 text-xs font-bold text-ink transition-colors hover:bg-gold/10"
         >
-          🕐 {legacyText ? "تحويل إلى جدول يومي" : "حدّد ساعات العمل"}
+          <Icon name="clock" size={15} /> {legacyText ? "تحويل إلى جدول يومي" : "حدّد ساعات العمل"}
         </button>
         {legacyText && (
           <p className="text-xs text-faint">
@@ -88,7 +89,7 @@ export function HoursEditor({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="text-sm font-bold text-ink">ساعات العمل</span>
         <Badge variant={state.open ? "green" : "neutral"}>
-          {state.open ? "🟢" : "⚪"} {state.label}
+          <span aria-hidden="true" className={state.open ? "inline-block h-2 w-2 rounded-full bg-good" : "inline-block h-2 w-2 rounded-full bg-faint"} /> {state.label}
         </Badge>
       </div>
 

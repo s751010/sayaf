@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 import { getSiteSetting } from "@/lib/data";
 import { SUPPORT_WHATSAPP } from "@/lib/config";
 import { cn, whatsappUrl } from "@/lib/utils";
+import { Icon } from "@/lib/icons";
 
 /** الرقم المعتمد، أو null إن لم يُضبط بعد. */
 export function useSupportWhatsApp(): string | null {
@@ -49,7 +50,7 @@ export function SupportWhatsAppButton({
         className
       )}
     >
-      💬 {label}
+      <Icon name="share" size={16} /> {label}
     </a>
   );
 }

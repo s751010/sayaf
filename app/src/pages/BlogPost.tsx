@@ -74,7 +74,7 @@ export default function BlogPostPage() {
 
         {post === null && (
           <EmptyState
-            emoji="🔍"
+            icon="search"
             title="المقال غير موجود"
             action={
               <Link to="/blog" className="font-bold text-gold hover:underline">

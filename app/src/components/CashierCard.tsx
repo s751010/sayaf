@@ -16,6 +16,7 @@ import {
 } from "@/lib/data";
 import { formatDate } from "@/lib/utils";
 import type { Restaurant } from "@/lib/types";
+import { Icon } from "@/lib/icons";
 
 export function CashierCard({ restaurant }: { restaurant: Restaurant }) {
   const toast = useToast();
@@ -77,7 +78,9 @@ export function CashierCard({ restaurant }: { restaurant: Restaurant }) {
     <Card className="mt-5 flex flex-col gap-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="font-display text-lg font-extrabold text-ink">🧾 رمز الكاشير</h2>
+          <h2 className="inline-flex items-center gap-2 font-display text-lg font-extrabold text-ink">
+          <Icon name="card" size={17} className="shrink-0 text-gold" />{" "}
+          رمز الكاشير</h2>
           <p className="mt-1 text-sm leading-relaxed text-dim">
             يفتح الكاشير صفحة الختم برمز خاص، فيبحث عن الزبون ويختم بطاقته — بلا
             وصول لأطباقك أو إعداداتك أو قائمة زبائنك.
@@ -108,7 +111,7 @@ export function CashierCard({ restaurant }: { restaurant: Restaurant }) {
             }
             className="mt-3 rounded-xl border border-line-gold px-4 py-2 text-xs font-bold text-ink hover:bg-gold/10"
           >
-            📋 نسخ الرمز
+            <Icon name="copy" size={15} /> نسخ الرمز
           </button>
         </div>
       )}
@@ -137,7 +140,7 @@ export function CashierCard({ restaurant }: { restaurant: Restaurant }) {
                 }
                 className="rounded-xl border border-line-gold px-3 py-1.5 text-xs font-bold text-ink hover:bg-gold/10"
               >
-                📋 نسخ الرابط
+                <Icon name="copy" size={15} /> نسخ الرابط
               </button>
               <a
                 href={url}

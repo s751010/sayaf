@@ -16,6 +16,7 @@ import { displayAllergens } from "@/lib/allergens";
 import type { ImageShape, MenuDesign, PriceStyle } from "@/lib/themes";
 import type { Dish } from "@/lib/types";
 import { cn, formatPrice } from "@/lib/utils";
+import { DishGlyph, Icon } from "@/lib/icons";
 
 const mFont: CSSProperties = { fontFamily: "var(--m-font)" };
 
@@ -96,7 +97,7 @@ function Calories({ dish, en }: { dish: Dish; en: boolean }) {
   if (dish.calories == null) return null;
   return (
     <span className="whitespace-nowrap text-[10px]" style={{ color: "var(--m-muted)" }}>
-      🔥 {dish.calories} {en ? "cal" : "سعرة"}
+      <Icon name="flame" size={12} /> {dish.calories} {en ? "cal" : "سعرة"}
     </span>
   );
 }
@@ -198,7 +199,9 @@ export function DishCard({
               style={{ color: "var(--m-text)", ...mFont }}
             >
               {name(dish, en)}
-              {dish.featured && <span style={{ color: "var(--m-accent)" }}> ★</span>}
+              {dish.featured && (
+              <Icon name="star" size={12} className="mb-0.5 inline-block align-middle" />
+            )}
             </span>
             {/* الخط النقطي يقود العين من الاسم إلى السعر — تقليد المنيوهات الراقية.
                 وهو خيار طابع الآن: منيو مينيمال يريد المسافة فارغة لا منقّطة.
@@ -255,7 +258,7 @@ export function DishCard({
               className="flex aspect-[16/10] w-full items-center justify-center text-6xl"
               style={{ background: "var(--m-bg-2)" } as CSSProperties}
             >
-              {dish.emoji ?? "🍽"}
+              <DishGlyph value={dish.emoji} size={28} />
             </div>
           }
         />
@@ -268,7 +271,9 @@ export function DishCard({
             style={{ color: "var(--m-text)", ...mFont }}
           >
             {name(dish, en)}
-            {dish.featured && <span style={{ color: "var(--m-accent)" }}> ★</span>}
+            {dish.featured && (
+              <Icon name="star" size={12} className="mb-0.5 inline-block align-middle" />
+            )}
           </p>
           {showDesc && (
             <p className={cn(DESC_2_LINES, "text-xs leading-relaxed")} style={{ color: "var(--m-muted)" }}>
@@ -306,7 +311,7 @@ export function DishCard({
               className="flex aspect-square w-full items-center justify-center text-5xl"
               style={{ background: "var(--m-bg-2)", borderRadius: radius } as CSSProperties}
             >
-              {dish.emoji ?? "🍽"}
+              <DishGlyph value={dish.emoji} size={28} />
             </div>
           }
         />
@@ -317,7 +322,9 @@ export function DishCard({
           style={{ color: "var(--m-text)", ...mFont }}
         >
           {name(dish, en)}
-          {dish.featured && <span style={{ color: "var(--m-accent)" }}> ★</span>}
+          {dish.featured && (
+              <Icon name="star" size={12} className="mb-0.5 inline-block align-middle" />
+            )}
         </p>
         {showDesc && (
           <p className={cn(DESC_2_LINES, "text-xs leading-relaxed")} style={{ color: "var(--m-muted)" }}>

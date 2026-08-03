@@ -42,6 +42,7 @@ import { STARTER_TYPES } from "@/lib/starterMenus";
 import { cn, normalizeDigits, strOrNull } from "@/lib/utils";
 import { useDashboard } from "./Dashboard";
 import type { Restaurant } from "@/lib/types";
+import { Icon } from "@/lib/icons";
 
 /** حسابات التواصل — تُعرض عند الحاجة لا كخمسة حقول فارغة دائمة. */
 const SOCIALS = [
@@ -209,7 +210,9 @@ export default function Settings() {
             </Field>
             <div className="flex items-center justify-between rounded-xl border border-line bg-panel2 px-4 py-3 sm:col-span-2">
               <div>
-                <p className="text-sm font-bold text-ink">🌐 منيو ثنائي اللغة (عربي/إنجليزي)</p>
+                <p className="inline-flex items-center gap-2 text-sm font-bold text-ink">
+          <Icon name="link" size={17} className="shrink-0 text-gold" />{" "}
+          منيو ثنائي اللغة (عربي/إنجليزي)</p>
                 <p className="text-xs text-faint">
                   يُظهر مبدّل اللغة للزبون — أضف الأسماء الإنجليزية داخل كل طبق.
                 </p>
@@ -361,8 +364,9 @@ export default function Settings() {
           subtitle="اربط منيوك بمنصّات إعلاناتك لتقيس من أين يأتي زبائنك"
         >
           <div className="flex flex-col gap-4">
-            <p className="rounded-xl border border-line bg-panel2 px-4 py-3 text-xs leading-relaxed text-dim">
-              ⚠️ تشغيل أيٍّ من هذه يعني أن سلوك زبائنك في منيوك يُشارَك مع تلك
+            <p className="inline-flex items-center gap-2 rounded-xl border border-line bg-panel2 px-4 py-3 text-xs leading-relaxed text-dim">
+          <Icon name="warn" size={17} className="shrink-0 text-gold" />{" "}
+          تشغيل أيٍّ من هذه يعني أن سلوك زبائنك في منيوك يُشارَك مع تلك
               المنصّة. اتركها فارغة إن لم تكن تعلن — منيوك لا يحمّل أي سكربت
               خارجي بدونها إطلاقاً.
             </p>

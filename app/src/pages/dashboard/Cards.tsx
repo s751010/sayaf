@@ -32,6 +32,7 @@ import { getMyMenus } from "@/lib/data";
 import { cn } from "@/lib/utils";
 import { useDashboard } from "./Dashboard";
 import { PrintTabs } from "./Tabs";
+import { Icon } from "@/lib/icons";
 
 export default function Cards() {
   const { restaurant } = useDashboard();
@@ -260,8 +261,9 @@ export default function Cards() {
                 </label>
               )}
               {!restaurant.logo_image?.trim() && (
-                <p className="text-xs text-faint">
-                  💡 ارفع شعار مطعمك من الإعدادات ليظهر على البطاقة وداخل الكود.
+                <p className="inline-flex items-center gap-2 text-xs text-faint">
+          <Icon name="sparkle" size={17} className="shrink-0 text-gold" />{" "}
+          ارفع شعار مطعمك من الإعدادات ليظهر على البطاقة وداخل الكود.
                 </p>
               )}
             </Card>
@@ -354,7 +356,7 @@ export default function Cards() {
                     disabled={busy}
                     className="w-full"
                   >
-                    🖨️ اطبع ورقة ({meta.perSheet} في A4)
+                    <Icon name="printer" size={15} /> اطبع ورقة ({meta.perSheet} في A4)
                   </Button>
                 </div>
 

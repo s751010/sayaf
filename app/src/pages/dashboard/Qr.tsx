@@ -6,6 +6,7 @@ import { Button, Card, ErrorNote, Field, Input, Switch, useToast } from "@/compo
 import { PreviewMenuButton } from "@/components/site";
 import { useDashboard } from "./Dashboard";
 import { PrintTabs } from "./Tabs";
+import { Icon } from "@/lib/icons";
 
 function download(href: string, filename: string) {
   const a = document.createElement("a");
@@ -169,7 +170,9 @@ export default function Qr() {
           {restaurant.logo_image?.trim() && (
             <div className="flex items-center justify-between gap-3 rounded-xl border border-line bg-panel2 px-4 py-3">
               <div>
-                <p className="text-sm font-bold text-ink">🏷️ شعارك داخل الكود</p>
+                <p className="inline-flex items-center gap-2 text-sm font-bold text-ink">
+          <Icon name="tag" size={17} className="shrink-0 text-gold" />{" "}
+          شعارك داخل الكود</p>
                 <p className="text-xs text-faint">
                   يميّز كودك ويطمئن الزبون أنه كود مطعمك.
                 </p>
@@ -185,7 +188,7 @@ export default function Qr() {
                   download(dataUrl, `qr-${slug}${table ? `-table-${table}` : ""}.png`)
                 }
               >
-                ⬇️ PNG
+                <Icon name="download" size={15} /> PNG
               </Button>
               <Button variant="outline" className="flex-1" onClick={downloadSvg}>
                 ⬇️ SVG
@@ -225,7 +228,7 @@ export default function Qr() {
           />
         </Field>
         <Button onClick={printBatch} disabled={batchBusy}>
-          {batchBusy ? "جارٍ التجهيز…" : "🖨️ طباعة الكل"}
+          {batchBusy ? "جارٍ التجهيز…" : "طباعة الكل"}
         </Button>
       </Card>
     </div>

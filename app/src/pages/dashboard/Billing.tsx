@@ -16,6 +16,7 @@ import { cn, formatDate, formatPrice } from "@/lib/utils";
 import type { Subscription } from "@/lib/types";
 import { PricingCards } from "@/pages/Landing";
 import { useDashboard } from "./Dashboard";
+import { Icon } from "@/lib/icons";
 
 declare global {
   interface Window {
@@ -199,7 +200,9 @@ export default function Billing() {
           يُسمّى هذا فاتورة في أي نصّ معروض. */}
       {payments && payments.length > 0 && (
         <Card className="mt-4">
-          <p className="font-display font-extrabold text-ink">🧾 سجل دفعاتك</p>
+          <p className="inline-flex items-center gap-2 font-display font-extrabold text-ink">
+          <Icon name="card" size={17} className="shrink-0 text-gold" />{" "}
+          سجل دفعاتك</p>
           <ul className="mt-3 flex flex-col divide-y divide-line">
             {payments.map((p) => (
               <li key={p.id} className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5 py-2.5">

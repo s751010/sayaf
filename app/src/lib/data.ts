@@ -837,7 +837,7 @@ export async function duplicateDish(
       description_en: d.description_en,
       price: d.price ?? 0,
       category: d.category,
-      emoji: d.emoji ?? "🍽",
+      emoji: d.emoji ?? "",
       image: d.image,
       // النسخة ليست مميّزة: «طبق اليوم» واحد، ونسخُه يفسد بطاقته في المنيو.
       featured: false,

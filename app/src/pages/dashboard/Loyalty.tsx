@@ -212,7 +212,7 @@ export default function Loyalty() {
       ) : filtered.length === 0 ? (
         <div className="mt-5">
           <EmptyState
-            emoji="💛"
+            icon="heart"
             title={q ? "لا نتائج" : "لا يوجد عملاء بعد"}
             desc={q ? undefined : "الزبائن ينضمون من صفحة المنيو — عند كل زيارة اختم بطاقتهم من هنا."}
           />

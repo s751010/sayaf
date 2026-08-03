@@ -60,6 +60,7 @@ import { ReorderList } from "@/components/Reorder";
 import { CategoryManager } from "@/components/CategoryManager";
 import { StarterMenu } from "@/components/StarterMenu";
 import { aliasType, type StarterDish } from "@/lib/starterMenus";
+import { DishGlyph, Icon, iconNameOf, iconValue, type IconName } from "@/lib/icons";
 import { cn, formatPrice, numOrNull, strOrNull } from "@/lib/utils";
 import { computedNutrition } from "@/lib/nutrition";
 import type { Dish } from "@/lib/types";
@@ -92,7 +93,7 @@ const EMPTY_FORM: Omit<DishForm, "menu_id"> = {
   description: "",
   price: "",
   category: "",
-  emoji: "🍔",
+  emoji: iconValue("burger"),
   image: "",
   featured: false,
   available: true,
@@ -111,7 +112,7 @@ function toForm(d: Dish): DishForm {
     description: d.description ?? "",
     price: d.price != null ? String(d.price) : "",
     category: d.category ?? "",
-    emoji: d.emoji ?? "🍽",
+    emoji: d.emoji ?? "",
     image: d.image ?? "",
     featured: d.featured ?? false,
     available: d.available ?? true,
@@ -139,7 +140,7 @@ function toPayload(f: DishForm): DishPayload {
     description: strOrNull(f.description),
     price: numOrNull(f.price) ?? 0,
     category: strOrNull(f.category),
-    emoji: strOrNull(f.emoji) ?? "🍽",
+    emoji: f.emoji.trim(),
     image: strOrNull(f.image),
     featured: f.featured,
     available: f.available,
@@ -153,7 +154,18 @@ function toPayload(f: DishForm): DishPayload {
   };
 }
 
-const QUICK_EMOJIS = ["🍔", "🍕", "🍗", "🥩", "🍤", "🍝", "🥗", "🍚", "🌯", "🧆", "🍰", "🍩", "☕", "🧋", "🥤", "🍹"];
+/**
+ * رموز الطبق المقترحة — من مجموعتنا لا إيموجي.
+ *
+ * ⚠️ **الإيموجي القديم يبقى يعمل**: من اختار `🍔` قبل اليوم يبقى `🍔` معروضاً
+ * كما هو (انظر `DishGlyph`)، وحقل «رمز مخصّص» يقبله. غيّرنا ما يُقترح لا ما
+ * هو محفوظ — بيانات ١٩ مطعماً لا تُبدَّل من تحت أصحابها.
+ */
+const QUICK_ICONS: IconName[] = [
+  "burger", "pizza", "sandwich", "skewer", "fish", "kabsa", "pot", "salad",
+  "mezze", "egg", "fries", "bread", "croissant", "cake", "dallah", "cup",
+  "istikana", "icedcup", "juice", "bottle",
+];
 
 /** اسم التصنيف الافتراضي — يطابق ما يعرضه `MenuPage` للزبون. */
 const UNCATEGORIZED = "أخرى";
@@ -239,7 +251,7 @@ function DishRow({
         alt=""
         className="h-12 w-12 rounded-xl object-cover"
         wrapperClassName="h-12 w-12 shrink-0 rounded-xl bg-panel2 text-2xl"
-        fallback={d.emoji ?? "🍽"}
+        fallback={<DishGlyph value={d.emoji} size={24} className="text-dim" />}
       />
       <div className="min-w-0 flex-1 basis-[55%] sm:basis-auto">
         <p className="truncate font-bold text-ink">
@@ -259,7 +271,7 @@ function DishRow({
         <p className="flex items-center gap-2 text-xs text-faint">
           <PriceCell dish={d} onSave={onPrice} />
           <span>
-            {showCategory && `${d.category ?? "بدون تصنيف"} · `}👁️ {d.views ?? 0}
+            {showCategory && `${d.category ?? "بدون تصنيف"} · `}<Icon name="eye" size={12} className="inline-block align-[-1px]" /> {d.views ?? 0}
           </span>
         </p>
       </div>
@@ -512,7 +524,7 @@ export default function Dishes() {
         price: d.price,
         category: d.category,
         description: null,
-        emoji: d.emoji,
+        emoji: iconValue(d.icon),
         line: 0,
       })),
       menuId
@@ -643,7 +655,7 @@ export default function Dishes() {
         </div>
       ) : filtered.length === 0 && filter ? (
         <div className="mt-5">
-          <EmptyState emoji="🔍" title="لا نتائج لبحثك" />
+          <EmptyState icon="search" title="لا نتائج لبحثك" />
         </div>
       ) : filtered.length === 0 ? (
         /**
@@ -656,7 +668,7 @@ export default function Dishes() {
          */
         <div className="mt-6">
           <div className="mb-5 text-center">
-            <span className="text-4xl">🍽️</span>
+            <Icon name="plate" size={40} className="mx-auto text-faint" strokeWidth={1.4} />
             <h2 className="mt-2 font-display text-xl font-black text-ink">
               ابدأ منيوك — اختر أسهل طريق لك
             </h2>
@@ -665,21 +677,21 @@ export default function Dishes() {
           <div className="grid gap-3 sm:grid-cols-3">
             {[
               {
-                emoji: "⚡",
+                icon: "sparkle" as const,
                 title: "قائمة جاهزة",
                 desc: `أصناف شائعة لـ«${aliasType(restaurant.type)}» تختار منها وتعدّلها.`,
                 note: "الأسرع — دقيقة واحدة",
                 onClick: () => setStarter(true),
               },
               {
-                emoji: "⬆️",
+                icon: "upload" as const,
                 title: "الصق منيوك",
                 desc: "عندك المنيو في إكسل أو مكتوب؟ الصقه أو ارفع CSV.",
                 note: "الأدقّ — أسعارك أنت",
                 onClick: () => setImporting(true),
               },
               {
-                emoji: "＋",
+                icon: "plus" as const,
                 title: "أضف صنفاً صنفاً",
                 desc: "ابدأ بطبق واحد وأكمل على راحتك.",
                 note: "للمنيو الصغير",
@@ -692,7 +704,7 @@ export default function Dishes() {
                 onClick={c.onClick}
                 className="flex flex-col items-start gap-1.5 rounded-2xl border border-line bg-panel p-5 text-start transition-colors hover:border-gold/50 hover:bg-gold/[.04]"
               >
-                <span className="text-3xl">{c.emoji}</span>
+                <Icon name={c.icon} size={26} className="text-gold" />
                 <span className="font-display text-base font-extrabold text-ink">{c.title}</span>
                 <span className="text-xs leading-relaxed text-dim">{c.desc}</span>
                 <span className="mt-auto pt-2 text-[11px] font-bold text-gold">{c.note}</span>
@@ -827,26 +839,42 @@ export default function Dishes() {
               shape="square"
             />
           </div>
-          <Field label="الإيموجي (يظهر عند غياب الصورة)" className="sm:col-span-2">
+          <Field label="الرمز (يظهر عند غياب الصورة)" className="sm:col-span-2">
             <div className="flex flex-wrap items-center gap-1.5">
-              {QUICK_EMOJIS.map((em) => (
-                <button
-                  key={em}
-                  type="button"
-                  onClick={() => set("emoji", em)}
-                  className={cn(
-                    "flex h-9 w-9 items-center justify-center rounded-lg border text-lg",
-                    form.emoji === em ? "border-gold bg-gold/12" : "border-line hover:bg-ink/5"
-                  )}
+              {QUICK_ICONS.map((name) => {
+                const v = iconValue(name);
+                return (
+                  <button
+                    key={name}
+                    type="button"
+                    onClick={() => set("emoji", form.emoji === v ? "" : v)}
+                    aria-pressed={form.emoji === v}
+                    className={cn(
+                      "flex h-9 w-9 items-center justify-center rounded-lg border",
+                      form.emoji === v
+                        ? "border-gold bg-gold/12 text-gold"
+                        : "border-line text-dim hover:bg-ink/5"
+                    )}
+                  >
+                    <Icon name={name} size={20} />
+                  </button>
+                );
+              })}
+              {/* الإيموجي القديم يُعرض هنا كما هو ولا يُمحى بفتح الفورم. */}
+              {form.emoji && !iconNameOf(form.emoji) && (
+                <span
+                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-gold bg-gold/12 text-lg"
+                  title="رمزك الحالي"
                 >
-                  {em}
-                </button>
-              ))}
+                  {form.emoji}
+                </span>
+              )}
               <Input
-                value={form.emoji}
+                value={iconNameOf(form.emoji) ? "" : form.emoji}
                 onChange={(e) => set("emoji", e.target.value)}
                 className="w-16 text-center"
-                aria-label="إيموجي مخصص"
+                placeholder="أو 🍕"
+                aria-label="رمز مخصّص"
               />
             </div>
           </Field>

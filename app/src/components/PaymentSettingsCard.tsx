@@ -21,6 +21,7 @@ import {
 } from "@/lib/data";
 import { strOrNull } from "@/lib/utils";
 import type { Restaurant } from "@/lib/types";
+import { Icon } from "@/lib/icons";
 
 export function PaymentSettingsCard({
   restaurant,
@@ -104,7 +105,9 @@ export function PaymentSettingsCard({
   return (
     <Card className="flex flex-col gap-4">
       <div>
-        <h2 className="font-display text-lg font-extrabold text-ink">💳 الدفع الإلكتروني</h2>
+        <h2 className="inline-flex items-center gap-2 font-display text-lg font-extrabold text-ink">
+          <Icon name="money" size={17} className="shrink-0 text-gold" />{" "}
+          الدفع الإلكتروني</h2>
         <p className="mt-1 text-sm text-dim">
           يطلب زبونك من المنيو ويدفع مباشرة <b className="text-ink">لحسابك أنت</b> —
           كلاود منيو لا تمرّ بها أموالك ولا تأخذ عمولة عليها.

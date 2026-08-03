@@ -12,6 +12,7 @@ import type { CSSProperties } from "react";
 import { SafeImage } from "@/components/ui";
 import type { Dish } from "@/lib/types";
 import { formatPrice } from "@/lib/utils";
+import { Icon, DishGlyph } from "@/lib/icons";
 
 const mFont: CSSProperties = { fontFamily: "var(--m-font)" };
 
@@ -48,7 +49,7 @@ export function DishOfTheDay({
             className="flex h-28 w-28 items-center justify-center text-4xl sm:h-40 sm:w-40"
             style={{ background: "var(--m-bg-2)" } as CSSProperties}
           >
-            {dish.emoji ?? "🍽"}
+            <DishGlyph value={dish.emoji} size={34} />
           </div>
         }
       />
@@ -58,7 +59,7 @@ export function DishOfTheDay({
           className="inline-flex w-fit items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-black"
           style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}
         >
-          ⭐ {en ? "Today's pick" : "طبق اليوم"}
+          <Icon name="star" size={13} /> {en ? "Today's pick" : "طبق اليوم"}
         </span>
         <p
           className="mt-0.5 truncate text-lg font-black"

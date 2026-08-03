@@ -9,6 +9,7 @@ import { useState } from "react";
 import { parseOptions, serializeOptions, type DishOption } from "@/lib/options";
 import { Input } from "@/components/ui";
 import { cn } from "@/lib/utils";
+import { Icon } from "@/lib/icons";
 
 /**
  * الصفوف حالة داخلية مقصودة: صفّ جديد فارغ لا يُسلسل (يختفي فوراً لو اشتُقّت
@@ -89,7 +90,7 @@ export function OptionsEditor({
               onClick={() => push(rows.filter((_, j) => j !== i))}
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-dim transition-colors hover:bg-bad/10 hover:text-bad"
             >
-              ✕
+              <Icon name="close" size={14} />
             </button>
           </div>
         ))}

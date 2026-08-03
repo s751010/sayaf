@@ -60,6 +60,7 @@ import Analytics from "./Analytics";
 import Loyalty from "./Loyalty";
 import Settings from "./Settings";
 import Billing from "./Billing";
+import { Icon } from "@/lib/icons";
 
 /* ── السياق المشترك ───────────────────────────────────────────────── */
 interface DashboardCtx {
@@ -195,17 +196,17 @@ function Onboarding({ user, onDone }: { user: SessionUser; onDone: (r: Restauran
  * وكل المسارات القديمة تبقى تعمل (انظر `Routes` أدناه) — التجّار يحفظون روابط.
  */
 const NAV = [
-  { to: "/dashboard", label: "الرئيسية", icon: "🏠", end: true },
-  { to: "/dashboard/dishes", label: "منيوي", icon: "🍽️" },
-  { to: "/dashboard/design", label: "التصميم", icon: "🎨" },
+  { to: "/dashboard", label: "الرئيسية", icon: "home", end: true },
+  { to: "/dashboard/dishes", label: "منيوي", icon: "plate" },
+  { to: "/dashboard/design", label: "التصميم", icon: "palette" },
   // بطاقة الكاشير وأكواد QR فعلٌ واحد عند التاجر («أجهّز ما يُطبع»).
-  { to: "/dashboard/cards", label: "الطباعة", icon: "🖨️" },
-  { to: "/dashboard/analytics", label: "التحليلات", icon: "📊" },
-  { to: "/dashboard/settings", label: "الإعدادات", icon: "⚙️" },
+  { to: "/dashboard/cards", label: "الطباعة", icon: "printer" },
+  { to: "/dashboard/analytics", label: "التحليلات", icon: "bars" },
+  { to: "/dashboard/settings", label: "الإعدادات", icon: "sliders" },
 ];
 
 /** عنصر لا يراه إلا صاحب المنصة — يُلحق بـ`NAV` عند التحقّق فقط. */
-const FOUNDER_NAV = { to: "/founder", label: "لوحة المؤسس", icon: "🛡️", end: false };
+const FOUNDER_NAV = { to: "/founder", label: "لوحة المؤسس", icon: "shield", end: false };
 
 function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode }) {
   const { logout } = useAuth();
@@ -243,7 +244,7 @@ function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode
           )
         }
       >
-        <span className={compact ? "text-lg" : "text-base"}>{n.icon}</span>
+        <Icon name={n.icon} size={compact ? 19 : 18} />
         {n.label}
       </NavLink>
     ));
@@ -254,7 +255,10 @@ function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode
           `sticky top-0`، فشريط ثابت كان سيغطّيها. */}
       {ctx.readOnly && (
         <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 bg-gold px-4 py-1.5 text-center text-xs font-black text-on-gold">
-          <span>👁️ تشاهد لوحة «{ctx.restaurant.name}» كمؤسس — العرض فقط</span>
+          <span className="inline-flex items-center gap-1.5">
+            <Icon name="eye" size={15} />
+            تشاهد لوحة «{ctx.restaurant.name}» كمؤسس — العرض فقط
+          </span>
           <Link to={`/founder/merchants/${ctx.restaurant.id}`} className="underline">
             خروج ←
           </Link>
@@ -276,7 +280,7 @@ function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode
                   !ctx.ent.active ? "neutral" : ctx.ent.trialDaysLeft === 1 ? "red" : "gold"
                 }
               >
-                {planLabel(ctx.ent)} ⚙
+                {planLabel(ctx.ent)} <Icon name="chevron" size={13} />
               </Badge>
             </Link>
             <ThemeToggle />
@@ -286,7 +290,7 @@ function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode
             onClick={() => { logout(); navigate("/"); }}
             className="mt-2 w-full rounded-xl px-3.5 py-2 text-right text-sm font-bold text-bad hover:bg-bad/10"
           >
-            ⏻ تسجيل خروج
+            <Icon name="lock" size={15} /> تسجيل خروج
           </button>
         </div>
       </aside>
@@ -320,7 +324,7 @@ function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode
                 aria-label="تسجيل خروج"
                 className="flex h-9 w-9 items-center justify-center rounded-full border border-line text-bad"
               >
-                ⏻
+                <Icon name="lock" size={16} />
               </button>
             </div>
           </div>

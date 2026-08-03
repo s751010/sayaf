@@ -8,6 +8,7 @@
 import { useMemo, useState } from "react";
 import { Button, ErrorNote, Field, Modal, Select } from "@/components/ui";
 import { aliasType, starterFor, STARTER_TYPES, type StarterDish } from "@/lib/starterMenus";
+import { Icon } from "@/lib/icons";
 import { formatPrice } from "@/lib/utils";
 import type { Menu } from "@/lib/types";
 
@@ -81,8 +82,9 @@ export function StarterMenu({
           اختر القالب الأقرب لمطعمك، شِل ما لا تبيعه، ثم احفظ — وعدّل الأسعار
           والصور على راحتك بعدها.
         </p>
-        <p className="rounded-xl border border-gold/30 bg-gold/[.06] px-4 py-2.5 text-xs font-bold text-ink">
-          ⚠️ الأسعار مقترحة تقريبية — راجعها قبل نشر منيوك.
+        <p className="inline-flex items-center gap-2 rounded-xl border border-gold/30 bg-gold/[.06] px-4 py-2.5 text-xs font-bold text-ink">
+          <Icon name="warn" size={17} className="shrink-0 text-gold" />{" "}
+          الأسعار مقترحة تقريبية — راجعها قبل نشر منيوك.
         </p>
 
         <div className="grid gap-3 sm:grid-cols-2">
@@ -132,7 +134,7 @@ export function StarterMenu({
                         onChange={() => toggle(d.name)}
                         className="h-4 w-4 accent-[var(--c-gold)]"
                       />
-                      <span className="text-lg">{d.emoji}</span>
+                      <Icon name={d.icon} size={19} className="text-dim" />
                       <span className={on ? "flex-1 text-sm text-ink" : "flex-1 text-sm text-faint line-through"}>
                         {d.name}
                       </span>

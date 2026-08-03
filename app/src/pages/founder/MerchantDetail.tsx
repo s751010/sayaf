@@ -47,6 +47,7 @@ import { getTheme } from "@/lib/themes";
 import type { Dish, Menu, Restaurant } from "@/lib/types";
 import { formatDate, formatPrice } from "@/lib/utils";
 import { SubBadge } from "./Merchants";
+import { Icon, DishGlyph } from "@/lib/icons";
 
 /** يبني الـpayload كاملاً من الصف الحالي — القاعدة (أ): مفتاح ناقص يُسقَط بصمت. */
 function payloadOf(r: Restaurant): RestaurantSettingsPayload {
@@ -441,7 +442,9 @@ export default function MerchantDetail() {
 
       {/* قوائمه وأطباقه */}
       <section className="mt-8">
-        <h2 className="mb-3 font-display text-lg font-extrabold text-ink">🍽️ قوائمه وأطباقه</h2>
+        <h2 className="inline-flex items-center gap-2 mb-3 font-display text-lg font-extrabold text-ink">
+          <Icon name="plate" size={17} className="shrink-0 text-gold" />{" "}
+          قوائمه وأطباقه</h2>
         {menus === null || dishes === null ? (
           <Skeleton className="h-32" />
         ) : menus.length === 0 ? (
@@ -473,7 +476,7 @@ export default function MerchantDetail() {
                           key={d.id}
                           className="rounded-lg border border-line px-2 py-1 text-xs text-dim"
                         >
-                          {d.emoji} {d.name} · {formatPrice(d.price ?? 0)}
+                          <DishGlyph value={d.emoji} size={16} /> {d.name} · {formatPrice(d.price ?? 0)}
                         </li>
                       ))}
                       {mine.length > 12 && (
@@ -491,7 +494,9 @@ export default function MerchantDetail() {
       {/* منطقة الخطر */}
       <section className="mt-10">
         <Card className="border-bad/30">
-          <h2 className="font-display text-base font-extrabold text-bad">⚠️ منطقة الخطر</h2>
+          <h2 className="inline-flex items-center gap-2 font-display text-base font-extrabold text-bad">
+          <Icon name="warn" size={17} className="shrink-0 text-gold" />{" "}
+          منطقة الخطر</h2>
           <p className="mt-1.5 text-sm text-dim">
             حذف المطعم يمحو قوائمه ({menus?.length ?? 0}) وأطباقه ({dishes?.length ?? 0}) وبطاقات
             ولائه ({row.loyalty_count}) ورمز كاشيره وتحليلاته — نهائياً وبلا تراجع. حساب المالك

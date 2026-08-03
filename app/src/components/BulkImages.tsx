@@ -10,6 +10,7 @@ import { Button, ErrorNote, Modal, SafeImage, Select } from "@/components/ui";
 import { uploadImage } from "@/lib/api";
 import { ACCEPT, compress, imageFileError, uniqueName } from "@/lib/image";
 import type { Dish } from "@/lib/types";
+import { Icon } from "@/lib/icons";
 
 /** كم صورة تُرفع في وقت واحد — أعلى من ذلك يخنق شبكة الجوال. */
 const CONCURRENCY = 3;
@@ -193,7 +194,7 @@ export function BulkImages({
             <p className="text-sm text-dim">
               اختر صور أطباقك كلها مرة واحدة — نضغطها ونرفعها، ثم تربط كل صورة بطبقها.
             </p>
-            <Button onClick={() => inputRef.current?.click()}>📤 اختر الصور</Button>
+            <Button onClick={() => inputRef.current?.click()}><Icon name="upload" size={16} /> اختر الصور</Button>
           </div>
         ) : (
           <>
@@ -242,7 +243,9 @@ export function BulkImages({
                     {it.status === "pending" ? (
                       <p className="mt-1 text-xs text-dim">⏳ جارٍ الرفع…</p>
                     ) : it.status === "error" ? (
-                      <p className="mt-1 text-xs text-bad">⚠️ {it.error}</p>
+                      <p className="inline-flex items-center gap-2 mt-1 text-xs text-bad">
+          <Icon name="warn" size={17} className="shrink-0 text-gold" />{" "}
+          {it.error}</p>
                     ) : (
                       <Select
                         value={it.dishId}

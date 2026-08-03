@@ -42,6 +42,7 @@ import {
 import { SEASONS, seasonWindowOpen } from "@/lib/seasons";
 import { cn } from "@/lib/utils";
 import { useDashboard } from "./Dashboard";
+import { Icon } from "@/lib/icons";
 
 /**
  * خيارات شكل العرض. `null` = «اترك افتراضي الطابع» — وهو خيار حقيقي لا غياب
@@ -148,7 +149,9 @@ export default function Design() {
 
       {/* ── الطابع ── */}
       <section className="mt-6">
-        <h2 className="font-display text-lg font-extrabold text-ink">🎨 طابع منيوك</h2>
+        <h2 className="inline-flex items-center gap-2 font-display text-lg font-extrabold text-ink">
+          <Icon name="palette" size={17} className="shrink-0 text-gold" />{" "}
+          طابع منيوك</h2>
         <p className="mt-1 text-sm text-dim">
           كل طابع تصميم كامل — زخرفة وترويسة وتخطيط أطباق وخطّ، لا لوناً فقط.
         </p>
@@ -292,7 +295,9 @@ export default function Design() {
 
       {/* ── الهوية البصرية ── */}
       <section className="mt-9">
-        <h2 className="font-display text-lg font-extrabold text-ink">🏷️ شعارك وغلافك</h2>
+        <h2 className="inline-flex items-center gap-2 font-display text-lg font-extrabold text-ink">
+          <Icon name="tag" size={17} className="shrink-0 text-gold" />{" "}
+          شعارك وغلافك</h2>
         <p className="mt-1 text-sm text-dim">أول ما تراه عين الزبون أعلى المنيو.</p>
         <Card className="mt-4">
           <div className="grid gap-4 sm:grid-cols-2">
@@ -333,7 +338,9 @@ export default function Design() {
       {/* ── الزينة الموسمية ── */}
       {seasons.length > 0 && (
         <section className="mt-9">
-          <h2 className="font-display text-lg font-extrabold text-ink">🌙 زينة الموسم</h2>
+          <h2 className="inline-flex items-center gap-2 font-display text-lg font-extrabold text-ink">
+          <Icon name="star" size={17} className="shrink-0 text-gold" />{" "}
+          زينة الموسم</h2>
           <p className="mt-1 text-sm text-dim">
             لمسة تُضاف فوق طابعك بلا أن تبدّله — وتُطفئها متى شئت.
           </p>

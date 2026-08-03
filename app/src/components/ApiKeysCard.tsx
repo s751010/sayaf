@@ -18,6 +18,7 @@ import { Badge, Button, Card, ErrorNote, Field, Input, Switch, useToast } from "
 import { createApiKey, getApiKeys, revokeApiKey, type ApiKey } from "@/lib/data";
 import { formatDate } from "@/lib/utils";
 import type { Restaurant } from "@/lib/types";
+import { Icon } from "@/lib/icons";
 
 export function ApiKeysCard({
   restaurant,
@@ -86,7 +87,9 @@ export function ApiKeysCard({
   return (
     <Card className="flex flex-col gap-4">
       <div>
-        <h2 className="font-display text-lg font-extrabold text-ink">🔌 واجهة API</h2>
+        <h2 className="inline-flex items-center gap-2 font-display text-lg font-extrabold text-ink">
+          <Icon name="plug" size={17} className="shrink-0 text-gold" />{" "}
+          واجهة API</h2>
         <p className="mt-1 text-sm text-dim">
           اربط منيوك بنظام نقاط البيع أو موقعك أو أي أتمتة.{" "}
           <Link to="/docs/api" className="font-bold text-gold hover:underline">
@@ -98,8 +101,9 @@ export function ApiKeysCard({
       {/* السرّ الطازج — أبرز شيء في البطاقة لأنه لن يُعرض ثانية. */}
       {fresh && (
         <div className="rounded-xl border border-gold bg-gold/10 p-4">
-          <p className="text-sm font-black text-ink">
-            ⚠️ انسخ المفتاح الآن — لن يظهر مرة أخرى أبداً.
+          <p className="inline-flex items-center gap-2 text-sm font-black text-ink">
+          <Icon name="warn" size={17} className="shrink-0 text-gold" />{" "}
+          انسخ المفتاح الآن — لن يظهر مرة أخرى أبداً.
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <code
@@ -117,7 +121,7 @@ export function ApiKeysCard({
                 )
               }
             >
-              📋 نسخ
+              <Icon name="copy" size={15} /> نسخ
             </Button>
           </div>
           <button
@@ -144,7 +148,7 @@ export function ApiKeysCard({
 
       <div className="flex items-center justify-between gap-3 rounded-xl border border-line bg-panel2 px-4 py-3">
         <div>
-          <p className="text-sm font-bold text-ink">✏️ يسمح بالتعديل</p>
+          <p className="text-sm font-bold text-ink"><Icon name="edit" size={14} /> يسمح بالتعديل</p>
           <p className="text-xs text-faint">
             {canWrite
               ? "يقدر يضيف ويعدّل ويحذف أطباقك — لنقطة بيع تُزامن منيوك."

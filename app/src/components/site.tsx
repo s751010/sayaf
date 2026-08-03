@@ -7,6 +7,7 @@ import { SITE_NAME } from "@/lib/config";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/ui";
 import { SupportWhatsAppButton } from "@/components/SupportWhatsApp";
+import { Icon } from "@/lib/icons";
 
 export function Logo({ compact }: { compact?: boolean }) {
   return (
@@ -69,7 +70,7 @@ export function PreviewMenuButton({
         className
       )}
     >
-      👁️ {label} ↗
+      <Icon name="eye" size={15} /> {label}
     </a>
   );
 }

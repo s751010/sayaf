@@ -12,6 +12,7 @@ import { SafeImage } from "@/components/ui";
 import { patternImage, PATTERN_SIZE } from "@/lib/patterns";
 import type { MenuTheme } from "@/lib/themes";
 import type { Restaurant } from "@/lib/types";
+import { Icon } from "@/lib/icons";
 
 /** منحنى قوس الروشان — يُستخدم للقصّ وللخط معاً كي لا ينحرفا. */
 const ARCH_PATH = "M0 8 Q25 8 38 2 Q50 -3 62 2 Q75 8 100 8";
@@ -171,7 +172,7 @@ export function MenuHeader({
                   } as CSSProperties
                 }
               >
-                {restaurant.logo ?? "🍽️"}
+                {restaurant.logo || <Icon name="plate" size={30} />}
               </span>
             }
           />
