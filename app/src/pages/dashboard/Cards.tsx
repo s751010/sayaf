@@ -31,7 +31,7 @@ import { splitThemeId } from "@/lib/themes";
 import { getMyMenus } from "@/lib/data";
 import { cn } from "@/lib/utils";
 import { useDashboard } from "./Dashboard";
-import { PrintTabs } from "./PrintTabs";
+import { PrintTabs } from "./Tabs";
 
 export default function Cards() {
   const { restaurant } = useDashboard();

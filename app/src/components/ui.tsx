@@ -182,6 +182,21 @@ export function Select({
   return <select className={cn(fieldClass, "appearance-none", className)} {...props} />;
 }
 
+/**
+ * حالة الحفظ بجوار زرّ القسم.
+ *
+ * الحفظ الجزئي يحلّ مشكلة «زرّ واحد لثلاثين حقلاً»، لكنه يفتح سؤالاً جديداً:
+ * «هل حُفظ قسمي أم القسم الآخر؟». فكل قسم يقول حالته صراحةً بدل أن تُستنتج من
+ * ظهور رسالة عابرة قد تفوت التاجر.
+ */
+export function SavedBadge({ dirty }: { dirty: boolean }) {
+  return (
+    <span className={cn("text-xs font-bold", dirty ? "text-gold" : "text-faint")}>
+      {dirty ? "● تغييرات غير محفوظة" : "✓ محفوظ"}
+    </span>
+  );
+}
+
 export function Switch({
   checked,
   onChange,

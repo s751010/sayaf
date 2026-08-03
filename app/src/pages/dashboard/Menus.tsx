@@ -37,6 +37,7 @@ import { ThemePreview } from "@/components/menu/ThemePreview";
 import { cn } from "@/lib/utils";
 import type { Menu } from "@/lib/types";
 import { useDashboard } from "./Dashboard";
+import { MenuTabs } from "./Tabs";
 
 /**
  * خيارات شكل العرض. `null` = «اترك افتراضي الطابع» — وهو خيار حقيقي لا غياب
@@ -219,6 +220,8 @@ export default function Menus() {
           <Button onClick={() => setAdding(true)}>＋ قائمة جديدة</Button>
         </div>
       </div>
+
+      <MenuTabs />
 
       <div className="mt-6 flex flex-col gap-3">
         {menus === null &&

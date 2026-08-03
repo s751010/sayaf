@@ -5,7 +5,7 @@ import { qrDataUrl } from "@/lib/qr";
 import { Button, Card, ErrorNote, Field, Input, Switch, useToast } from "@/components/ui";
 import { PreviewMenuButton } from "@/components/site";
 import { useDashboard } from "./Dashboard";
-import { PrintTabs } from "./PrintTabs";
+import { PrintTabs } from "./Tabs";
 
 function download(href: string, filename: string) {
   const a = document.createElement("a");

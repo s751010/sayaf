@@ -1,6 +1,5 @@
 /** الولاء (لوحة التاجر): قائمة العملاء + ختم الزيارات + صرف المكافآت. */
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import {
   Badge,
   Button,
@@ -8,6 +7,7 @@ import {
   EmptyState,
   Field,
   Input,
+  SavedBadge,
   Skeleton,
   useToast,
 } from "@/components/ui";
@@ -16,6 +16,7 @@ import { getLoyaltyCustomers, redeemLoyalty, setupLoyalty, stampLoyalty } from "
 import { normalizeDigits } from "@/lib/utils";
 import type { LoyaltyCustomer } from "@/lib/types";
 import { useDashboard } from "./Dashboard";
+import { InsightTabs } from "./Tabs";
 
 export default function Loyalty() {
   const { restaurant, setRestaurant } = useDashboard();
@@ -43,7 +44,7 @@ export default function Loyalty() {
         loyalty_goal: Math.min(20, Math.max(1, Math.round(patch.goal))),
         loyalty_reward: patch.reward,
       });
-      toast("💛 فُعّلت بطاقة الولاء — ظاهرة لزبائنك الآن.");
+      toast(restaurant.loyalty_enabled ? "حُفظ ✓" : "💛 فُعّلت بطاقة الولاء — ظاهرة لزبائنك الآن.");
     } catch {
       toast("تعذّر التفعيل. حاول مجدداً.", "err");
     } finally {
@@ -57,6 +58,10 @@ export default function Loyalty() {
   }, [restaurant.id]);
 
   const goal = Math.min(20, Math.max(1, Math.round(restaurant.loyalty_goal ?? 5)));
+  /** تعديل غير محفوظ في حقلَي الهدف والمكافأة. */
+  const settingsDirty =
+    Number(normalizeDigits(setupGoal)) !== goal ||
+    setupReward.trim() !== (restaurant.loyalty_reward ?? "").trim();
 
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
@@ -103,6 +108,8 @@ export default function Loyalty() {
         </Badge>
       </div>
 
+      <InsightTabs />
+
       {/* ⚠️ التفعيل هنا لا في الإعدادات — انظر `setupLoyalty`: من فتح هذه
           الصفحة جاء ليفعّل، فإرساله لصفحة أخرى هو ما جعل ١٨ من ١٩ لا يفعّلون. */}
       {!restaurant.loyalty_enabled ? (
@@ -146,12 +153,43 @@ export default function Loyalty() {
           </div>
         </Card>
       ) : (
-        <Card className="mt-5 text-sm text-dim">
-          المكافأة بعد <span className="font-bold text-gold">{goal}</span> زيارات:{" "}
-          <span className="font-bold text-ink">{restaurant.loyalty_reward ?? "غير محددة"}</span>.{" "}
-          <Link to="/dashboard/settings" className="font-bold text-gold hover:underline">
-            تعديل الإعدادات
-          </Link>
+        /**
+         * التعديل هنا لا برابط إلى الإعدادات.
+         *
+         * ⚠️ كان الرابط يشير إلى قسم الولاء في «الإعدادات» — وقد كان **مكرّراً**
+         * هناك بحقول قد تتعارض مع هذه. حُذف ذلك القسم فصار الرابط يرسل التاجر
+         * إلى صفحة لا يجد فيها ما جاء له. الحقلان صارا هنا حيث يستعملهما.
+         */
+        <Card className="mt-5 flex flex-col gap-3">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="عدد الزيارات للمكافأة">
+              <Input
+                type="number"
+                inputMode="numeric"
+                min="2"
+                max="20"
+                dir="ltr"
+                value={setupGoal}
+                onChange={(e) => setSetupGoal(e.target.value)}
+              />
+            </Field>
+            <Field label="المكافأة">
+              <Input
+                value={setupReward}
+                onChange={(e) => setSetupReward(e.target.value)}
+                placeholder="قهوة مجانية"
+              />
+            </Field>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button variant="outline" onClick={activate} disabled={activating || !settingsDirty}>
+              {activating ? "جارٍ الحفظ…" : "حفظ"}
+            </Button>
+            <SavedBadge dirty={settingsDirty} />
+            <span className="ms-auto text-xs text-faint">
+              حالياً: مكافأة بعد <b className="text-dim">{goal}</b> زيارات
+            </span>
+          </div>
         </Card>
       )}
 

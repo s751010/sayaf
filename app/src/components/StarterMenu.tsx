@@ -6,8 +6,8 @@
  * كي لا ينشر أسعاراً ليست أسعاره.
  */
 import { useMemo, useState } from "react";
-import { Button, ErrorNote, Modal, Select } from "@/components/ui";
-import { starterFor, type StarterDish } from "@/lib/starterMenus";
+import { Button, ErrorNote, Field, Modal, Select } from "@/components/ui";
+import { aliasType, starterFor, STARTER_TYPES, type StarterDish } from "@/lib/starterMenus";
 import { formatPrice } from "@/lib/utils";
 import type { Menu } from "@/lib/types";
 
@@ -25,7 +25,15 @@ export function StarterMenu({
   menus: Menu[] | null;
   onApply: (dishes: StarterDish[], menuId: string) => Promise<void>;
 }) {
-  const all = useMemo(() => starterFor(type), [type]);
+  /**
+   * القالب **يُختار** ولا يُفرَض.
+   *
+   * كان يُشتقّ من `type` وحده، وهو عمود نصّ حرّ يحمل في الإنتاج قيماً لا تطابق
+   * أي قالب (`general` لأربعة عشر مطعماً). فالتخمين يبدأ من `aliasType` والتاجر
+   * يبدّله بضغطة — خطأ التخمين يكلّف نقرة، وغيابُ القالب كان يكلّف المنيو كلّه.
+   */
+  const [template, setTemplate] = useState(() => aliasType(type));
+  const all = useMemo(() => starterFor(template), [template]);
   const [skipped, setSkipped] = useState<Set<string>>(new Set());
   const [menuId, setMenuId] = useState("");
   const [error, setError] = useState("");
@@ -70,22 +78,41 @@ export function StarterMenu({
     <Modal open={open} onClose={busy ? () => {} : onClose} title="ابدأ بقائمة جاهزة" wide>
       <div className="flex flex-col gap-4">
         <p className="text-sm leading-relaxed text-dim">
-          هذه قائمة مبدئية لمطعم من نوع «{type}». شِل ما لا تبيعه، احفظ، ثم عدّل
-          الأسعار والصور على راحتك.
+          اختر القالب الأقرب لمطعمك، شِل ما لا تبيعه، ثم احفظ — وعدّل الأسعار
+          والصور على راحتك بعدها.
         </p>
         <p className="rounded-xl border border-gold/30 bg-gold/[.06] px-4 py-2.5 text-xs font-bold text-ink">
           ⚠️ الأسعار مقترحة تقريبية — راجعها قبل نشر منيوك.
         </p>
 
-        {menus && menus.length > 1 && (
-          <Select value={effectiveMenu} onChange={(e) => setMenuId(e.target.value)}>
-            {menus.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.name}
-              </option>
-            ))}
-          </Select>
-        )}
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="القالب">
+            <Select
+              value={template}
+              onChange={(e) => {
+                setTemplate(e.target.value);
+                setSkipped(new Set()); // قالب جديد ⇒ استثناءات القالب السابق لا معنى لها
+              }}
+            >
+              {STARTER_TYPES.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          {menus && menus.length > 1 && (
+            <Field label="القائمة">
+              <Select value={effectiveMenu} onChange={(e) => setMenuId(e.target.value)}>
+                {menus.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          )}
+        </div>
 
         <div className="max-h-[46dvh] overflow-y-auto rounded-2xl border border-line p-3">
           {groups.map(([cat, items]) => (

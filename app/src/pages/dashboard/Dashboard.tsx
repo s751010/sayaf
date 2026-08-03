@@ -45,7 +45,7 @@ import {
   startTrial,
 } from "@/lib/data";
 import { getRestaurantById, logAudit } from "@/lib/founder";
-import { hasStarter } from "@/lib/starterMenus";
+import { STARTER_TYPES } from "@/lib/starterMenus";
 import { cn, slugify } from "@/lib/utils";
 import type { Menu, Restaurant } from "@/lib/types";
 import type { SessionUser } from "@/lib/session";
@@ -53,6 +53,7 @@ import type { SessionUser } from "@/lib/session";
 import Overview from "./Overview";
 import Menus from "./Menus";
 import Dishes from "./Dishes";
+import Design from "./Design";
 import Qr from "./Qr";
 import Cards from "./Cards";
 import Analytics from "./Analytics";
@@ -89,9 +90,12 @@ export function useDashboard(): DashboardCtx {
 }
 
 /* ── إنشاء المطعم لأول مرة ────────────────────────────────────────── */
-const RESTAURANT_TYPES = [
-  "مطعم", "كافيه", "مخبز وحلويات", "مطعم سريع", "شعبي", "بحري", "مشويات", "عصائر", "أخرى",
-];
+/**
+ * مصدر واحد مع قوالب البداية: القائمة كانت مكتوبة هنا وفي `STARTERS` معاً،
+ * فأي قالب يُضاف هناك ولا يُضاف هنا لا يصل إليه أحد. و«أخرى» تسقط إلى «مطعم»
+ * عبر `aliasType`.
+ */
+const RESTAURANT_TYPES = [...STARTER_TYPES, "أخرى"];
 
 function Onboarding({ user, onDone }: { user: SessionUser; onDone: (r: Restaurant) => void }) {
   const [name, setName] = useState("");
@@ -173,16 +177,30 @@ function Onboarding({ user, onDone }: { user: SessionUser; onDone: (r: Restauran
 }
 
 /* ── الشريط الجانبي ───────────────────────────────────────────────── */
+/**
+ * ستّة عناصر — كانت ثمانية (تسعة للمؤسس).
+ *
+ * ⚠️ الثمانية لم تكن تتّسع لشاشة جوال: قياس فعلي على ٣٩٠px أعطى **٦٢٧ بكسل**
+ * من المحتوى، فكان «الاشتراك» و«الإعدادات» خارج الشاشة بلا دليل عليهما. وقد
+ * عُولج ذلك بتدرّج على الحافة يقول «خلفي المزيد» — وهي ضمادة تصف العطل ولا
+ * تصلحه. الدمج هنا يُنهيه:
+ *
+ * - **القوائم** ⇐ تبويب داخل «منيوي»: أغلب التجّار عندهم قائمة واحدة، فعنصرٌ
+ *   كامل لها يكلّف الجميع مقابل من يملك أكثر من واحدة.
+ * - **الولاء** ⇐ تبويب داخل «التحليلات»: كلاهما «كيف يتصرّف زبوني».
+ * - **الاشتراك** ⇐ شارة الباقة في القاع صارت رابطاً — وهي **ظاهرة دائماً**
+ *   بلا تمرير، فصار أوضح مما كان.
+ * - **التصميم** ⇐ عنصر جديد أخرج مُنتقي الطوابع من دفنه أسفل «القوائم».
+ *
+ * وكل المسارات القديمة تبقى تعمل (انظر `Routes` أدناه) — التجّار يحفظون روابط.
+ */
 const NAV = [
-  { to: "/dashboard", label: "نظرة عامة", icon: "🏠", end: true },
-  { to: "/dashboard/dishes", label: "الأطباق", icon: "🍽️" },
-  { to: "/dashboard/menus", label: "القوائم", icon: "📋" },
-  // بطاقة الكاشير وأكواد QR فعلٌ واحد عند التاجر («أجهّز ما يُطبع»)، وعنصران
-  // منفصلان كانا سيرفعان القائمة إلى تسعة على شريط جوال ضيّق.
+  { to: "/dashboard", label: "الرئيسية", icon: "🏠", end: true },
+  { to: "/dashboard/dishes", label: "منيوي", icon: "🍽️" },
+  { to: "/dashboard/design", label: "التصميم", icon: "🎨" },
+  // بطاقة الكاشير وأكواد QR فعلٌ واحد عند التاجر («أجهّز ما يُطبع»).
   { to: "/dashboard/cards", label: "الطباعة", icon: "🖨️" },
   { to: "/dashboard/analytics", label: "التحليلات", icon: "📊" },
-  { to: "/dashboard/loyalty", label: "الولاء", icon: "💛" },
-  { to: "/dashboard/billing", label: "الاشتراك", icon: "💳" },
   { to: "/dashboard/settings", label: "الإعدادات", icon: "⚙️" },
 ];
 
@@ -214,8 +232,12 @@ function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode
         end={n.end}
         className={({ isActive }) =>
           cn(
+            // الحشوة والحجم على الجوال مقيسان لا مذوقان: ستة عناصر يجب أن تسع
+            // ٣٩٠px (أضيق جهاز شائع). `px-3` و`text-[10px]` كانا يعطيان ٤٢٨px
+            // — أي تمريراً أفقياً لعنصر أو عنصرين، وهو ما كانت تداريه ضمادة
+            // التدرّج على الحافة.
             compact
-              ? "flex shrink-0 flex-col items-center gap-1 rounded-xl px-3 py-2 text-[10px] font-bold"
+              ? "flex shrink-0 flex-col items-center gap-0.5 rounded-xl px-2 py-2 text-[9px] font-bold"
               : "flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-bold transition-colors",
             isActive ? "bg-gold/12 text-gold" : "text-dim hover:bg-ink/5 hover:text-ink"
           )
@@ -245,14 +267,18 @@ function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode
         <nav className="flex flex-1 flex-col gap-1">{links(false)}</nav>
         <PreviewMenuButton slug={ctx.restaurant.slug} className="mt-3 justify-center" />
         <div className="mt-4 border-t border-line pt-4">
+          {/* الشارة هي مدخل الاشتراك الآن بدل عنصر قائمة: حالة الباقة ظاهرة
+              دائماً بلا تمرير، ومن يقرأ «تبقّى ٣ أيام» هو من يريد الضغط. */}
           <div className="mb-3 flex items-center justify-between px-2">
-            <Badge
-              variant={
-                !ctx.ent.active ? "neutral" : ctx.ent.trialDaysLeft === 1 ? "red" : "gold"
-              }
-            >
-              {planLabel(ctx.ent)}
-            </Badge>
+            <Link to="/dashboard/billing" title="الاشتراك والفوترة">
+              <Badge
+                variant={
+                  !ctx.ent.active ? "neutral" : ctx.ent.trialDaysLeft === 1 ? "red" : "gold"
+                }
+              >
+                {planLabel(ctx.ent)} ⚙
+              </Badge>
+            </Link>
             <ThemeToggle />
           </div>
           <p className="truncate px-2 text-xs text-faint" dir="ltr">{ctx.user.email}</p>
@@ -271,6 +297,18 @@ function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode
           <div className="flex h-14 items-center justify-between px-4">
             <Link to="/"><Logo /></Link>
             <div className="flex items-center gap-2">
+              {/* ⚠️ لازمة لا تجميل: الشريط الجانبي مخفيّ على الجوال، وقد خرج
+                  «الاشتراك» من القائمة — فبدون هذه الشارة لا يبقى للجوال أي
+                  مدخل إلى الفوترة إطلاقاً. */}
+              <Link to="/dashboard/billing" title="الاشتراك والفوترة">
+                <Badge
+                  variant={
+                    !ctx.ent.active ? "neutral" : ctx.ent.trialDaysLeft === 1 ? "red" : "gold"
+                  }
+                >
+                  {planLabel(ctx.ent)}
+                </Badge>
+              </Link>
               <PreviewMenuButton
                 slug={ctx.restaurant.slug}
                 label="معاينة"
@@ -406,9 +444,17 @@ export default function Dashboard() {
         user={user}
         onDone={(r) => {
           setRestaurant(r);
-          // مباشرةً إلى الأطباق مع عرض قائمة البداية — الشاشة الفارغة بعد
-          // التسجيل هي أكثر نقطة يؤجّل عندها التاجر «لبكرة» ولا يعود.
-          if (hasStarter(r.type)) navigate("/dashboard/dishes?starter=1", { replace: true });
+          /**
+           * **دائماً** إلى الأطباق — الشاشة الفارغة بعد التسجيل هي أكثر نقطة
+           * يؤجّل عندها التاجر «لبكرة» ولا يعود (١٣ من ١٩ توقّفوا عندها).
+           *
+           * ⚠️ كان الشرط `hasStarter(r.type)`، و`type` عمود نصّ حرّ حمل في
+           * الإنتاج `general` لأربعة عشر مطعماً — فلم يتحقّق الشرط ولم يحدث
+           * تحويل أصلاً. ولا فتحَ نافذةٍ تلقائياً بعد الآن: صفحة الأطباق
+           * الفارغة تعرض المسارات الثلاثة متساوية، فمن عنده منيو جاهز لا
+           * يبدأ بإغلاق نافذة لا يريدها.
+           */
+          navigate("/dashboard/dishes", { replace: true });
         }}
       />
     );
@@ -428,10 +474,14 @@ export default function Dashboard() {
   return (
     <Ctx.Provider value={ctx}>
       <Shell ctx={ctx}>
+        {/* المسارات كلها تبقى كما هي وإن خرج بعضها من القائمة: التجّار يحفظون
+            روابط، والتوصيات والإعلانات ترسل إلى `/dashboard/menus` و`/loyalty`
+            و`/billing`. الدمج في القائمة لا يعني كسر عنوان. */}
         <Routes>
           <Route index element={<Overview />} />
           <Route path="menus" element={<Menus />} />
           <Route path="dishes" element={<Dishes />} />
+          <Route path="design" element={<Design />} />
           <Route path="cards" element={<Cards />} />
           <Route path="qr" element={<Qr />} />
           <Route path="analytics" element={<Analytics />} />

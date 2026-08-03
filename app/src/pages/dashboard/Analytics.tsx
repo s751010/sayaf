@@ -17,6 +17,7 @@ import { buildInsights } from "@/lib/insights";
 import { cn, formatPrice } from "@/lib/utils";
 import type { AnalyticsRow, Dish } from "@/lib/types";
 import { useDashboard } from "./Dashboard";
+import { InsightTabs } from "./Tabs";
 
 const DOW_AR = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
 const RANGE_DAYS = 30;
@@ -267,6 +268,8 @@ export default function Analytics() {
           ⬇️ تصدير CSV
         </Button>
       </div>
+
+      <InsightTabs />
 
       {loading ? (
         <div className="mt-6 flex flex-col gap-4">

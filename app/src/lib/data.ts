@@ -297,6 +297,29 @@ export async function updateRestaurant(
 }
 
 /**
+ * حفظ **قسم** من الإعدادات لا الصفحة كلها.
+ *
+ * صفحة الإعدادات كانت ثلاثين حقلاً وزرَّ حفظ واحداً في القاع؛ فمن عدّل الشعار
+ * وحده مرّ بكل شيء ليصل إلى الزر. الآن لكل قسم زرّه.
+ *
+ * ⚠️ **`Partial` لا يُضعف القاعدة (أ)**: النوع ما زال يحصر **المفاتيح** في
+ * الـwhitelist نفسها، فالمفتاح المكتوب خطأً أو العمود المحسوب يُرفضان وقت
+ * الترجمة كما كانا. الذي رُفع هو شرط «أرسِل كل الحقول» لا شرط «الحقول
+ * المعروفة وحدها» — وPATCH بمجموعة جزئية لا يمسّ بقية الأعمدة أصلاً.
+ */
+export async function updateRestaurantFields(
+  id: string,
+  patch: Partial<RestaurantSettingsPayload>
+): Promise<void> {
+  if (!Object.keys(patch).length) return;
+  await rest(`restaurants?id=eq.${id}`, {
+    method: "PATCH",
+    headers: { Prefer: "return=minimal" },
+    body: patch,
+  });
+}
+
+/**
  * لون علامة المطعم (`cover_color`).
  *
  * دالة مستقلّة عن `RestaurantSettingsPayload` عن قصد: ذلك النوع هو whitelist

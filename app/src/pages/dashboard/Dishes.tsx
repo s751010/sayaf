@@ -59,11 +59,12 @@ import {
 import { ReorderList } from "@/components/Reorder";
 import { CategoryManager } from "@/components/CategoryManager";
 import { StarterMenu } from "@/components/StarterMenu";
-import { hasStarter, type StarterDish } from "@/lib/starterMenus";
+import { aliasType, type StarterDish } from "@/lib/starterMenus";
 import { cn, formatPrice, numOrNull, strOrNull } from "@/lib/utils";
 import { computedNutrition } from "@/lib/nutrition";
 import type { Dish } from "@/lib/types";
 import { useDashboard, UpgradeGate } from "./Dashboard";
+import { MenuTabs } from "./Tabs";
 
 /* تهيئة الفورم (القاعدة أ — المكان 1) */
 type DishForm = {
@@ -492,6 +493,15 @@ export default function Dishes() {
     });
     setDishes((ds) => [...created.reverse(), ...(ds ?? [])]);
     toast(`أُضيف ${created.length} صنفاً ✓`);
+    /**
+     * الصور تُطلَب **الآن** لا في تنبيه لاحق.
+     *
+     * التاجر لتوّه أنجز شيئاً ورأى منيوه يمتلئ — وهذه أفضل لحظة يقبل فيها خطوة
+     * ثانية. أنشط منيو عندنا (١٢ طبقاً) فيه **صفر صورة**، ومصدر ذلك أن الطلب
+     * كان يصل كتنبيه بارد بعد أن انصرف. تُفتح النافذة بعد لحظة كي يرى الأصناف
+     * وقد أُضيفت فعلاً — لا أن تُغلق نافذة وتُفتح أخرى فوراً فيبدو أنها لم تنجح.
+     */
+    if (created.length >= 3) window.setTimeout(() => setBulkImages(true), 700);
   }
 
   /** قائمة البداية تمرّ من نفس مسار الاستيراد الدفعي — لا مسار إدراج ثانٍ. */
@@ -570,7 +580,7 @@ export default function Dishes() {
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl font-black text-ink">الأطباق</h1>
+          <h1 className="font-display text-2xl font-black text-ink">منيوي</h1>
           <p className="mt-1 text-sm text-dim">
             {dishes ? `${dishes.length} طبقاً` : "…"}
             {ent.maxDishes !== null && ` من أصل ${ent.maxDishes} في باقتك`}
@@ -596,10 +606,12 @@ export default function Dishes() {
         )}
       </div>
 
+      <MenuTabs />
+
       {/* أكبر فجوة قائمة عند التجّار الفعليين: أنشطهم عنده ١٢ طبقاً و**صفر
           صورة**. الصورة ليست تجميلاً — هي الفرق بين منيو يُتصفَّح ومنيو يُقرأ،
           والتنبيه يفتح الرفع الدفعي مباشرة لا يرسله يبحث عنه. */}
-      {missingImages.length >= 3 && (
+      {missingImages.length >= 1 && (
         <Card className="mt-5 flex flex-wrap items-center justify-between gap-3 border-gold/40">
           <div className="min-w-0">
             <p className="text-sm font-bold text-ink">
@@ -629,37 +641,64 @@ export default function Dishes() {
             <Skeleton key={i} className="h-20" />
           ))}
         </div>
-      ) : filtered.length === 0 ? (
+      ) : filtered.length === 0 && filter ? (
         <div className="mt-5">
-          {/* الشاشة الفارغة هي أكبر نقطة تسرّب: التاجر عنده منيو جاهز ورقياً أو
-              في Excel، فنعرض الاستيراد هنا بنفس بروز «أضف طبقاً». */}
-          <EmptyState
-            emoji="🍽️"
-            title={filter ? "لا نتائج لبحثك" : "لا توجد أطباق بعد"}
-            desc={
-              filter
-                ? undefined
-                : "عندك منيو جاهز؟ الصقه أو ارفع ملف CSV بدل إدخاله صنفاً صنفاً."
-            }
-            action={
-              !filter && (
-                <div className="flex flex-wrap justify-center gap-2">
-                  {hasStarter(restaurant.type) && (
-                    <Button onClick={() => setStarter(true)}>⚡ قائمة جاهزة لنوع مطعمي</Button>
-                  )}
-                  <Button
-                    variant={hasStarter(restaurant.type) ? "outline" : "gold"}
-                    onClick={() => setImporting(true)}
-                  >
-                    ⬆️ استيراد قائمتي
-                  </Button>
-                  <Button variant="outline" onClick={openNew}>
-                    ＋ إضافة طبق
-                  </Button>
-                </div>
-              )
-            }
-          />
+          <EmptyState emoji="🔍" title="لا نتائج لبحثك" />
+        </div>
+      ) : filtered.length === 0 ? (
+        /**
+         * شاشة الصفر هي **أكبر نقطة تسرّب مُثبَتة**: ١٣ من ١٩ حساباً توقّفوا
+         * عندها ولم يُضيفوا طبقاً واحداً.
+         *
+         * كانت ثلاثة أزرار متراصّة داخل `EmptyState` — والأزرار المتراصّة تُقرأ
+         * «زرّ رئيسي وبدائل»، فمن عنده منيو جاهز في إكسل لا يرى مساره. الآن
+         * ثلاثة مسارات **متساوية البروز**، كلٌّ يشرح لمن هو ومتى يُختار.
+         */
+        <div className="mt-6">
+          <div className="mb-5 text-center">
+            <span className="text-4xl">🍽️</span>
+            <h2 className="mt-2 font-display text-xl font-black text-ink">
+              ابدأ منيوك — اختر أسهل طريق لك
+            </h2>
+            <p className="mt-1 text-sm text-dim">كلها تنتهي بمنيو تعدّله كما تشاء.</p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-3">
+            {[
+              {
+                emoji: "⚡",
+                title: "قائمة جاهزة",
+                desc: `أصناف شائعة لـ«${aliasType(restaurant.type)}» تختار منها وتعدّلها.`,
+                note: "الأسرع — دقيقة واحدة",
+                onClick: () => setStarter(true),
+              },
+              {
+                emoji: "⬆️",
+                title: "الصق منيوك",
+                desc: "عندك المنيو في إكسل أو مكتوب؟ الصقه أو ارفع CSV.",
+                note: "الأدقّ — أسعارك أنت",
+                onClick: () => setImporting(true),
+              },
+              {
+                emoji: "＋",
+                title: "أضف صنفاً صنفاً",
+                desc: "ابدأ بطبق واحد وأكمل على راحتك.",
+                note: "للمنيو الصغير",
+                onClick: openNew,
+              },
+            ].map((c) => (
+              <button
+                key={c.title}
+                type="button"
+                onClick={c.onClick}
+                className="flex flex-col items-start gap-1.5 rounded-2xl border border-line bg-panel p-5 text-start transition-colors hover:border-gold/50 hover:bg-gold/[.04]"
+              >
+                <span className="text-3xl">{c.emoji}</span>
+                <span className="font-display text-base font-extrabold text-ink">{c.title}</span>
+                <span className="text-xs leading-relaxed text-dim">{c.desc}</span>
+                <span className="mt-auto pt-2 text-[11px] font-bold text-gold">{c.note}</span>
+              </button>
+            ))}
+          </div>
         </div>
       ) : filter ? (
         /* أثناء البحث: قائمة مسطّحة بلا سحب — الترتيب بلا معنى على نتائج مفلترة. */
