@@ -237,17 +237,23 @@ export function Switch({
       aria-label={label}
       disabled={disabled}
       onClick={() => onChange(!checked)}
-      className={cn(
-        "relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:opacity-40",
-        checked ? "bg-gold" : "bg-ink/15"
-      )}
+      className="flex h-9 w-11 shrink-0 items-center disabled:opacity-40"
     >
+      {/* المسار يبقى ٢٤px بصرياً والزرّ حوله ٣٦: المفتاح كان هدف لمس بارتفاع
+          ٢٤ فقط، دون أرضية المحور الكثيف. */}
       <span
         className={cn(
-          "absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all",
-          checked ? "right-0.5" : "right-[22px]"
+          "relative block h-6 w-full rounded-full transition-colors",
+          checked ? "bg-gold" : "bg-ink/15"
         )}
-      />
+      >
+        <span
+          className={cn(
+            "absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all",
+            checked ? "right-0.5" : "right-[22px]"
+          )}
+        />
+      </span>
     </button>
   );
 }
@@ -470,7 +476,7 @@ export function ThemeToggle({ className }: { className?: string }) {
       onClick={toggle}
       aria-label={light ? "الوضع الداكن" : "الوضع الفاتح"}
       className={cn(
-        "flex h-9 w-9 items-center justify-center rounded-full border border-line text-base hover:bg-ink/6",
+        "flex h-11 w-11 items-center justify-center rounded-full border border-line text-base hover:bg-ink/6",
         className
       )}
     >

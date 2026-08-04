@@ -187,17 +187,24 @@ function CardShowcase() {
         aria-label="معاينة بطاقة الكاشير"
         className="anim-float w-[230px] rounded-2xl shadow-[0_40px_80px_-30px_rgba(0,0,0,.65)] sm:w-[260px]"
       />
-      <div className="flex gap-1.5">
+      {/* النقطة تبقى ٦px بصرياً، والزرّ حولها ٤٤px: هدف اللمس لا يُقاس
+          بالحبر المرسوم بل بالمساحة القابلة للنقر. كانت ٦×٦ فعلياً. */}
+      <div className="flex">
         {SHOWCASE.map((s, n) => (
           <button
             key={s.style}
             onClick={() => setI(n)}
             aria-label={`نمط ${n + 1}`}
-            className={cn(
-              "h-1.5 rounded-full transition-all",
-              n === i ? "w-6 bg-gold" : "w-1.5 bg-ink/20 hover:bg-ink/35"
-            )}
-          />
+            aria-current={n === i}
+            className="flex h-11 items-center px-1.5"
+          >
+            <span
+              className={cn(
+                "block h-1.5 rounded-full transition-all",
+                n === i ? "w-6 bg-gold" : "w-1.5 bg-ink/20 hover:bg-ink/35"
+              )}
+            />
+          </button>
         ))}
       </div>
     </div>
@@ -293,7 +300,7 @@ export function PricingCards({
             <button
               onClick={() => onSelect(p.id)}
               className={cn(
-                "mt-6 w-full rounded-xl py-2.5 text-sm font-bold transition-colors",
+                "mt-6 inline-flex min-h-11 w-full items-center justify-center rounded-xl py-2.5 text-sm font-bold transition-colors",
                 p.featured
                   ? "bg-gold text-on-gold hover:bg-gold2"
                   : "border border-line-gold text-ink hover:bg-gold/10"
@@ -305,7 +312,7 @@ export function PricingCards({
             <Link
               to="/login?mode=signup"
               className={cn(
-                "mt-6 w-full rounded-xl py-2.5 text-center text-sm font-bold transition-colors",
+                "mt-6 inline-flex min-h-11 w-full items-center justify-center rounded-xl py-2.5 text-center text-sm font-bold transition-colors",
                 p.featured
                   ? "bg-gold text-on-gold hover:bg-gold2"
                   : "border border-line-gold text-ink hover:bg-gold/10"
@@ -484,7 +491,7 @@ export default function Landing() {
                 key={c}
                 onClick={() => setCycle(c)}
                 className={cn(
-                  "flex items-center gap-2 rounded-lg px-5 py-2 text-sm font-bold transition-colors",
+                  "flex min-h-11 items-center gap-2 rounded-lg px-5 py-2 text-sm font-bold transition-colors",
                   cycle === c ? "bg-gold text-on-gold" : "text-dim hover:text-ink"
                 )}
               >

@@ -110,7 +110,7 @@ export function Navbar() {
         <div className="hidden items-center gap-6 sm:flex">
           {NAV_LINKS.map((l) =>
             l.to.startsWith("/#") ? (
-              <a key={l.to} href={l.to} className="text-sm font-bold text-dim hover:text-gold">
+              <a key={l.to} href={l.to} className="inline-flex min-h-11 items-center text-sm font-bold text-dim hover:text-gold">
                 {l.label}
               </a>
             ) : (
@@ -118,7 +118,7 @@ export function Navbar() {
                 key={l.to}
                 to={l.to}
                 className={({ isActive }) =>
-                  cn("text-sm font-bold hover:text-gold", isActive ? "text-gold" : "text-dim")
+                  cn("inline-flex min-h-11 items-center text-sm font-bold hover:text-gold", isActive ? "text-gold" : "text-dim")
                 }
               >
                 {l.label}
@@ -131,18 +131,18 @@ export function Navbar() {
           {user ? (
             <Link
               to="/dashboard"
-              className="rounded-xl bg-gold px-4 py-2 text-sm font-bold text-on-gold hover:bg-gold2"
+              className="inline-flex min-h-11 items-center rounded-xl bg-gold px-4 py-2 text-sm font-bold text-on-gold hover:bg-gold2"
             >
               لوحة التحكم
             </Link>
           ) : (
             <>
-              <Link to="/login" className="hidden px-3 py-2 text-sm font-bold text-dim hover:text-ink sm:block">
+              <Link to="/login" className="hidden min-h-11 items-center px-3 py-2 text-sm font-bold text-dim hover:text-ink sm:inline-flex">
                 دخول
               </Link>
               <Link
                 to="/login?mode=signup"
-                className="rounded-xl bg-gold px-4 py-2 text-sm font-bold text-on-gold hover:bg-gold2"
+                className="inline-flex min-h-11 items-center rounded-xl bg-gold px-4 py-2 text-sm font-bold text-on-gold hover:bg-gold2"
               >
                 ابدأ مجاناً
               </Link>
@@ -181,41 +181,41 @@ export function Footer() {
         <div>
           <p className="mb-3 font-display font-extrabold text-ink">روابط</p>
           <ul className="flex flex-col gap-2 text-sm text-dim">
-            <li><Link to="/demo" className="hover:text-gold">منيو تجريبي</Link></li>
-            <li><a href="/#features" className="hover:text-gold">المزايا</a></li>
-            <li><a href="/#pricing" className="hover:text-gold">الأسعار</a></li>
-            <li><Link to="/help" className="hover:text-gold">المساعدة والأسئلة</Link></li>
-            <li><Link to="/blog" className="hover:text-gold">المدونة</Link></li>
-            <li><Link to="/login" className="hover:text-gold">دخول التجّار</Link></li>
+            <li><Link to="/demo" className="inline-flex min-h-9 items-center hover:text-gold">منيو تجريبي</Link></li>
+            <li><a href="/#features" className="inline-flex min-h-9 items-center hover:text-gold">المزايا</a></li>
+            <li><a href="/#pricing" className="inline-flex min-h-9 items-center hover:text-gold">الأسعار</a></li>
+            <li><Link to="/help" className="inline-flex min-h-9 items-center hover:text-gold">المساعدة والأسئلة</Link></li>
+            <li><Link to="/blog" className="inline-flex min-h-9 items-center hover:text-gold">المدونة</Link></li>
+            <li><Link to="/login" className="inline-flex min-h-9 items-center hover:text-gold">دخول التجّار</Link></li>
           </ul>
         </div>
         <div>
           <p className="mb-3 font-display font-extrabold text-ink">تواصل معنا</p>
           <ul className="flex flex-col gap-2 text-sm text-dim">
             {s?.email && (
-              <li><a href={`mailto:${s.email}`} className="hover:text-gold" dir="ltr">{s.email}</a></li>
+              <li><a href={`mailto:${s.email}`} className="inline-flex min-h-9 items-center hover:text-gold" dir="ltr">{s.email}</a></li>
             )}
             {s?.phone && (
-              <li><a href={`tel:${s.phone}`} className="hover:text-gold" dir="ltr">{s.phone}</a></li>
+              <li><a href={`tel:${s.phone}`} className="inline-flex min-h-9 items-center hover:text-gold" dir="ltr">{s.phone}</a></li>
             )}
             {s?.twitter && (
-              <li><a href={s.twitter} target="_blank" rel="noopener noreferrer" className="hover:text-gold">تويتر / X</a></li>
+              <li><a href={s.twitter} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-9 items-center hover:text-gold">تويتر / X</a></li>
             )}
             {s?.instagram && (
-              <li><a href={s.instagram} target="_blank" rel="noopener noreferrer" className="hover:text-gold">إنستغرام</a></li>
+              <li><a href={s.instagram} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-9 items-center hover:text-gold">إنستغرام</a></li>
             )}
             {!s?.email && !s?.phone && (
               <li>
-                <a href="mailto:support@cloudsmenu.app" className="hover:text-gold" dir="ltr">
+                <a href="mailto:support@cloudsmenu.app" className="inline-flex min-h-9 items-center hover:text-gold" dir="ltr">
                   support@cloudsmenu.app
                 </a>
               </li>
             )}
-            <li><Link to="/help" className="hover:text-gold">مركز المساعدة</Link></li>
+            <li><Link to="/help" className="inline-flex min-h-9 items-center hover:text-gold">مركز المساعدة</Link></li>
           </ul>
           <SupportWhatsAppButton className="mt-3" />
           <p className="mt-3 text-xs text-faint">
-            <Link to="/help#policy" className="hover:text-gold">
+            <Link to="/help#policy" className="inline-flex min-h-9 items-center hover:text-gold">
               سياسة الاشتراك والإلغاء
             </Link>
           </p>
