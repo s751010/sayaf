@@ -450,3 +450,172 @@ body {
 .m-row {
   box-shadow: var(--m-hairline, 0 0 transparent);
 }
+
+/* ══ حركة اللاندنق السينمائية ═══════════════════════════════════════════
+ * مربوطة بالتمرير عبر `animation-timeline` — لا مكتبة، ولا مستمع تمرير في
+ * جافاسكربت، ولا نطاق جديد في CSP. والحركة كلها `transform`/`opacity` فقط:
+ * صفر خاصية تُجبر إعادة تخطيط.
+ *
+ * ⚠️ الحارسان نفساهما: الحالة الافتراضية مكشوفة وساكنة، والحركة لا تبدأ إلا
+ * داخل `@supports` **و** `no-preference` معاً.
+ */
+
+/** شريط تقدّم القراءة أعلى الصفحة. */
+.scroll-rail {
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline: 0;
+  height: 2px;
+  z-index: 60;
+  transform-origin: 0 50%;
+  background: linear-gradient(90deg, var(--c-gold), var(--c-gold2));
+  transform: scaleX(0);
+  pointer-events: none;
+}
+[dir="rtl"] .scroll-rail {
+  transform-origin: 100% 50%;
+}
+
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .scroll-rail {
+      animation: rail-grow linear both;
+      animation-timeline: scroll(root block);
+    }
+  }
+}
+
+@keyframes rail-grow {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/**
+ * طبقات الباراlaكس — **الزخرفة والتوهّج وحدهما**.
+ *
+ * النصّ والأزرار لا تتحرّك مع التمرير أبداً: إزاحة النصّ تُتعب القراءة وقد
+ * تُشعِر بالدوار. والإزاحة ≤١٢٪ كي لا تنفصل الطبقات بصرياً عن بعضها.
+ */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .par-slow,
+    .par-fast {
+      animation: par-drift linear both;
+      animation-timeline: view();
+      animation-range: cover 0% cover 100%;
+      will-change: transform;
+    }
+    .par-slow {
+      --par: 6%;
+    }
+    .par-fast {
+      --par: 12%;
+    }
+  }
+}
+
+@keyframes par-drift {
+  from {
+    transform: translateY(calc(var(--par, 8%) * -1));
+  }
+  to {
+    transform: translateY(var(--par, 8%));
+  }
+}
+
+/**
+ * العنوان يتجمّع **بالكلمة** لا بالحرف.
+ *
+ * التقسيم حرفاً حرفاً يحتاج إضافة مدفوعة في GSAP، ويُنشئ عنصراً لكل محرف —
+ * وفي العربية يكسر التشكيل والوصل بين الحروف، فتخرج الكلمة مفكّكة. والكلمة
+ * وحدة دلالية تكفي للأثر.
+ */
+.word {
+  display: inline-block;
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .word-in .word {
+      animation: word-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+      animation-delay: calc(var(--w, 0) * 70ms);
+    }
+  }
+}
+
+@keyframes word-rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.5em) rotate(1.5deg);
+  }
+}
+
+/**
+ * البطل المثبّت — قسم **واحد** لا أكثر.
+ *
+ * التثبيت بـ`position: sticky` لا بتثبيت محسوب في جافاسكربت: الأخير يُجبر
+ * إعادة تخطيط في كل إطار تمرير، ويظهر أثره على جوال متوسط قبل أي جهاز آخر.
+ */
+.stage-sticky {
+  position: sticky;
+  top: calc(50dvh - 9rem);
+}
+
+/** كتل النصّ المتعاقبة على البطل: تظهر وتنسحب مع التمرير. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .stage-beat {
+      animation: beat-in linear both;
+      animation-timeline: view();
+      animation-range: entry 10% exit 90%;
+    }
+  }
+}
+
+@keyframes beat-in {
+  0% {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  22%,
+  78% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-18px);
+  }
+}
+
+/**
+ * شرائح الثقة في البطل — تدخل متعاقبة ثم تتنفّس.
+ *
+ * التنفّس بطيء ومداه بكسلان: أكثر من ذلك يصير قفزاً يسحب العين عن زرّ البدء
+ * الذي يعلوه مباشرة. والتعاقب من `--t` (ترتيب الشريحة).
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .trust-chip {
+    animation:
+      chip-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both,
+      chip-breathe 4.5s ease-in-out infinite;
+    animation-delay: calc(300ms + var(--t, 0) * 120ms), calc(1.2s + var(--t, 0) * 400ms);
+  }
+}
+
+@keyframes chip-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.96);
+  }
+}
+@keyframes chip-breathe {
+  0%,
+  100% {
+    transform: none;
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}

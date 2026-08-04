@@ -5,13 +5,14 @@
  * على مكتبة حركة: الحزمة الرئيسية تخدم **صفحة المنيو** التي تُفتح من كود QR على
  * بيانات جوال، فكل كيلوبايت يُضاف لتسويقنا يدفعه زبون التاجر.
  */
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { Navbar, Footer } from "@/components/site";
 import { Badge, Card } from "@/components/ui";
 import { CURRENCY, PLANS, effectiveMonthly, planPrice, type BillingCycle } from "@/lib/plans";
 import { prefersReducedMotion, useCountUp, useReveal, useTilt } from "@/lib/reveal";
 import { cn, formatPrice } from "@/lib/utils";
+import { Icon, type IconName } from "@/lib/icons";
 
 /* ── معاينة هاتف حيّة (عرض تسويقي ثابت) ────────────────────────────── */
 const DEMO_DISHES = [
@@ -211,6 +212,34 @@ function CardShowcase() {
   );
 }
 
+/** إشارات الثقة الثلاث في البطل — ما يطمئن التاجر قبل أن يقرأ ميزة واحدة. */
+const TRUST: { icon: IconName; label: string }[] = [
+  { icon: "sparkle", label: "تجهيز في دقائق" },
+  { icon: "card", label: "مدى وApple Pay" },
+  { icon: "shield", label: "متوافق مع SFDA" },
+];
+
+/**
+ * عنوان يتجمّع كلمةً كلمة.
+ *
+ * بالكلمة لا بالحرف: التقسيم الحرفي يكسر وصل الحروف العربية فتخرج الكلمة
+ * مفكّكة، ويُنشئ عنصراً لكل محرف بلا مقابل. و`aria-label` يحمل النصّ كاملاً
+ * كي يقرأه قارئ الشاشة جملةً واحدة لا كلمات متناثرة.
+ */
+function Words({ text, className }: { text: string; className?: string }) {
+  const words = text.split(" ");
+  return (
+    <span className={cn("word-in", className)} aria-label={text}>
+      {words.map((w, i) => (
+        <span key={`${w}-${i}`} className="word" style={{ "--w": i } as CSSProperties} aria-hidden="true">
+          {w}
+          {i < words.length - 1 ? " " : ""}
+        </span>
+      ))}
+    </span>
+  );
+}
+
 /* ── الأقسام ───────────────────────────────────────────────────────── */
 const FEATURES = [
   { emoji: "📱", title: "منيو QR فوري", desc: "زبونك يمسح الكود ويتصفح المنيو في ثانية — بلا تطبيق، بلا انتظار، وبثيمات فاخرة تناسب هوية مطعمك." },
@@ -333,17 +362,27 @@ export default function Landing() {
 
   return (
     <div className="flex min-h-dvh flex-col">
+      {/* شريط تقدّم القراءة — مربوط بتمرير الجذر، بلا مستمع تمرير. */}
+      <span aria-hidden="true" className="scroll-rail" />
+
       <Navbar />
 
       {/* البطل */}
-      <section className="glow-bg">
+      <section className="glow-bg relative overflow-hidden">
+        {/* طبقة زخرفية وحدها تنجرف مع التمرير. الباراlaكس على القسم نفسه كان
+            سيجرّ العنوان والأزرار معه — وإزاحة النصّ تُتعب القراءة. */}
+        <span
+          aria-hidden="true"
+          className="par-fast pointer-events-none absolute -top-24 inset-x-0 -z-10 mx-auto h-[36rem] w-[36rem] max-w-full rounded-full opacity-[.07] blur-3xl"
+          style={{ background: "radial-gradient(circle, var(--c-gold), transparent 65%)" }}
+        />
         <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 pb-20 pt-14 lg:grid-cols-2 lg:pt-20">
           <div className="anim-fade-up text-center lg:text-right">
             <Badge className="mb-5">🇸🇦 صُنع للمطاعم السعودية</Badge>
             <h1 className="font-display text-4xl font-black leading-[1.2] text-ink sm:text-5xl">
-              منيو مطعمك…
+              <Words text="منيو مطعمك…" />
               <br />
-              <span className="text-gold-grad">تجربة رقمية فاخرة</span>
+              <Words text="تجربة رقمية فاخرة" className="text-gold-grad" />
             </h1>
             <p className="mx-auto mt-5 max-w-md text-lg leading-relaxed text-dim lg:mx-0">
               كود QR واحد يفتح لزبائنك منيو أنيقاً بثيمات فاخرة، ويعطيك إحصائيات مباشرة،
@@ -364,11 +403,21 @@ export default function Landing() {
                 👀 جرّب منيو تجريبي
               </Link>
             </div>
-            <div className="mt-8 flex items-center justify-center gap-6 text-xs text-faint lg:justify-start">
-              <span>⚡ تجهيز في دقائق</span>
-              <span>💳 مدى وApple Pay</span>
-              <span>🛡️ متوافق مع SFDA</span>
-            </div>
+            {/* شرائح الثقة الثلاث — تدخل متعاقبة ثم تتنفّس، فتُقرأ إشاراتٍ
+                حيّة لا سطر نصّ رمادي. الرمز يرث لون الشريحة عبر
+                `currentColor`، بخلاف الإيموجي الذي كان يفرض لونه. */}
+            <ul className="mt-8 flex flex-wrap items-center justify-center gap-2 lg:justify-start">
+              {TRUST.map((t, i) => (
+                <li
+                  key={t.label}
+                  className="trust-chip inline-flex min-h-9 items-center gap-1.5 rounded-full border border-line bg-panel/60 px-3 py-1.5 text-xs font-bold text-dim"
+                  style={{ "--t": i } as CSSProperties}
+                >
+                  <Icon name={t.icon} size={14} className="text-gold" />
+                  {t.label}
+                </li>
+              ))}
+            </ul>
           </div>
           <PhonePreview />
         </div>
