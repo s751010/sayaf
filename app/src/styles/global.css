@@ -779,3 +779,129 @@ body {
     transform: translateY(10px);
   }
 }
+
+/* ══ الجهاز: جسم مصنوع لا مستطيل مرسوم ═══════════════════════════════════
+ * كانت `.tilt` تحمل `preserve-3d` و`useTilt` تُدير الجهاز فعلاً — **لكن لا
+ * عنصر واحد داخله له `translateZ`**، فكل الطبقات على مستوى واحد والدوران
+ * يُميل بطاقةً مسطّحة بلا اختلاف مناظر. لا يُصلح ذلك لونٌ ولا ظلٌّ أجمل، بل
+ * توزيعُ الطبقات في العمق.
+ *
+ * ⚠️ ولهذا كل ما هنا على مستوى `.ph`: غلاف الشاشة `overflow: hidden`، وهي
+ * تُسطّح سياق 3D فلا ينفع `translateZ` لأي شيء داخلها.
+ */
+.ph {
+  transform-style: preserve-3d;
+  /* سطح الشاسيه: معدن يلمع من أعلى-اليسار ويظلم في أسفل-اليمين، والزاوية
+     تتبع الإمالة عبر `--tx/--ty` اللتين تنشرهما `useTilt`. */
+  background:
+    linear-gradient(
+      calc(135deg + var(--tx, 0) * 22deg),
+      color-mix(in srgb, var(--c-gold) 34%, #2a2622) 0%,
+      #17140f 26%,
+      #0d0b09 52%,
+      #1c1813 74%,
+      color-mix(in srgb, var(--c-gold) 22%, #211d18) 100%
+    );
+  /* حافة رفيعة فاتحة أعلى وداكنة أسفل = سُمك المعدن المشطوف. */
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.6),
+    inset 1px 0 0 rgba(255, 255, 255, 0.06),
+    inset -1px 0 0 rgba(0, 0, 0, 0.4);
+}
+
+/** ظهر الهيكل — يظهر عند الإمالة كسماكة الجهاز. هذا وحده ما يقول «جسم». */
+.ph::before {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  border-radius: inherit;
+  background: linear-gradient(160deg, #241f19, #0a0908 60%);
+  transform: translateZ(-20px);
+  box-shadow: 0 0 22px rgba(0, 0, 0, 0.9);
+}
+
+/**
+ * الظلّ الأرضي — عنصر مستقلّ على عمق سالب، لا `box-shadow` على الجهاز.
+ *
+ * الظلّ المرسوم بـ`box-shadow` يُعاد رسمه مع كل حركة مؤشّر؛ وهذا يُزاح
+ * بـ`transform` وحده فيبقى على المُركِّب. وكونه منفصلاً في العمق يجعله يتزحزح
+ * بمعدّل مختلف عن الجهاز — وهو ما يفصل الجسم عن الأرض.
+ */
+.ph::after {
+  content: "";
+  position: absolute;
+  inset: 12% 6% -6%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.55), transparent 68%);
+  filter: blur(22px);
+  transform: translateZ(-40px) translate(calc(var(--tx, 0) * -14px), calc(var(--ty, 0) * -10px));
+  z-index: -1;
+}
+
+/** الزجاج: يعلو المعدن، ويغور تحت حافته بظلّ داخلي على الحدّ الأعلى. */
+.ph-glass {
+  transform: translateZ(7px);
+  box-shadow:
+    inset 0 2px 6px rgba(0, 0, 0, 0.75),
+    inset 0 -1px 3px rgba(0, 0, 0, 0.5);
+}
+
+/** انعكاس الزجاج يتبع زاوية الإمالة — معدنٌ وزجاجٌ لا يتغيّر لمعانهما ورق. */
+.ph-glass::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+  border-radius: inherit;
+  background: linear-gradient(
+    calc(115deg + var(--tx, 0) * 30deg),
+    transparent 38%,
+    rgba(255, 255, 255, calc(0.05 + var(--tx, 0) * 0.035)) 50%,
+    transparent 62%
+  );
+}
+
+/** أزرار الجانب — على سكّة المعدن، مرفوعة قليلاً عن سطحه. */
+.ph-btn {
+  position: absolute;
+  width: 3px;
+  border-radius: 2px;
+  transform: translateZ(1px);
+  background: linear-gradient(180deg, #3a342c, #14110d);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    -1px 0 2px rgba(0, 0, 0, 0.6);
+}
+.ph-btn-vol {
+  inset-inline-start: -3px;
+  top: 22%;
+  height: 54px;
+}
+.ph-btn-pwr {
+  inset-inline-end: -3px;
+  top: 30%;
+  height: 38px;
+}
+
+/**
+ * دخول مجسّم لمرّة واحدة.
+ *
+ * أغلب الزوّار على لمس و`useTilt` معطّلة بلا مؤشّر دقيق، فبدون هذا يبقى العمق
+ * غير مرئي لهم تماماً. دورة صغيرة عند الظهور تُري أنه مجسّم ثم يستقرّ.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .ph-live {
+    animation: ph-land 1100ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+}
+
+@keyframes ph-land {
+  from {
+    transform: perspective(900px) rotateY(9deg) rotateX(5deg) scale(0.97);
+  }
+  to {
+    transform: perspective(900px) rotateY(0) rotateX(0) scale(1);
+  }
+}

@@ -71,7 +71,7 @@ function DishRow({ d, i }: { d: (typeof DEMO_DISHES)[number]; i: number }) {
  * المطعم وهو يمسح كود QR.
  */
 function PhonePreview() {
-  const tilt = useTilt<HTMLAnchorElement>(10);
+  const tilt = useTilt<HTMLAnchorElement>(14);
   const stage = useRef<HTMLDivElement>(null);
   const { ref: seen, shown } = useReveal<HTMLDivElement>("-20%");
   const vars = getTheme("dark-gold").vars as CSSProperties;
@@ -99,20 +99,29 @@ function PhonePreview() {
   }, [shown]);
 
   return (
-    <div ref={seen}>
+    // ⚠️ الطفو والإمالة **لا يجتمعان على عنصر واحد**: كلاهما يكتب `transform`،
+    // وحركة CSS تغلب النمط المضمَّن في التتالي — فكانت `useTilt` تكتب ميلها
+    // ثم تدهسه `anim-float` في كل إطار، أي أن الإمالة لم تكن تعمل إطلاقاً.
+    <div ref={seen} className="anim-float mx-auto w-[270px]">
       <Link
         ref={tilt}
         to="/demo"
         aria-label="افتح المنيو التجريبي"
-        className="tilt anim-float relative mx-auto block w-[270px] select-none"
+        className="tilt relative block w-full select-none"
       >
         <div
           ref={stage}
-          className="ph relative rounded-[2.6rem] border border-line-gold p-2.5 shadow-[0_40px_80px_-30px_rgba(0,0,0,.6)]"
-          style={{ ...vars, background: "var(--m-bg-2)" }}
+          className="ph relative rounded-[2.6rem] p-2.5"
+          style={vars}
         >
+          {/* أزرار الجانب — العقدتان الوحيدتان المضافتان؛ الباقي عناصر زائفة
+              كي لا تنمو الحزمة التي يحملها زبون المنيو. */}
+          <span aria-hidden="true" className="ph-btn ph-btn-vol" />
+          <span aria-hidden="true" className="ph-btn ph-btn-pwr" />
+          {/* ⚠️ `overflow-hidden` هنا **يُسطّح** سياق 3D، فلا شيء داخل الشاشة
+              يستطيع أن يأخذ عمقاً. لذلك كل طبقات العمق على مستوى `.ph` لا هنا. */}
           <div
-            className="relative overflow-hidden rounded-[2rem] pb-4"
+            className="ph-glass relative overflow-hidden rounded-[2rem] pb-4"
             style={{ background: "var(--m-bg)" }}
           >
             {/* شريط الحالة والجزيرة — أول ما يقول العين «هذا جهاز». */}

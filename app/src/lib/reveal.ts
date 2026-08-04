@@ -106,9 +106,16 @@ export function useTilt<T extends HTMLElement = HTMLDivElement>(strength = 9) {
       const py = (e.clientY - r.top) / r.height - 0.5;
       el.style.transform =
         `perspective(900px) rotateY(${px * strength}deg) rotateX(${-py * strength}deg)`;
+      // تُنشَر الإمالة متغيّرَين (‎−1..1) كي تقرأها الإضاءة والانعكاس والظلّ في
+      // CSS. بدونها يبقى المعدن ثابت اللمعة مهما أُدير الجهاز — والمعدن الذي
+      // لا يتغيّر لمعانه مع الزاوية يُقرأ ورقاً مطبوعاً لا معدناً.
+      el.style.setProperty("--tx", (px * 2).toFixed(3));
+      el.style.setProperty("--ty", (py * 2).toFixed(3));
     };
     const reset = () => {
       el.style.transform = "";
+      el.style.setProperty("--tx", "0");
+      el.style.setProperty("--ty", "0");
     };
 
     el.addEventListener("pointermove", onMove);
