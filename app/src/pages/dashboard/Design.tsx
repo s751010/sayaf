@@ -58,7 +58,12 @@ const LAYOUT_OPTIONS: { value: DishLayout | null; label: string; hint: string }[
 /** رسم مصغّر لشكل العرض — الاختيار بالعين لا بقراءة الاسم. */
 function LayoutGlyph({ value }: { value: DishLayout | null }) {
   const box = "rounded-[3px] bg-dim/35";
-  if (value === null) return <span className="block text-center text-lg leading-6">✨</span>;
+  if (value === null)
+    return (
+      <span className="flex h-6 items-center justify-center text-dim">
+        <Icon name="sparkle" size={18} />
+      </span>
+    );
   if (value === "list")
     return (
       <span className="mx-auto flex h-6 w-16 flex-col justify-center gap-1">

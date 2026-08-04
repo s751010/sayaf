@@ -55,7 +55,11 @@ const LAYOUT_OPTIONS: { value: DishLayout | null; label: string; hint: string }[
 function LayoutGlyph({ value }: { value: DishLayout | null }) {
   const box = "rounded-[3px] bg-dim/35";
   if (value === null)
-    return <span className="block text-center text-lg leading-6">✨</span>;
+    return (
+      <span className="flex h-6 items-center justify-center text-dim">
+        <Icon name="sparkle" size={18} />
+      </span>
+    );
   if (value === "list")
     return (
       <span className="mx-auto flex h-6 w-16 flex-col justify-center gap-1">
@@ -234,8 +238,9 @@ export default function Menus() {
               <div>
                 <p className="font-bold text-ink">{m.name}</p>
                 {m.window_from && m.window_to && (
-                  <p className="text-xs text-dim">
-                    ⏰ <span dir="ltr">{m.window_from} – {m.window_to}</span>{" "}
+                  <p className="flex items-center gap-1.5 text-xs text-dim">
+                    <Icon name="clock" size={12} />
+                    <span dir="ltr">{m.window_from} – {m.window_to}</span>{" "}
                     {inTimeWindow(m.window_from, m.window_to) ? (
                       <span className="text-good">· تظهر الآن</span>
                     ) : (
@@ -259,33 +264,33 @@ export default function Menus() {
                 {m.active !== false ? "منشورة" : "مخفية"}
               </Badge>
               <Switch checked={m.active !== false} onChange={() => toggleActive(m)} label="نشر" />
-              <PreviewMenuButton slug={restaurant.slug} label="معاينة" className="px-2.5 py-1.5 text-xs" />
+              <PreviewMenuButton slug={restaurant.slug} label="معاينة" className="min-h-9 px-2.5 py-1.5 text-xs" />
               <button
                 onClick={() => setScheduling(m)}
-                className="rounded-lg px-2.5 py-1.5 text-sm font-bold text-dim hover:bg-ink/6 hover:text-ink"
+                className="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-bold text-dim hover:bg-ink/6 hover:text-ink"
               >
-                ⏰ وقت العرض
+                <Icon name="clock" size={14} /> وقت العرض
               </button>
               {(menus?.length ?? 0) > 1 && (
                 <button
                   onClick={() => showOnly(m)}
-                  className="rounded-lg px-2.5 py-1.5 text-sm font-bold text-dim hover:bg-ink/6 hover:text-ink"
+                  className="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-bold text-dim hover:bg-ink/6 hover:text-ink"
                 >
                   اعرض هذه فقط
                 </button>
               )}
               <button
                 onClick={() => rename(m)}
-                className="rounded-lg px-2.5 py-1.5 text-sm font-bold text-dim hover:bg-ink/6 hover:text-ink"
+                className="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-bold text-dim hover:bg-ink/6 hover:text-ink"
               >
                 إعادة تسمية
               </button>
               <button
                 onClick={() => remove(m)}
                 aria-label="حذف"
-                className="rounded-lg px-2 py-1.5 text-bad hover:bg-bad/10"
+                className="inline-flex min-h-9 min-w-9 items-center justify-center rounded-lg px-2 py-1.5 text-bad hover:bg-bad/10"
               >
-                🗑
+                <Icon name="trash" size={15} />
               </button>
             </div>
           </Card>

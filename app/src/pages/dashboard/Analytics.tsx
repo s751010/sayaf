@@ -334,7 +334,7 @@ export default function Analytics() {
           المشاهدات اليومية</h2>
               <button
                 onClick={() => setShowTable((v) => !v)}
-                className="text-xs font-bold text-gold hover:underline"
+                className="inline-flex min-h-9 items-center text-xs font-bold text-gold hover:underline"
               >
                 {showTable ? "عرض الرسم" : "عرض كجدول"}
               </button>

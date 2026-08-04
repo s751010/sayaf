@@ -288,7 +288,7 @@ function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode
           <p className="truncate px-2 text-xs text-faint" dir="ltr">{ctx.user.email}</p>
           <button
             onClick={() => { logout(); navigate("/"); }}
-            className="mt-2 w-full rounded-xl px-3.5 py-2 text-right text-sm font-bold text-bad hover:bg-bad/10"
+            className="mt-2 inline-flex min-h-11 w-full items-center rounded-xl px-3.5 py-2 text-right text-sm font-bold text-bad hover:bg-bad/10"
           >
             <Icon name="lock" size={15} /> تسجيل خروج
           </button>
@@ -322,7 +322,7 @@ function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode
               <button
                 onClick={() => { logout(); navigate("/"); }}
                 aria-label="تسجيل خروج"
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-line text-bad"
+                className="flex h-11 w-11 items-center justify-center rounded-full border border-line text-bad"
               >
                 <Icon name="lock" size={16} />
               </button>

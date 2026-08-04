@@ -276,9 +276,11 @@ function DishRow({
         </p>
       </div>
       <Switch checked={d.available ?? true} onChange={onToggle} label="متاح" />
+      {/* أفعال الصف: ٣٦px (محور `sm` في `ui.tsx`) لا ٣٠ — ورموز مرسومة لا
+          إيموجي، فترث لون الصف وتتطابق بين الأجهزة (§20). */}
       <button
         onClick={onEdit}
-        className="rounded-lg px-2.5 py-1.5 text-sm font-bold text-dim hover:bg-ink/6 hover:text-ink"
+        className="inline-flex min-h-9 items-center rounded-lg px-2.5 py-1.5 text-sm font-bold text-dim hover:bg-ink/6 hover:text-ink"
       >
         تعديل
       </button>
@@ -286,16 +288,16 @@ function DishRow({
         onClick={onDuplicate}
         aria-label="تكرار"
         title="تكرار الطبق"
-        className="hidden rounded-lg px-2 py-1.5 text-sm text-dim hover:bg-ink/6 hover:text-ink sm:block"
+        className="hidden min-h-9 min-w-9 items-center justify-center rounded-lg px-2 py-1.5 text-dim hover:bg-ink/6 hover:text-ink sm:inline-flex"
       >
-        ⧉
+        <Icon name="copy" size={15} />
       </button>
       <button
         onClick={onRemove}
         aria-label="حذف"
-        className="rounded-lg px-2 py-1.5 text-sm text-bad hover:bg-bad/10"
+        className="inline-flex min-h-9 min-w-9 items-center justify-center rounded-lg px-2 py-1.5 text-bad hover:bg-bad/10"
       >
-        🗑
+        <Icon name="trash" size={15} />
       </button>
     </Card>
   );
