@@ -619,3 +619,163 @@ body {
     transform: translateY(-2px);
   }
 }
+
+/* ══ هاتف البطل: منتج يُستعمَل أمام الزائر ══════════════════════════════
+ * ⚠️ **الحالة الافتراضية هنا هي الحالة المستقرّة** (شاشة السلة، بلا إصبع).
+ * أي: بلا جافاسكربت إطلاقاً — أو مع تقليل الحركة، أو لو فشل استيراد القطعة —
+ * يبقى الهاتف مشهداً كاملاً صحيحاً. المحرّك لا يفعل إلا أن **يعود بالمشهد إلى
+ * بدايته ثم يمثّله**. هذا معكوس الخطأ الشائع: بدءُ الأشياء مخفيّةً بانتظار
+ * حركةٍ قد لا تأتي.
+ *
+ * وكل ما هنا `transform`/`opacity` — صفر خاصية تُجبر إعادة تخطيط.
+ */
+
+.ph-scroll,
+.ph-sheet,
+.ph-cart,
+.ph-list,
+.ph-chip,
+.ph-row,
+.ph-finger,
+.ph-glare {
+  transition-property: transform, opacity;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  transition-duration: 260ms;
+}
+
+/* الشريحة الفعّالة — تُوسَم في الترميز ويبدّلها المحرّك، لا بمحدِّد ترتيبي. */
+.ph-chip.is-on {
+  background: var(--m-accent) !important;
+  color: var(--m-on-accent) !important;
+}
+
+/** القائمة غير المعروضة: شفّافة ومزاحة قليلاً، لا `display:none` — الأخير
+    يقطع الانتقال فتظهر القائمة الجديدة قفزاً. */
+.ph-list-off {
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+}
+
+/* الحالة المستقرّة: اللوح مخفيّ تحت الحافة، والسلة ظاهرة، والإصبع غائب. */
+.ph-sheet {
+  transform: translateY(101%);
+  /* الخروج أسرع من الدخول — قاعدة صريحة في إرشادات الحركة. */
+  transition-duration: 180ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 1, 1);
+}
+.ph-sheet.is-up {
+  transform: none;
+  transition-duration: 280ms;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ph-cart {
+  transform: none;
+  opacity: 1;
+  transition-duration: 220ms;
+}
+
+.ph-finger {
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 9999px;
+  opacity: 0;
+  /* حلقة واضحة لا وهجٌ خافت: على شاشة داكنة كان التدرّج الأبيض وحده
+     لا يُقرأ إصبعاً، والإصبع هو ما يقول «أحدهم يستعمل هذا». */
+  background: radial-gradient(circle at 34% 30%, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.3) 58%, transparent 70%);
+  border: 1.5px solid rgba(255, 255, 255, 0.55);
+  box-shadow:
+    0 2px 12px rgba(0, 0, 0, 0.5),
+    0 0 0 6px color-mix(in srgb, var(--m-accent) 18%, transparent);
+  /* الإصبع يتحرّك بتباطؤ مختلف عن الواجهة: اليد لا تتحرّك كما تتحرّك البكسلات. */
+  transition-duration: 420ms;
+  transition-timing-function: cubic-bezier(0.33, 0.9, 0.28, 1);
+}
+
+.ph-glare {
+  opacity: 0;
+  background: linear-gradient(115deg, transparent 42%, rgba(255, 255, 255, 0.09) 50%, transparent 58%);
+}
+
+/**
+ * أثناء التمثيل فقط. خارج `no-preference` لا شيء من هذا يُطبَّق، فمن يطلب تقليل
+ * الحركة يرى الحالة المستقرّة **ساكنة كاملةً** لا نصف حركة.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .ph-live .ph-scroll,
+  .ph-live .ph-sheet,
+  .ph-live .ph-finger {
+    will-change: transform;
+  }
+
+  /* المحرّك يعيد المشهد إلى بدايته: السلة تنزل والإصبع يظهر. */
+  .ph-live .ph-cart {
+    transform: translateY(140%);
+    opacity: 0;
+  }
+  .ph-live .ph-cart.is-up {
+    transform: none;
+    opacity: 1;
+  }
+  .ph-live .ph-finger {
+    opacity: 0.95;
+  }
+
+  /* موجة الضغط — حلقة تتّسع وتتلاشى مرّة واحدة. */
+  .ph-finger.is-tap::after {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border-radius: 9999px;
+    border: 2px solid color-mix(in srgb, var(--m-accent) 70%, transparent);
+    animation: ph-ripple 380ms ease-out forwards;
+  }
+
+  .ph-live .ph-glare {
+    animation: ph-glare 1400ms ease-out 200ms 1;
+  }
+
+  /* تدرّج ظهور صفوف القائمة المبدَّلة. */
+  .ph-live .ph-list:not(.ph-list-off) .ph-row {
+    animation: ph-row-in 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: calc(var(--i, 0) * 45ms);
+  }
+
+  .is-press {
+    transform: scale(0.98);
+    transition: transform 160ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+}
+
+@keyframes ph-ripple {
+  from {
+    opacity: 0.9;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}
+@keyframes ph-glare {
+  0% {
+    opacity: 0;
+    transform: translateX(-60%);
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(60%);
+  }
+}
+@keyframes ph-row-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}

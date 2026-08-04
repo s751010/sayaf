@@ -13,6 +13,7 @@ import { CURRENCY, PLANS, effectiveMonthly, planPrice, type BillingCycle } from 
 import { prefersReducedMotion, useCountUp, useReveal, useTilt } from "@/lib/reveal";
 import { cn, formatPrice } from "@/lib/utils";
 import { Icon, type IconName } from "@/lib/icons";
+import { getTheme } from "@/lib/themes";
 
 /* ── معاينة هاتف حيّة (عرض تسويقي ثابت) ────────────────────────────── */
 const DEMO_DISHES = [
@@ -22,61 +23,243 @@ const DEMO_DISHES = [
   { emoji: "☕", name: "قهوة سعودية بالهيل", price: 18, cal: 15 },
 ];
 
+/** أطباق التصنيف الثاني — التمثيل يبدّل القائمة عند ضغط شريحة «المقبلات». */
+const DEMO_MEZZE = [
+  { emoji: "🥙", name: "متبّل باذنجان مدخّن", price: 26, cal: 180 },
+  { emoji: "🧆", name: "كبّة مقلية بالصنوبر", price: 34, cal: 290 },
+  { emoji: "🫓", name: "فتّة حمّص بالسمن", price: 29, cal: 240 },
+  { emoji: "🥒", name: "تبّولة بالرمّان", price: 24, cal: 120 },
+];
+
+function DishRow({ d, i }: { d: (typeof DEMO_DISHES)[number]; i: number }) {
+  return (
+    <div
+      className="ph-row flex items-center gap-2.5 rounded-xl p-2.5"
+      style={{ background: "var(--m-surface)", "--i": i } as CSSProperties}
+    >
+      <span
+        className="flex h-9 w-9 items-center justify-center rounded-lg text-lg"
+        style={{ background: "var(--m-bg-2)" }}
+      >
+        {d.emoji}
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-[11px] font-bold" style={{ color: "var(--m-text)" }}>
+          {d.name}
+        </p>
+        <p className="text-[9px]" style={{ color: "var(--m-muted)" }}>
+          {d.cal} سعرة حرارية
+        </p>
+      </div>
+      <span className="text-[11px] font-black" style={{ color: "var(--m-accent)" }} dir="ltr">
+        {d.price} ر.س
+      </span>
+    </div>
+  );
+}
+
+/**
+ * الهاتف البطل — **منتج يُستعمَل أمام الزائر** لا صورة له.
+ *
+ * الشاشة تُلوَّن بمتغيّرات `--m-*` الحقيقية لطابع `dark-gold` (الطابع الافتراضي)،
+ * فما يراه الزائر هنا هو جلد المنتج نفسه: من ضغط «جرّب منيو تجريبي» بعدها يجد
+ * الشيء ذاته لا شيئاً آخر.
+ *
+ * القشرة هنا **ساكنة وكاملة**: تُقرأ صحيحة بلا جافاسكربت إطلاقاً. أما محرّك
+ * التمثيل (`lib/phoneDemo.ts`) فيُستورد **ديناميكياً** عند ظهور البطل — لأن
+ * `Landing` في الحزمة الرئيسية مع `MenuPage`، فأي بايت يُضاف هنا يحمّله زبون
+ * المطعم وهو يمسح كود QR.
+ */
 function PhonePreview() {
   const tilt = useTilt<HTMLAnchorElement>(10);
+  const stage = useRef<HTMLDivElement>(null);
+  const { ref: seen, shown } = useReveal<HTMLDivElement>("-20%");
+  const vars = getTheme("dark-gold").vars as CSSProperties;
+  const clock = new Date().toLocaleTimeString("ar-SA", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+
+  useEffect(() => {
+    // من طلب تقليل الحركة لا يُنزّل المحرّك أصلاً: القشرة الساكنة هي المشهد
+    // المستقرّ كاملاً، فلا قطعة تُحمَّل ولا مؤقّت يعمل بلا أثر يُرى.
+    if (!shown || !stage.current || prefersReducedMotion()) return;
+    let stop: (() => void) | undefined;
+    let alive = true;
+    void (async () => {
+      const { playPhoneDemo } = await import("@/lib/phoneDemo");
+      if (!alive || !stage.current) return;
+      stop = playPhoneDemo(stage.current);
+    })();
+    return () => {
+      alive = false;
+      stop?.();
+    };
+  }, [shown]);
+
   return (
-    // المعاينة تفتح المنيو التجريبي الحقيقي — كانت صورة ثابتة لا تؤدي لشيء.
-    <Link
-      ref={tilt}
-      to="/demo"
-      aria-label="افتح المنيو التجريبي"
-      className="tilt anim-float relative mx-auto block w-[270px] select-none"
-    >
-      <div className="rounded-[2.6rem] border border-line-gold bg-[#141210] p-2.5 shadow-[0_40px_80px_-30px_rgba(0,0,0,.6)]">
-        <div className="overflow-hidden rounded-[2rem] bg-[#1b1813] pb-4">
-          <div className="flex flex-col items-center gap-1.5 bg-gradient-to-b from-[#2a2318] to-transparent px-4 pb-4 pt-7 text-center">
-            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#d4a843]/15 text-2xl">🍽️</span>
-            <p className="font-display text-sm font-black text-[#faf6ee]">مطعم الديوان</p>
-            <span className="rounded-full bg-[#d4a843]/15 px-2.5 py-0.5 text-[10px] font-bold text-[#d4a843]">
-              طاولة ٥ · منيو رقمي
-            </span>
-          </div>
-          <div className="flex gap-1.5 overflow-hidden px-3 pb-3">
-            {["المشاوي", "المقبلات", "الحلويات", "المشروبات"].map((c, i) => (
-              <span
-                key={c}
-                className={cn(
-                  "shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold",
-                  i === 0 ? "bg-[#d4a843] text-[#141210]" : "bg-white/5 text-[#9a8f7c]"
-                )}
-              >
-                {c}
+    <div ref={seen}>
+      <Link
+        ref={tilt}
+        to="/demo"
+        aria-label="افتح المنيو التجريبي"
+        className="tilt anim-float relative mx-auto block w-[270px] select-none"
+      >
+        <div
+          ref={stage}
+          className="ph relative rounded-[2.6rem] border border-line-gold p-2.5 shadow-[0_40px_80px_-30px_rgba(0,0,0,.6)]"
+          style={{ ...vars, background: "var(--m-bg-2)" }}
+        >
+          <div
+            className="relative overflow-hidden rounded-[2rem] pb-4"
+            style={{ background: "var(--m-bg)" }}
+          >
+            {/* شريط الحالة والجزيرة — أول ما يقول العين «هذا جهاز». */}
+            <div
+              className="relative z-20 flex items-center justify-between px-5 pb-1 pt-2 text-[9px] font-bold"
+              style={{ color: "var(--m-text)" }}
+            >
+              <span dir="ltr">{clock}</span>
+              <span className="flex items-center gap-1 opacity-80">
+                <Icon name="pulse" size={9} />
+                <Icon name="plug" size={9} />
               </span>
-            ))}
-          </div>
-          <div className="flex flex-col gap-2 px-3">
-            {DEMO_DISHES.map((d) => (
-              <div key={d.name} className="flex items-center gap-2.5 rounded-xl bg-white/[.045] p-2.5">
-                <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/5 text-lg">
-                  {d.emoji}
+            </div>
+            <span
+              aria-hidden="true"
+              className="absolute left-1/2 top-1.5 z-30 h-4 w-16 -translate-x-1/2 rounded-full"
+              style={{ background: "var(--m-bg-2)" }}
+            />
+
+            {/* ما يمرّ: الترويسة والقائمة معاً — التمرير يزيح هذه الكتلة. */}
+            <div className="ph-scroll">
+              <div
+                className="flex flex-col items-center gap-1.5 px-4 pb-4 pt-3 text-center"
+                style={{ background: "linear-gradient(to bottom, var(--m-bg-2), transparent)" }}
+              >
+                <span
+                  className="flex h-12 w-12 items-center justify-center rounded-2xl text-2xl"
+                  style={{ background: "color-mix(in srgb, var(--m-accent) 15%, transparent)" }}
+                >
+                  🍽️
+                </span>
+                <p
+                  className="font-display text-sm font-black"
+                  style={{ color: "var(--m-text)" }}
+                >
+                  مطعم الديوان
+                </p>
+                <span
+                  className="rounded-full px-2.5 py-0.5 text-[10px] font-bold"
+                  style={{
+                    background: "color-mix(in srgb, var(--m-accent) 15%, transparent)",
+                    color: "var(--m-accent)",
+                  }}
+                >
+                  طاولة ٥ · منيو رقمي
+                </span>
+              </div>
+
+              <div className="flex gap-1.5 overflow-hidden px-3 pb-3">
+                {["المشاوي", "المقبلات", "الحلويات", "المشروبات"].map((c, i) => (
+                  <span
+                    key={c}
+                    data-chip={i}
+                    className={cn(
+                      "ph-chip shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold",
+                      // الشريحة الأولى فعّالة ابتداءً، والمحرّك ينقل الحالة إلى
+                      // الثانية. الوسم هنا لا في CSS: `:first-of-type` يسبق
+                      // `.is-on` في ترتيب المستند فلا يستطيع محدِّد شقيق إلغاءه.
+                      i === 0 && "is-on"
+                    )}
+                    style={{ color: "var(--m-muted)", background: "var(--m-surface)" }}
+                  >
+                    {c}
+                  </span>
+                ))}
+              </div>
+
+              <div className="relative px-3">
+                <div data-list="0" className="ph-list flex flex-col gap-2">
+                  {DEMO_DISHES.map((d, i) => (
+                    <DishRow key={d.name} d={d} i={i} />
+                  ))}
+                </div>
+                <div
+                  data-list="1"
+                  className="ph-list ph-list-off absolute inset-x-3 top-0 flex flex-col gap-2"
+                >
+                  {DEMO_MEZZE.map((d, i) => (
+                    <DishRow key={d.name} d={d} i={i} />
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* لوح الطبق — يصعد بـease-out ويهبط بـease-in أسرع. */}
+            <div
+              data-sheet
+              className="ph-sheet absolute inset-x-0 bottom-0 z-30 rounded-t-2xl border-t p-3.5"
+              style={{ background: "var(--m-bg-2)", borderColor: "var(--m-border)" }}
+            >
+              <span
+                aria-hidden="true"
+                className="mx-auto mb-2.5 block h-1 w-9 rounded-full"
+                style={{ background: "var(--m-border)" }}
+              />
+              <div className="flex items-center gap-2.5">
+                <span
+                  className="flex h-11 w-11 items-center justify-center rounded-xl text-xl"
+                  style={{ background: "var(--m-surface)" }}
+                >
+                  🧆
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[11px] font-bold text-[#faf6ee]">{d.name}</p>
-                  <p className="text-[9px] text-[#9a8f7c]">{d.cal} سعرة حرارية</p>
+                  <p className="truncate text-xs font-black" style={{ color: "var(--m-text)" }}>
+                    كبّة مقلية بالصنوبر
+                  </p>
+                  <p className="text-[9px]" style={{ color: "var(--m-muted)" }}>
+                    ٢٩٠ سعرة · تحتوي مكسّرات
+                  </p>
                 </div>
-                <span className="text-[11px] font-black text-[#d4a843]">{d.price} ر.س</span>
               </div>
-            ))}
+              <div
+                data-add
+                className="ph-add mt-3 flex items-center justify-between rounded-xl px-3 py-2 text-[11px] font-black"
+                style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}
+              >
+                <span>أضِف للطلب</span>
+                <span dir="ltr">٣٤ ر.س</span>
+              </div>
+            </div>
+
+            {/* شريط السلة — الحالة التي يستقرّ عليها المشهد. */}
+            <div
+              data-cart
+              className="ph-cart absolute inset-x-2 bottom-2 z-40 flex items-center justify-between rounded-xl px-3 py-2 text-[10px] font-black shadow-lg"
+              style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}
+            >
+              <span>عرض الطلب · صنف واحد</span>
+              <span dir="ltr">٣٤ ر.س</span>
+            </div>
           </div>
+
+          {/* انعكاس الزجاج — يمرّ مرّة مع بداية المشهد. */}
+          <span aria-hidden="true" className="ph-glare pointer-events-none absolute inset-0 rounded-[2.6rem]" />
+
+          {/* الإصبع — لا يستقبل مؤشّراً ولا يُقرأ. */}
+          <span aria-hidden="true" data-finger className="ph-finger pointer-events-none absolute" />
         </div>
-      </div>
-      <span className="absolute -left-5 top-16 rounded-2xl border border-line-gold bg-panel px-3 py-2 text-xs font-bold shadow-xl">
-        ⭐ تقييم قوقل
-      </span>
-      <span className="absolute -right-4 bottom-24 rounded-2xl border border-line-gold bg-panel px-3 py-2 text-xs font-bold text-gold shadow-xl">
-        اضغط للتجربة ←
-      </span>
-    </Link>
+
+        <span className="absolute -left-5 top-16 rounded-2xl border border-line-gold bg-panel px-3 py-2 text-xs font-bold shadow-xl">
+          ⭐ تقييم قوقل
+        </span>
+        <span className="absolute -right-4 bottom-24 rounded-2xl border border-line-gold bg-panel px-3 py-2 text-xs font-bold text-gold shadow-xl">
+          اضغط للتجربة ←
+        </span>
+      </Link>
+    </div>
   );
 }
 
