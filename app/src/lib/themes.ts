@@ -366,6 +366,109 @@ export const DESIGN_THEMES: MenuTheme[] = [
       depth: "float", sheen: "silk", entrance: "unfold", edge: "hairline",
     }),
   },
+
+  /* ── ثلاثة طوابع بُنيت على محاور الخامة منذ سطرها الأول ──────────────
+   * الستّة عشر السابقة صُمّمت قبل وجود `depth`/`sheen`/`edge`، فأُسندت لها
+   * الخامة لاحقاً. وهذه الثلاثة عكسها: الخامة جزء من فكرتها لا إضافة عليها —
+   * المرمر يقوم على العمق، والعود على اللمعة النحاسية، واللؤلؤ على الحافة.
+   *
+   * ألوانها **جديدة بالكامل** فلا تمسّ أحداً: لا منيو قائم عليها بعد.
+   * وكلّها مُتحقَّق منها بحساب التباين نفسه الذي في هذا الملف: النصّ والخافت
+   * فوق الأرضية ≥ 4.5:1 (AA)، ولون النصّ فوق التمييز من `bestOnAccent`.
+   */
+  {
+    id: "marble",
+    name: "مرمر",
+    tagline: "بياض المرمر وعروقه الدافئة، ولمسة برونز",
+    vars: {
+      "--m-bg": "#f7f5f1",
+      "--m-bg-2": "#edeae4",
+      "--m-surface": "#ffffff",
+      "--m-text": "#23211d",
+      // ‏#6b6558 لا #7c766c: الأفتح كان 4.13:1 فوق الأرضية — دون AA، ووصف
+      // الطبق يُقرأ في مطعم مُضاء بخفوت لا على شاشة مكتب.
+      "--m-muted": "#6b6558",
+      "--m-accent": "#8a6a3f",
+      "--m-accent-2": "#b9a072",
+      "--m-on-accent": "#ffffff",
+      "--m-border": "rgba(35,33,29,.12)",
+      "--m-font": FONT.almarai,
+      "--m-display": FONT.reem,
+      "--m-radius": "0.35rem",
+    },
+    design: design({
+      pattern: "mashrabiya",
+      patternOpacity: 0.035,
+      header: "frame",
+      layout: "list",
+      heading: "rule",
+      density: "airy",
+      imageShape: "square",
+      priceStyle: "leader",
+      divider: "none",
+      depth: "float", sheen: "silk", entrance: "rise", edge: "hairline",
+    }),
+  },
+  {
+    id: "oud",
+    name: "عود",
+    tagline: "خشب داكن ونحاس، لمجالس القهوة والعشاء المتأخّر",
+    vars: {
+      "--m-bg": "#17110d",
+      "--m-bg-2": "#1f1712",
+      "--m-surface": "rgba(255,255,255,.04)",
+      "--m-text": "#f2e9dd",
+      "--m-muted": "#a1907c",
+      "--m-accent": "#b8873b",
+      "--m-accent-2": "#d9ae63",
+      "--m-on-accent": "#141210",
+      "--m-border": "rgba(184,135,59,.26)",
+      "--m-font": FONT.amiri,
+      "--m-display": FONT.ruqaa,
+      "--m-radius": "0.3rem",
+    },
+    design: design({
+      pattern: "girih",
+      patternOpacity: 0.04,
+      header: "arch",
+      heading: "ornament",
+      density: "airy",
+      imageShape: "square",
+      priceStyle: "badge",
+      depth: "float", sheen: "gold", entrance: "unfold", edge: "gilded",
+    }),
+  },
+  {
+    id: "lulu",
+    name: "لؤلؤ",
+    tagline: "صدفيّ ناعم وفضّة الخليج، بحواف مستديرة",
+    vars: {
+      "--m-bg": "#f4f2f4",
+      "--m-bg-2": "#e9e6ea",
+      "--m-surface": "#fffdfe",
+      "--m-text": "#2a2630",
+      // ‏#6a6474 لا #7d7787 — نفس سبب المرمر (كان 3.88:1).
+      "--m-muted": "#6a6474",
+      "--m-accent": "#5f6b7a",
+      "--m-accent-2": "#a9b4c2",
+      "--m-on-accent": "#ffffff",
+      "--m-border": "rgba(42,38,48,.12)",
+      "--m-font": FONT.kufi,
+      "--m-display": FONT.reem,
+      "--m-radius": "1.1rem",
+    },
+    design: design({
+      pattern: "crescent",
+      patternOpacity: 0.04,
+      header: "soft",
+      layout: "showcase",
+      heading: "plain",
+      density: "airy",
+      imageShape: "circle",
+      priceStyle: "badge",
+      depth: "raised", sheen: "silk", entrance: "fade", edge: "hairline",
+    }),
+  },
 ];
 
 /**
