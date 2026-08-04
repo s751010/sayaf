@@ -40,6 +40,8 @@ const PUBLIC_RESTAURANT_COLS = [
   // الإشارة العامة الوحيدة لتشغيل السلة: `restaurant_payment_settings.enabled`
   // محجوب عن anon بالكامل (فيه المفتاح السرّي)، فلا يستطيع الزبون سؤاله.
   "online_payment_enabled",
+  // ومسار الطلب الثاني: نصّاً على واتساب المطعم، بلا بوابة ولا مال يمرّ بنا.
+  "whatsapp_orders_enabled",
   // بكسلات التتبّع — يقرؤها المتصفح ليحقنها في صفحة المنيو (§15).
   "meta_pixel_id", "ga_measurement_id", "snap_pixel_id", "created_at",
 ].join(",");
@@ -283,6 +285,7 @@ export type RestaurantSettingsPayload = {
   meta_pixel_id: string | null;
   ga_measurement_id: string | null;
   snap_pixel_id: string | null;
+  whatsapp_orders_enabled: boolean;
 };
 
 export async function updateRestaurant(

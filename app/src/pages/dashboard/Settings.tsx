@@ -73,6 +73,7 @@ export default function Settings() {
     google_review_url: restaurant.google_review_url ?? "",
     social_maps: restaurant.social_maps ?? "",
     social_whatsapp: restaurant.social_whatsapp ?? "",
+    whatsapp_orders_enabled: restaurant.whatsapp_orders_enabled ?? false,
     social_instagram: restaurant.social_instagram ?? "",
     social_twitter: restaurant.social_twitter ?? "",
     social_tiktok: restaurant.social_tiktok ?? "",
@@ -302,6 +303,43 @@ export default function Settings() {
               social_tiktok: strOrNull(f.social_tiktok),
               social_snapchat: strOrNull(f.social_snapchat),
             })}
+          />
+        </CollapsibleCard>
+
+        {/* استقبال الطلبات — قسم مستقلّ لا شريحة داخل «روابطك»: هذا قرار
+            تشغيلي يفتح سلّة في منيو الزبون، لا مجرّد رقم للتواصل. */}
+        <CollapsibleCard
+          title="🛒 استقبال الطلبات على واتساب"
+          subtitle="يبني الزبون طلبه من المنيو، ويصلك نصّاً مرتّباً على واتساب"
+        >
+          <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-line p-3.5">
+            <Switch
+              checked={f.whatsapp_orders_enabled}
+              onChange={(v) => set("whatsapp_orders_enabled", v)}
+              label="استقبال الطلبات على واتساب"
+            />
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-bold text-ink">فعّل سلّة الطلب</span>
+              <span className="mt-1 block text-xs leading-relaxed text-faint">
+                لا تحتاج بوابة دفع: يصلك الطلب بأصنافه وكمياته ورقم الطاولة، وأنت
+                تؤكّد السعر النهائي وتستلم في مطعمك كالمعتاد.
+              </span>
+            </span>
+          </label>
+
+          {/* مفتاحٌ يعمل بلا رقم يعرض للزبون زرّاً يفتح فراغاً — أسوأ من غياب
+              الميزة. فالتحذير صريح ومربوط بالحقل الذي يُصلحه. */}
+          {f.whatsapp_orders_enabled && !f.social_whatsapp.trim() && (
+            <p className="mt-3 rounded-xl border border-bad/30 bg-bad/10 px-3.5 py-2.5 text-xs font-bold leading-relaxed text-bad">
+              ⚠️ لم تحفظ رقم واتساب بعد، فلن يظهر الزرّ في منيوك. أضِف الرقم من
+              قسم «🔗 روابطك وحساباتك» أعلاه ثم احفظه.
+            </p>
+          )}
+
+          <SaveRow
+            id="orders"
+            keys={["whatsapp_orders_enabled"]}
+            patch={() => ({ whatsapp_orders_enabled: f.whatsapp_orders_enabled })}
           />
         </CollapsibleCard>
 

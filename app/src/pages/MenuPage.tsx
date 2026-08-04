@@ -771,7 +771,22 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
    */
   const paymentOn =
     state.status === "ready" && state.restaurant.online_payment_enabled === true;
-  const cart = useCart(state.status === "ready" ? state.restaurant.id : "", paymentOn);
+  /**
+   * المسار الثاني: الطلب نصّاً على واتساب المطعم.
+   *
+   * شرطان معاً — المفتاح مُشغَّل **ورقم محفوظ**. مفتاحٌ بلا رقم يعرض زرّاً
+   * يفتح فراغاً، وهذا أسوأ من غياب الميزة.
+   */
+  const waNumber =
+    state.status === "ready" &&
+    state.restaurant.whatsapp_orders_enabled === true &&
+    state.restaurant.social_whatsapp?.trim()
+      ? state.restaurant.social_whatsapp.trim()
+      : null;
+  const cart = useCart(
+    state.status === "ready" ? state.restaurant.id : "",
+    paymentOn || waNumber !== null
+  );
   const cartOn = cart.enabled;
 
   // الدفع نجح ⇒ السلة أدّت غرضها. الإلغاء لا يمسّها: الزبون قد يعيد المحاولة.
@@ -1403,6 +1418,9 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
             dishById={dishById}
             en={en}
             restaurantId={restaurant.id}
+            restaurantName={restaurant.name}
+            payOn={paymentOn}
+            whatsapp={waNumber}
             table={table}
             onClose={() => setCartOpen(false)}
           />

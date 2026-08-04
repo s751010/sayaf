@@ -46,6 +46,8 @@ export interface Restaurant {
    * الإعدادات عبر `updateOnlinePayment` — خارج whitelist الإعدادات (القاعدة هـ).
    */
   online_payment_enabled: boolean | null;
+  /** استقبال الطلبات نصّاً على واتساب — مستقلّ عن بوابة الدفع. */
+  whatsapp_orders_enabled: boolean | null;
   /**
    * بوّابة واجهة API — **يفتحها المؤسس وحده** (تريجر `guard_api_enabled` يرفض
    * تغييرها لغيره)، ثم يولّد التاجر مفتاحه بنفسه من إعداداته. انظر §14.

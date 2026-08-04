@@ -77,6 +77,7 @@ function payloadOf(r: Restaurant): RestaurantSettingsPayload {
     meta_pixel_id: r.meta_pixel_id,
     ga_measurement_id: r.ga_measurement_id,
     snap_pixel_id: r.snap_pixel_id,
+    whatsapp_orders_enabled: r.whatsapp_orders_enabled ?? false,
   };
 }
 

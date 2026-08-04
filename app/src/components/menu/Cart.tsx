@@ -15,8 +15,9 @@ import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "r
 import { parseOptions } from "@/lib/options";
 import { createOrder } from "@/lib/data";
 import { K, getJSON, removeItem, setJSON } from "@/lib/storage";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, whatsappUrl } from "@/lib/utils";
 import type { Dish } from "@/lib/types";
+import { Icon } from "@/lib/icons";
 
 const mFont: CSSProperties = { fontFamily: "var(--m-font)" };
 
@@ -122,7 +123,7 @@ export function AddToCartButton({
       }}
       aria-label={label}
       title={label}
-      className={`absolute z-10 flex h-8 w-8 items-center justify-center rounded-full text-lg font-black shadow-md transition-transform hover:scale-110 active:scale-95 ${className}`}
+      className={`absolute z-10 flex h-11 w-11 items-center justify-center rounded-full text-lg font-black shadow-md transition-transform hover:scale-110 active:scale-95 ${className}`}
       style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}
     >
       ＋
@@ -174,19 +175,73 @@ export function CartBar({
 
 /* ── شاشة المراجعة والدفع ─────────────────────────────────────────── */
 
+/**
+ * نصّ الطلب المُرسَل إلى واتساب المطعم.
+ *
+ * ⚠️ **قاعدة §13 «لا مبلغ من العميل» لا تنطبق هنا — وهذا ليس تساهلاً.**
+ * تلك القاعدة وُجدت لأن المال يمرّ عبر بوّابة: جسمٌ مزوَّر كان يعني دفع ريال
+ * مقابل طلب بمئات، فتُعاد قراءة الأسعار على الخادم. وفي هذا المسار **لا يمرّ
+ * مال عندنا إطلاقاً**: الرسالة نصٌّ يقرؤه موظّف المطعم ويؤكّده، والسعر النهائي
+ * منه. فحساب الإجمالي في المتصفّح خارجُ نطاق القاعدة لا نقضٌ لها.
+ *
+ * ولهذا يقول السطر «تقديري» صراحةً: وعدُ سعرٍ نهائي لا نملك تثبيته يصنع خلافاً
+ * على الطاولة.
+ *
+ * وأثرٌ في صالح الخصوصية: النصّ يُركَّب هنا ويُفتح على `wa.me` مباشرة — لا اسم
+ * الزبون ولا جوّاله يمرّان بخوادمنا ولا يُخزَّنان.
+ */
+function orderText(args: {
+  restaurantName: string;
+  rows: { dish?: Dish; labels: string[]; line: CartLine; total: number }[];
+  total: number;
+  table: string | null;
+  name: string;
+  mobile: string;
+  en: boolean;
+}): string {
+  const { restaurantName, rows, total, table, name, mobile, en } = args;
+  const L: string[] = [];
+  L.push(en ? `New order · ${restaurantName}` : `طلب جديد · ${restaurantName}`);
+  if (table) L.push(en ? `Table: ${table}` : `الطاولة: ${table}`);
+  L.push("");
+  for (const r of rows) {
+    if (!r.dish) continue;
+    const dishName = en && r.dish.name_en ? r.dish.name_en : r.dish.name;
+    const extras = r.labels.length ? ` — ${r.labels.join("، ")}` : "";
+    L.push(`${r.line.qty}× ${dishName}${extras}  ${formatPrice(r.total)} ${en ? "SAR" : "ر.س"}`);
+  }
+  L.push("");
+  L.push(
+    en
+      ? `Estimated total: ${formatPrice(total)} SAR`
+      : `الإجمالي التقديري: ${formatPrice(total)} ر.س`
+  );
+  if (name) L.push(en ? `Name: ${name}` : `الاسم: ${name}`);
+  if (mobile) L.push(en ? `Mobile: ${mobile}` : `الجوال: ${mobile}`);
+  return L.join("\n");
+}
+
 export function CartReview({
   cart,
   dishById,
   en,
   restaurantId,
+  restaurantName,
   table,
+  payOn,
+  whatsapp,
   onClose,
 }: {
   cart: Cart;
   dishById: Map<string, Dish>;
   en: boolean;
   restaurantId: string;
+  restaurantName: string;
   table: string | null;
+  /** بوّابة الدفع مفتوحة لهذا المطعم. */
+  payOn: boolean;
+  /** رقم واتساب المطعم — `null` إن لم يُفعّل المسار أو لم يُحفظ رقم. */
+  whatsapp: string | null;
   onClose: () => void;
 }) {
   const [name, setName] = useState("");
@@ -274,7 +329,7 @@ export function CartReview({
             <button
               onClick={() => cart.setQty(r.index, r.line.qty - 1)}
               aria-label={en ? "Decrease" : "إنقاص"}
-              className="h-7 w-7 text-sm font-black"
+              className="h-11 w-11 text-sm font-black"
               style={{ color: "var(--m-muted)" }}
             >
               −
@@ -285,7 +340,7 @@ export function CartReview({
             <button
               onClick={() => cart.setQty(r.index, r.line.qty + 1)}
               aria-label={en ? "Increase" : "زيادة"}
-              className="h-7 w-7 text-sm font-black"
+              className="h-11 w-11 text-sm font-black"
               style={{ color: "var(--m-accent)" }}
             >
               ＋
@@ -351,28 +406,60 @@ export function CartReview({
             </p>
           )}
 
-          <button
-            onClick={pay}
-            disabled={busy || missing}
-            className="w-full rounded-xl py-3 text-sm font-black disabled:opacity-50"
-            style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}
-          >
-            {busy ? "…" : en ? "Pay now" : "الدفع الآن"}
-          </button>
+          {/* المساران معاً أو أيّهما وُجد. من أطفأ الاثنين لا تظهر له سلّة أصلاً. */}
+          {whatsapp && (
+            <a
+              href={
+                missing
+                  ? "#"
+                  : whatsappUrl(
+                      whatsapp,
+                      orderText({ restaurantName, rows, total, table, name, mobile, en })
+                    )
+              }
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-disabled={missing}
+              onClick={(e) => missing && e.preventDefault()}
+              className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-black aria-disabled:opacity-50"
+              style={
+                payOn
+                  ? { border: "1px solid var(--m-accent)", color: "var(--m-accent)" }
+                  : { background: "var(--m-accent)", color: "var(--m-on-accent)" }
+              }
+            >
+              <Icon name="share" size={15} />
+              {en ? "Send order on WhatsApp" : "أرسل الطلب على واتساب"}
+            </a>
+          )}
+          {payOn && (
+            <button
+              onClick={pay}
+              disabled={busy || missing}
+              className="min-h-11 w-full rounded-xl py-3 text-sm font-black disabled:opacity-50"
+              style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}
+            >
+              {busy ? "…" : en ? "Pay now" : "الدفع الآن"}
+            </button>
+          )}
           <button
             onClick={() => {
               cart.clear();
               onClose();
             }}
-            className="text-center text-xs font-bold underline underline-offset-2"
+            className="mx-auto inline-flex min-h-9 items-center text-center text-xs font-bold underline underline-offset-2"
             style={{ color: "var(--m-muted)" }}
           >
             {en ? "Empty the order" : "إفراغ الطلب"}
           </button>
           <p className="text-center text-xs leading-relaxed" style={{ color: "var(--m-muted)" }}>
-            {en
-              ? "Payment is made directly to the restaurant through a secure gateway."
-              : "الدفع يتم مباشرة لحساب المطعم عبر بوابة دفع آمنة."}
+            {payOn
+              ? en
+                ? "Payment is made directly to the restaurant through a secure gateway."
+                : "الدفع يتم مباشرة لحساب المطعم عبر بوابة دفع آمنة."
+              : en
+                ? "Your order is sent to the restaurant on WhatsApp. They confirm the final price."
+                : "يصل طلبك للمطعم على واتساب، وهو من يؤكّد السعر النهائي."}
           </p>
         </>
       )}
