@@ -21,6 +21,8 @@ const DEMO_DISHES = [
   { emoji: "🍤", name: "روبيان مقرمش بالعسل", price: 78, cal: 540 },
   { emoji: "🥗", name: "سلطة البرّاتا والرمان", price: 52, cal: 310 },
   { emoji: "☕", name: "قهوة سعودية بالهيل", price: 18, cal: 15 },
+  { emoji: "🍗", name: "دجاج مشوي بالليمون", price: 64, cal: 480 },
+  { emoji: "🍚", name: "كبسة لحم حاشي", price: 95, cal: 710 },
 ];
 
 /** أطباق التصنيف الثاني — التمثيل يبدّل القائمة عند ضغط شريحة «المقبلات». */
@@ -29,7 +31,43 @@ const DEMO_MEZZE = [
   { emoji: "🧆", name: "كبّة مقلية بالصنوبر", price: 34, cal: 290 },
   { emoji: "🫓", name: "فتّة حمّص بالسمن", price: 29, cal: 240 },
   { emoji: "🥒", name: "تبّولة بالرمّان", price: 24, cal: 120 },
+  { emoji: "🧀", name: "جبنة حلوم مشوية", price: 32, cal: 260 },
+  { emoji: "🍆", name: "بابا غنّوج بالطحينة", price: 27, cal: 200 },
 ];
+
+/**
+ * رموز شريط حالة iOS — **مضمَّنة هنا لا في `lib/icons.tsx`**.
+ *
+ * قاعدة §20 («مصدر رسم واحد للـDOM وللـcanvas») تخصّ أيقونات المنتج التي
+ * تُرسم في الحالتين. وهذه رموز نظام تشغيل تُحاكى داخل ماكيت، لا تُرسم على
+ * canvas أبداً، وهي **أشكال مصمتة** لا خطوط بسماكة ١٫٧٥ — فإدخالها في مجموعة
+ * المنتج كان سيلوّثها بأشكال لا تتبع شبكتها.
+ */
+function StatusGlyphs() {
+  return (
+    <span className="flex items-center gap-[3px]" style={{ color: "var(--m-text)" }}>
+      {/* شبكة: أربعة أعمدة متدرّجة */}
+      <svg width="14" height="10" viewBox="0 0 14 10" fill="currentColor" aria-hidden="true">
+        <rect x="0" y="7" width="2.5" height="3" rx="0.6" />
+        <rect x="3.8" y="5" width="2.5" height="5" rx="0.6" />
+        <rect x="7.6" y="2.8" width="2.5" height="7.2" rx="0.6" />
+        <rect x="11.4" y="0" width="2.5" height="10" rx="0.6" />
+      </svg>
+      {/* واي‑فاي: ثلاثة أقواس ونقطة */}
+      <svg width="12" height="10" viewBox="0 0 12 10" fill="none" stroke="currentColor" aria-hidden="true">
+        <path d="M1 3.4a7.4 7.4 0 0 1 10 0" strokeWidth="1.4" strokeLinecap="round" />
+        <path d="M3 5.7a4.4 4.4 0 0 1 6 0" strokeWidth="1.4" strokeLinecap="round" />
+        <circle cx="6" cy="8.4" r="1.1" fill="currentColor" stroke="none" />
+      </svg>
+      {/* بطارية: غلاف وطرف وحشوة */}
+      <svg width="19" height="10" viewBox="0 0 19 10" aria-hidden="true">
+        <rect x="0.5" y="0.5" width="15" height="9" rx="2.6" fill="none" stroke="currentColor" strokeOpacity="0.45" />
+        <rect x="2" y="2" width="10.5" height="6" rx="1.4" fill="currentColor" />
+        <path d="M17 3.6v2.8a1.9 1.9 0 0 0 0-2.8Z" fill="currentColor" fillOpacity="0.45" />
+      </svg>
+    </span>
+  );
+}
 
 function DishRow({ d, i }: { d: (typeof DEMO_DISHES)[number]; i: number }) {
   return (
@@ -124,22 +162,18 @@ function PhonePreview() {
             className="ph-glass relative overflow-hidden rounded-[2rem] pb-4"
             style={{ background: "var(--m-bg)" }}
           >
-            {/* شريط الحالة والجزيرة — أول ما يقول العين «هذا جهاز». */}
+            {/* شريط الحالة بارتفاع ٥٤ نقطة (٣٤px)، والساعة والرموز **بجانبي**
+                الجزيرة لا تحتها — كما في الجهاز الحقيقي. */}
             <div
-              className="relative z-20 flex items-center justify-between px-5 pb-1 pt-2 text-[9px] font-bold"
+              className="ph-status relative z-40 flex items-center justify-between px-5 text-[10px] font-bold"
               style={{ color: "var(--m-text)" }}
             >
-              <span dir="ltr">{clock}</span>
-              <span className="flex items-center gap-1 opacity-80">
-                <Icon name="pulse" size={9} />
-                <Icon name="plug" size={9} />
-              </span>
+              <span dir="ltr" className="tabular-nums">{clock}</span>
+              <StatusGlyphs />
             </div>
-            <span
-              aria-hidden="true"
-              className="absolute left-1/2 top-1.5 z-30 h-4 w-16 -translate-x-1/2 rounded-full"
-              style={{ background: "var(--m-bg-2)" }}
-            />
+            {/* الجزيرة: سوداء صرفة ٨٠×٢٣ على بعد ٧ — كانت بنّية ٦٤×١٦ تعلو
+                تدرّج الترويسة فتُقرأ لطخة فاتحة فوق اسم المطعم. */}
+            <span aria-hidden="true" className="ph-island" />
 
             {/* ما يمرّ: الترويسة والقائمة معاً — التمرير يزيح هذه الكتلة. */}
             <div className="ph-scroll">
@@ -252,6 +286,9 @@ function PhonePreview() {
               <span>عرض الطلب · صنف واحد</span>
               <span dir="ltr">٣٤ ر.س</span>
             </div>
+
+            {/* شريط المنزل — ١٤٠×٥ نقطة على بعد ٨. */}
+            <span aria-hidden="true" className="ph-home" />
           </div>
 
           {/* انعكاس الزجاج — يمرّ مرّة مع بداية المشهد. */}
@@ -261,10 +298,10 @@ function PhonePreview() {
           <span aria-hidden="true" data-finger className="ph-finger pointer-events-none absolute" />
         </div>
 
-        <span className="absolute -left-5 top-16 rounded-2xl border border-line-gold bg-panel px-3 py-2 text-xs font-bold shadow-xl">
+        <span className="ph-badge absolute -left-5 top-28 rounded-2xl border border-line-gold bg-panel px-3 py-2 text-xs font-bold shadow-xl">
           ⭐ تقييم قوقل
         </span>
-        <span className="absolute -right-4 bottom-24 rounded-2xl border border-line-gold bg-panel px-3 py-2 text-xs font-bold text-gold shadow-xl">
+        <span className="ph-badge absolute -right-4 top-44 rounded-2xl border border-line-gold bg-panel px-3 py-2 text-xs font-bold text-gold shadow-xl">
           اضغط للتجربة ←
         </span>
       </Link>

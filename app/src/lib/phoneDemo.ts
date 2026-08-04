@@ -22,13 +22,8 @@
  * هي ما يجعل المشهد يُقرأ تسجيلَ شاشة لا رسماً متحرّكاً.
  */
 
-/** موضع الإصبع داخل الهاتف، نسبةً إلى مربّعه (٪). */
+/** موضع الإصبع داخل الهاتف بالبكسل، من أعلى-يسار مربّعه. */
 type Spot = { x: number; y: number };
-
-const CHIP: Spot = { x: 52, y: 47 };
-const DISH: Spot = { x: 50, y: 62 };
-const ADD: Spot = { x: 50, y: 86 };
-const OUT: Spot = { x: 50, y: 118 };
 
 /**
  * المشهد بأكمله. كل خطوة: تأخير قبلها بالمللي ثانية، ثم فعلها.
@@ -49,10 +44,27 @@ export function playPhoneDemo(stage: HTMLElement): () => void {
   const listB = q('[data-list="1"]');
   const chips = [...stage.querySelectorAll<HTMLElement>("[data-chip]")];
 
+  /**
+   * ⚠️ الإصبع يُصوَّب إلى **العنصر نفسه** لا إلى نسبة مئوية محفوظة.
+   *
+   * كانت المواضع أرقاماً مئوية مضبوطة يدوياً على تخطيط بعينه، فكل تغيير في
+   * هندسة الجهاز أو ترتيب المحتوى كان ينقل الضغطة إلى فراغ **بلا أن يفشل شيء
+   * ظاهر** — المشهد يعمل والإصبع يضغط الهواء. القياس من الهدف يجعل ذلك
+   * مستحيلاً بالبناء.
+   */
+  const spotOf = (el: Element | null | undefined): Spot | null => {
+    if (!el) return null;
+    const s = stage.getBoundingClientRect();
+    const r = el.getBoundingClientRect();
+    return { x: r.left + r.width / 2 - s.left, y: r.top + r.height / 2 - s.top };
+  };
+  /** خارج الإطار من أسفل — نقطة الدخول والخروج. */
+  const OUT: Spot = { x: stage.offsetWidth / 2, y: stage.offsetHeight + 40 };
+
   /** ينقل الإصبع، ويومض موجة ضغط عند `tap`. */
-  const move = (p: Spot, tap = false) => {
-    if (!finger) return;
-    finger.style.transform = `translate(-50%,-50%) translate(${p.x * 2.7}px, ${p.y * 5.4}px)`;
+  const move = (p: Spot | null, tap = false) => {
+    if (!finger || !p) return;
+    finger.style.transform = `translate(-50%,-50%) translate(${p.x}px, ${p.y}px)`;
     finger.classList.toggle("is-tap", tap);
     if (tap) at(220, () => finger.classList.remove("is-tap"));
   };
@@ -69,17 +81,17 @@ export function playPhoneDemo(stage: HTMLElement): () => void {
 
   // ١) الإصبع يدخل من أسفل الإطار.
   move(OUT);
-  at(120, () => move({ x: 50, y: 70 }));
+  at(120, () => move({ x: stage.offsetWidth / 2, y: stage.offsetHeight * 0.7 }));
 
   // ٢) تمرير القائمة — إزاحة واحدة بتباطؤ قصوري.
   at(700, () => {
-    if (scroll) scroll.style.transform = "translateY(-58px)";
+    if (scroll) scroll.style.transform = "translateY(-104px)";
   });
 
   // ٣) ضغط شريحة «المقبلات» ⇒ تبديل القائمة.
-  at(1500, () => move(CHIP));
+  at(1500, () => move(spotOf(chips[1])));
   at(1900, () => {
-    move(CHIP, true);
+    move(spotOf(chips[1]), true);
     press(chips[1] ?? null);
     chips.forEach((c, i) => c.classList.toggle("is-on", i === 1));
     listA?.classList.add("ph-list-off");
@@ -87,16 +99,16 @@ export function playPhoneDemo(stage: HTMLElement): () => void {
   });
 
   // ٤) ضغط طبق ⇒ اللوح يصعد.
-  at(2900, () => move(DISH));
+  at(2900, () => move(spotOf(listB?.children[1])));
   at(3300, () => {
-    move(DISH, true);
+    move(spotOf(listB?.children[1]), true);
     sheet?.classList.add("is-up");
   });
 
   // ٥) ضغط «أضِف للطلب» ⇒ انكماش ثم هبوط اللوح.
-  at(4400, () => move(ADD));
+  at(4400, () => move(spotOf(add)));
   at(4800, () => {
-    move(ADD, true);
+    move(spotOf(add), true);
     press(add);
   });
   at(5100, () => sheet?.classList.remove("is-up"));

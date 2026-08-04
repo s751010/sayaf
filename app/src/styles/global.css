@@ -677,8 +677,11 @@ body {
 }
 
 .ph-finger {
-  inset-block-start: 0;
-  inset-inline-start: 0;
+  /* ⚠️ إحداثيات فيزيائية لا منطقية: `inset-inline-start` في مستند RTL تعني
+     **اليمين**، فكان الإصبع يُثبَّت عند الحافة اليمنى ثم يُزاح يميناً أكثر —
+     ويخطئ كل هدف بعرض الجهاز تقريباً. الحساب بالبكسل من اليسار، فالمرساة كذلك. */
+  top: 0;
+  left: 0;
   width: 26px;
   height: 26px;
   border-radius: 9999px;
@@ -904,4 +907,86 @@ body {
   to {
     transform: perspective(900px) rotateY(0) rotateX(0) scale(1);
   }
+}
+
+/* ══ هندسة أيفون حقيقية ══════════════════════════════════════════════════
+ * المرجع بالنقاط (أيفون ١٥/١٦ برو): شاشة ٣٩٣×٨٥٢ · نصف قطرها ٥٥ · جزيرة
+ * ١٢٥×٣٦ على بعد ١١ · شريط حالة ٥٤ · شريط منزل ١٤٠×٥ على بعد ٨.
+ * بعرض شاشة ٢٥٠px يصير معامل القياس 250÷393 = 0.636، ومنه كل رقم أدناه.
+ */
+.ph {
+  --ph-scale: 0.636;
+  border-radius: 43px; /* ٣٥ (الشاشة) + ٨ (الحافة) */
+  padding: 8px;
+}
+
+.ph-glass {
+  /* النسبة تُعلَن كما هي بدل ارتفاع مثبّت: أي تغيير في العرض يبقيها أيفون. */
+  aspect-ratio: 393 / 852;
+  border-radius: 35px; /* ٥٥ × 0.636 */
+}
+
+/** شريط الحالة: ٥٤ نقطة، ومحتواه يعلو الجزيرة لا يختفي تحتها. */
+.ph-status {
+  height: 34px;
+  padding-top: 4px;
+}
+
+/**
+ * حاجب أعلى الشاشة.
+ *
+ * المحتوى يمرّ **تحت** شريط الحالة — وهذا سلوك iOS الصحيح. لكن بلا حاجب يظهر
+ * اسم المطعم مقطوعاً خلف الساعة فيُقرأ عطلاً لا تمريراً. التدرّج يُذيب ما يمرّ
+ * تحته كما يفعل الجهاز.
+ */
+.ph-status::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 46px;
+  z-index: -1;
+  background: linear-gradient(
+    to bottom,
+    var(--m-bg) 0%,
+    var(--m-bg) 52%,
+    color-mix(in srgb, var(--m-bg) 70%, transparent) 78%,
+    transparent 100%
+  );
+}
+
+/** الجزيرة: **سوداء صرفة** — أي لون آخر يقرأه النظر لطخة لا عدسة. */
+.ph-island {
+  position: absolute;
+  top: 7px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 23px;
+  border-radius: 12px;
+  background: #000;
+  z-index: 45;
+}
+
+/** شريط المنزل — يعلو كل محتوى الشاشة كما في الجهاز. */
+.ph-home {
+  position: absolute;
+  bottom: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 89px;
+  height: 3px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--m-text) 55%, transparent);
+  z-index: 45;
+}
+
+/**
+ * الشارتان الطافيتان أمام الجهاز.
+ *
+ * ⚠️ كانتا تُقصّان — وليس قصّاً خاطئاً بل سلوك `preserve-3d` الصحيح: عنصران
+ * عند العمق صفر داخل مجسّم طبقاته من ‎−20 إلى ‎+7 **يتقاطعان مع حجمه** فيُقصّان
+ * ضدّه. رفعهما أمام الزجاج يُخرجهما من التقاطع.
+ */
+.ph-badge {
+  transform: translateZ(30px);
 }
