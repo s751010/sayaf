@@ -22,6 +22,27 @@ export type PriceStyle = "plain" | "badge" | "leader";
 /** الفاصل بين صفوف القائمة الرأسية. */
 export type RowDivider = "none" | "dots" | "rule";
 
+/**
+ * ── محاور الخامة الأربعة ──────────────────────────────────────────────
+ *
+ * المحاور التسعة قبلها كلها **بنيوية**: تخطيط، وشكل ترويسة، وشكل صورة، وإيقاع.
+ * فالفرق بين «حصري فاخر» و«زمردي فاخر» يُرى في البنية ولا يُحسّ في الخامة —
+ * كلاهما أسطح مسطّحة بحدّ بعرض بكسل، والفخامة في المطبوع تأتي من العمق واللمعة
+ * وثقل الحافة لا من اللون وحده.
+ *
+ * وهذه الأربعة **لا تحمل لوناً**: قيمها تُشتقّ في CSS بـ`color-mix()` من
+ * `--m-*` القائمة، فترتفع الطوابع الستّة عشر بلا أن يتبدّل لون واحد على منيو
+ * تاجر يعمل الآن (§18).
+ */
+/** عمق السطح — ظلال متعدّدة الطبقات مشتقّة من لون نصّ الطابع. */
+export type SurfaceDepth = "flat" | "raised" | "float";
+/** مسحة ضوء بطيئة تعبر أسطح التمييز. `silk` أخفت وأبطأ من `gold`. */
+export type Sheen = "none" | "gold" | "silk";
+/** دخول بطاقات الأطباق مع التمرير — CSS خالص، بلا مراقب تقاطع. */
+export type Entrance = "none" | "fade" | "rise" | "unfold";
+/** معالجة الحافة: خيط شعري داخلي، أو حدّ مذهّب بتدرّج. */
+export type EdgeTreatment = "plain" | "hairline" | "gilded";
+
 export interface MenuDesign {
   pattern: PatternId;
   /** شفافية الزخرفة — تبقى منخفضة كي لا تزاحم قراءة النص فوقها. */
@@ -38,6 +59,11 @@ export interface MenuDesign {
   imageShape: ImageShape;
   priceStyle: PriceStyle;
   divider: RowDivider;
+  /** محاور الخامة — انظر التعليق فوق أنواعها. */
+  depth: SurfaceDepth;
+  sheen: Sheen;
+  entrance: Entrance;
+  edge: EdgeTreatment;
 }
 
 export interface MenuTheme {
@@ -76,6 +102,10 @@ const BASE_DESIGN: MenuDesign = {
   imageShape: "rounded",
   priceStyle: "plain",
   divider: "rule",
+  depth: "flat",
+  sheen: "none",
+  entrance: "none",
+  edge: "plain",
 };
 
 const design = (over: Partial<MenuDesign> = {}): MenuDesign => ({ ...BASE_DESIGN, ...over });
@@ -139,6 +169,7 @@ export const DESIGN_THEMES: MenuTheme[] = [
       heading: "ornament",
       imageShape: "square",
       priceStyle: "badge",
+      depth: "raised", sheen: "none", entrance: "rise", edge: "hairline",
     }),
   },
   {
@@ -169,6 +200,7 @@ export const DESIGN_THEMES: MenuTheme[] = [
       imageShape: "square",
       priceStyle: "leader",
       divider: "none",
+      depth: "float", sheen: "gold", entrance: "unfold", edge: "gilded",
     }),
   },
   {
@@ -195,6 +227,7 @@ export const DESIGN_THEMES: MenuTheme[] = [
       header: "arch",
       imageShape: "circle",
       priceStyle: "badge",
+      depth: "raised", sheen: "silk", entrance: "rise", edge: "hairline",
     }),
   },
   {
@@ -218,6 +251,7 @@ export const DESIGN_THEMES: MenuTheme[] = [
       layout: "showcase",
       density: "airy",
       imageShape: "square",
+      depth: "flat", sheen: "none", entrance: "fade", edge: "hairline",
     }),
   },
 
@@ -247,6 +281,7 @@ export const DESIGN_THEMES: MenuTheme[] = [
       heading: "ornament",
       imageShape: "square",
       priceStyle: "badge",
+      depth: "raised", sheen: "none", entrance: "rise", edge: "plain",
     }),
   },
   {
@@ -273,6 +308,7 @@ export const DESIGN_THEMES: MenuTheme[] = [
       heading: "rule",
       density: "airy",
       imageShape: "circle",
+      depth: "raised", sheen: "silk", entrance: "fade", edge: "hairline",
     }),
   },
   {
@@ -298,6 +334,7 @@ export const DESIGN_THEMES: MenuTheme[] = [
       density: "airy",
       imageShape: "square",
       divider: "none",
+      depth: "raised", sheen: "none", entrance: "rise", edge: "hairline",
     }),
   },
   {
@@ -326,6 +363,7 @@ export const DESIGN_THEMES: MenuTheme[] = [
       density: "airy",
       imageShape: "square",
       priceStyle: "badge",
+      depth: "float", sheen: "silk", entrance: "unfold", edge: "hairline",
     }),
   },
 ];
@@ -363,7 +401,7 @@ const CLASSIC_THEMES: MenuTheme[] = [
       "--m-font": FONT.kufi,
       "--m-radius": "1rem",
     },
-    design: design({ pattern: "girih", patternOpacity: 0.03, header: "frame", heading: "ornament", density: "airy", imageShape: "square", priceStyle: "badge" }),
+    design: design({ pattern: "girih", patternOpacity: 0.03, header: "frame", heading: "ornament", density: "airy", imageShape: "square", priceStyle: "badge", depth: "float", sheen: "gold", entrance: "rise", edge: "gilded" }),
   },
   {
     id: "light-luxe",
@@ -382,7 +420,7 @@ const CLASSIC_THEMES: MenuTheme[] = [
       "--m-font": FONT.amiri,
       "--m-radius": "0.85rem",
     },
-    design: design({ pattern: "mashrabiya", patternOpacity: 0.04, header: "frame", layout: "list", heading: "rule", density: "airy", imageShape: "square", priceStyle: "leader", divider: "none" }),
+    design: design({ pattern: "mashrabiya", patternOpacity: 0.04, header: "frame", layout: "list", heading: "rule", density: "airy", imageShape: "square", priceStyle: "leader", divider: "none", depth: "raised", sheen: "silk", entrance: "fade", edge: "hairline" }),
   },
   {
     id: "emerald",
@@ -401,7 +439,7 @@ const CLASSIC_THEMES: MenuTheme[] = [
       "--m-font": FONT.reem,
       "--m-radius": "1rem",
     },
-    design: design({ pattern: "girih", patternOpacity: 0.045, header: "band", heading: "ornament", imageShape: "rounded", priceStyle: "badge" }),
+    design: design({ pattern: "girih", patternOpacity: 0.045, header: "band", heading: "ornament", imageShape: "rounded", priceStyle: "badge", depth: "float", sheen: "gold", entrance: "unfold", edge: "gilded" }),
   },
   {
     id: "royal",
@@ -421,7 +459,7 @@ const CLASSIC_THEMES: MenuTheme[] = [
       "--m-display": FONT.ruqaa,
       "--m-radius": "1.1rem",
     },
-    design: design({ pattern: "najma", patternOpacity: 0.05, header: "frame", layout: "list", heading: "rule", density: "airy", imageShape: "square", priceStyle: "leader", divider: "none" }),
+    design: design({ pattern: "najma", patternOpacity: 0.05, header: "frame", layout: "list", heading: "rule", density: "airy", imageShape: "square", priceStyle: "leader", divider: "none", depth: "float", sheen: "gold", entrance: "unfold", edge: "gilded" }),
   },
   {
     id: "coffee",
@@ -440,7 +478,7 @@ const CLASSIC_THEMES: MenuTheme[] = [
       "--m-font": FONT.tajawal,
       "--m-radius": "0.9rem",
     },
-    design: design({ pattern: "sadu", patternOpacity: 0.05, header: "band", layout: "showcase", density: "airy", imageShape: "rounded" }),
+    design: design({ pattern: "sadu", patternOpacity: 0.05, header: "band", layout: "showcase", density: "airy", imageShape: "rounded", depth: "raised", sheen: "silk", entrance: "rise", edge: "hairline" }),
   },
   {
     id: "crimson",
@@ -459,7 +497,7 @@ const CLASSIC_THEMES: MenuTheme[] = [
       "--m-font": FONT.cairo,
       "--m-radius": "0.85rem",
     },
-    design: design({ pattern: "qatt", patternOpacity: 0.05, heading: "ornament", imageShape: "circle", priceStyle: "badge" }),
+    design: design({ pattern: "qatt", patternOpacity: 0.05, heading: "ornament", imageShape: "circle", priceStyle: "badge", depth: "raised", sheen: "none", entrance: "rise", edge: "plain" }),
   },
   {
     id: "ocean",
@@ -478,7 +516,7 @@ const CLASSIC_THEMES: MenuTheme[] = [
       "--m-font": FONT.reem,
       "--m-radius": "1rem",
     },
-    design: design({ pattern: "mashrabiya", patternOpacity: 0.05, header: "arch", density: "airy", imageShape: "circle" }),
+    design: design({ pattern: "mashrabiya", patternOpacity: 0.05, header: "arch", density: "airy", imageShape: "circle", depth: "raised", sheen: "silk", entrance: "fade", edge: "hairline" }),
   },
   {
     id: "minimal",
@@ -497,7 +535,7 @@ const CLASSIC_THEMES: MenuTheme[] = [
       "--m-font": FONT.almarai,
       "--m-radius": "0.6rem",
     },
-    design: design({ layout: "list", density: "airy", imageShape: "square", divider: "rule" }),
+    design: design({ layout: "list", density: "airy", imageShape: "square", divider: "rule", depth: "flat", sheen: "none", entrance: "fade", edge: "hairline" }),
   },
 ];
 
@@ -738,4 +776,22 @@ export function getTheme(id: string | null | undefined): MenuTheme {
   const found = ALL_THEMES.find((t) => t.id === key) ?? DEFAULT_THEME;
   const theme = hex ? tintTheme(found, hex) : found;
   return layout ? withLayout(theme, layout) : theme;
+}
+
+/**
+ * أصناف الخامة التي تُطبَّق على جذر المنيو.
+ *
+ * الأربعة تُترجَم إلى أصناف يقرؤها `global.css` ويشتقّ منها الظلال واللمعة
+ * والحافة بـ`color-mix()` من `--m-*` — فلا قيمة لونية تُكتب هنا ولا في أي طابع.
+ *
+ * `entrance` يُستثنى من هذا الوسم عمداً: بطاقة الطبق تحمله بنفسها كي يبقى
+ * التدرّج (`--i`) على مستوى البطاقة لا على مستوى الصفحة.
+ */
+export function skinClass(d: MenuDesign): string {
+  return `m-depth-${d.depth} m-sheen-${d.sheen} m-edge-${d.edge}`;
+}
+
+/** صنف دخول البطاقة — يُقرن مع متغيّر `--i` لترتيبها في القسم. */
+export function entranceClass(d: MenuDesign): string {
+  return d.entrance === "none" ? "" : `m-enter m-enter-${d.entrance}`;
 }

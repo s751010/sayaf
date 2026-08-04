@@ -50,7 +50,9 @@ function Price({ dish, big, style }: { dish: Dish; big?: boolean; style: PriceSt
     return (
       <span
         className={cn(
-          "whitespace-nowrap rounded-full px-2.5 py-0.5 font-black",
+          // `m-shine` سطحُ لمعة: يعمل فقط في الطوابع التي تحمل `sheen`،
+          // ولا يفعل شيئاً في غيرها ولا مع تقليل الحركة.
+          "m-shine whitespace-nowrap rounded-full px-2.5 py-0.5 font-black",
           big ? "text-sm" : "text-xs"
         )}
         style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}
@@ -176,7 +178,7 @@ export function DishCard({
       <button
         onClick={onOpen}
         className={cn(
-          "flex w-full items-start gap-3 px-1 py-4 text-start transition-opacity hover:opacity-80",
+          "m-row flex w-full items-start gap-3 px-1 py-4 text-start transition-opacity hover:opacity-80",
           divider === "rule" && "border-b",
           divider === "dots" && "border-b border-dashed"
         )}
@@ -242,7 +244,7 @@ export function DishCard({
     return (
       <button
         onClick={onOpen}
-        className="group flex h-full w-full flex-col overflow-hidden border text-start transition-transform hover:-translate-y-0.5"
+        className="m-surface group flex h-full w-full flex-col overflow-hidden border text-start transition-transform hover:-translate-y-0.5"
         style={surface}
       >
         {/* الصورة العريضة لا تأخذ `imageShape`: قصّها دائرةً يقطع الطبق نفسه،
@@ -293,7 +295,7 @@ export function DishCard({
   return (
     <button
       onClick={onOpen}
-      className="group flex h-full flex-col overflow-hidden border text-start transition-transform hover:-translate-y-0.5"
+      className="m-surface group flex h-full flex-col overflow-hidden border text-start transition-transform hover:-translate-y-0.5"
       style={surface}
     >
       {/* مربّع تماماً: صور التجّار تأتي بأبعاد شتّى، و`object-cover` على نسبة

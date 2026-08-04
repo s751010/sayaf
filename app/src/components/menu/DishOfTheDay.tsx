@@ -31,7 +31,7 @@ export function DishOfTheDay({
   return (
     <button
       onClick={onOpen}
-      className="flex w-full items-stretch overflow-hidden border text-start transition-transform hover:-translate-y-0.5"
+      className="m-surface flex w-full items-stretch overflow-hidden border text-start transition-transform hover:-translate-y-0.5"
       style={{
         background: "var(--m-surface)",
         borderColor: "var(--m-accent)",

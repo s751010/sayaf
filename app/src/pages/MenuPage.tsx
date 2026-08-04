@@ -46,7 +46,14 @@ import {
   trackMenuView,
 } from "@/lib/data";
 import { categoryIcon, parseCategoryOrder, sortCategories } from "@/lib/categories";
-import { getTheme, RHYTHM, type DishLayout, type HeadingStyle } from "@/lib/themes";
+import {
+  entranceClass,
+  getTheme,
+  RHYTHM,
+  skinClass,
+  type DishLayout,
+  type HeadingStyle,
+} from "@/lib/themes";
 import { patternImage, PATTERN_SIZE } from "@/lib/patterns";
 import { loadThemeFont } from "@/lib/fonts";
 import { getSeason } from "@/lib/seasons";
@@ -980,7 +987,8 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
   return (
     <div
       dir={en ? "ltr" : "rtl"}
-      className="min-h-dvh pb-16"
+      // أصناف الخامة: العمق واللمعة والحافة تُشتقّ في CSS من `--m-*` نفسها.
+      className={cn("min-h-dvh pb-16", skinClass(design))}
       style={
         {
           ...theme.vars,
@@ -1242,10 +1250,17 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
             >
               <SectionHeading name={cat.name} style={design.heading} />
               <div className={cn(LAYOUT_CLASS[design.layout], rhythm.gap)}>
-                {cat.dishes.map((d) => (
+                {cat.dishes.map((d, di) => (
                   /* الغلاف `relative` موجود دائماً كي لا يتغيّر شكل الشبكة بين
-                     مطعم فتح الدفع ومطعم لم يفتحه — والزر وحده هو المشروط. */
-                  <div key={d.id} className="relative">
+                     مطعم فتح الدفع ومطعم لم يفتحه — والزر وحده هو المشروط.
+                     و`--i` ترتيب البطاقة في قسمها: منه يأتي تدرّج الدخول، بلا
+                     حالة React ولا مراقب تقاطع. يُحدّ بستّة كي لا يتأخّر آخر
+                     صنف في قسم من ثلاثين صنفاً ثانيةً كاملة. */
+                  <div
+                    key={d.id}
+                    className={cn("relative", entranceClass(design))}
+                    style={{ "--i": Math.min(di, 6) } as CSSProperties}
+                  >
                     <DishCard
                       dish={d}
                       en={en}
