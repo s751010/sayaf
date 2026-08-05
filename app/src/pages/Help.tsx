@@ -5,9 +5,9 @@
  * و`Login.tsx` يذكر الشروط والخصوصية كنص بلا رابط. هذه الصفحة تسدّ الفجوتين
  * وتشرح الخطوات الأولى بلغة صاحب المطعم لا بلغة المطوّر.
  */
-import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card } from "@/components/ui";
+import { useSeo } from "@/lib/seo";
 import { Navbar, Footer } from "@/components/site";
 import { SupportWhatsAppButton } from "@/components/SupportWhatsApp";
 
@@ -95,9 +95,12 @@ const POLICY = [
 ];
 
 export default function Help() {
-  useEffect(() => {
-    document.title = "المساعدة — كلاود منيو";
-  }, []);
+  useSeo({
+    title: "المساعدة والأسئلة الشائعة",
+    description:
+      "إجابات عن أسئلة التجّار: كيف تبدأ منيوك الرقمي، أكواد الطاولات، الاشتراك والإلغاء والاسترجاع، وطرق الدفع المتاحة.",
+    path: "/help",
+  });
 
   return (
     <div className="min-h-dvh">

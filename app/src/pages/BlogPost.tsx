@@ -4,9 +4,10 @@ import { Link, useParams } from "react-router-dom";
 import { Navbar, Footer } from "@/components/site";
 import { Badge, EmptyState, Skeleton } from "@/components/ui";
 import { getPostBySlug } from "@/lib/data";
+import { ORGANIZATION, absoluteUrl, useJsonLd, useSeo } from "@/lib/seo";
 import { formatDate } from "@/lib/utils";
 import type { BlogPost } from "@/lib/types";
-import { postTitle } from "./Blog";
+import { postExcerpt, postTitle } from "./Blog";
 
 /**
  * تنقية محافظة لمحتوى المقال قبل إدراجه كـHTML.
@@ -47,12 +48,41 @@ export default function BlogPostPage() {
   useEffect(() => {
     setPost(undefined);
     getPostBySlug(slug)
-      .then((p) => {
-        setPost(p);
-        if (p) document.title = `${postTitle(p)} — كلاود منيو`;
-      })
+      .then(setPost)
       .catch(() => setPost(null));
   }, [slug]);
+
+  /**
+   * الوسوم تُضبط **بعد وصول المقال** لا عند التركيب — ولهذا تُمرَّر `null`
+   * أثناء التحميل: عنوانٌ يُكتب قبل أن نعرف ما الصفحة يجعل «جارٍ التحميل»
+   * هو ما تلتقطه الفهرسة.
+   */
+  useSeo(
+    post
+      ? {
+          title: postTitle(post),
+          description: postExcerpt(post) || undefined,
+          path: `/blog/${slug}`,
+          type: "article",
+        }
+      : null
+  );
+
+  useJsonLd(
+    "post",
+    post
+      ? {
+          "@context": "https://schema.org",
+          "@type": "BlogPosting",
+          headline: postTitle(post),
+          description: postExcerpt(post) || undefined,
+          inLanguage: "ar",
+          datePublished: post.created_at || undefined,
+          mainEntityOfPage: absoluteUrl(`/blog/${slug}`),
+          publisher: ORGANIZATION,
+        }
+      : null
+  );
 
   const content = post ? post.content_ar || post.content || "" : "";
   // وسم مغلق فعلي، لا مجرد وجود < و > في نص عربي عادي (مثل «< ٥ دقائق»).

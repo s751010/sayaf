@@ -60,6 +60,7 @@ import { getSeason } from "@/lib/seasons";
 import { installPixels } from "@/lib/pixels";
 import { loadSession } from "@/lib/session";
 import { getBillingSettings } from "@/lib/billing";
+import { absoluteUrl, useJsonLd, useSeo } from "@/lib/seo";
 import { K, getItem, getJSON, setItem, setJSON } from "@/lib/storage";
 import { categoryId, cn, formatPrice, httpUrl, whatsappUrl } from "@/lib/utils";
 import type { Dish, LoyaltyCustomer, Menu, Restaurant } from "@/lib/types";
@@ -758,6 +759,88 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
     void loadThemeFont(theme.vars["--m-font"]);
     void loadThemeFont(theme.vars["--m-display"]);
   }, [theme.vars]);
+  /**
+   * وسوم الصفحة وبياناتها المنظّمة.
+   *
+   * ⚠️ **المعاينة والديمو لا يُفهرَسان**: الأولى نسخة التاجر من منيوه، والثاني
+   * مطعم لا وجود له. فهرستهما تنافس منيو التاجر الحقيقي على كلماته نفسها.
+   */
+  const seoRestaurant = state.status === "ready" ? state.restaurant : null;
+  useSeo(
+    seoRestaurant
+      ? {
+          title: demo
+            ? `${seoRestaurant.name} — منيو تجريبي`
+            : `منيو ${seoRestaurant.name}`,
+          description: demo
+            ? "جرّب منيو كلاود منيو الرقمي كما يراه زبونك تماماً."
+            : [
+                `منيو ${seoRestaurant.name} الرقمي`,
+                seoRestaurant.type,
+                seoRestaurant.address,
+              ]
+                .filter(Boolean)
+                .join(" · ") +
+              ". تصفّح الأصناف والأسعار والمعلومات الغذائية من جوّالك مباشرة.",
+          path: demo ? undefined : `/${slug ?? ""}`,
+          type: "restaurant",
+          noindex: !!demo || preview,
+        }
+      : null
+  );
+
+  /**
+   * `Restaurant` + `Menu` — وهو ما يفتح النتيجة الغنيّة للمطاعم في قوقل.
+   *
+   * الأصناف تُبثّ **بأسمائها وأسعارها الحقيقية** لا بعيّنة: هذا ما يجعل قوقل
+   * يعرض «يقدّم: كبسة لحم · ٩٥ ر.س». و`prune` في `lib/seo.ts` يحذف كل حقل
+   * لا نملك قيمته، فلا يخرج مخطّط نصفه فراغ.
+   */
+  useJsonLd(
+    "restaurant",
+    seoRestaurant && !demo && !preview && state.status === "ready"
+      ? {
+          "@context": "https://schema.org",
+          "@type": "Restaurant",
+          name: seoRestaurant.name,
+          url: absoluteUrl(`/${slug ?? ""}`),
+          image: seoRestaurant.logo_image || seoRestaurant.banner_image || undefined,
+          servesCuisine: seoRestaurant.type || undefined,
+          telephone: seoRestaurant.phone || undefined,
+          address: seoRestaurant.address
+            ? { "@type": "PostalAddress", addressCountry: "SA", streetAddress: seoRestaurant.address }
+            : undefined,
+          // العملة صريحة: رقمٌ بلا عملة لا يُقرأ سعراً.
+          currenciesAccepted: "SAR",
+          hasMenu: {
+            "@type": "Menu",
+            name: state.menus[0]?.name || "المنيو",
+            inLanguage: "ar",
+            hasMenuSection: Object.entries(
+              state.dishes.reduce<Record<string, typeof state.dishes>>((acc, d) => {
+                const key = d.category?.trim() || "أصناف";
+                (acc[key] ??= []).push(d);
+                return acc;
+              }, {})
+            ).map(([section, items]) => ({
+              "@type": "MenuSection",
+              name: section,
+              hasMenuItem: items.map((d) => ({
+                "@type": "MenuItem",
+                name: d.name,
+                description: d.description || undefined,
+                offers: { "@type": "Offer", price: d.price, priceCurrency: "SAR" },
+                nutrition:
+                  d.calories != null
+                    ? { "@type": "NutritionInformation", calories: `${d.calories} calories` }
+                    : undefined,
+              })),
+            })),
+          },
+        }
+      : null
+  );
+
   const season = getSeason(state.status === "ready" ? state.restaurant.season : null);
   // الزينة تُبدّل الزخرفة ولون التمييز الثانوي فقط — الخلفية والنص يبقيان
   // كما ضبطهما الطابع، فلا ينكسر التباين مهما اختار التاجر.

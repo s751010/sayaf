@@ -8,11 +8,12 @@
  * الأمثلة بـ`curl` لا بمكتبة: تعمل من أي لغة وأي جهاز، ولا تُلزمنا بنشر SDK
  * وصيانته.
  */
-import { useEffect, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { Card } from "@/components/ui";
 import { Navbar, Footer } from "@/components/site";
 import { SUPABASE_URL } from "@/lib/config";
+import { useSeo } from "@/lib/seo";
 
 const BASE = `${SUPABASE_URL}/functions/v1/api/v1`;
 
@@ -56,9 +57,12 @@ function Row({
 }
 
 export default function ApiDocs() {
-  useEffect(() => {
-    document.title = "واجهة API — كلاود منيو";
-  }, []);
+  useSeo({
+    title: "واجهة API للتجّار",
+    description:
+      "توثيق واجهة كلاود منيو: قراءة الأصناف والقوائم وتحديثها من نظام نقاط البيع، بمفتاح API وحدّ ٦٠ طلباً في الدقيقة.",
+    path: "/docs/api",
+  });
 
   const h2 = "font-display text-lg font-extrabold text-ink";
 

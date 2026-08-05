@@ -9,13 +9,21 @@ import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 
 import { Link } from "react-router-dom";
 import { Navbar, Footer } from "@/components/site";
 import { Badge, Card } from "@/components/ui";
-import { CURRENCY, PLANS, effectiveMonthly, planPrice, type BillingCycle } from "@/lib/plans";
+import {
+  CURRENCY,
+  CURRENCY_CODE,
+  PLANS,
+  effectiveMonthly,
+  planPrice,
+  type BillingCycle,
+} from "@/lib/plans";
 import { prefersReducedMotion, useCountUp, useReveal, useTilt } from "@/lib/reveal";
 import { cn, formatPrice } from "@/lib/utils";
 import { Icon, type IconName } from "@/lib/icons";
 import { ALL_THEMES, getTheme, skinClass, type MenuTheme } from "@/lib/themes";
 import { PATTERN_SIZE, patternImage } from "@/lib/patterns";
 import { loadThemeFont } from "@/lib/fonts";
+import { absoluteUrl, useJsonLd, useSeo } from "@/lib/seo";
 
 /* ── معاينة هاتف حيّة (عرض تسويقي ثابت) ────────────────────────────── */
 const DEMO_DISHES = [
@@ -1147,6 +1155,52 @@ export default function Landing() {
   const [picked, setPicked] = useState(false);
   const theme = getTheme(themeId);
   const hero = usePassed<HTMLElement>();
+
+  useSeo({
+    title: "منيو رقمي QR لمطعمك",
+    description:
+      "تسعة عشر طابعاً فاخراً بينها طوابع تراثية سعودية، إحصائيات مباشرة، بطاقة ولاء رقمية، وبطاقة كاشير جاهزة للطباعة بدقة ٣٠٠ DPI — بـ٩٩ ريالاً شهرياً.",
+    path: "/",
+    image: "/og.png",
+  });
+
+  /**
+   * ⚠️ **الأسئلة تُبثّ من `FAQS` نفسها التي تُعرَض** لا من نسخة مكتوبة بيد.
+   *
+   * مخطّط `FAQPage` يخالف نصّ الصفحة يُعدّ محتوىً مخفياً في إرشادات قوقل، وقد
+   * يُسقِط النتيجة الغنيّة كلها. والمصدر الواحد يجعل ذلك مستحيلاً بالبناء:
+   * أي سؤال يُعدَّل في الصفحة يتغيّر في المخطّط في اللحظة نفسها.
+   */
+  useJsonLd("landing", {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "SoftwareApplication",
+        name: "كلاود منيو",
+        applicationCategory: "BusinessApplication",
+        operatingSystem: "Web",
+        url: absoluteUrl("/"),
+        inLanguage: "ar",
+        description:
+          "منصّة منيو رقمي QR للمطاعم السعودية: طوابع فاخرة، إحصائيات، بطاقة ولاء، وبطاقة كاشير جاهزة للطباعة.",
+        offers: {
+          "@type": "Offer",
+          price: PLANS[0]?.monthly ?? 99,
+          priceCurrency: CURRENCY_CODE,
+          // بلا تقييمات مُختلَقة: `aggregateRating` بلا مراجعات حقيقية مخالفة
+          // صريحة لإرشادات قوقل، وعقوبتها إسقاط النتيجة الغنيّة لا تحسينها.
+        },
+      },
+      {
+        "@type": "FAQPage",
+        mainEntity: FAQS.map((f) => ({
+          "@type": "Question",
+          name: f.q,
+          acceptedAnswer: { "@type": "Answer", text: f.a },
+        })),
+      },
+    ],
+  });
 
   /**
    * دورة واحدة ثم سكون — **بعد أن يستقرّ مشهد الاستعمال**.

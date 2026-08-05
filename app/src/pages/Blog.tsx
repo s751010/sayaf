@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { Navbar, Footer } from "@/components/site";
 import { Badge, EmptyState, Skeleton } from "@/components/ui";
 import { getPublishedPosts } from "@/lib/data";
+import { useSeo } from "@/lib/seo";
 import { formatDate } from "@/lib/utils";
 import type { BlogPost } from "@/lib/types";
 
@@ -19,8 +20,14 @@ export default function Blog() {
   const [posts, setPosts] = useState<BlogPost[] | null>(null);
   const [failed, setFailed] = useState(false);
 
+  useSeo({
+    title: "المدونة",
+    description:
+      "مقالات لأصحاب المطاعم السعودية: المنيو الرقمي، أكواد QR على الطاولات، متطلبات هيئة الغذاء والدواء، وتجربة الزبون.",
+    path: "/blog",
+  });
+
   useEffect(() => {
-    document.title = "المدونة — كلاود منيو";
     getPublishedPosts()
       .then(setPosts)
       .catch(() => setFailed(true));
