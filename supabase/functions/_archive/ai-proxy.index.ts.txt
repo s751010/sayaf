@@ -1,0 +1,95 @@
+// ═══════════════════════════════════════════════════════════════════════
+//  أرشيف — لا يُنشَر ولا يُستورَد. انظر `_archive/README.md`.
+//  slug: ai-proxy · الاسم المسجّل: "OPENAI_API_KEY" · version 6 · verify_jwt: true
+//  سُحب من Supabase وحُذف من الإنتاج في ٢٠٢٦-٠٨-٠٥.
+//  الامتداد `.txt` مقصود: يمنع Deno وVite من التقاطه كوحدة قابلة للبناء.
+// ═══════════════════════════════════════════════════════════════════════
+
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+}
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
+  }
+
+  try {
+    const { system, messages, max_tokens, temperature, model } = await req.json()
+
+    if (!system || !messages) {
+      return new Response(
+        JSON.stringify({ error: 'Missing system or messages' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY')
+    if (!OPENAI_API_KEY) {
+      return new Response(
+        JSON.stringify({ error: 'OPENAI_API_KEY not set in Supabase Secrets' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // ✅ التعديل: سقف توكنز أعلى (يكفي منيو كامل) + قابل للتخصيص
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: model || 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: system },
+          ...messages
+        ],
+        max_tokens: Math.min(max_tokens || 4000, 8000),
+        temperature: temperature ?? 0.7,
+      }),
+    })
+
+    if (!response.ok) {
+      const error = await response.text()
+      return new Response(
+        JSON.stringify({ error: `OpenAI error ${response.status}: ${error.slice(0, 200)}` }),
+        { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    const data = await response.json()
+    const text = data.choices?.[0]?.message?.content
+
+    // ✅ تنبيه واضح إذا انقطع الرد بسبب الطول
+    const finish = data.choices?.[0]?.finish_reason
+    if (finish === 'length') {
+      return new Response(
+        JSON.stringify({ error: 'الرد انقطع لطوله — جرّب صوراً أقل أو قسّم المنيو' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    if (!text) {
+      return new Response(
+        JSON.stringify({ error: 'No content in OpenAI response' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    return new Response(
+      JSON.stringify({ text }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+
+  } catch (err) {
+    return new Response(
+      JSON.stringify({ error: err.message }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  }
+})
