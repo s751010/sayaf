@@ -13,7 +13,9 @@ import { CURRENCY, PLANS, effectiveMonthly, planPrice, type BillingCycle } from 
 import { prefersReducedMotion, useCountUp, useReveal, useTilt } from "@/lib/reveal";
 import { cn, formatPrice } from "@/lib/utils";
 import { Icon, type IconName } from "@/lib/icons";
-import { getTheme } from "@/lib/themes";
+import { ALL_THEMES, getTheme, skinClass, type MenuTheme } from "@/lib/themes";
+import { PATTERN_SIZE, patternImage } from "@/lib/patterns";
+import { loadThemeFont } from "@/lib/fonts";
 
 /* ── معاينة هاتف حيّة (عرض تسويقي ثابت) ────────────────────────────── */
 const DEMO_DISHES = [
@@ -69,29 +71,280 @@ function StatusGlyphs() {
   );
 }
 
-function DishRow({ d, i }: { d: (typeof DEMO_DISHES)[number]; i: number }) {
+type DemoDish = (typeof DEMO_DISHES)[number];
+
+/* ── الشاشة تلبس الطابع ─────────────────────────────────────────────── */
+
+/**
+ * ⚠️ **لا قيمة لون واحدة تُكتب في هذا الملف.**
+ *
+ * كل ما تحت هذا السطر يقرأ `theme.vars` حرفياً (`--m-bg` · `--m-accent` …).
+ * وهذا ليس أناقة بل حفظُ ثابت §18 بالبناء: ثمانية مطاعم حقيقية تعمل على هذه
+ * القيم، ولونٌ يُكتب هنا «ليطابق» طابعاً هو نسخة ثانية تنحرف عنه بصمت.
+ */
+const IMG_SHAPE = { rounded: "rounded-lg", square: "rounded-none", circle: "rounded-full" };
+
+/** ثلاث صيغ للسعر — الطابع يغيّر كيف يُقدَّم الرقم لا لونه فقط. */
+function Price({ theme, value }: { theme: MenuTheme; value: number }) {
+  const v = theme.vars;
+  const num = (
+    <span className="shrink-0 text-[10px] font-black" style={{ color: v["--m-accent"] }} dir="ltr">
+      {value} ر.س
+    </span>
+  );
+
+  if (theme.design.priceStyle === "badge")
+    return (
+      <span
+        className="shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-black"
+        style={{
+          background: `color-mix(in srgb, ${v["--m-accent"]} 16%, transparent)`,
+          color: v["--m-accent"],
+        }}
+        dir="ltr"
+      >
+        {value} ر.س
+      </span>
+    );
+
+  if (theme.design.priceStyle === "leader")
+    return (
+      <span className="flex min-w-0 flex-1 items-end gap-1.5">
+        <span
+          aria-hidden="true"
+          className="mb-1 h-0 flex-1 border-b border-dotted"
+          style={{ borderColor: v["--m-border"] }}
+        />
+        {num}
+      </span>
+    );
+
+  return num;
+}
+
+/**
+ * بطاقة الطبق بثلاثة تخطيطات.
+ *
+ * هذا **جوهر العرض**: زائر يرى نفس الأطباق تتحوّل من شبكة إلى قائمة إلى عرض
+ * يفهم في ثانية أن الطابع ليس لوناً — وهي الجملة التي كتبناها في §18 ولم
+ * تظهر على الصفحة قطّ.
+ */
+function DishCard({ theme, d, i }: { theme: MenuTheme; d: DemoDish; i: number }) {
+  const v = theme.vars;
+  const { layout, imageShape, divider } = theme.design;
+  const img = IMG_SHAPE[imageShape];
+  const name = { color: v["--m-text"], fontFamily: v["--m-font"] } as CSSProperties;
+  const seq = { "--i": i } as CSSProperties;
+
+  if (layout === "showcase")
+    return (
+      <div
+        className="ph-row m-surface overflow-hidden border"
+        style={{
+          background: v["--m-surface"],
+          borderColor: v["--m-border"],
+          borderRadius: v["--m-radius"],
+          ...seq,
+        }}
+      >
+        <div
+          className="flex h-14 items-center justify-center text-3xl"
+          style={{ background: v["--m-bg-2"] }}
+        >
+          {d.emoji}
+        </div>
+        <div className="flex items-center gap-2 p-2">
+          <p className="min-w-0 flex-1 truncate text-[11px] font-bold" style={name}>
+            {d.name}
+          </p>
+          <Price theme={theme} value={d.price} />
+        </div>
+      </div>
+    );
+
+  if (layout === "grid")
+    return (
+      <div
+        className="ph-row m-surface border p-1.5"
+        style={{
+          background: v["--m-surface"],
+          borderColor: v["--m-border"],
+          borderRadius: v["--m-radius"],
+          ...seq,
+        }}
+      >
+        <div
+          className={cn("mb-1.5 flex h-10 items-center justify-center text-xl", img)}
+          style={{ background: v["--m-bg-2"] }}
+        >
+          {d.emoji}
+        </div>
+        <p className="truncate text-[10px] font-bold" style={name}>
+          {d.name}
+        </p>
+        <div className="mt-0.5 flex items-center gap-1.5">
+          <Price theme={theme} value={d.price} />
+        </div>
+      </div>
+    );
+
+  /* قائمة رأسية. الفاصل `none` يعني بطاقةً بسطح، وغيره يعني صفّاً بخيط تحته —
+     وهذا ما يفرّق منيو «حصري فاخر» عن «مينيمال» وكلاهما قائمة. */
+  const carded = divider === "none";
   return (
     <div
-      className="ph-row flex items-center gap-2.5 rounded-xl p-2.5"
-      style={{ background: "var(--m-surface)", "--i": i } as CSSProperties}
+      className={cn("ph-row flex items-center gap-2.5 p-2.5", carded ? "m-surface" : "m-row border-b")}
+      style={{
+        background: carded ? v["--m-surface"] : undefined,
+        borderColor: v["--m-border"],
+        borderBottomStyle: divider === "dots" ? "dotted" : "solid",
+        borderRadius: carded ? v["--m-radius"] : undefined,
+        ...seq,
+      }}
     >
       <span
-        className="flex h-9 w-9 items-center justify-center rounded-lg text-lg"
-        style={{ background: "var(--m-bg-2)" }}
+        className={cn("flex h-9 w-9 shrink-0 items-center justify-center text-lg", img)}
+        style={{ background: v["--m-bg-2"] }}
       >
         {d.emoji}
       </span>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-[11px] font-bold" style={{ color: "var(--m-text)" }}>
+        <p className="truncate text-[11px] font-bold" style={name}>
           {d.name}
         </p>
-        <p className="text-[9px]" style={{ color: "var(--m-muted)" }}>
+        <p className="text-[9px]" style={{ color: v["--m-muted"] }}>
           {d.cal} سعرة حرارية
         </p>
       </div>
-      <span className="text-[11px] font-black" style={{ color: "var(--m-accent)" }} dir="ltr">
-        {d.price} ر.س
+      <Price theme={theme} value={d.price} />
+    </div>
+  );
+}
+
+/**
+ * قائمة الأطباق داخل الشاشة.
+ *
+ * ⚠️ الجذر يحمل `data-list` وأبناؤه المباشرون هي البطاقات — لأن
+ * `lib/phoneDemo.ts` يصوّب الإصبع إلى `listB.children[1]`. أي غلاف إضافي هنا
+ * يجعل الإصبع يضغط الهواء **بلا أن يفشل شيء ظاهر**.
+ *
+ * و«عرض» يُقصّ إلى ثلاثة: بطاقاته بارتفاع مضاعف، وستّ منها تخرج عن الشاشة
+ * فيبدو التخطيط مكسوراً لا فسيحاً.
+ */
+function DishBoard({
+  theme,
+  dishes,
+  index,
+  off,
+}: {
+  theme: MenuTheme;
+  dishes: readonly DemoDish[];
+  index: 0 | 1;
+  off?: boolean;
+}) {
+  const { layout } = theme.design;
+  const items = layout === "showcase" ? dishes.slice(0, 3) : dishes;
+  return (
+    <div
+      data-list={index}
+      className={cn(
+        "ph-list",
+        layout === "grid" ? "grid grid-cols-2 gap-1.5" : "flex flex-col gap-2",
+        off && "ph-list-off absolute inset-x-3 top-0"
+      )}
+    >
+      {items.map((d, i) => (
+        <DishCard key={d.name} theme={theme} d={d} i={i} />
+      ))}
+    </div>
+  );
+}
+
+/**
+ * ترويسة المنيو بأشكالها الأربعة.
+ *
+ * المنطق **مقتبس** من `ThemePreview` لا مستورد منها: تلك مربّع ٩٦px في مُنتقي
+ * اللوحة، وهذه شاشة أيفون كاملة. توحيدهما كان سيفرض على الاثنتين مقاساً واحداً
+ * يخذلهما معاً.
+ */
+function PhoneHeader({ theme }: { theme: MenuTheme }) {
+  const v = theme.vars;
+  const { header } = theme.design;
+  const accent = v["--m-accent"];
+
+  return (
+    <div
+      className="relative flex flex-col items-center gap-1.5 px-4 pb-5 pt-3 text-center"
+      style={{
+        background: `linear-gradient(to bottom, ${v["--m-bg-2"]}, transparent)`,
+        borderRadius: header === "soft" ? "0 0 1.5rem 1.5rem" : undefined,
+      }}
+    >
+      {/* إطار مزدوج — الحدّ والمخطّط بإزاحة، فيصير خطّين لا واحداً. */}
+      {header === "frame" && (
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-4 inset-y-2"
+          style={{
+            border: `1px solid ${accent}`,
+            outline: `1px solid ${accent}`,
+            outlineOffset: "3px",
+            opacity: 0.5,
+          }}
+        />
+      )}
+
+      <span
+        className="flex h-12 w-12 items-center justify-center text-2xl"
+        style={{
+          background: `color-mix(in srgb, ${accent} 15%, transparent)`,
+          borderRadius: header === "frame" ? "2px" : header === "arch" ? "9999px" : "1rem",
+        }}
+      >
+        🍽️
       </span>
+      <p
+        className="text-sm font-black"
+        style={{ color: v["--m-text"], fontFamily: v["--m-display"] || v["--m-font"] }}
+      >
+        مطعم الديوان
+      </p>
+      <span
+        className="rounded-full px-2.5 py-0.5 text-[10px] font-bold"
+        style={{ background: `color-mix(in srgb, ${accent} 15%, transparent)`, color: accent }}
+      >
+        طاولة ٥ · منيو رقمي
+      </span>
+
+      {/* شريط سدو محكم النسج على الحافة السفلى (§7). */}
+      {header === "band" && (
+        <span
+          aria-hidden="true"
+          className="absolute inset-x-0 bottom-0 h-2.5"
+          style={{
+            backgroundImage: patternImage("sadu", accent, 1),
+            backgroundSize: "20px 20px",
+            borderTop: `1px solid ${accent}`,
+            borderBottom: `1px solid ${accent}`,
+          }}
+        />
+      )}
+      {header === "arch" && (
+        <svg
+          viewBox="0 0 100 12"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+          className="absolute inset-x-0 bottom-0 h-4 w-full"
+        >
+          <path d="M0 8 Q25 8 38 2 Q50 -3 62 2 Q75 8 100 8 L100 12 L0 12 Z" style={{ fill: v["--m-bg"] }} />
+          <path
+            d="M0 8 Q25 8 38 2 Q50 -3 62 2 Q75 8 100 8"
+            fill="none"
+            style={{ stroke: accent, strokeWidth: 1 }}
+            vectorEffect="non-scaling-stroke"
+          />
+        </svg>
+      )}
     </div>
   );
 }
@@ -99,30 +352,89 @@ function DishRow({ d, i }: { d: (typeof DEMO_DISHES)[number]; i: number }) {
 /**
  * الهاتف البطل — **منتج يُستعمَل أمام الزائر** لا صورة له.
  *
- * الشاشة تُلوَّن بمتغيّرات `--m-*` الحقيقية لطابع `dark-gold` (الطابع الافتراضي)،
- * فما يراه الزائر هنا هو جلد المنتج نفسه: من ضغط «جرّب منيو تجريبي» بعدها يجد
- * الشيء ذاته لا شيئاً آخر.
+ * الشاشة تُلوَّن بمتغيّرات `--m-*` الحقيقية للطابع المعروض، فما يراه الزائر هنا
+ * هو جلد المنتج نفسه: من ضغط «افتح هذا الطابع» بعدها يجد الشيء ذاته لا غيره.
  *
  * القشرة هنا **ساكنة وكاملة**: تُقرأ صحيحة بلا جافاسكربت إطلاقاً. أما محرّك
  * التمثيل (`lib/phoneDemo.ts`) فيُستورد **ديناميكياً** عند ظهور البطل — لأن
  * `Landing` في الحزمة الرئيسية مع `MenuPage`، فأي بايت يُضاف هنا يحمّله زبون
  * المطعم وهو يمسح كود QR.
+ *
+ * ⚠️ **`entranceClass` لا يُستعمَل هنا** رغم أنه أحد محاور الطابع: دخول البطاقات
+ * مربوط بـ`animation-timeline: view()` أي بتمرير **الصفحة**، بينما داخل الهاتف
+ * محرّكُ تمثيلٍ يكتب `transform`/`opacity` على الصفوف نفسها. اجتماعهما يعني
+ * حركتين تتنازعان على خاصّية واحدة. المحاور الباقية كلّها ظاهرة.
  */
-function PhonePreview() {
+function PhonePreview({
+  theme,
+  animate = false,
+  width = "w-[270px]",
+}: {
+  theme: MenuTheme;
+  /** يشغّل محرّك التمثيل (إصبع، تمرير، لوح، سلّة). البطل وحده. */
+  animate?: boolean;
+  width?: string;
+}) {
   const tilt = useTilt<HTMLAnchorElement>(14);
   const stage = useRef<HTMLDivElement>(null);
+  const turn = useRef<HTMLDivElement>(null);
   const { ref: seen, shown } = useReveal<HTMLDivElement>("-20%");
-  const vars = getTheme("dark-gold").vars as CSSProperties;
+  const v = theme.vars;
+  const { pattern, patternOpacity } = theme.design;
   const clock = new Date().toLocaleTimeString("ar-SA", {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
   });
 
+  // خطّ الطابع عند اختياره لا مقدّماً: تحميل خطوط الطوابع التسعة عشر على الهبوط
+  // ينقض كامل مكسب `lib/fonts.ts` (§18) — وأغلبها لن يُرى أصلاً.
+  useEffect(() => {
+    void loadThemeFont(v["--m-font"]);
+    void loadThemeFont(v["--m-display"]);
+  }, [v]);
+
+  /**
+   * تبديل الطابع **حركةٌ مادّية**: الجهاز يُدار قليلاً فيظهر جلده الجديد.
+   *
+   * على غلاف مستقلّ (`.ph-turn`) لا على `.ph` ولا على `.tilt`: الأولى تحمل حركة
+   * الهبوط، والثانية يكتب عليها `useTilt` نمطاً مضمَّناً تغلبه حركة CSS —
+   * وهو العطل نفسه الذي عطّل الإمالة سابقاً. وإعادة التدفّق سطرٌ مقصود: بدونه
+   * لا تُعاد الحركة من بدايتها عند تبديل ثانٍ.
+   */
+  const first = useRef(true);
+  useEffect(() => {
+    const el = turn.current;
+    if (first.current) {
+      first.current = false;
+      return;
+    }
+    if (!el) return;
+
+    /**
+     * ⚠️ **إعادة الشاشة إلى رأس المنيو مع كل طابع.**
+     *
+     * محرّك التمثيل يمرّر القائمة ١٠٤px ويتركها هناك، وهو يعمل **مرّة واحدة**.
+     * فبعد أوّل تمثيل كانت ترويسة المنيو تبقى مدفونة تحت شريط الحالة إلى الأبد —
+     * أي أن **شكل الترويسة، وهو أحد المحاور الأربعة التي يبيعها هذا القسم، لا
+     * يُرى في ثمانية عشر طابعاً من تسعة عشر**. كُشف بالنظر إلى اللقطة لا بقراءة
+     * الشيفرة: المشهد يعمل، والذي يُعرض ناقص.
+     */
+    const sc = stage.current?.querySelector<HTMLElement>(".ph-scroll");
+    if (sc) sc.style.transform = "";
+
+    if (prefersReducedMotion()) return;
+    el.classList.remove("is-turn");
+    void el.offsetWidth;
+    el.classList.add("is-turn");
+    const t = window.setTimeout(() => el.classList.remove("is-turn"), 420);
+    return () => window.clearTimeout(t);
+  }, [theme.id]);
+
   useEffect(() => {
     // من طلب تقليل الحركة لا يُنزّل المحرّك أصلاً: القشرة الساكنة هي المشهد
     // المستقرّ كاملاً، فلا قطعة تُحمَّل ولا مؤقّت يعمل بلا أثر يُرى.
-    if (!shown || !stage.current || prefersReducedMotion()) return;
+    if (!animate || !shown || !stage.current || prefersReducedMotion()) return;
     let stop: (() => void) | undefined;
     let alive = true;
     void (async () => {
@@ -134,39 +446,49 @@ function PhonePreview() {
       alive = false;
       stop?.();
     };
-  }, [shown]);
+  }, [animate, shown]);
 
   return (
     // ⚠️ الطفو والإمالة **لا يجتمعان على عنصر واحد**: كلاهما يكتب `transform`،
     // وحركة CSS تغلب النمط المضمَّن في التتالي — فكانت `useTilt` تكتب ميلها
     // ثم تدهسه `anim-float` في كل إطار، أي أن الإمالة لم تكن تعمل إطلاقاً.
-    <div ref={seen} className="anim-float mx-auto w-[270px]">
+    <div ref={seen} className={cn("anim-float mx-auto", width)}>
       <Link
         ref={tilt}
-        to="/demo"
-        aria-label="افتح المنيو التجريبي"
+        to={`/demo?theme=${theme.id}`}
+        aria-label={`افتح المنيو التجريبي بطابع ${theme.name}`}
         className="tilt relative block w-full select-none"
       >
+        <div ref={turn} className="ph-turn">
         <div
           ref={stage}
           className="ph relative rounded-[2.6rem] p-2.5"
-          style={vars}
+          style={v as CSSProperties}
         >
           {/* أزرار الجانب — العقدتان الوحيدتان المضافتان؛ الباقي عناصر زائفة
               كي لا تنمو الحزمة التي يحملها زبون المنيو. */}
           <span aria-hidden="true" className="ph-btn ph-btn-vol" />
           <span aria-hidden="true" className="ph-btn ph-btn-pwr" />
           {/* ⚠️ `overflow-hidden` هنا **يُسطّح** سياق 3D، فلا شيء داخل الشاشة
-              يستطيع أن يأخذ عمقاً. لذلك كل طبقات العمق على مستوى `.ph` لا هنا. */}
+              يستطيع أن يأخذ عمقاً. لذلك كل طبقات العمق على مستوى `.ph` لا هنا.
+              وأصناف الخامة (`skinClass`) هنا كي ترثها البطاقات في الداخل. */}
           <div
-            className="ph-glass relative overflow-hidden rounded-[2rem] pb-4"
-            style={{ background: "var(--m-bg)" }}
+            className={cn(
+              "ph-glass relative overflow-hidden rounded-[2rem] pb-4",
+              skinClass(theme.design)
+            )}
+            style={{
+              backgroundColor: v["--m-bg"],
+              backgroundImage: patternImage(pattern, v["--m-accent"], patternOpacity),
+              backgroundSize: PATTERN_SIZE[pattern],
+              fontFamily: v["--m-font"],
+            }}
           >
             {/* شريط الحالة بارتفاع ٥٤ نقطة (٣٤px)، والساعة والرموز **بجانبي**
                 الجزيرة لا تحتها — كما في الجهاز الحقيقي. */}
             <div
               className="ph-status relative z-40 flex items-center justify-between px-5 text-[10px] font-bold"
-              style={{ color: "var(--m-text)" }}
+              style={{ color: v["--m-text"] }}
             >
               <span dir="ltr" className="tabular-nums">{clock}</span>
               <StatusGlyphs />
@@ -177,34 +499,9 @@ function PhonePreview() {
 
             {/* ما يمرّ: الترويسة والقائمة معاً — التمرير يزيح هذه الكتلة. */}
             <div className="ph-scroll">
-              <div
-                className="flex flex-col items-center gap-1.5 px-4 pb-4 pt-3 text-center"
-                style={{ background: "linear-gradient(to bottom, var(--m-bg-2), transparent)" }}
-              >
-                <span
-                  className="flex h-12 w-12 items-center justify-center rounded-2xl text-2xl"
-                  style={{ background: "color-mix(in srgb, var(--m-accent) 15%, transparent)" }}
-                >
-                  🍽️
-                </span>
-                <p
-                  className="font-display text-sm font-black"
-                  style={{ color: "var(--m-text)" }}
-                >
-                  مطعم الديوان
-                </p>
-                <span
-                  className="rounded-full px-2.5 py-0.5 text-[10px] font-bold"
-                  style={{
-                    background: "color-mix(in srgb, var(--m-accent) 15%, transparent)",
-                    color: "var(--m-accent)",
-                  }}
-                >
-                  طاولة ٥ · منيو رقمي
-                </span>
-              </div>
+              <PhoneHeader theme={theme} />
 
-              <div className="flex gap-1.5 overflow-hidden px-3 pb-3">
+              <div className="flex gap-1.5 overflow-hidden px-3 pb-3 pt-3">
                 {["المشاوي", "المقبلات", "الحلويات", "المشروبات"].map((c, i) => (
                   <span
                     key={c}
@@ -216,7 +513,7 @@ function PhonePreview() {
                       // `.is-on` في ترتيب المستند فلا يستطيع محدِّد شقيق إلغاءه.
                       i === 0 && "is-on"
                     )}
-                    style={{ color: "var(--m-muted)", background: "var(--m-surface)" }}
+                    style={{ color: v["--m-muted"], background: v["--m-surface"] }}
                   >
                     {c}
                   </span>
@@ -224,19 +521,8 @@ function PhonePreview() {
               </div>
 
               <div className="relative px-3">
-                <div data-list="0" className="ph-list flex flex-col gap-2">
-                  {DEMO_DISHES.map((d, i) => (
-                    <DishRow key={d.name} d={d} i={i} />
-                  ))}
-                </div>
-                <div
-                  data-list="1"
-                  className="ph-list ph-list-off absolute inset-x-3 top-0 flex flex-col gap-2"
-                >
-                  {DEMO_MEZZE.map((d, i) => (
-                    <DishRow key={d.name} d={d} i={i} />
-                  ))}
-                </div>
+                <DishBoard theme={theme} dishes={DEMO_DISHES} index={0} />
+                <DishBoard theme={theme} dishes={DEMO_MEZZE} index={1} off />
               </div>
             </div>
 
@@ -244,33 +530,35 @@ function PhonePreview() {
             <div
               data-sheet
               className="ph-sheet absolute inset-x-0 bottom-0 z-30 rounded-t-2xl border-t p-3.5"
-              style={{ background: "var(--m-bg-2)", borderColor: "var(--m-border)" }}
+              style={{ background: v["--m-bg-2"], borderColor: v["--m-border"] }}
             >
               <span
                 aria-hidden="true"
                 className="mx-auto mb-2.5 block h-1 w-9 rounded-full"
-                style={{ background: "var(--m-border)" }}
+                style={{ background: v["--m-border"] }}
               />
               <div className="flex items-center gap-2.5">
                 <span
                   className="flex h-11 w-11 items-center justify-center rounded-xl text-xl"
-                  style={{ background: "var(--m-surface)" }}
+                  style={{ background: v["--m-surface"] }}
                 >
                   🧆
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-xs font-black" style={{ color: "var(--m-text)" }}>
+                  <p className="truncate text-xs font-black" style={{ color: v["--m-text"] }}>
                     كبّة مقلية بالصنوبر
                   </p>
-                  <p className="text-[9px]" style={{ color: "var(--m-muted)" }}>
+                  <p className="text-[9px]" style={{ color: v["--m-muted"] }}>
                     ٢٩٠ سعرة · تحتوي مكسّرات
                   </p>
                 </div>
               </div>
+              {/* `m-shine` هو ما تعبره لمعة الطابع (`sheen`) — على سطح التمييز
+                  وحده، فلا تمرّ اللمعة على نصّ يُقرأ. */}
               <div
                 data-add
-                className="ph-add mt-3 flex items-center justify-between rounded-xl px-3 py-2 text-[11px] font-black"
-                style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}
+                className="ph-add m-shine mt-3 flex items-center justify-between rounded-xl px-3 py-2 text-[11px] font-black"
+                style={{ background: v["--m-accent"], color: v["--m-on-accent"] }}
               >
                 <span>أضِف للطلب</span>
                 <span dir="ltr">٣٤ ر.س</span>
@@ -280,8 +568,8 @@ function PhonePreview() {
             {/* شريط السلة — الحالة التي يستقرّ عليها المشهد. */}
             <div
               data-cart
-              className="ph-cart absolute inset-x-2 bottom-2 z-40 flex items-center justify-between rounded-xl px-3 py-2 text-[10px] font-black shadow-lg"
-              style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}
+              className="ph-cart m-shine absolute inset-x-2 bottom-2 z-40 flex items-center justify-between rounded-xl px-3 py-2 text-[10px] font-black shadow-lg"
+              style={{ background: v["--m-accent"], color: v["--m-on-accent"] }}
             >
               <span>عرض الطلب · صنف واحد</span>
               <span dir="ltr">٣٤ ر.س</span>
@@ -297,18 +585,117 @@ function PhonePreview() {
           {/* الإصبع — لا يستقبل مؤشّراً ولا يُقرأ. */}
           <span aria-hidden="true" data-finger className="ph-finger pointer-events-none absolute" />
         </div>
+        </div>
 
-        <span className="ph-badge absolute -left-5 top-28 rounded-2xl border border-line-gold bg-panel px-3 py-2 text-xs font-bold shadow-xl">
-          ⭐ تقييم قوقل
-        </span>
-        <span className="ph-badge absolute -right-4 top-44 rounded-2xl border border-line-gold bg-panel px-3 py-2 text-xs font-bold text-gold shadow-xl">
-          اضغط للتجربة ←
-        </span>
+        {/* ⚠️ **الشارتان الطافيتان حُذفتا.** كانتا تعلوان الشاشة فتحجبان صفّاً
+            وسعره — وذلك مقبولٌ حين يكون الهاتف صورةً تسويقية، ومرفوضٌ بعد أن
+            صار **معروضاً** يُفترض أن يُقرأ كاملاً. ووعداهما موجودان أصلاً:
+            «اضغط للتجربة» صار زرّاً صريحاً تحت الشريط، وتقييم قوقل ميزة في
+            قسم المزايا. */}
       </Link>
     </div>
   );
 }
 
+
+/* ── شريط الطوابع ───────────────────────────────────────────────────── */
+
+/**
+ * الطوابع التي يقلّبها العرض التلقائي — **خمسة لا تسعة عشر**.
+ *
+ * تقليب الـ١٩ تلقائياً بمعدّل ٢٫٦ ثانية = خمسون ثانية عرضٍ لا يحتملها زائر.
+ * والخمسة مختارة كي يتبدّل في كل خطوة **محورٌ بنيوي** لا لون: سدو بترويسة
+ * شريطية ⇒ أقواس رواشين ⇒ بلا زخرفة بتخطيط عرض ⇒ قائمة بخطّ رقعة وحدّ مذهّب
+ * ⇒ الافتراضي الذي يراه من لم يختر.
+ */
+const REEL = ["najdi", "hijazi", "modern", "luxe", "dark-gold"];
+const DEFAULT_ID = "dark-gold";
+
+/**
+ * شريط اختيار الطابع.
+ *
+ * الشريحة تحمل **ثلاث نقاط** (أرضية · تمييز · نصّ) لا مربّع لون واحد: الطابع
+ * ليس لوناً — وهي الجملة التي تبيع المنتج، فلا يجوز أن ينقضها عنصر التحكّم
+ * نفسه بأن يعرضه لوناً.
+ */
+function ThemeRail({ value, onChange }: { value: string; onChange: (id: string) => void }) {
+  const rail = useRef<HTMLDivElement>(null);
+  const first = useRef(true);
+
+  /**
+   * ⚠️ **يُمرَّر الشريط وحده — لا `scrollIntoView`.**
+   *
+   * تلك تحرّك **كل سلف قابل للتمرير** حتى نافذة المستند، والشريط أسفل الطيّة
+   * على الجوال، فكانت **تقفز بالصفحة كلّها** ويهبط الزائر في منتصف البطل بلا
+   * أن يلمس شيئاً. وحارس «لا تمرّر عند أوّل تركيب» **لا يكفي**: `StrictMode`
+   * يستدعي الأثر مرّتين في التطوير فيسقط الحارس عند الثانية — وحارسٌ يعتمد على
+   * عدد مرّات الاستدعاء ليس حارساً. أمّا `scrollBy` على الحاوية فلا يملك الوصول
+   * إلى سلفٍ أصلاً.
+   */
+  useEffect(() => {
+    const el = rail.current;
+    const chip = el?.querySelector<HTMLElement>('[data-on="1"]');
+    if (!el || !chip) return;
+    const box = el.getBoundingClientRect();
+    const c = chip.getBoundingClientRect();
+    el.scrollBy({
+      left: c.left - box.left - (box.width - c.width) / 2,
+      behavior: first.current || prefersReducedMotion() ? "auto" : "smooth",
+    });
+    first.current = false;
+  }, [value]);
+
+  return (
+    // ⚠️ `min-w-0` ليست زينة: حاوية تمرير أفقي داخل شبكة تساهم بعرض **محتواها
+    // الأقصى** في تحجيم العمود ما لم يُصفَّر حدّها الأدنى. وتسعة عشر شريحة =
+    // ٢٠٣١px، فكان عمود البطل يتمدّد إليها ويُدفع النصّ والأزرار والجهاز خارج
+    // الشاشة على الجوال — صفحة بطلٍ **فارغة تماماً**، بلا خطأ ولا تمرير أفقي
+    // لأن الفائض مقصوص. رُصد باللقطة على ٣٩٠px.
+    <div className="theme-plane mt-6 min-w-0">
+      <div
+        ref={rail}
+        role="tablist"
+        aria-label="طوابع المنيو"
+        className="theme-rail flex min-w-0 snap-x gap-2 overflow-x-auto pb-2"
+      >
+        {ALL_THEMES.map((t) => {
+          const on = t.id === value;
+          return (
+            <button
+              key={t.id}
+              type="button"
+              role="tab"
+              aria-selected={on}
+              data-on={on ? "1" : "0"}
+              onClick={() => onChange(t.id)}
+              title={t.tagline}
+              className={cn(
+                // ⚠️ ٤٨px لا ٤٤: الشريط مائل ٦° في العمق، و**مساحة اللمس هي
+                // المسقط** لا الارتفاع المُعلَن — فـ٤٤ تصير ٤٣٫٨ وتنزل تحت
+                // الحدّ. رُصد بالقياس على ٣٩٠px لا بالحساب.
+                "theme-chip flex min-h-12 shrink-0 snap-center items-center gap-2 rounded-xl border px-3 py-2 text-xs font-bold transition-colors",
+                on
+                  ? "border-line-gold bg-gold/12 text-ink"
+                  : "border-line bg-panel/60 text-dim hover:text-ink"
+              )}
+            >
+              <span aria-hidden="true" className="flex">
+                {(["--m-bg", "--m-accent", "--m-text"] as const).map((k, i) => (
+                  <span
+                    key={k}
+                    className="h-3.5 w-3.5 rounded-full border border-black/25"
+                    style={{ background: t.vars[k], marginInlineStart: i ? "-5px" : undefined }}
+                  />
+                ))}
+              </span>
+              {t.name}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 /* ── حركة ───────────────────────────────────────────────────────────── */
 
@@ -442,9 +829,15 @@ function CardShowcase() {
 }
 
 /** إشارات الثقة الثلاث في البطل — ما يطمئن التاجر قبل أن يقرأ ميزة واحدة. */
+/**
+ * ⚠️ `money` لا `card` لشريحة الدفع: رمز `card` في مجموعتنا هو **الستاند
+ * المثلّث** الذي يطبعه التاجر (موثَّق فوق تعريفه في `lib/icons.tsx`) — لا بطاقة
+ * بنكية. وبقياس ١٤px بجانب كلمة «مدى» كان يُقرأ **مثلّث تحذير**، أي أن الشريحة
+ * التي وُضعت لتطمئن كانت تُنذر.
+ */
 const TRUST: { icon: IconName; label: string }[] = [
   { icon: "sparkle", label: "تجهيز في دقائق" },
-  { icon: "card", label: "مدى وApple Pay" },
+  { icon: "money", label: "مدى وApple Pay" },
   { icon: "shield", label: "متوافق مع SFDA" },
 ];
 
@@ -472,7 +865,7 @@ function Words({ text, className }: { text: string; className?: string }) {
 /* ── الأقسام ───────────────────────────────────────────────────────── */
 const FEATURES = [
   { emoji: "📱", title: "منيو QR فوري", desc: "زبونك يمسح الكود ويتصفح المنيو في ثانية — بلا تطبيق، بلا انتظار، وبثيمات فاخرة تناسب هوية مطعمك." },
-  { emoji: "🎨", title: "ثيمات + لون علامتك", desc: "اثنا عشر ثيماً فاخراً بينها طوابع تراثية سعودية، أو اختر لون مشروعك وسنبني منه ثيماً كاملاً متناسقاً." },
+  { emoji: "🎨", title: "طوابع + لون علامتك", desc: "تسعة عشر طابعاً كاملاً بينها طوابع تراثية سعودية — زخرفة وترويسة وتخطيط وخطّ، أو اختر لون مشروعك وسنبني منه طابعاً متناسقاً." },
   { emoji: "📊", title: "إحصائيات مباشرة", desc: "اعرف أكثر الأطباق مشاهدةً وأوقات الذروة يوماً بيوم، وخذ قراراتك بالأرقام لا بالتخمين." },
   { emoji: "🍎", title: "معلومات غذائية وSFDA", desc: "سعرات، صوديوم، كافيين، ومسببات الحساسية لكل طبق — التزام كامل بمتطلبات هيئة الغذاء والدواء." },
   { emoji: "💛", title: "بطاقة ولاء رقمية", desc: "كافئ زبائنك المتكررين بنظام نقاط مدمج في المنيو نفسه — بلا بطاقات ورقية تضيع." },
@@ -489,7 +882,7 @@ const STEPS = [
 
 /** أرقام من المنتج نفسه لا ادّعاءات سوق — كلٌّ منها يقابله شيء يراه الزائر. */
 const STATS: { to: number; suffix?: string; label: string }[] = [
-  { to: 12, label: "ثيماً فاخراً للمنيو" },
+  { to: 19, label: "طابعاً كاملاً للمنيو" },
   { to: 4, label: "أشكال بطاقة كاشير" },
   { to: 300, suffix: " DPI", label: "دقة ملف الطباعة" },
   { to: 0, label: "تطبيقات يحمّلها زبونك" },
@@ -585,9 +978,209 @@ export function PricingCards({
   );
 }
 
+/* ── مسرح الطوابع ───────────────────────────────────────────────────── */
+
+/**
+ * أربع نقلات، كلٌّ تسمّي **محوراً** وتُريه على الجهاز نفسه.
+ *
+ * الطابع في كل نقلة مختار لأنه أقصى ما يُظهر محورها: `najdi` أعلى زخرفة،
+ * و`hijazi` وحده بأقواس الرواشين، و`modern` بلا زخرفة إطلاقاً وبتخطيط عرض
+ * (فالنقلة تُقرأ قفزةً لا تدرّجاً)، و`luxe` يجمع الحدّ المذهّب واللمعة الذهبية
+ * وخطّ الرقعة للعناوين معاً.
+ */
+const BEATS = [
+  {
+    id: "najdi",
+    title: "زخرفة، لا خلفية ملوّنة",
+    desc: "نسيج السدو محكمٌ خلف المنيو كلّه، ورأس القائمة شريطٌ منسوج بين خطّين. سبع زخارف أصلية موثّقة المصدر — لا صور جاهزة.",
+  },
+  {
+    id: "hijazi",
+    title: "ترويسة بشكلها",
+    desc: "قوس الرواشين الحجازية يفصل رأس المنيو عن أطباقه. أربعة أشكال ترويسة: قوس، وشريط، وإطار مزدوج، وحافّة ناعمة.",
+  },
+  {
+    id: "modern",
+    title: "تخطيط الأطباق نفسه",
+    desc: "شبكة، أو قائمة رأسية، أو «عرض» ببطاقات كبيرة تتصدّرها الصورة. هذا وحده يقلب شكل المنيو قبل أن يتغيّر لون واحد.",
+  },
+  {
+    id: "luxe",
+    title: "خامة وخطّ",
+    desc: "عمق الأسطح ولمعة الذهب وحدّ الحافّة، وخطّ رقعة للعناوين مع خطّ قراءة للأصناف. تسعة عشر طابعاً — لا اثنان منها متشابهان.",
+  },
+] as const;
+
+/**
+ * الكتلة التي تعبر منتصف الشاشة هي الفعّالة.
+ *
+ * بمراقب تقاطع بهامش يقصّ الشاشة إلى شريط رفيع في وسطها — لا بمستمع تمرير:
+ * الأخير يقيس مواضع العناصر في كل إطار فيتقطّع التمرير على الجوال المتوسّط،
+ * وهو أغلب من يفتح صفحتنا (نفس علّة `lib/reveal.ts`).
+ */
+function useMidBeat() {
+  const refs = useRef<(HTMLElement | null)[]>([]);
+  const [active, setActive] = useState(0);
+
+  useEffect(() => {
+    if (typeof IntersectionObserver === "undefined" || prefersReducedMotion()) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue;
+          const i = Number((e.target as HTMLElement).dataset.beat);
+          if (Number.isFinite(i)) setActive(i);
+        }
+      },
+      { rootMargin: "-48% 0px -48% 0px" }
+    );
+    for (const el of refs.current) if (el) io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  return { refs, active };
+}
+
+function ThemeStage() {
+  const { refs, active } = useMidBeat();
+  const beat = BEATS[active] ?? BEATS[0];
+  const theme = getTheme(beat.id);
+
+  return (
+    <section id="themes" className="scroll-mt-20 border-y border-line bg-panel/40">
+      <div className="mx-auto max-w-6xl px-5 py-16">
+        <Reveal className="mb-12 text-center">
+          <Badge className="mb-5">🎨 تسعة عشر طابعاً</Badge>
+          <h2 className="font-display text-3xl font-black leading-[1.25] text-ink">
+            الطابع <span className="text-gold-grad">ليس لوناً</span>
+          </h2>
+          <p className="mx-auto mt-3 max-w-lg leading-relaxed text-dim">
+            كل طابع يغيّر الزخرفة وشكل الترويسة وتخطيط الأطباق والخطّ وخامة الأسطح.
+            انزل ببطء — الجهاز يتبدّل معك.
+          </p>
+        </Reveal>
+
+        <div className="grid gap-10 lg:grid-cols-2 lg:items-start lg:gap-16">
+          {/* ⚠️ التثبيت على الشاشات الواسعة وحدها: سينما تمرير مثبّتة على جوال
+              ضيّق تسرق الشاشة كاملةً ويصير الخروج من القسم صراعاً. على الجوال
+              يسبق الجهازُ الكتلَ مرّة واحدة، وهي بطاقات تُقرأ بلا تثبيت. */}
+          <div className="order-1 lg:sticky lg:top-[max(5rem,calc(50dvh-17rem))]">
+            <PhonePreview theme={theme} width="w-[250px]" />
+          </div>
+
+          <ol className="order-2 flex flex-col gap-6 lg:gap-[42vh] lg:py-[26vh]">
+            {BEATS.map((b, i) => (
+              <li
+                key={b.id}
+                data-beat={i}
+                ref={(el) => {
+                  refs.current[i] = el;
+                }}
+                className={cn(
+                  "rounded-2xl border p-5 transition-colors duration-300 lg:border-0 lg:bg-transparent lg:p-0",
+                  i === active
+                    ? "border-line-gold bg-gold/[.06] lg:opacity-100"
+                    : "border-line bg-panel/50 lg:opacity-45"
+                )}
+              >
+                <span className="mb-3 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-line-gold bg-gold/10 font-display text-sm font-black text-gold">
+                  {i + 1}
+                </span>
+                <h3 className="font-display text-xl font-black text-ink lg:text-2xl">{b.title}</h3>
+                <p className="mt-2 max-w-md leading-relaxed text-dim">{b.desc}</p>
+                {/* على الجوال لا تثبيت، فكل كتلة تحمل مدخلها إلى طابعها. */}
+                <Link
+                  to={`/demo?theme=${b.id}`}
+                  className="mt-3 inline-flex min-h-11 items-center text-sm font-black text-gold hover:underline lg:hidden"
+                >
+                  افتح هذا الطابع ←
+                </Link>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── شريط الدعوة اللاصق ─────────────────────────────────────────────── */
+
+/**
+ * هل غادر هذا القسم الشاشة إلى الأعلى؟ حارس ظهور الشريط اللاصق.
+ *
+ * ⚠️ **يُراقَب القسم كاملاً لا مرساة رفيعة عند نهايته.** المرساة بارتفاع بكسل
+ * تنتقل من «تحت الشاشة» إلى «فوقها» بلا أن تتقاطع معها قطّ حين يقفز التمرير
+ * (رابط داخلي، أو نقرة على شريط التمرير، أو دفعة سريعة) — فلا تُبلَّغ أي نقلةِ
+ * حالة ويبقى الشريط غائباً. رُصد فعلاً: نداءٌ واحد يتيم عند التركيب ثم صمت.
+ * والقسم الطويل متقاطعٌ عند التحميل يقيناً، فأي خروج بعده يُبلَّغ حتماً.
+ */
+function usePassed<T extends HTMLElement>() {
+  const ref = useRef<T>(null);
+  const [passed, setPassed] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(
+      ([e]) => setPassed(!!e && !e.isIntersecting && e.boundingClientRect.top < 0),
+      { threshold: 0 }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  return { ref, passed };
+}
+
 export default function Landing() {
   const [cycle, setCycle] = useState<BillingCycle>("monthly");
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+
+  /**
+   * الطابع المعروض في البطل — وهو نفسه الذي تلبسه الدعوة الأخيرة.
+   *
+   * `picked` تعني «اختار الزائر بيده»: عندها يتوقّف التقليب التلقائي **نهائياً**
+   * ولا يعود. عرضٌ يستأنف نفسه بعد أن يتدخّل المستخدم يُقرأ عصياناً لا حياة.
+   */
+  const [themeId, setThemeId] = useState(DEFAULT_ID);
+  const [picked, setPicked] = useState(false);
+  const theme = getTheme(themeId);
+  const hero = usePassed<HTMLElement>();
+
+  /**
+   * دورة واحدة ثم سكون — **بعد أن يستقرّ مشهد الاستعمال**.
+   *
+   * `lib/phoneDemo.ts` يمثّل ستّ ثوانٍ ونصفاً (إصبع، تمرير، لوح، سلّة). لو بدأ
+   * تقليب الطوابع فوقه لتصادم عرضان على جهاز واحد: يتبدّل الجلد والإصبع في
+   * منتصف ضغطة، فلا يُقرأ أيّهما. فالترتيب: **يُستعمَل الجهاز، ثم يبدّل جلده.**
+   */
+  useEffect(() => {
+    if (picked || prefersReducedMotion()) return;
+    // يبدأ من ‎−1 كي تكون أوّل نقلة هي `REEL[0]`: الحالة الابتدائية هي الطابع
+    // الافتراضي (ما يراه تاجرٌ لم يختر)، والدورة تمرّ ثم **تعود إليه** وتقف.
+    let i = -1;
+    let tick = 0;
+    const start = window.setTimeout(() => {
+      tick = window.setInterval(() => {
+        i += 1;
+        if (i >= REEL.length) {
+          window.clearInterval(tick);
+          return;
+        }
+        setThemeId(REEL[i] ?? DEFAULT_ID);
+      }, 2600);
+    }, 7200);
+    return () => {
+      window.clearTimeout(start);
+      window.clearInterval(tick);
+    };
+  }, [picked]);
+
+  const pick = (id: string) => {
+    setPicked(true);
+    setThemeId(id);
+  };
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -597,7 +1190,7 @@ export default function Landing() {
       <Navbar />
 
       {/* البطل */}
-      <section className="glow-bg relative overflow-hidden">
+      <section ref={hero.ref} className="glow-bg relative overflow-hidden">
         {/* طبقة زخرفية وحدها تنجرف مع التمرير. الباراlaكس على القسم نفسه كان
             سيجرّ العنوان والأزرار معه — وإزاحة النصّ تُتعب القراءة. */}
         <span
@@ -648,9 +1241,28 @@ export default function Landing() {
               ))}
             </ul>
           </div>
-          <PhonePreview />
+
+          <div className="min-w-0">
+            <PhonePreview theme={theme} animate />
+            <ThemeRail value={themeId} onChange={pick} />
+            {/* سطر الطابع الحيّ — اسمه وسطره التعريفيّان يأتيان من `themes.ts`
+                نفسها التي يقرأها التاجر في لوحته، فلا وصف تسويقي ثانٍ ينحرف. */}
+            <p className="mt-2 text-center text-xs text-faint">
+              <b className="text-dim">{theme.name}</b> — {theme.tagline}
+            </p>
+            <div className="mt-4 flex justify-center">
+              <Link
+                to={`/demo?theme=${theme.id}`}
+                className="inline-flex min-h-11 items-center rounded-xl border border-line-gold px-5 py-2.5 text-sm font-bold text-ink hover:bg-gold/10"
+              >
+                افتح هذا الطابع منيواً كاملاً ←
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
+
+      <ThemeStage />
 
       {/* أرقام المنتج */}
       <section className="border-y border-line bg-panel/40">
@@ -815,23 +1427,67 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* دعوة أخيرة */}
+      {/* دعوة أخيرة — تلبس الطابع الذي اختاره الزائر فعلاً أعلى الصفحة، فيرى
+          منيوه هو لا عيّنة عامّة. وهذا ما يجعل الزرّ خطوةً تالية لا إعلاناً. */}
       <section className="glow-bg border-t border-line">
-        <Reveal className="mx-auto max-w-3xl px-5 py-16 text-center">
-          <h2 className="font-display text-3xl font-black text-ink">
-            جاهز ترقّي تجربة <span className="text-gold-grad">مطعمك؟</span>
-          </h2>
-          <p className="mt-3 text-dim">انضم لمطاعم اختارت المنيو الرقمي — واجعل كل طاولة تبيع أكثر.</p>
-          <Link
-            to="/login?mode=signup"
-            className="mt-7 inline-block rounded-xl bg-gold px-8 py-3.5 font-bold text-on-gold shadow-[0_8px_30px_-8px_var(--c-glow)] hover:bg-gold2"
-          >
-            أنشئ منيوك الآن
-          </Link>
-        </Reveal>
+        <div className="mx-auto grid max-w-5xl items-center gap-10 px-5 py-16 lg:grid-cols-[1fr_auto]">
+          <Reveal className="text-center lg:text-right">
+            <h2 className="font-display text-3xl font-black leading-[1.25] text-ink">
+              منيوك بطابع <span className="text-gold-grad">{theme.name}</span> — جاهز الآن
+            </h2>
+            <p className="mt-3 max-w-md leading-relaxed text-dim lg:mx-0">
+              أنشئ حسابك، أضف أطباقك، ونزّل بطاقتك. تبديل الطابع لاحقاً ضغطةٌ واحدة —
+              وكل ما تراه هنا داخل الباقة بلا إضافات.
+            </p>
+            <div className="mt-7 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
+              <Link
+                to="/login?mode=signup"
+                className="inline-flex min-h-11 items-center rounded-xl bg-gold px-8 py-3.5 font-bold text-on-gold shadow-[0_8px_30px_-8px_var(--c-glow)] transition-transform hover:bg-gold2 active:scale-[.98]"
+              >
+                أنشئ منيوك الآن
+              </Link>
+              <Link
+                to={`/demo?theme=${theme.id}`}
+                className="inline-flex min-h-11 items-center rounded-xl border border-line-gold px-6 py-3 font-bold text-ink hover:bg-gold/10"
+              >
+                👀 شوفه أولاً
+              </Link>
+            </div>
+            <p className="mt-4 text-xs text-faint">
+              {formatPrice(PLANS[0]?.monthly ?? 99)} {CURRENCY} شهرياً · بلا رسوم خفية · ألغِ متى شئت
+            </p>
+          </Reveal>
+          <Reveal delay={120} className="hidden lg:block">
+            <PhonePreview theme={theme} width="w-[220px]" />
+          </Reveal>
+        </div>
       </section>
 
       <Footer />
+
+      {/* شريط الدعوة اللاصق — على الجوال وحده: هناك تغادر أزرار البطل الشاشة
+          بعد شاشة واحدة، وعلى الحاسوب تبقى الترويسة ظاهرة أصلاً. */}
+      <div
+        className={cn("cta-dock lg:hidden", hero.passed && "is-up")}
+        aria-hidden={!hero.passed}
+      >
+        <div className="flex items-center gap-2 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
+          <Link
+            to="/login?mode=signup"
+            tabIndex={hero.passed ? undefined : -1}
+            className="flex min-h-12 flex-1 items-center justify-center rounded-xl bg-gold px-4 font-bold text-on-gold active:scale-[.98]"
+          >
+            ابدأ مجاناً
+          </Link>
+          <Link
+            to={`/demo?theme=${theme.id}`}
+            tabIndex={hero.passed ? undefined : -1}
+            className="flex min-h-12 items-center justify-center rounded-xl border border-line-gold px-4 font-bold text-ink"
+          >
+            جرّب المنيو
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }

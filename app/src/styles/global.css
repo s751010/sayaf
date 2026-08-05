@@ -169,6 +169,21 @@ body {
   color: transparent;
 }
 
+/**
+ * ⚠️ التدرّج يُقصّ إلى نصّ **العنصر نفسه**، فإن كان كل النصّ في أبناء لم يبقَ
+ * للأب ما يُقصّ إليه — واللون الشفّاف يورَث. النتيجة: **سطر لا يظهر إطلاقاً**،
+ * وقد كان ذلك حال ثاني سطر في عنوان البطل («تجربة رقمية فاخرة») منذ أن قُسّم
+ * العنوان كلمةً كلمة: يشغل مساحته ولا يُرى.
+ *
+ * فيرث كل ابن التدرّج ويقصّه إلى نفسه. المنحدر يُعاد لكل كلمة بدل أن يمتدّ على
+ * السطر — فرقٌ لا يكاد يُرى في ذهبٍ متقارب الطرفين، مقابل سطرٍ يظهر.
+ */
+.text-gold-grad > * {
+  background: inherit;
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
 /* توهّج خلفي ناعم للأقسام البطلة */
 .glow-bg {
   background:
@@ -698,9 +713,20 @@ body {
   transition-timing-function: cubic-bezier(0.33, 0.9, 0.28, 1);
 }
 
+/**
+ * انعكاس يعبر الزجاج — **بلون تمييز الطابع** لا بأبيض ثابت.
+ *
+ * الأبيض الثابت يبدو واحداً فوق الطوابع التسعة عشر، فيُقرأ طبقةً مضافة على
+ * الصورة لا ضوءاً منعكساً عنها. والخلط عند ٣٠٪ فقط: أكثر منه يصبغ الشاشة.
+ */
 .ph-glare {
   opacity: 0;
-  background: linear-gradient(115deg, transparent 42%, rgba(255, 255, 255, 0.09) 50%, transparent 58%);
+  background: linear-gradient(
+    115deg,
+    transparent 42%,
+    color-mix(in srgb, var(--m-accent) 30%, rgba(255, 255, 255, 0.16)) 50%,
+    transparent 58%
+  );
 }
 
 /**
@@ -989,4 +1015,112 @@ body {
  */
 .ph-badge {
   transform: translateZ(30px);
+}
+
+/* ══ تبديل الطابع: الجهاز يُدار فيظهر جلده الجديد ════════════════════════
+ * ⚠️ **غلاف مستقلّ بين `.tilt` و`.ph`** — وهذا ليس ترفاً في البنية:
+ *  · `.ph` تحمل حركة الهبوط (`ph-land`)، وحركتان بـ`animation` على عنصر واحد
+ *    تتنازعان فتغلب إحداهما صامتةً.
+ *  · `.tilt` يكتب عليها `useTilt` نمطاً مضمَّناً، **وحركة CSS تغلب المضمَّن** —
+ *    وهو العطل نفسه الذي عطّل الإمالة كاملةً قبلُ.
+ * فبقي عنصرٌ لا وظيفة له إلا هذه الحركة، ولا شيء ينازعه عليها.
+ *
+ * و`preserve-3d` عليه إلزامي: بدونه يُسطّح سلسلة العمق فيصير الجهاز بطاقة.
+ */
+.ph-turn {
+  transform-style: preserve-3d;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ph-turn.is-turn {
+    animation: ph-turn 380ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+}
+
+@keyframes ph-turn {
+  0% {
+    opacity: 0.55;
+    transform: rotateY(-7deg) scale(0.985);
+  }
+  100% {
+    opacity: 1;
+    transform: rotateY(0) scale(1);
+  }
+}
+
+/* ══ شريط الطوابع ════════════════════════════════════════════════════════
+ * المستوى مائل قليلاً في العمق فيُقرأ الشريط سطحاً يقف عليه الاختيار لا صفّاً
+ * مسطّحاً. والميل ٦ درجات لا أكثر: النصّ العربي على سطح مائل يفقد حدّته سريعاً.
+ *
+ * ⚠️ الميل على الغلاف **لا على العنصر المتمرِّر نفسه**: تحويلُ حاوية تمرير
+ * يُنشئ سياق طبقة يربك موضع `scrollIntoView` على بعض المتصفّحات.
+ */
+.theme-plane {
+  perspective: 900px;
+}
+
+.theme-rail {
+  transform: rotateX(6deg);
+  transform-origin: top center;
+  scrollbar-width: none;
+  /* الشريط يتلاشى عند طرفيه فيُقرأ «هناك المزيد» بلا سهم ولا تدرّج مرسوم. */
+  mask-image: linear-gradient(to left, transparent, #000 5%, #000 95%, transparent);
+}
+.theme-rail::-webkit-scrollbar {
+  display: none;
+}
+
+/** الشريحة المختارة تتقدّم نحو الناظر — دليل الاختيار في العمق لا في اللون وحده. */
+.theme-chip {
+  transform-style: preserve-3d;
+  transition:
+    transform 240ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 240ms,
+    border-color 240ms;
+}
+.theme-chip[data-on="1"] {
+  transform: translateZ(18px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-rail {
+    transform: none;
+  }
+  .theme-chip[data-on="1"] {
+    transform: none;
+  }
+}
+
+/* ══ شريط الدعوة اللاصق (الجوال) ═════════════════════════════════════════
+ * ⚠️ **الحالة الافتراضية مخفيّة هنا عمداً — وهي الاستثناء الوحيد** لقاعدة
+ * «ابدأ مكشوفاً» في هذا الملف: الشريط عنصر تحكّم يظهر بشرط موضع التمرير، لا
+ * محتوى ينتظر حركة. ولذلك إخفاؤه بـ`translate`+`opacity` **خارج** أي استعلام
+ * حركة، ويُطفأ استقباله للمؤشّر حتى يصعد — فلا يحجب ما تحته وهو غائب.
+ */
+.cta-dock {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 40;
+  border-top: 1px solid var(--c-line);
+  background: color-mix(in srgb, var(--c-panel) 92%, transparent);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 -8px 24px -12px rgba(0, 0, 0, 0.55);
+  transform: translateY(110%);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform 280ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 200ms linear;
+}
+.cta-dock.is-up {
+  transform: none;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cta-dock {
+    transition: none;
+  }
 }
