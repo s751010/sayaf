@@ -25,10 +25,10 @@ const CORS = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-function json(body: unknown, status = 200): Response {
+function json(body: unknown, status = 200, extra: Record<string, string> = {}): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...CORS, "Content-Type": "application/json" },
+    headers: { ...CORS, "Content-Type": "application/json", ...extra },
   });
 }
 
@@ -146,7 +146,12 @@ Deno.serve(async (req) => {
   }
 
   const restaurantId = String(body.restaurant_id ?? "").trim();
-  if (!restaurantId) return json({ error: "مطعم غير معروف." }, 400);
+  // ⚠️ يُفحص الشكل قبل أي استعلام: `order_rate_hit` تستقبل `uuid`، فنصّ مشوّه
+  // يرفع خطأ داخلها فيخرج ٥٠٣ («عطل عندنا») بدل ٤٠٠ («طلبك خاطئ») — ويستهلك
+  // رحلة قاعدة بيانات على مدخَل مرفوض أصلاً.
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(restaurantId)) {
+    return json({ error: "مطعم غير معروف." }, 400);
+  }
 
   const items = parseItems(body.items);
   if (!items) return json({ error: "سلة غير صالحة." }, 400);
@@ -156,6 +161,39 @@ Deno.serve(async (req) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     { auth: { persistSession: false } }
   );
+
+  /**
+   * ── حدّ المعدّل ─────────────────────────────────────────────────────
+   *
+   * ⚠️ هذه الدالة **مجهولة تماماً** (`verify_jwt = false`) — وهذا صحيح: زبون
+   * المطعم لا حساب له. لكنها كانت **بلا أي حدّ**، وكل نداء ناجح يُنشئ فاتورة
+   * PayLink حقيقية على **حساب التاجر** لا حسابنا. أي أن حلقة واحدة تُغرق لوحة
+   * تاجر بفواتير وهمية وتستهلك حصّته عند البوّابة.
+   *
+   * المفتاح **المطعم** لا الزائر: الزائر مجهول بالتصميم ولا مرساة له نثق بها
+   * (الترويسات تُزوَّر)، والمتضرّر هو التاجر — فالسقف يحمي حسابه هو.
+   *
+   * والحدّ **قبل قراءة بيانات الاعتماد**: لا يجوز أن يُجبر مُغرِقٌ الخادمَ على
+   * لمس `secret_key` أصلاً.
+   *
+   * ٣٠ في الدقيقة للمطعم الواحد: أعلى بمراحل من ذروة مطعم ممتلئ يطلب زبائنه
+   * إلكترونياً، وأخفض بمراحل مما يبلغه سكربت.
+   */
+  const { data: allowed, error: rateErr } = await admin.rpc("order_rate_hit", {
+    p_restaurant: restaurantId,
+    p_limit: 30,
+  });
+  if (rateErr) {
+    // فشل العدّاد لا يفتح الباب: هذه نقطة تُنشئ التزاماً مالياً، فالإغلاق
+    // عند الشكّ أرخص من الفتح عنده.
+    console.error("order_rate_hit:", rateErr.message);
+    return json({ error: "تعذّر إنشاء الطلب الآن. حاول بعد قليل." }, 503);
+  }
+  if (allowed === false) {
+    return json({ error: "طلبات كثيرة على هذا المطعم — حاول بعد دقيقة." }, 429, {
+      "Retry-After": "60",
+    });
+  }
 
   // ── بيانات اعتماد المطعم (لا تغادر الخادم أبداً) ──────────────────────
   const { data: settingsRows } = await admin
