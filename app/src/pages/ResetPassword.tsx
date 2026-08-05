@@ -10,8 +10,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { Logo } from "@/components/site";
 import { Button, Card, ErrorNote, Field, Input, Spinner, ThemeToggle } from "@/components/ui";
 import { adoptSession, updatePassword } from "@/lib/session";
+import { MIN_PASSWORD, checkPassword } from "@/lib/password";
 
-const MIN_LENGTH = 8;
+
 
 type Tokens = { access: string; refresh: string; expiresIn: number };
 
@@ -53,8 +54,10 @@ export default function ResetPassword() {
     e.preventDefault();
     if (!tokens) return;
     setError("");
-    if (password.length < MIN_LENGTH)
-      return setError(`كلمة المرور يجب أن تكون ${MIN_LENGTH} أحرف على الأقل.`);
+    // نفس قاعدة التسجيل حرفياً — مصدر واحد. كانت هذه الصفحة **أشدّ** من صفحة
+    // الإنشاء (ثمانية مقابل ستّة)، فكان أضعف بابٍ للحساب هو أوّل باب يدخله.
+    const check = checkPassword(password);
+    if (!check.ok) return setError(check.error);
     if (password !== confirm) return setError("الكلمتان غير متطابقتين.");
     setBusy(true);
     try {
@@ -117,7 +120,7 @@ export default function ResetPassword() {
                 </p>
 
                 <form onSubmit={submit} className="mt-6 flex flex-col gap-4">
-                  <Field label="كلمة المرور الجديدة" hint={`${MIN_LENGTH} أحرف على الأقل`}>
+                  <Field label="كلمة المرور الجديدة" hint={`${MIN_PASSWORD} محارف على الأقل`}>
                     <Input
                       type="password"
                       dir="ltr"

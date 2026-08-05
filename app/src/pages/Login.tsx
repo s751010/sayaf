@@ -5,6 +5,7 @@ import { Logo } from "@/components/site";
 import { Button, Card, ErrorNote, Field, Input, Spinner, ThemeToggle } from "@/components/ui";
 import { useAuth } from "@/lib/auth";
 import { track } from "@/lib/track";
+import { checkPassword } from "@/lib/password";
 import { isFounder } from "@/lib/data";
 import { cn } from "@/lib/utils";
 
@@ -22,6 +23,7 @@ export default function Login() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
+  const strength = checkPassword(password);
 
   useEffect(() => {
     document.title = "دخول التجّار — كلاود منيو";
@@ -61,8 +63,12 @@ export default function Login() {
       );
     }
     if (!email.trim() || !password) return setError("أدخل البريد وكلمة المرور.");
-    if (mode === "signup" && password.length < 6)
-      return setError("كلمة المرور يجب أن تكون 6 أحرف على الأقل.");
+    // ⚠️ الفحص عند **الإنشاء وحده**: تشديدُه على الدخول يقفل تجّاراً يعملون
+    // اليوم بكلمة من ستّة محارف — وذلك قرار مالك لا أثر جانبي لتصلّب.
+    if (mode === "signup") {
+      const check = checkPassword(password);
+      if (!check.ok) return setError(check.error);
+    }
     setBusy(true);
     try {
       if (mode === "login") {
@@ -173,6 +179,44 @@ export default function Login() {
                     autoComplete={mode === "login" ? "current-password" : "new-password"}
                     required
                   />
+                  {/* مقياس القوّة عند الإنشاء فقط — وأثناء الكتابة لا بعد
+                      الإرسال: تصحيحٌ بعد رفضٍ أسوأ من توجيهٍ قبله. */}
+                  {mode === "signup" && password.length > 0 && (
+                    <div className="mt-2">
+                      <div
+                        className="flex gap-1"
+                        role="progressbar"
+                        aria-valuenow={strength.score}
+                        aria-valuemin={0}
+                        aria-valuemax={4}
+                        aria-label="قوّة كلمة المرور"
+                      >
+                        {[0, 1, 2, 3].map((i) => (
+                          <span
+                            key={i}
+                            className={cn(
+                              "h-1 flex-1 rounded-full transition-colors",
+                              i < strength.score
+                                ? strength.score <= 1
+                                  ? "bg-bad"
+                                  : strength.score === 2
+                                    ? "bg-gold"
+                                    : "bg-good"
+                                : "bg-line"
+                            )}
+                          />
+                        ))}
+                      </div>
+                      <p
+                        className={cn(
+                          "mt-1.5 text-xs",
+                          strength.ok ? "text-dim" : "text-bad"
+                        )}
+                      >
+                        {strength.ok ? `كلمة مرور ${strength.label}` : strength.error}
+                      </p>
+                    </div>
+                  )}
                 </Field>
               )}
 
