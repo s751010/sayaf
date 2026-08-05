@@ -20,6 +20,10 @@ const Help = lazy(() => import("@/pages/Help"));
 const ApiDocs = lazy(() => import("@/pages/ApiDocs"));
 const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 const Stamp = lazy(() => import("@/pages/Stamp"));
+// الصفحتان القانونيتان في قطعة واحدة: تتقاسمان القالب وكتلة الهوية، ومن يفتح
+// إحداهما غالباً يفتح الأخرى.
+const Privacy = lazy(() => import("@/pages/Legal").then((m) => ({ default: m.Privacy })));
+const Terms = lazy(() => import("@/pages/Legal").then((m) => ({ default: m.Terms })));
 
 function PageLoader() {
   return (
@@ -41,6 +45,8 @@ export default function App() {
                 <Route path="/demo" element={<Demo />} />
                 <Route path="/help" element={<Help />} />
                 <Route path="/docs/api" element={<ApiDocs />} />
+                <Route path="/privacy" element={<Privacy />} />
+                <Route path="/terms" element={<Terms />} />
                 <Route path="/blog" element={<Blog />} />
                 <Route path="/blog/:slug" element={<BlogPostPage />} />
                 <Route path="/login" element={<Login />} />

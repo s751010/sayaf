@@ -33,6 +33,7 @@ import {
 } from "@/lib/plans";
 import { cn, formatDate, formatPrice } from "@/lib/utils";
 import type { Subscription } from "@/lib/types";
+import { track } from "@/lib/track";
 import { useDashboard } from "./Dashboard";
 import { Icon } from "@/lib/icons";
 
@@ -75,6 +76,10 @@ export default function Billing() {
     if (awaiting === null || ent.active) {
       if (awaiting !== null && ent.active) {
         setAwaiting(null);
+        // ⚠️ يُبثّ عند **التفعيل المؤكَّد** من الويبهوك لا عند العودة من
+        // البوّابة: العودة ليست دفعاً (انظر التعليق أعلاه)، وعدّها اشتراكاً
+        // يجعل قمعنا يقول ما لا يقوله سجلّ الإيراد.
+        track("subscription_paid");
         toast("🎉 فُعِّل اشتراكك — شكراً لثقتك.");
       }
       return;
@@ -105,6 +110,8 @@ export default function Billing() {
     setError("");
     try {
       const session = await startSubscription(cycle, promo);
+      // بعد نجاح إنشاء الفاتورة وقبل المغادرة: «بدأ الدفع» يعني فاتورةً قائمة.
+      track("checkout_started");
       window.location.assign(session.url);
     } catch (err) {
       setError(

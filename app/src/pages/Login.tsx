@@ -4,6 +4,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Logo } from "@/components/site";
 import { Button, Card, ErrorNote, Field, Input, Spinner, ThemeToggle } from "@/components/ui";
 import { useAuth } from "@/lib/auth";
+import { track } from "@/lib/track";
 import { isFounder } from "@/lib/data";
 import { cn } from "@/lib/utils";
 
@@ -69,6 +70,9 @@ export default function Login() {
         await goAfterAuth();
       } else {
         const done = await signup(email.trim(), password, name.trim());
+        // بعد النجاح لا قبله: «بدأ التسجيل» يعني حساباً أُنشئ فعلاً، لا نيّةً
+        // فشلت عند التحقّق — وإلا انتفخ رأس القمع بما لم يحدث.
+        track("signup_started");
         if (done) await goAfterAuth();
         else setNotice("تم إنشاء الحساب! تحقق من بريدك لتفعيل الحساب ثم سجّل الدخول.");
       }
@@ -220,8 +224,18 @@ export default function Login() {
               </Button>
             </form>
           </Card>
+          {/* ⚠️ كان هذا السطر **نصّاً بلا رابط** — موافقة على وثيقتين لا وجود
+              لهما ولا سبيل لقراءتهما. الموافقة على ما لا يُقرأ لا تُعتدّ. */}
           <p className="mt-4 text-center text-xs text-faint">
-            بدخولك أنت توافق على شروط الاستخدام وسياسة الخصوصية.
+            بدخولك أنت توافق على{" "}
+            <Link to="/terms" className="font-bold text-dim hover:text-gold hover:underline">
+              شروط الاستخدام
+            </Link>{" "}
+            و
+            <Link to="/privacy" className="font-bold text-dim hover:text-gold hover:underline">
+              سياسة الخصوصية
+            </Link>
+            .
           </p>
           <p className="mt-2 text-center text-xs text-dim">
             جديد على المنصة؟{" "}

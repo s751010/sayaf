@@ -17,6 +17,7 @@ import {
   useSearchParams,
 } from "react-router-dom";
 import { AnnouncementBar } from "@/components/AnnouncementBar";
+import { TrialBar } from "@/components/TrialBar";
 import { Logo, PreviewMenuButton } from "@/components/site";
 import {
   Badge,
@@ -30,6 +31,7 @@ import {
   ThemeToggle,
 } from "@/components/ui";
 import { useAuth } from "@/lib/auth";
+import { track } from "@/lib/track";
 import {
   DEFAULT_ENTITLEMENTS,
   fetchEntitlements,
@@ -127,6 +129,7 @@ function Onboarding({ user, onDone }: { user: SessionUser; onDone: (r: Restauran
       await startTrial(user.id).catch((err) =>
         console.error("تعذّر بدء التجربة المجانية:", err)
       );
+      track("restaurant_created");
       onDone(r);
     } catch {
       setError("تعذّر الإنشاء — قد يكون الرابط مستخدماً لمطعم آخر.");
@@ -347,6 +350,9 @@ function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode
               `ent.loading` تُستثنى: لا نصنّف الجمهور قبل أن تُحسم حالة الاشتراك.
               وفي وضع الانتحال لا تُعرض: إعلاناتك موجّهة للتجّار لا لك. */}
           {!ctx.readOnly && !ctx.ent.loading && <AnnouncementBar subscribed={ctx.ent.active} />}
+          {/* انتهاء التجربة — بنفس حارسَي الإعلانات: لا في وضع الانتحال (تنبيهٌ
+              يخصّ التاجر لا المؤسّس الذي يشاهد لوحته)، ولا قبل حسم الاشتراك. */}
+          {!ctx.readOnly && <TrialBar ent={ctx.ent} />}
           {/* حارس القراءة-فقط: `fieldset[disabled]` تُعطّل **كل** زر وحقل متفرّع
               عنها بآلية HTML أصلية. اخترتُها بدل نثر `disabled` في ست صفحات لأن
               تلك تُنسى في صفحة جديدة، وهذه لا تُنسى — والروابط تبقى تعمل فيظل

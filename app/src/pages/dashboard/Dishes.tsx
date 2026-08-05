@@ -27,6 +27,7 @@ import { BulkImages } from "@/components/BulkImages";
 import { ImageUploader } from "@/components/ImageUploader";
 import { OptionsEditor } from "@/components/OptionsEditor";
 import { AllergenPicker } from "@/components/AllergenPicker";
+import { track } from "@/lib/track";
 import {
   countDishes,
   createDish,
@@ -406,6 +407,9 @@ export default function Dishes() {
           restaurant_id: restaurant.id,
           user_id: user.id,
         });
+        // ⚠️ **أوّل** صنف فقط: هذه هي نقطة التفعيل الحقيقية في القمع (تاجر بلا
+        // صنف واحد لم يبدأ)، وبثّها مع كل إضافة يطمس الإشارة تحت ضجيج الاستعمال.
+        if ((dishes?.length ?? 0) === 0) track("first_dish_added");
         setDishes((ds) => [created, ...(ds ?? [])]);
         toast("أُضيف الطبق ✓");
       } else if (editing) {

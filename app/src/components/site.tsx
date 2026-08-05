@@ -214,11 +214,23 @@ export function Footer() {
             <li><Link to="/help" className="inline-flex min-h-9 items-center hover:text-gold">مركز المساعدة</Link></li>
           </ul>
           <SupportWhatsAppButton className="mt-3" />
-          <p className="mt-3 text-xs text-faint">
-            <Link to="/help#policy" className="inline-flex min-h-9 items-center hover:text-gold">
-              سياسة الاشتراك والإلغاء
-            </Link>
-          </p>
+          <ul className="mt-3 flex flex-col text-xs text-faint">
+            <li>
+              <Link to="/help#policy" className="inline-flex min-h-9 items-center hover:text-gold">
+                سياسة الاشتراك والإلغاء
+              </Link>
+            </li>
+            <li>
+              <Link to="/privacy" className="inline-flex min-h-9 items-center hover:text-gold">
+                سياسة الخصوصية
+              </Link>
+            </li>
+            <li>
+              <Link to="/terms" className="inline-flex min-h-9 items-center hover:text-gold">
+                شروط الاستخدام
+              </Link>
+            </li>
+          </ul>
         </div>
       </div>
       <div className="border-t border-line py-4 text-center text-xs text-faint">

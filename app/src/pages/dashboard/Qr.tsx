@@ -4,6 +4,7 @@ import QRCode from "qrcode";
 import { qrDataUrl } from "@/lib/qr";
 import { Button, Card, ErrorNote, Field, Input, Switch, useToast } from "@/components/ui";
 import { PreviewMenuButton } from "@/components/site";
+import { track } from "@/lib/track";
 import { useDashboard } from "./Dashboard";
 import { PrintTabs } from "./Tabs";
 import { Icon } from "@/lib/icons";
@@ -70,6 +71,8 @@ export default function Qr() {
       const blob = new Blob([svg], { type: "image/svg+xml" });
       objectUrl = URL.createObjectURL(blob);
       download(objectUrl, `qr-${slug}${table ? `-table-${table}` : ""}.svg`);
+      // نزّل كوداً ⇒ نيّة وضعه على طاولة. أقرب إشارة عندنا إلى «سيُستعمَل فعلاً».
+      track("qr_downloaded");
     } catch {
       toast("تعذّر التوليد.", "err");
     } finally {
