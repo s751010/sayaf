@@ -37,7 +37,7 @@ import {
 } from "@/lib/hours";
 import {
   getActiveMenus,
-  getAvailableDishes,
+  getRestaurantDishes,
   getLoyaltyCustomer,
   getRestaurantBySlug,
   isMenuPublished,
@@ -688,32 +688,54 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
         // الصف بجلسة المستخدم — ولا نفعل ذلك إلا حين تُطلب المعاينة فعلاً.
         const session = loadSession();
         const tryOwner = wantsPreview && !!session;
-        const restaurant = tryOwner
-          ? await getRestaurantBySlug(slug, { asOwner: true }).catch(() =>
-              getRestaurantBySlug(slug)
-            )
-          : await getRestaurantBySlug(slug);
+
+        /**
+         * ═══ الجولة الأولى: المطعم وإعدادات الفوترة **معاً** ═══
+         *
+         * كان هذا متسلسلاً بلا سبب: `getBillingSettings()` تقرأ
+         * `site_settings?key=eq.billing` ولا تعرف شيئاً عن المطعم ولا تحتاجه.
+         * وانتظارُها دورَ المطعم كان يضيف رحلة كاملة إلى **طوكيو** لكل زبون
+         * يمسح كوداً على طاولة.
+         */
+        const [restaurant, billing] = await Promise.all([
+          tryOwner
+            ? getRestaurantBySlug(slug, { asOwner: true }).catch(() =>
+                getRestaurantBySlug(slug)
+              )
+            : getRestaurantBySlug(slug),
+          // تسقط إلى «مفتوح» عند أي فشل، فعطلٌ عابر عندنا لا يُطفئ منيو تاجر
+          // (انظر `lib/billing.ts`) — ولهذا لا تُسقط `Promise.all`.
+          getBillingSettings(),
+        ]);
         if (cancelled) return;
         if (!restaurant) return setState({ status: "notfound" });
         const previewing =
           tryOwner && !!restaurant.user_id && session!.user.id === restaurant.user_id;
         setPreview(previewing);
+
         /**
-         * قفل النشر — قرار المؤسّس في `site_settings.billing` لا اشتقاق من
-         * مفتاح بوّابة. و`getBillingSettings` تسقط إلى «مفتوح» عند أي فشل،
-         * فعطلٌ عابر عندنا لا يُطفئ منيو تاجر (انظر `lib/billing.ts`).
+         * ═══ الجولة الثانية: القوائم والأطباق معاً ═══
+         *
+         * الأطباق تُجلب بـ`restaurant_id` لا بمعرّفات القوائم، فلا تنتظرها.
+         * والترشيح بالقوائم ينتقل إلى المتصفّح حيث لا يكلّف رحلة.
+         *
+         * ⚠️ قفل النشر يُفحص **بعد** انطلاق الجولة لا قبلها: هو مطفأ افتراضياً
+         * (`enforce_publishing=false`)، فجعلُه بوّابةً متسلسلة كان يكلّف كل
+         * زبون رحلةً ثالثة من أجل حالة نادرة. وإن كان القفل مشتغلاً ولم يكن
+         * المنيو منشوراً، نخرج قبل عرض شيء — والطلبان الجاريان يُهمَلان.
          */
-        const billing = await getBillingSettings();
+        const [active, allDishes, published] = await Promise.all([
+          getActiveMenus(restaurant.id),
+          getRestaurantDishes(restaurant.id),
+          billing.enforce_publishing && !previewing
+            ? isMenuPublished(slug).catch(() => true)
+            : Promise.resolve(true),
+        ]);
         if (cancelled) return;
-        if (billing.enforce_publishing && !previewing) {
-          const published = await isMenuPublished(slug).catch(() => true);
-          if (cancelled) return;
-          if (!published) {
-            document.title = `${restaurant.name} — كلاود منيو`;
-            return setState({ status: "unpublished", name: restaurant.name });
-          }
+        if (!published) {
+          document.title = `${restaurant.name} — كلاود منيو`;
+          return setState({ status: "unpublished", name: restaurant.name });
         }
-        const active = await getActiveMenus(restaurant.id);
         /**
          * نافذة العرض (قائمة فطور رمضان مثلاً). لو أسقط الترشيح كل القوائم
          * نعرضها كلها: منيو فارغ أمام زبون على الطاولة أسوأ بكثير من قائمة
@@ -721,8 +743,18 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
          */
         const inWindow = active.filter((m) => inTimeWindow(m.window_from, m.window_to));
         const menus = inWindow.length ? inWindow : active;
-        const dishes = await getAvailableDishes(menus.map((m) => m.id));
-        if (cancelled) return;
+        /**
+         * ⚠️ الترشيح هنا **يعوّض `menu_id=in.(…)` الذي كان على الخادم**، ولا
+         * يجوز أن يتساهل عنه: `getRestaurantDishes` تُعيد أطباق كل القوائم بما
+         * فيها المعطّلة وخارج نافذتها، فبلا هذا السطر يرى الزبون أصنافاً أطفأها
+         * التاجر. والترتيب محفوظ لأن الخادم رتّب أصلاً بـ`sort_order` ثم
+         * `created_at`، و`filter` لا يعيد الترتيب.
+         */
+        const shown = new Set(menus.map((m) => m.id));
+        // ⚠️ `menu_id` قابل لأن يكون `null` (صنف يتيم بلا قائمة)، و
+        // `menu_id=in.(…)` على الخادم كان **يستبعده** — فالشرط هنا يستبعده
+        // كذلك. إسقاط هذا الفحص كان سيُظهر للزبون أصنافاً لم يرها قطّ.
+        const dishes = allDishes.filter((d) => d.menu_id !== null && shown.has(d.menu_id));
         document.title = `${restaurant.name} — المنيو`;
         setState({ status: "ready", restaurant, menus, dishes });
         // معاينات التاجر لا تُحتسب مشاهدات، وإلا لوّثت تحليلاته بنفسه.

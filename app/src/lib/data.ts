@@ -132,6 +132,40 @@ export async function getAvailableDishes(menuIds: string[]): Promise<Dish[]> {
   );
 }
 
+/**
+ * أطباق المطعم كلّها بطلب واحد — **لا تنتظر معرّفات القوائم**.
+ *
+ * ═══ لماذا وُجدت بجانب `getAvailableDishes` ═══
+ *
+ * تلك تُرشّح بـ`menu_id=in.(…)`، فلا تستطيع الانطلاق قبل أن تصل القوائم. وكان
+ * ذلك يجعل صفحة المنيو أربع رحلات شبكة **متسلسلة**:
+ *   المطعم → إعدادات الفوترة → القوائم → الأطباق
+ * وقاعدة البيانات في **طوكيو** (‎٢٠٠–٢٦٠ملي للرحلة)، والقارئ زبونٌ واقف عند
+ * الطاولة على بيانات جوّاله. أي أن ترتيب الطلبات وحده كان يكلّف ≈ نصف ثانية
+ * قبل أن يظهر طبق واحد.
+ *
+ * و`restaurant_id` عمود على `dishes` **ممنوح لـ`anon`** وداخل
+ * `PUBLIC_DISH_COLS` (مفحوص) — فالقاعدة (و) محفوظة، والترشيح بالقوائم ينتقل
+ * إلى المتصفّح حيث لا يكلّف رحلة.
+ *
+ * ⚠️ الفارق عن `getAvailableDishes`: هذه تُعيد أطباق **كل** قوائم المطعم بما
+ * فيها المعطّلة وخارج نافذة الوقت. فالمنادي **ملزَم** بترشيحها بمعرّفات
+ * القوائم المعروضة فعلاً — وإلا ظهرت للزبون أصناف قائمةٍ أطفأها التاجر.
+ *
+ * وشرط التوفّر يبقى **مطابقاً حرفياً**: `null` تعني متاح (صفوف قديمة قبل
+ * إضافة العمود)، و`eq.true` وحدها كانت تُخفيها عن الزبون بينما يراها التاجر
+ * «متاحة» في لوحته.
+ */
+export async function getRestaurantDishes(restaurantId: string): Promise<Dish[]> {
+  if (!restaurantId) return [];
+  return rest<Dish[]>(
+    `dishes?restaurant_id=eq.${encodeURIComponent(restaurantId)}` +
+      `&or=(available.is.null,available.eq.true)` +
+      `&select=${PUBLIC_DISH_COLS}&order=sort_order.asc,created_at.asc`,
+    { anonymous: true }
+  );
+}
+
 export async function getPublishedPosts(): Promise<BlogPost[]> {
   return rest<BlogPost[]>(
     `blog_posts?published=eq.true&select=*&order=created_at.desc`,
