@@ -79,6 +79,7 @@ const NAV_LINKS = [
   { to: "/demo", label: "منيو تجريبي" },
   { to: "/#features", label: "المزايا" },
   { to: "/#pricing", label: "الأسعار" },
+  { to: "/about", label: "من نحن" },
   { to: "/help", label: "المساعدة" },
   { to: "/blog", label: "المدونة" },
 ];
@@ -107,7 +108,18 @@ export function Navbar() {
         <Link to="/" aria-label={SITE_NAME}>
           <Logo />
         </Link>
-        <div className="hidden items-center gap-6 sm:flex">
+        {/**
+         * ⚠️ **`md:` لا `sm:` — والفرق مقيس لا مذوق.**
+         *
+         * كان `sm:flex` (٦٤٠px) وهو **يقصّ الصفّ أصلاً**: قياسٌ على البناء
+         * أعطى فائضاً ١٣px بخمسة روابط — أي أن آخر رابط كان مقصوصاً بلا
+         * تمرير أفقي يكشفه (`justify-between` يبتلعه بصمت). وبستّة صار ٦١px.
+         *
+         * والعلاج ليس تضييق `gap` (يوفّر ٤٠px من ٦١ فيبقى القصّ)، بل رفع
+         * العتبة إلى حيث يتّسع الصفّ فعلاً: ٧٦٨px ⇒ فائض **صفر**. وما دون
+         * ذلك يتصرّف كالجوال — والتذييل يحمل كل رابط، فلا يُفقد شيء.
+         */}
+        <div className="hidden items-center gap-6 md:flex">
           {NAV_LINKS.map((l) =>
             l.to.startsWith("/#") ? (
               <a key={l.to} href={l.to} className="inline-flex min-h-11 items-center text-sm font-bold text-dim hover:text-gold">
@@ -181,6 +193,7 @@ export function Footer() {
         <div>
           <p className="mb-3 font-display font-extrabold text-ink">روابط</p>
           <ul className="flex flex-col gap-2 text-sm text-dim">
+            <li><Link to="/about" className="inline-flex min-h-9 items-center hover:text-gold">من نحن</Link></li>
             <li><Link to="/demo" className="inline-flex min-h-9 items-center hover:text-gold">منيو تجريبي</Link></li>
             <li><a href="/#features" className="inline-flex min-h-9 items-center hover:text-gold">المزايا</a></li>
             <li><a href="/#pricing" className="inline-flex min-h-9 items-center hover:text-gold">الأسعار</a></li>

@@ -58,7 +58,7 @@ async function rest(path) {
  * اليوم مطعمٌ فعليٌّ يحمل الـslug «demo» ولا يفتحه أحد.)
  */
 const RESERVED = new Set([
-  "demo", "help", "blog", "login", "dashboard", "founder",
+  "demo", "help", "about", "blog", "login", "dashboard", "founder",
   "stamp", "reset-password", "docs", "privacy", "terms", "assets",
 ]);
 
@@ -76,6 +76,7 @@ const MIN_DISHES = 2;
 const STATIC = [
   { loc: "/", priority: "1.0", changefreq: "weekly" },
   { loc: "/demo", priority: "0.9", changefreq: "monthly" },
+  { loc: "/about", priority: "0.7", changefreq: "monthly" },
   { loc: "/help", priority: "0.7", changefreq: "monthly" },
   { loc: "/docs/api", priority: "0.5", changefreq: "monthly" },
   { loc: "/privacy", priority: "0.3", changefreq: "yearly" },

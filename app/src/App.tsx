@@ -18,6 +18,7 @@ const Founder = lazy(() => import("@/pages/founder/Founder"));
 const Demo = lazy(() => import("@/pages/Demo"));
 const Help = lazy(() => import("@/pages/Help"));
 const ApiDocs = lazy(() => import("@/pages/ApiDocs"));
+const About = lazy(() => import("@/pages/About"));
 const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 const Stamp = lazy(() => import("@/pages/Stamp"));
 // الصفحتان القانونيتان في قطعة واحدة: تتقاسمان القالب وكتلة الهوية، ومن يفتح
@@ -44,6 +45,7 @@ export default function App() {
                 <Route path="/" element={<Landing />} />
                 <Route path="/demo" element={<Demo />} />
                 <Route path="/help" element={<Help />} />
+                <Route path="/about" element={<About />} />
                 <Route path="/docs/api" element={<ApiDocs />} />
                 <Route path="/privacy" element={<Privacy />} />
                 <Route path="/terms" element={<Terms />} />

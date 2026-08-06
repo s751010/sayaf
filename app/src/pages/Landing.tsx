@@ -21,6 +21,7 @@ import { prefersReducedMotion, useCountUp, useReveal, useTilt } from "@/lib/reve
 import { cn, formatPrice } from "@/lib/utils";
 import { Icon, type IconName } from "@/lib/icons";
 import { ALL_THEMES, getTheme, skinClass, type MenuTheme } from "@/lib/themes";
+import { CARD_LAYOUT_COUNT, PRINT_DPI, THEME_COUNT } from "@/lib/facts";
 import { PATTERN_SIZE, patternImage } from "@/lib/patterns";
 import { loadThemeFont } from "@/lib/fonts";
 import { absoluteUrl, useJsonLd, useSeo } from "@/lib/seo";
@@ -888,11 +889,15 @@ const STEPS = [
   { n: "٣", title: "نزّل بطاقتك واطبعها", desc: "بطاقة كاشير جاهزة بهوية مطعمك — أو كوداً لكل طاولة. ضعها على الطاولة وخلاص." },
 ];
 
-/** أرقام من المنتج نفسه لا ادّعاءات سوق — كلٌّ منها يقابله شيء يراه الزائر. */
+/**
+ * أرقام من المنتج نفسه لا ادّعاءات سوق — كلٌّ منها يقابله شيء يراه الزائر.
+ * والقيم من `lib/facts.ts` لا مكتوبة هنا: بقي «١٢» بعد إضافة سبعة طوابع مرّة،
+ * وصفحة «من نحن» تعرض الأرقام نفسها فيصير للرقم موضعان يتباعدان.
+ */
 const STATS: { to: number; suffix?: string; label: string }[] = [
-  { to: 19, label: "طابعاً كاملاً للمنيو" },
-  { to: 4, label: "أشكال بطاقة كاشير" },
-  { to: 300, suffix: " DPI", label: "دقة ملف الطباعة" },
+  { to: THEME_COUNT, label: "طابعاً كاملاً للمنيو" },
+  { to: CARD_LAYOUT_COUNT, label: "أشكال بطاقة كاشير" },
+  { to: PRINT_DPI, suffix: " DPI", label: "دقة ملف الطباعة" },
   { to: 0, label: "تطبيقات يحمّلها زبونك" },
 ];
 
