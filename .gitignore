@@ -14,6 +14,10 @@ node_modules/
 .netlify/
 dist/
 
+# مخرَج سكربت ترحيل الصور — يحمل معرّفات مستخدمين ومسارات كائنات فعلية،
+# ويُولَّد من جديد في كل تشغيل. لا يُلتزَم.
+app/scripts/migrate-data-uris.owner.sql
+
 # graphify — مخرجات تحليل مولّدة (graph.json/GRAPH_REPORT.md/studio) وذاكرة الاستخراج
 # تُعاد بالأمر: /graphify .  — لا داعي لحفظها في المستودع
 # (graphify-out/ مسار قديم من نسخة أسبق؛ المسار الحالي .graphify/)

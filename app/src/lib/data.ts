@@ -46,9 +46,20 @@ const PUBLIC_RESTAURANT_COLS = [
   "meta_pixel_id", "ga_measurement_id", "snap_pixel_id", "created_at",
 ].join(",");
 
+/**
+ * ⚠️ **`cover_image` مستبعَد عمداً** — لا لأنه محجوب بل لأنه **لا يُعرض**:
+ * لا `MenuPage` ولا أي مكوّن منيو يقرؤه، ولا شاشة في اللوحة ترفعه (بقايا نسخة
+ * أقدم). وثلاث قوائم في الإنتاج تحمل فيه **data URI** بمجموع ٣٩٤ ألف محرف —
+ * أي أن كل زائر منيو كان ينزّل ١١١–١٦٢ كيلوبايت من base64 **لا يراها**، داخل
+ * ردّ JSON حاجز لا صورةً كسولة.
+ *
+ * حذف اسم من هذه القائمة آمن دائماً (عكس إضافته — القاعدة و): القائمة تضيق
+ * فلا يظهر «permission denied»، وما لا يُقرأ لا يُفقد. والعمود باقٍ في القاعدة
+ * وفي النوع؛ من يعيده يوماً إلى الواجهة يعيده هنا معه.
+ */
 const PUBLIC_MENU_COLS = [
   "id", "restaurant_id", "name", "description", "theme", "language",
-  "cover_image", "active", "views", "window_from", "window_to", "created_at",
+  "active", "views", "window_from", "window_to", "created_at",
 ].join(",");
 
 const PUBLIC_DISH_COLS = [
