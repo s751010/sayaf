@@ -348,6 +348,45 @@ export async function getHealth(): Promise<HealthItem[]> {
   return rest<HealthItem[]>("rpc/founder_health", { method: "POST", body: {} });
 }
 
+/**
+ * انهيارات الواجهة مجمّعة بالتوقيع.
+ *
+ * التجميع في الاستعلام لا في القاعدة: الجدول يُدرج فيه صفّاً لكل وقوع (أبسط
+ * وأسرع مسار للعميل المنهار)، والقراءة نادرة ولوحة المؤسّس وحدها تقرؤها —
+ * فالتكلفة في المكان الصحيح.
+ */
+export interface ClientErrorGroup {
+  signature: string;
+  message: string;
+  page: string | null;
+  stack_head: string | null;
+  hits: number;
+  last_seen: string;
+}
+
+export async function getClientErrors(limit = 200): Promise<ClientErrorGroup[]> {
+  const rows = await rest<
+    { signature: string; message: string; page: string | null; stack_head: string | null; created_at: string }[]
+  >(`client_errors?select=signature,message,page,stack_head,created_at&order=created_at.desc&limit=${limit}`);
+
+  const groups = new Map<string, ClientErrorGroup>();
+  for (const r of rows) {
+    const g = groups.get(r.signature);
+    if (g) g.hits++;
+    else
+      groups.set(r.signature, {
+        signature: r.signature,
+        message: r.message,
+        page: r.page,
+        stack_head: r.stack_head,
+        hits: 1,
+        // الصفوف مرتّبة تنازلياً، فأول ما نراه لكل توقيع هو آخر وقوع.
+        last_seen: r.created_at,
+      });
+  }
+  return [...groups.values()].sort((a, b) => b.hits - a.hits);
+}
+
 export interface SiteSetting {
   key: string;
   value: unknown;

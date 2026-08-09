@@ -6,6 +6,7 @@
  * واضحة مع زر إعادة محاولة.
  */
 import { Component, type ErrorInfo, type ReactNode } from "react";
+import { reportClientError } from "@/lib/data";
 
 type Props = { children: ReactNode; fallback?: ReactNode };
 type State = { error: Error | null };
@@ -18,8 +19,17 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    // خرائط المصدر مفعّلة في البناء، فأثر الخطأ هنا قابل للقراءة.
+    /**
+     * ⚠️ كان هنا `console.error` وحده، وتعليقٌ يقول «خرائط المصدر مفعّلة في
+     * البناء فالأثر قابل للقراءة» — و§23 أطفأها (`sourcemap: false`). فكان
+     * السطر الوحيد الباقي أثراً **مُصغَّراً في console جهاز الزبون**: لا
+     * يقرؤه أحد، ولا يصل إلينا، ولا يخبرنا أن منيو تاجر انهار أصلاً.
+     *
+     * الآن يُرسَل إلى `client_errors` (بلا هوية، والخادم يجمّعه بالتوقيع
+     * ويحدّ معدّله)، ويبقى `console.error` لمن يفتح الأدوات وقت الحدث.
+     */
     console.error("[CloudMenu] خطأ غير متوقع:", error, info.componentStack);
+    reportClientError(error, info.componentStack);
   }
 
   private reset = () => this.setState({ error: null });

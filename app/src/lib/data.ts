@@ -192,6 +192,49 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
   return rows[0] ?? null;
 }
 
+/**
+ * يبلّغ عن انهيار واجهة إلى `client_errors`.
+ *
+ * ═══ ⚠️ لا ترمي أبداً، ولا تُنتظَر ═══
+ *
+ * منادِيها الوحيد هو `ErrorBoundary` — أي أن التطبيق **منهار بالفعل** حين
+ * تُستدعى. فاستثناءٌ منها يعني خطأً ثانياً يقع أثناء الإبلاغ عن الأول، وقد
+ * يبتلع شاشةَ الاعتذار نفسها. كل شيء هنا داخل `catch` صامت.
+ *
+ * ═══ ما يُرسَل — وما لا يُرسَل ═══
+ *
+ * لا بريد، ولا معرّف مستخدم، ولا محتوى نموذج. الرسالة وأول أسطر الأثر
+ * والمسار ووكيل المتصفّح — ما يكفي لإعادة إنتاج العطل لا لمعرفة صاحبه.
+ * و`?table=` يُقصّ من المسار: رقم طاولة الزبون لا شأن له بعطل برمجي.
+ *
+ * والتوقيع (للتجميع وحدّ المعدّل) **يحسبه الخادم** لا نحن — العميل المنهار
+ * أسوأ جهة تُؤتمَن على حساب مفتاح التجميع.
+ */
+export function reportClientError(
+  error: Error,
+  componentStack?: string | null
+): void {
+  try {
+    const cut = (s: string | null | undefined, n: number) =>
+      s ? s.slice(0, n) : null;
+
+    void rest("client_errors", {
+      method: "POST",
+      anonymous: true,
+      headers: { Prefer: "return=minimal" },
+      body: {
+        message: (error?.message || String(error) || "خطأ بلا رسالة").slice(0, 500),
+        stack_head: cut(error?.stack, 2000),
+        component_stack: cut(componentStack, 2000),
+        page: cut(window.location.pathname + window.location.search.replace(/([?&])table=[^&]*/g, "$1table=…"), 500),
+        user_agent: cut(navigator.userAgent, 400),
+      },
+    }).catch(() => {});
+  } catch {
+    /* الإبلاغ عن عطل لا يجوز أن يصنع عطلاً */
+  }
+}
+
 export async function getSiteSetting<T>(key: string): Promise<T | null> {
   try {
     const rows = await rest<{ value: T }[]>(

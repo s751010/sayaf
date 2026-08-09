@@ -18,11 +18,13 @@ import {
 } from "@/components/ui";
 import {
   getAudit,
+  getClientErrors,
   getHealth,
   getSiteSettings,
   logAudit,
   setSiteSetting,
   type AuditEntry,
+  type ClientErrorGroup,
   type HealthItem,
   type SiteSetting,
 } from "@/lib/founder";
@@ -49,6 +51,7 @@ export default function Health() {
   const toast = useToast();
   const [items, setItems] = useState<HealthItem[] | null>(null);
   const [audit, setAudit] = useState<AuditEntry[] | null>(null);
+  const [crashes, setCrashes] = useState<ClientErrorGroup[] | null>(null);
   const [settings, setSettings] = useState<SiteSetting[] | null>(null);
   const [whatsapp, setWhatsapp] = useState("");
   const [error, setError] = useState("");
@@ -57,10 +60,18 @@ export default function Health() {
   const load = useCallback(async () => {
     setError("");
     try {
-      const [h, a, s] = await Promise.all([getHealth(), getAudit(60), getSiteSettings()]);
+      // ⚠️ الانهيارات **لا تُسقط القسم إن فشلت**: جدولها أحدث ما في القاعدة،
+      // وعطلٌ فيه لا يجوز أن يحجب التنبيهات وسجلّ التدقيق عن المؤسّس.
+      const [h, a, s, c] = await Promise.all([
+        getHealth(),
+        getAudit(60),
+        getSiteSettings(),
+        getClientErrors(200).catch(() => [] as ClientErrorGroup[]),
+      ]);
       setItems(h);
       setAudit(a);
       setSettings(s);
+      setCrashes(c);
       setWhatsapp(asText(s.find((x) => x.key === WHATSAPP_KEY)?.value));
     } catch {
       setError("تعذّر تحميل قسم الصحة.");
@@ -185,6 +196,55 @@ export default function Health() {
             </p>
           )}
         </Card>
+      </section>
+
+      {/**
+       * انهيارات الواجهة — قبل سجلّ التدقيق عمداً: التدقيق سجلّ ما فعلتَه
+       * أنت، وهذا سجلّ ما انكسر عند تاجر ولم يخبرك به أحد.
+       */}
+      <section className="mt-10">
+        <h2 className="mb-3 inline-flex items-center gap-2 font-display text-lg font-extrabold text-ink">
+          <Icon name="warn" size={17} className="shrink-0 text-gold" /> انهيارات الواجهة
+        </h2>
+        {crashes === null ? (
+          <Skeleton className="h-24" />
+        ) : crashes.length === 0 ? (
+          <Card className="text-center text-sm text-dim">
+            لا انهيارات مسجَّلة — ولا يعني ذلك صمتاً: الحاجز يبلّغ تلقائياً منذ
+            وصله، ويُبقي ثلاثين يوماً.
+          </Card>
+        ) : (
+          <Card>
+            <ul className="flex flex-col divide-y divide-line">
+              {crashes.map((c) => (
+                <li key={c.signature} className="flex flex-col gap-1 py-2.5">
+                  <div className="flex flex-wrap items-baseline gap-2">
+                    <Badge variant={c.hits >= 5 ? "red" : "gold"}>{c.hits}×</Badge>
+                    <span className="text-sm font-bold text-ink">{c.message}</span>
+                    <span className="ms-auto text-xs text-faint">{formatDate(c.last_seen)}</span>
+                  </div>
+                  {c.page && (
+                    <span className="text-[11px] text-faint" dir="ltr">
+                      {c.page}
+                    </span>
+                  )}
+                  {c.stack_head && (
+                    <code className="overflow-x-auto whitespace-pre text-[11px] leading-relaxed text-dim" dir="ltr">
+                      {c.stack_head.split("\n").slice(0, 3).join("\n")}
+                    </code>
+                  )}
+                </li>
+              ))}
+            </ul>
+            {/* ⚠️ الأثر مُصغَّر لأن `sourcemap: false` (§23) — والحلّ متتبّع
+                أخطاء يستهلك خريطة `hidden`، لا إعادة نشر الخرائط للعامّة. */}
+            <p className="mt-3 text-xs text-faint">
+              مجمّعة بتوقيع الخطأ، وأكثرها تكراراً أولاً. الأثر مُصغَّر (خرائط
+              المصدر غير منشورة عمداً)، والقاعدة تحدّ التكرار بخمسة في الدقيقة
+              لكل توقيع فلا تُغرق حلقةُ انهيار السجلّ.
+            </p>
+          </Card>
+        )}
       </section>
 
       {/* سجل التدقيق */}
