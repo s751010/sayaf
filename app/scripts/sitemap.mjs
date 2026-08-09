@@ -39,6 +39,18 @@ const SUPABASE_URL = pick("SUPABASE_URL");
 const ANON = pick("SUPABASE_ANON_KEY");
 const SITE = pick("SITE_URL").replace(/\/+$/, "");
 
+/**
+ * ⚠️ **يُتخطّى في CI** (`SKIP_SITEMAP=1`).
+ *
+ * الخريطة تُقرأ من القاعدة وتُولَّد في بناء Netlify حيث تُنشَر فعلاً. أما
+ * البناء في CI فناتجه يُرمى مع مجلد العمل — فتوليدها هناك يعني قراءة قاعدة
+ * الإنتاج على **كل دفعة وكل طلب دمج** بلا أن يستفيد منها أحد.
+ */
+if (process.env.SKIP_SITEMAP === "1") {
+  console.log("↷ تُخطّي خريطة الموقع (SKIP_SITEMAP=1).");
+  process.exit(0);
+}
+
 if (!SUPABASE_URL || !ANON || !SITE) {
   console.error("✗ تعذّر قراءة الإعدادات من src/lib/config.ts");
   process.exit(1);

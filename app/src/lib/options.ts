@@ -7,6 +7,26 @@
  */
 export type DishOption = { name: string; price?: number };
 
+/**
+ * ⚠️ **القاعدة نفسها في `supabase/functions/_shared/options.ts`** — رقم أو
+ * نصّ رقمي ⇐ عدد، وما عداه ⇐ صفر.
+ *
+ * كانت هذه النسخة ترفض `"5"` (`typeof price === "number"`) بينما نسخة الخادم
+ * تقبله (`Number(price)`) — فإضافةٌ سعرها نصّ تُعرض للزبون **بلا سعر** ثم
+ * تُحصَّل منه. لا صفّ في الإنتاج بهذا الشكل، لكن API التاجر (§١٤) يقبل
+ * `options` كما تُرسَل. و`options-parity.test.ts` يحرس التطابق الآن.
+ */
+function normalizePrice(value: unknown): number {
+  if (typeof value === "number") return Number.isFinite(value) ? value : 0;
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) return 0;
+    const n = Number(trimmed);
+    return Number.isFinite(n) ? n : 0;
+  }
+  return 0;
+}
+
 export function parseOptions(raw: string | null | undefined): DishOption[] {
   if (!raw?.trim()) return [];
   try {
@@ -15,12 +35,14 @@ export function parseOptions(raw: string | null | undefined): DishOption[] {
       return v
         .map((o): DishOption | null => {
           if (typeof o === "string") return o.trim() ? { name: o.trim() } : null;
-          if (o && typeof o === "object" && typeof (o as DishOption).name === "string") {
-            const { name, price } = o as DishOption;
-            if (!name.trim()) return null;
-            return typeof price === "number" && Number.isFinite(price)
-              ? { name: name.trim(), price }
-              : { name: name.trim() };
+          if (o && typeof o === "object") {
+            const rec = o as Record<string, unknown>;
+            const name = typeof rec.name === "string" ? rec.name.trim() : "";
+            if (!name) return null;
+            // `price` يُحذف عند الصفر كي لا تعرض الواجهة «+٠ ر.س» على خيار
+            // بلا فرق سعر — والقيمة الرقمية تبقى مطابقة لنسخة الخادم.
+            const price = normalizePrice(rec.price);
+            return price ? { name, price } : { name };
           }
           return null;
         })

@@ -18,6 +18,10 @@
  */
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { addInvoice, PAYLINK_MIN_AMOUNT } from "../_shared/paylink.ts";
+// ⚠️ التحليل مستخرَج إلى ملفّ مشترك ليستورده فحص التكافؤ مع نسخة الواجهة
+// (`app/src/lib/options.ts`). كان مكتوباً هنا بيد، وتباعدَ فعلاً في معالجة
+// السعر النصّي — انظر رأس الملفّ المشترك.
+import { parseDishOptions, type DishOption } from "../_shared/options.ts";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -55,50 +59,6 @@ function parseItems(raw: unknown): RequestedItem[] | null {
     items.push({ dish_id, qty: quantity, option_ids: ids });
   }
   return items;
-}
-
-type DishOption = { name: string; price: number };
-
-/**
- * قراءة `dishes.options` **بنفس منطق `app/src/lib/options.ts` حرفياً**.
- *
- * ⚠️ هذا ليس تفصيلاً: المعرّف الذي يرسله العميل هو **موضع** الخيار في المصفوفة
- * الناتجة، فلو اختلف التحليل بين الطرفين لأشار الرقم إلى خيار آخر — أو رُفض
- * الطلب كله. النسخة الأولى من هذه الدالة افترضت شكلاً مُجمَّعاً
- * (`[{ items: [{ id, … }] }]`) لا يكتبه أحد، فكان أي طلب بإضافة يُرفض دائماً.
- *
- * الصيغة المعتمدة: JSON `[{name, price?}]`، مع تسامح مع النص الحر المفصول
- * بأسطر/فواصل لأن صفوفاً قديمة كُتبت هكذا.
- */
-function parseDishOptions(raw: string | null): DishOption[] {
-  if (!raw?.trim()) return [];
-  try {
-    const v: unknown = JSON.parse(raw);
-    if (Array.isArray(v)) {
-      return v
-        .map((o): DishOption | null => {
-          if (typeof o === "string") {
-            return o.trim() ? { name: o.trim(), price: 0 } : null;
-          }
-          if (o && typeof o === "object") {
-            const rec = o as Record<string, unknown>;
-            const name = typeof rec.name === "string" ? rec.name.trim() : "";
-            if (!name) return null;
-            const price = Number(rec.price);
-            return { name, price: Number.isFinite(price) ? price : 0 };
-          }
-          return null;
-        })
-        .filter((o): o is DishOption => o !== null);
-    }
-  } catch {
-    /* ليس JSON — نعامله كنص حر */
-  }
-  return raw
-    .split(/[\n,،]/)
-    .map((s) => s.trim())
-    .filter(Boolean)
-    .map((name) => ({ name, price: 0 }));
 }
 
 /**

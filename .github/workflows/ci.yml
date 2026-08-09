@@ -1,0 +1,54 @@
+# فحص كل دفعة وكل طلب دمج.
+#
+# ⚠️ لم يكن في المستودع `.github/` إطلاقاً: صفر اختبار وصفر فحص آليّ، وكل
+# ضمانة كانت «شغّل typecheck قبل الدفع» مكتوبةً في CLAUDE.md — أي اعتماد على
+# التذكّر. وأخطر ما يحرسه هذا الملفّ **فحوص التكافؤ**: ثلاثة أزواج من الملفات
+# مكتوبة بيد مرّتين، ولكل زوج عطل وقع فعلاً من تباعد نسخة عن أصلها.
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+# دفعة جديدة على نفس الفرع تُلغي سابقتها — لا فائدة من فحص شيفرة تجاوزها العمل.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # نفس نسخة `netlify.toml` — فحصٌ على نسخة أخرى يفحص بناءً غير الذي يُنشَر.
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - run: npm ci
+
+      - name: فحص الأنواع
+        run: npm run typecheck
+
+      - name: الاختبارات
+        run: npm test
+
+      - name: البناء
+        # ⚠️ `SKIP_SITEMAP` يمنع سكربت الخريطة من قراءة قاعدة الإنتاج على كل
+        # دفعة. الخريطة تُولَّد في بناء Netlify حيث تُنشَر فعلاً — وتوليدها هنا
+        # يُرمى مع مجلد العمل، ويُتعب القاعدة بلا مقابل.
+        env:
+          SKIP_SITEMAP: "1"
+        run: npm run build
+
+# ثابت §18 (ألوان الطوابع) يحرسه `invariants.test.ts` ببصمة تفشل بصوت عالٍ —
+# ولا يحتاج خطوة git إضافية هنا: خطوةٌ تعتمد على عمق الاستنساخ وعلى
+# `github.base_ref` تنكسر بصمت في حالات، وحارسٌ ينكسر بصمت أسوأ من لا حارس.
