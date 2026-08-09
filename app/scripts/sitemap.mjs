@@ -52,15 +52,9 @@ async function rest(path) {
   return res.json();
 }
 
-/**
- * ⚠️ مسارات محجوزة للتطبيق — أي مطعم يحمل واحداً منها **صفحته غير قابلة
- * للوصول أصلاً**: الراوتر يطابق المسار الثابت قبل `/:slug`. (في الإنتاج
- * اليوم مطعمٌ فعليٌّ يحمل الـslug «demo» ولا يفتحه أحد.)
- */
-const RESERVED = new Set([
-  "demo", "help", "about", "blog", "login", "dashboard", "founder",
-  "stamp", "reset-password", "docs", "privacy", "terms", "assets",
-]);
+// القائمة مشتركة مع دالة حافة معاينة واتساب: القائمتان كانتا ستتباعدان،
+// فيُدرَج في الخريطة رابطٌ لا يفتح أو تُحقن وسوم في مسار ليس منيواً.
+import { RESERVED } from "../../shared/menu-meta.mjs";
 
 /**
  * أقلّ عدد أصناف يدخل به منيو الخريطة.
