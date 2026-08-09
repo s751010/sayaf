@@ -9,10 +9,26 @@ Thumbs.db
 tmp/
 *.tmp.js
 
-# Dependencies / build (not used today, but guards future tooling)
+# Dependencies / build
 node_modules/
 .netlify/
 dist/
+
+# ⚠️ ناتج البناء — **لا يُلتزَم**.
+#
+# `netlify.toml` يبني من المستودع (`cd app && npm ci && npm run build`) وينشر
+# `deploy/`، و`app/package-lock.json` ملتزم فـ`npm ci` يعمل. فالالتزام به كان
+# يضيف diff مُهشَّراً ضخماً إلى كل دفعة (٤٨ commit · ٣٫٦ ميغابايت) ويفتح باب
+# نشر بناءٍ قديم نُسي تحديثه.
+#
+# ⚠️ إن عدتَ يوماً إلى **النشر اليدوي بالسحب** فأعِد هذا السطر تعليقاً: السحب
+# لا يقرأ `netlify.toml` ولا يبني شيئاً، ويحتاج المجلد موجوداً.
+deploy/
+
+# مخلّفات بايثون من سكربتات المهارات في .claude/ — تُولَّد عند التشغيل.
+__pycache__/
+*.pyc
+.coverage
 
 # مخرَج سكربت ترحيل الصور — يحمل معرّفات مستخدمين ومسارات كائنات فعلية،
 # ويُولَّد من جديد في كل تشغيل. لا يُلتزَم.

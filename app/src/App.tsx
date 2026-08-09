@@ -4,13 +4,23 @@ import { AuthProvider } from "@/lib/auth";
 import { ToastProvider, Spinner } from "@/components/ui";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
-import Landing from "@/pages/Landing";
+/**
+ * ⚠️ **`MenuPage` وحدها تبقى في الحزمة الرئيسية** — وهذا القرار لا يُعكس:
+ * تُفتح من كود QR مطبوع على طاولة، على بيانات جوّال داخل مبنى، ورحلةُ شبكة
+ * إضافية لجلب قطعتها تُدفع قبل أن يرى الزبون صنفاً واحداً.
+ *
+ * و`Landing` كانت معها هنا بلا سبب: ١٥٥٢ سطراً من شيفرة تسويق **ينزّلها كل
+ * زائر منيو ولا يفتحها أبداً**. صارت كسولة، وزائر الهبوط يدفع قطعةً واحدة
+ * إضافية — وهو على شبكة أفضل وسياق أصبر، وصفحته ليست أكثر مسار في المنتج.
+ *
+ * (`themes.ts` و`patterns.ts` تبقيان في الرئيسية على أي حال — يستوردهما
+ * `MenuHeader` — فالخارج شيفرة الهبوط وحدها لا الطوابع.)
+ */
 import MenuPage from "@/pages/MenuPage";
 import Login from "@/pages/Login";
 import NotFound from "@/pages/NotFound";
 
-// لوحة التحكم والمدونة والمؤسس تُحمَّل عند الطلب — صفحة المنيو العامة
-// (الأكثر زيارة عبر QR) تبقى في الحزمة الرئيسية لأسرع فتح ممكن.
+const Landing = lazy(() => import("@/pages/Landing"));
 const Blog = lazy(() => import("@/pages/Blog"));
 const BlogPostPage = lazy(() => import("@/pages/BlogPost"));
 const Dashboard = lazy(() => import("@/pages/dashboard/Dashboard"));
