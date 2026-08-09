@@ -87,7 +87,15 @@ Project ref: `wjqpsbpebpntpeinqccl` · URL في `app/src/lib/config.ts`.
 `revenue_log` `support_tickets` `site_settings` `blog_posts` `loyalty_customers`
 `promo_codes` `announcements` `survey_responses` `restaurant_payment_settings`
 `staff_pins` `founder_audit` `api_keys` `api_usage` `webhooks` `webhook_events`
-`internal_secrets`.
+`internal_secrets` `client_errors`.
+
+> ⚠️ **`survey_responses` غير مستعمَل**: صفر صفّ و**صفر سطر شيفرة** يقرؤه أو
+> يكتب فيه. بقايا استطلاع رضا لم يُبنَ. لم يُحذف الجدول (حذفٌ بلا مكسب، وله
+> سياسات وحدّ معدّل مضبوطة)، لكن لا تبنِ عليه شيئاً ظنّاً أنه مسار قائم —
+> إمّا يُبنى الاستطلاع أو يُسقَط بقرار.
+>
+> و**`client_errors`** جديد: انهيارات الواجهة يرسلها `ErrorBoundary`. إدراج
+> `anon` فقط، والقراءة للمؤسّس، والتوقيع يحسبه التريجر لا العميل.
 
 **Edge Functions المنشورة فعلياً** (مؤكَّدة من لوحة Supabase؛ `ai-proxy`
 موجودة لكن لم تُعد الواجهة تستدعيها بعد حذف المستشار الذكي):

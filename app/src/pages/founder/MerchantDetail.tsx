@@ -61,6 +61,9 @@ function payloadOf(r: Restaurant): RestaurantSettingsPayload {
     working_hours: r.working_hours,
     allergens_text: r.allergens_text,
     google_review_url: r.google_review_url,
+    // `!== false` لا `?? false`: null تعني «لم يُلمَس» والافتراضي في القاعدة
+    // `true` — و`?? false` هنا كانت ستُطفئ زرّ التقييم عند أي حفظ من اللوحة.
+    reviews_enabled: r.reviews_enabled !== false,
     social_whatsapp: r.social_whatsapp,
     social_instagram: r.social_instagram,
     social_twitter: r.social_twitter,

@@ -32,7 +32,11 @@ import type {
  */
 const PUBLIC_RESTAURANT_COLS = [
   "id", "name", "type", "phone", "address", "logo", "cover_color",
-  "logo_image", "banner_image", "slug", "google_review_url", "allergens_text",
+  "logo_image", "banner_image", "slug", "google_review_url",
+  // مفتاح إظهار زرّ التقييم. كان العمود موجوداً في القاعدة و**لا يقرؤه سطر
+  // واحد**، فالزرّ يظهر لكل مطعم بلا سبيل لإطفائه. مُنح لـanon مع إدراجه هنا
+  // في نفس الدفعة — القاعدة (و) شقّان لا يفترقان.
+  "reviews_enabled", "allergens_text",
   "working_hours", "social_instagram", "social_twitter", "social_tiktok",
   "social_snapchat", "social_whatsapp", "social_maps", "english_enabled",
   "loyalty_enabled", "loyalty_goal", "loyalty_reward",
@@ -357,6 +361,7 @@ export type RestaurantSettingsPayload = {
   working_hours: string | null;
   allergens_text: string | null;
   google_review_url: string | null;
+  reviews_enabled: boolean;
   social_whatsapp: string | null;
   social_instagram: string | null;
   social_twitter: string | null;

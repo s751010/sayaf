@@ -1082,7 +1082,11 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
    * قوقل أرخص قناة نمو للمطعم. وهما محذوفان من `socials` أدناه كي لا يتكرّرا.
    */
   const primaryLinks = [
-    restaurant.google_review_url && {
+    // `reviews_enabled !== false` لا `=== true`: الصفوف القديمة تحمل `null`
+    // والافتراضي في القاعدة `true` — فمن لم يلمس المفتاح قطّ يبقى زرّه ظاهراً
+    // كما كان. تشديدُها إلى `=== true` كان سيُطفئ الزرّ عن كل من سبق.
+    restaurant.reviews_enabled !== false &&
+      restaurant.google_review_url && {
       icon: "star" as const,
       label: en ? "Rate us on Google" : "قيّمنا على قوقل",
       url: httpUrl(restaurant.google_review_url),

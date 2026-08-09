@@ -71,6 +71,9 @@ export default function Settings() {
     allergens_text: restaurant.allergens_text ?? "",
     english_enabled: restaurant.english_enabled ?? false,
     google_review_url: restaurant.google_review_url ?? "",
+    // `!== false` لا `?? true`: الصفوف القديمة تحمل null والافتراضي في القاعدة
+    // true، فمن لم يلمس المفتاح قطّ يبقى زرّه ظاهراً كما اعتاد.
+    reviews_enabled: restaurant.reviews_enabled !== false,
     social_maps: restaurant.social_maps ?? "",
     social_whatsapp: restaurant.social_whatsapp ?? "",
     whatsapp_orders_enabled: restaurant.whatsapp_orders_enabled ?? false,
@@ -245,13 +248,28 @@ export default function Settings() {
           subtitle="تقييم قوقل، الموقع على الخريطة، وحسابات التواصل"
         >
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="رابط تقييم قوقل" hint="أرخص قناة نمو لمطعمك">
+            {/**
+             * ⚠️ **١٨ من ١٩ تاجراً تركوا هذا الحقل فارغاً.** والحقل لم يكن
+             * فيه ما يقول **من أين** يُجلب الرابط — و«رابط تقييم قوقل» ليست
+             * تعليمات، فمن لا يعرف الطريق لا يبحث عنه. الخطوات الثلاث أدناه
+             * هي كل الفرق بين حقل يُملأ وحقل يُتخطّى.
+             */}
+            <Field
+              label="رابط تقييم قوقل"
+              hint="أرخص قناة نمو لمطعمك — التقييمات ترفع ظهورك في خرائط قوقل"
+            >
               <Input
                 dir="ltr"
                 value={f.google_review_url}
                 onChange={(e) => set("google_review_url", e.target.value)}
                 placeholder="https://g.page/r/…"
               />
+              <p className="mt-2 text-xs leading-relaxed text-faint">
+                من أين تجلبه: افتح <b className="text-dim">ملف نشاطك التجاري</b> على
+                قوقل ← <b className="text-dim">«اطلب تقييمات»</b> ← انسخ الرابط
+                القصير والصقه هنا. سيظهر للزبون زرّ «قيّمنا على قوقل» أعلى
+                منيوك، بعد أن يأكل مباشرة — وهي أفضل لحظة يُطلب فيها التقييم.
+              </p>
             </Field>
             <Field label="الموقع (خرائط قوقل)">
               <Input
@@ -288,14 +306,28 @@ export default function Settings() {
               ))}
             </div>
           </div>
+          {f.google_review_url.trim() && (
+            <div className="mt-4 border-t border-line pt-4">
+              <Switch
+                checked={f.reviews_enabled}
+                onChange={(v) => set("reviews_enabled", v)}
+                label="أظهر زرّ التقييم في المنيو"
+              />
+              <p className="mt-1.5 text-xs text-faint">
+                أطفئه مؤقتاً إن أردت — مثلاً أثناء تغيير الطاقم أو بعد شكوى
+                تعالجها. الرابط يبقى محفوظاً.
+              </p>
+            </div>
+          )}
           <SaveRow
             id="links"
             keys={[
-              "google_review_url", "social_maps", "social_whatsapp",
+              "google_review_url", "reviews_enabled", "social_maps", "social_whatsapp",
               "social_instagram", "social_twitter", "social_tiktok", "social_snapchat",
             ]}
             patch={() => ({
               google_review_url: strOrNull(f.google_review_url),
+              reviews_enabled: f.reviews_enabled,
               social_maps: strOrNull(f.social_maps),
               social_whatsapp: strOrNull(f.social_whatsapp),
               social_instagram: strOrNull(f.social_instagram),
