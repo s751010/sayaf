@@ -37,12 +37,13 @@ import { SupportBox } from "@/components/SupportBox";
 import { PaymentSettingsCard } from "@/components/PaymentSettingsCard";
 import { ApiKeysCard } from "@/components/ApiKeysCard";
 import { WebhooksCard } from "@/components/WebhooksCard";
-import { updateRestaurantFields, type RestaurantSettingsPayload } from "@/lib/data";
+import { changeSlug, updateRestaurantFields, type RestaurantSettingsPayload } from "@/lib/data";
 import { STARTER_TYPES } from "@/lib/starterMenus";
 import { cn, normalizeDigits, strOrNull } from "@/lib/utils";
 import { useDashboard } from "./Dashboard";
 import type { Restaurant } from "@/lib/types";
 import { Icon } from "@/lib/icons";
+import { menuUrl, slugError, urlAffixes } from "@/lib/menuUrl";
 
 /** حسابات التواصل — تُعرض عند الحاجة لا كخمسة حقول فارغة دائمة. */
 const SOCIALS = [
@@ -54,6 +55,126 @@ const SOCIALS = [
 ] as const;
 
 type SocialKey = (typeof SOCIALS)[number]["key"];
+
+
+/**
+ * تغيير رابط المنيو — **مرّة واحدة**، مع إبقاء القديم يعمل.
+ *
+ * ═══ ⚠️ لماذا التحذير صريح والتأكيد مطلوب ═══
+ *
+ * الرابط ليس إعداداً كبقيّة الإعدادات: هو **مطبوع على طاولات المطعم** داخل
+ * كود QR لا يُحدَّث. فالقديم يبقى مسجَّلاً ويُحوَّل ٣٠١ (وهذا شرط لا تحسين)،
+ * لكن التاجر يجب أن يعرف قبل أن يضغط — لا بعد أن يطبع مئة بطاقة جديدة.
+ *
+ * و«مرّة واحدة» تحرسها القاعدة لا هذه الصفحة: تريجر يمنع الثانية، وآخر يمنع
+ * PATCH المباشر على العمود.
+ */
+function SlugChanger({
+  restaurant,
+  onChanged,
+}: {
+  restaurant: Restaurant;
+  onChanged: (r: Restaurant) => void;
+}) {
+  const toast = useToast();
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+
+  const used = !!restaurant.slug_changed_at;
+  const clean = value.trim().toLowerCase();
+  const msg = clean ? slugError(clean) : null;
+  const affix = urlAffixes();
+
+  if (used) {
+    return (
+      <p className="mt-1 text-xs text-faint">
+        غُيّر الرابط مرّة، ولا يُغيَّر مجدداً — راسل الدعم إن كان لا بدّ.
+      </p>
+    );
+  }
+
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="mt-1 text-xs font-bold text-gold hover:underline"
+      >
+        غيّر رابط المنيو (مرّة واحدة)
+      </button>
+    );
+  }
+
+  async function save() {
+    if (msg) return setErr(msg);
+    setBusy(true);
+    setErr("");
+    try {
+      const next = await changeSlug(restaurant.id, clean);
+      onChanged({ ...restaurant, slug: next, slug_changed_at: new Date().toISOString() });
+      toast("تم تغيير الرابط. القديم يبقى يعمل ويحوّل إلى الجديد.");
+      setOpen(false);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "تعذّر التغيير.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="mt-3 max-w-md rounded-2xl border border-line-gold bg-gold/[.06] p-4">
+      <p className="text-sm font-black text-ink">غيّر رابط المنيو</p>
+      <p className="mt-1.5 text-xs leading-relaxed text-dim">
+        ⚠️ <b className="text-ink">مرّة واحدة فقط.</b> رابطك الحالي سيبقى يعمل
+        ويحوّل تلقائياً إلى الجديد، فلا ينكسر أي كود QR طبعتَه — لكن ما تطبعه
+        بعد اليوم يحمل الجديد.
+      </p>
+      <div dir="ltr" className="mt-3 flex items-stretch overflow-hidden rounded-xl border border-line bg-panel2">
+        {affix.before && (
+          <span className="grid place-items-center border-e border-line bg-panel px-2.5 text-xs font-bold text-dim">
+            {affix.before}
+          </span>
+        )}
+        <input
+          dir="ltr"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          inputMode="url"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
+          placeholder="aldiwan"
+          aria-label="الرابط الجديد"
+          className="min-w-0 flex-1 bg-transparent px-3 py-2.5 text-sm text-ink outline-none placeholder:text-faint"
+        />
+        {affix.after && (
+          <span className="grid place-items-center border-s border-line bg-panel px-2.5 text-xs font-bold text-dim">
+            {affix.after}
+          </span>
+        )}
+      </div>
+      {(msg || err) && <p className="mt-1.5 text-xs text-bad">{msg || err}</p>}
+      <div className="mt-3 flex gap-2">
+        <Button onClick={save} disabled={busy || !clean || !!msg} className="px-4 py-2 text-sm">
+          {busy ? "…" : "غيّر الرابط"}
+        </Button>
+        <button
+          type="button"
+          onClick={() => {
+            setOpen(false);
+            setValue("");
+            setErr("");
+          }}
+          className="rounded-xl border border-line px-4 py-2 text-sm font-bold text-dim hover:text-ink"
+        >
+          إلغاء
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export default function Settings() {
   const { user, restaurant, setRestaurant } = useDashboard();
@@ -151,8 +272,12 @@ export default function Settings() {
     <div>
       <h1 className="font-display text-2xl font-black text-ink">الإعدادات</h1>
       <p className="mt-1 text-sm text-dim">
-        رابط منيوك: <span className="font-bold text-gold" dir="ltr">/{restaurant.slug}</span>
+        رابط منيوك:{" "}
+        <span className="font-bold text-gold" dir="ltr">
+          {menuUrl(restaurant.slug)?.replace("https://", "")}
+        </span>
       </p>
+      <SlugChanger restaurant={restaurant} onChanged={setRestaurant} />
 
       {error && (
         <div className="mt-4">

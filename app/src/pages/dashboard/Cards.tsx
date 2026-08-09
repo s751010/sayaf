@@ -33,6 +33,7 @@ import { cn } from "@/lib/utils";
 import { useDashboard } from "./Dashboard";
 import { PrintTabs } from "./Tabs";
 import { Icon } from "@/lib/icons";
+import { menuUrl } from "@/lib/menuUrl";
 
 export default function Cards() {
   const { restaurant } = useDashboard();
@@ -52,7 +53,9 @@ export default function Cards() {
   const [themeId, setThemeId] = useState<string | null>(null);
 
   const slug = restaurant.slug?.trim() || null;
-  const url = slug ? `${window.location.origin}/${slug}` : null;
+  // ⚠️ **الأخطر**: هذا الرابط يدخل كود QR يُصدَّر ٣٠٠ DPI ويُطبع على طاولات.
+  // `location.origin` كان يعني «أياً كان النطاق الذي فُتحت منه اللوحة».
+  const url = menuUrl(slug);
 
   useEffect(() => {
     document.title = "بطاقاتي — كلاود منيو";

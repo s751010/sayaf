@@ -90,6 +90,15 @@ export type Seo = {
   description?: string;
   /** مسار نسبي أو رابط كامل. يُترك فارغاً للصفحات التي لا تُفهرَس. */
   path?: string;
+  /**
+   * رابط مطلق يتجاوز اشتقاق `path`.
+   *
+   * ⚠️ لصفحة المنيو تحديداً: عنوانها ليس دائماً `الأصل + المسار`. في وضع
+   * النطاق الفرعي هو `https://<slug>.cloudmenu.sa/`، فاشتقاقه من المسار
+   * كان سيعطي canonical على النطاق الجذر — أي أن قوقل يفهرس عنواناً غير
+   * الذي يفتحه الزبون.
+   */
+  url?: string;
   image?: string;
   type?: "website" | "article" | "restaurant";
   /** يمنع الفهرسة — للوحات والصفحات الخاصّة. */
@@ -121,8 +130,8 @@ export function useSeo(seo: Seo | null): void {
     meta("twitter:title", full);
     property("og:type", seo.type === "article" ? "article" : "website");
 
-    if (seo.path) {
-      const url = absoluteUrl(seo.path);
+    if (seo.url || seo.path) {
+      const url = seo.url ?? absoluteUrl(seo.path!);
       property("og:url", url);
       setTag('link[rel="canonical"]', () => {
         const el = document.createElement("link");

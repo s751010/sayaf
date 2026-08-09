@@ -18,6 +18,8 @@ export interface Restaurant {
   slug: string | null;
   payment_gateway: string | null;
   payment_key: string | null;
+  /** متى غيّر التاجر رابطه. `null` = لم يغيّره — والتغيير مرّة واحدة. */
+  slug_changed_at: string | null;
   google_review_url: string | null;
   allergens_text: string | null;
   working_hours: string | null;

@@ -65,6 +65,7 @@ import { K, getItem, getJSON, setItem, setJSON } from "@/lib/storage";
 import { categoryId, cn, formatPrice, httpUrl, whatsappUrl } from "@/lib/utils";
 import type { Dish, LoyaltyCustomer, Menu, Restaurant } from "@/lib/types";
 import { DishGlyph, Icon, type IconName } from "@/lib/icons";
+import { menuUrl, slugFromRequest } from "@/lib/menuUrl";
 
 /* ── أدوات عرض صغيرة ──────────────────────────────────────────────── */
 const mFont: CSSProperties = { fontFamily: "var(--m-font)" };
@@ -629,7 +630,18 @@ type LoadState =
 export type MenuData = { restaurant: Restaurant; menus: Menu[]; dishes: Dish[] };
 
 export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
-  const { slug = "" } = useParams();
+  /**
+   * ⚠️ **المضيف أولاً ثم المسار.**
+   *
+   * في وضع النطاق الفرعي عنوان المنيو هو `aldiwan.cloudmenu.sa/` — أي أن
+   * المسار `/` والـslug في اسم المضيف. و`useParams()` وحدها كانت ستعطي
+   * فراغاً فتُعرض «المطعم غير موجود» على منيو يعمل.
+   */
+  const { slug: pathSlug = "" } = useParams();
+  const slug =
+    (typeof window !== "undefined"
+      ? slugFromRequest(window.location.host, window.location.pathname)
+      : null) ?? pathSlug;
   const [params] = useSearchParams();
   const [state, setState] = useState<LoadState>(
     demo ? { status: "ready", ...demo } : { status: "loading" }
@@ -815,6 +827,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
                 .join(" · ") +
               ". تصفّح الأصناف والأسعار والمعلومات الغذائية من جوّالك مباشرة.",
           path: demo ? undefined : `/${slug ?? ""}`,
+          url: demo ? undefined : (menuUrl(slug) ?? undefined),
           type: "restaurant",
           noindex: !!demo || preview,
         }

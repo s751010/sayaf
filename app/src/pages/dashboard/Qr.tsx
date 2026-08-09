@@ -8,6 +8,7 @@ import { track } from "@/lib/track";
 import { useDashboard } from "./Dashboard";
 import { PrintTabs } from "./Tabs";
 import { Icon } from "@/lib/icons";
+import { menuUrl } from "@/lib/menuUrl";
 
 function download(href: string, filename: string) {
   const a = document.createElement("a");
@@ -42,8 +43,8 @@ export default function Qr() {
   const slug = restaurant.slug?.trim() || null;
   const url = useMemo(() => {
     if (!slug) return null;
-    const base = `${window.location.origin}/${slug}`;
-    return table.trim() ? `${base}?table=${encodeURIComponent(table.trim())}` : base;
+    const t = table.trim();
+    return menuUrl(slug, t ? `?table=${encodeURIComponent(t)}` : "");
   }, [slug, table]);
 
   useEffect(() => {
@@ -91,7 +92,7 @@ export default function Qr() {
       const cards = await Promise.all(
         [...Array(n)].map(async (_, i) => {
           const t = i + 1;
-          const d = await qrDataUrl(`${window.location.origin}/${slug}?table=${t}`, logo, 480);
+          const d = await qrDataUrl(menuUrl(slug, `?table=${t}`)!, logo, 480);
           return `<div class="card">
   <p class="brand">${name}</p>
   <img src="${d}" alt="">

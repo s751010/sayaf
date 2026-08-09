@@ -13,12 +13,14 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
-import { RESERVED, escapeAttr, injectMeta, pickOgImage, slugFromPath } from "../../shared/menu-meta.mjs";
+import { RESERVED, escapeAttr, injectMeta, pickOgImage, slugFromRequest } from "../../shared/menu-meta.mjs";
 
 const HTML = readFileSync(fileURLToPath(new URL("../index.html", import.meta.url)), "utf8");
 const SITE = "https://cloudsmenu.netlify.app";
 
-describe("slugFromPath", () => {
+const slugFromPath = (p: string) => slugFromRequest("cloudsmenu.netlify.app", p);
+
+describe("slugFromPath (عبر slugFromRequest)", () => {
   it.each([
     ["/مشراق-0e94", "مشراق-0e94"],
     ["/sa-46a3", "sa-46a3"],

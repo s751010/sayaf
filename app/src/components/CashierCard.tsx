@@ -17,6 +17,7 @@ import {
 import { formatDate } from "@/lib/utils";
 import type { Restaurant } from "@/lib/types";
 import { Icon } from "@/lib/icons";
+import { siteOrigin } from "@/lib/menuUrl";
 
 export function CashierCard({ restaurant }: { restaurant: Restaurant }) {
   const toast = useToast();
@@ -26,8 +27,11 @@ export function CashierCard({ restaurant }: { restaurant: Restaurant }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
+  // ⚠️ `/stamp` **مسار تطبيق لا منيو**: يفتحه الكاشير على النطاق الرئيسي،
+  // فلا يمرّ بـ`menuUrl()` ولا يصير نطاقاً فرعياً. و`siteOrigin()` بدل
+  // `location.origin` كي لا يحمل الكود المطبوع مضيف اللوحة أياً كان.
   const url = restaurant.slug
-    ? `${window.location.origin}/stamp?m=${encodeURIComponent(restaurant.slug)}`
+    ? `${siteOrigin()}/stamp?m=${encodeURIComponent(restaurant.slug)}`
     : null;
 
   useEffect(() => {

@@ -27,6 +27,7 @@ const restaurant: Restaurant = {
   banner_image: null,
   created_at: DEMO_TS,
   slug: "demo",
+  slug_changed_at: null,
   payment_gateway: null,
   payment_key: null,
   google_review_url: "https://www.google.com/maps",

@@ -22,31 +22,11 @@
  * تتباعدان.
  */
 
-/**
- * ⚠️ مسارات التطبيق — أي مطعم يحمل واحداً منها **صفحته غير قابلة للوصول
- * أصلاً**: الراوتر يطابق المسار الثابت قبل `/:slug`. (في الإنتاج اليوم مطعمٌ
- * فعليٌّ يحمل الـslug «demo» ولا يفتحه أحد.)
- */
-export const RESERVED = new Set([
-  "demo", "help", "about", "blog", "login", "dashboard", "founder",
-  "stamp", "reset-password", "docs", "privacy", "terms", "assets",
-]);
-
-/**
- * يستخرج slug المطعم من مسار الطلب، أو `null` لما ليس صفحة منيو.
- *
- * يُرفض: الجذر · المسارات المحجوزة · أي مسار بأكثر من مقطع (`/blog/x`) ·
- * وأي شيء يحمل امتداد ملفّ (`/og.png` · `/sw.js` · `/assets/…`).
- */
-export function slugFromPath(pathname) {
-  const parts = decodeURIComponent(pathname).split("/").filter(Boolean);
-  if (parts.length !== 1) return null;
-  const slug = parts[0];
-  if (RESERVED.has(slug.toLowerCase())) return null;
-  // نقطة في المقطع تعني ملفّاً لا slug — ولا مطعم عندنا يحمل نقطة في رابطه.
-  if (slug.includes(".")) return null;
-  return slug;
-}
+// ⚠️ المسارات المحجوزة و«ما هو منيو» يأتيان من `menu-url.mjs`: كانا هنا
+// نسخةً ثانية، وقائمتان تتباعدان تعنيان حقن وسوم في مسار ليس منيواً أو
+// تخطّي منيو حقيقي.
+export { RESERVED, slugFromRequest } from "./menu-url.mjs";
+import { menuUrl } from "./menu-url.mjs";
 
 /** هروب قيمة تدخل سمة HTML. اسم مطعم فيه `"` كان سيكسر الوسم كلّه. */
 export function escapeAttr(value) {
@@ -101,7 +81,10 @@ export function injectMeta(html, restaurant, siteUrl, slug) {
   if (!name) return html;
 
   const origin = siteUrl.replace(/\/+$/, "");
-  const url = `${origin}/${encodeURIComponent(slug)}`;
+  // ⚠️ من `menuUrl()` لا مبنيّاً هنا: canonical و`og:url` يجب أن يكونا
+  // **العنوان الذي يفتحه الزبون فعلاً** — وفي وضع النطاق الفرعي ليس ذلك
+  // `الأصل + /slug`. زاحفٌ يرى canonical مخالفاً للعنوان يفهرس الخطأ.
+  const url = menuUrl(slug) ?? `${origin}/${encodeURIComponent(slug)}`;
   const title = `${name} — المنيو`;
   const description =
     String(restaurant?.description ?? "").trim() ||

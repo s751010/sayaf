@@ -19,6 +19,7 @@ import type { AnalyticsRow, Dish } from "@/lib/types";
 import { useDashboard } from "./Dashboard";
 import { InsightTabs } from "./Tabs";
 import { Icon, DishGlyph } from "@/lib/icons";
+import { menuUrl } from "@/lib/menuUrl";
 
 const DOW_AR = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
 const RANGE_DAYS = 30;
@@ -299,7 +300,7 @@ export default function Analytics() {
             <div className="mt-2">
               <ShareMenu
                 name={restaurant.name}
-                url={`${window.location.origin}/${restaurant.slug}`}
+                url={menuUrl(restaurant.slug) ?? ""}
               />
             </div>
           )}

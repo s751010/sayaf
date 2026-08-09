@@ -15,7 +15,8 @@
  * مبدأ `lib/billing.ts` في §٢١: عطلٌ عندنا يُبقي منيوهات التجّار تعمل.
  */
 import type { Config, Context } from "https://edge.netlify.com";
-import { injectMeta, slugFromPath } from "../../shared/menu-meta.mjs";
+import { injectMeta } from "../../shared/menu-meta.mjs";
+import { menuUrl, slugFromRequest } from "../../shared/menu-url.mjs";
 
 /**
  * مضمّنة لا مستوردة من `app/src/lib/config.ts`: ذاك ملفّ TypeScript يمرّ
@@ -49,7 +50,9 @@ export default async function handler(request: Request, context: Context) {
     if (!type.includes("text/html")) return response;
 
     const url = new URL(request.url);
-    const slug = slugFromPath(url.pathname);
+    // من المضيف **أو** المسار — نفس الدالة التي يقرأ بها المتصفّح، فلا يختلف
+    // فهم «ما هو منيو» بين الطرفين.
+    const slug = slugFromRequest(url.host, url.pathname);
     if (!slug) return response;
 
     const query =
@@ -64,7 +67,38 @@ export default async function handler(request: Request, context: Context) {
 
     const rows = await data.json();
     const restaurant = Array.isArray(rows) ? rows[0] : null;
-    if (!restaurant) return response;
+
+    /**
+     * ⚠️ **الاسم القديم يُحوَّل ٣٠١ قبل تحميل التطبيق.**
+     *
+     * التاجر يغيّر رابطه مرّة واحدة، وكود QR المطبوع على طاولاته يحمل القديم
+     * ولا يُحدَّث. فبلا هذا التحويل يفتح الزبون «المطعم غير موجود» — أي أن
+     * تغيير رابط يُطفئ منيو مطعم عامل.
+     *
+     * والتحويل هنا لا في التطبيق: أرخص (لا يُحمَّل SPA ليعيد التوجيه)، ويُبقي
+     * قوقل على رابط واحد بدل صفحتين بمحتوى واحد.
+     */
+    if (!restaurant) {
+      const ask = (q: string) =>
+        fetch(`${SUPABASE_URL}/rest/v1/${q}`, {
+          headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+          signal: AbortSignal.timeout(TIMEOUT_MS),
+        })
+          .then((r) => (r.ok ? r.json() : null))
+          .catch(() => null);
+
+      const alias = await ask(
+        `restaurant_slug_aliases?old_slug=eq.${encodeURIComponent(slug)}&select=restaurant_id&limit=1`
+      );
+      const id = Array.isArray(alias) ? alias[0]?.restaurant_id : null;
+      if (id) {
+        const target = await ask(`restaurants?id=eq.${id}&select=slug&limit=1`);
+        const next = Array.isArray(target) ? target[0]?.slug : null;
+        const to = next ? menuUrl(next, url.search) : null;
+        if (to) return Response.redirect(to, 301);
+      }
+      return response;
+    }
 
     const html = injectMeta(await response.text(), restaurant, url.origin, slug);
 

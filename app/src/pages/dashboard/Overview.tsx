@@ -14,11 +14,11 @@ import { getMyAnalytics, getMyDishes } from "@/lib/data";
 import { buildNextStep } from "@/lib/nextStep";
 import { planLabel } from "@/lib/entitlements";
 import { formatPrice } from "@/lib/utils";
-import { SITE_URL } from "@/lib/config";
 import type { AnalyticsRow, Dish } from "@/lib/types";
 import { useDashboard } from "./Dashboard";
 import { DishGlyph } from "@/lib/icons";
 import { Icon } from "@/lib/icons";
+import { MENU_DOMAIN, menuUrl } from "@/lib/menuUrl";
 
 export default function Overview() {
   const { user, restaurant, menus, ent } = useDashboard();
@@ -39,8 +39,7 @@ export default function Overview() {
     [dishes, menus, rows, restaurant]
   );
 
-  const menuUrl = `${window.location.origin}/${restaurant.slug}`;
-  const publicUrl = restaurant.slug ? menuUrl : null;
+  const publicUrl = menuUrl(restaurant.slug);
   const top = [...(dishes ?? [])].sort((a, b) => (b.views ?? 0) - (a.views ?? 0)).slice(0, 5);
 
   /**
@@ -91,7 +90,7 @@ export default function Overview() {
           <div className="min-w-0">
             <p className="text-sm font-bold text-ink">رابط منيوك العام</p>
             <p className="truncate text-sm text-gold" dir="ltr">
-              {publicUrl ?? `${SITE_URL}/…`}
+              {publicUrl?.replace("https://", "") ?? `${MENU_DOMAIN}/…`}
             </p>
           </div>
           {publicUrl && (

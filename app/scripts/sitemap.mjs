@@ -37,7 +37,9 @@ const pick = (name) => config.match(new RegExp(`${name}\\s*=\\s*\\n?\\s*"([^"]+)
 
 const SUPABASE_URL = pick("SUPABASE_URL");
 const ANON = pick("SUPABASE_ANON_KEY");
-const SITE = pick("SITE_URL").replace(/\/+$/, "");
+// ⚠️ من `siteOrigin()` لا من `SITE_URL` في config: مصدران للنطاق يتباعدان،
+// وقد تباعدا فعلاً (SEO على أحدهما وبقيّة الصفحات على `location.origin`).
+const SITE = siteOrigin();
 
 /**
  * ⚠️ **يُتخطّى في CI** (`SKIP_SITEMAP=1`).
@@ -51,7 +53,7 @@ if (process.env.SKIP_SITEMAP === "1") {
   process.exit(0);
 }
 
-if (!SUPABASE_URL || !ANON || !SITE) {
+if (!SUPABASE_URL || !ANON) {
   console.error("✗ تعذّر قراءة الإعدادات من src/lib/config.ts");
   process.exit(1);
 }
@@ -66,7 +68,7 @@ async function rest(path) {
 
 // القائمة مشتركة مع دالة حافة معاينة واتساب: القائمتان كانتا ستتباعدان،
 // فيُدرَج في الخريطة رابطٌ لا يفتح أو تُحقن وسوم في مسار ليس منيواً.
-import { RESERVED } from "../../shared/menu-meta.mjs";
+import { RESERVED, menuUrl, siteOrigin } from "../../shared/menu-url.mjs";
 
 /**
  * أقلّ عدد أصناف يدخل به منيو الخريطة.
@@ -112,7 +114,10 @@ try {
     // ⚠️ الترميز إلزامي: أغلب الـslugs عربية، والحرف العربي الخام في XML
     // يكسر قارئ الخريطة عند بعض الزواحف.
     urls.push({
-      loc: `/${encodeURIComponent(r.slug)}`,
+      // ⚠️ **مطلق من `menuUrl()`** لا مسار نسبي: في وضع النطاق الفرعي عنوان
+      // المنيو ليس `الأصل + /slug`، فخريطةٌ تبنيه بيدها ترشد قوقل إلى عنوان
+      // غير الذي يفتحه الزبون.
+      loc: menuUrl(r.slug),
       priority: "0.8",
       changefreq: "weekly",
       lastmod: r.created_at?.slice(0, 10),
@@ -146,7 +151,8 @@ const xml = [
   '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
   ...urls.map(
     (u) =>
-      `  <url><loc>${SITE}${u.loc}</loc>` +
+      // ⚠️ روابط المنيو **مطلقة** (قد تكون على نطاق فرعي) وبقيّتها نسبية.
+      `  <url><loc>${u.loc.startsWith("http") ? u.loc : SITE + u.loc}</loc>` +
       `<lastmod>${u.lastmod || today}</lastmod>` +
       `<changefreq>${u.changefreq}</changefreq>` +
       `<priority>${u.priority}</priority></url>`

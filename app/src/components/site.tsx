@@ -4,6 +4,7 @@ import { Link, NavLink } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { getSiteSetting } from "@/lib/data";
 import { SITE_NAME } from "@/lib/config";
+import { menuUrl } from "@/lib/menuUrl";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/ui";
 import { SupportWhatsAppButton } from "@/components/SupportWhatsApp";
@@ -42,7 +43,7 @@ export function Logo({ compact }: { compact?: boolean }) {
  * صاحب المطعم قبل تجاوز قفل النشر، فيبقى القفل فعّالاً أمام العموم.
  */
 export function menuPreviewUrl(slug: string | null | undefined): string | null {
-  return slug ? `${window.location.origin}/${slug}?preview=1` : null;
+  return menuUrl(slug, "?preview=1");
 }
 
 /**

@@ -10,12 +10,13 @@ import { Card } from "@/components/ui";
 import { useSeo } from "@/lib/seo";
 import { Navbar, Footer } from "@/components/site";
 import { SupportWhatsAppButton } from "@/components/SupportWhatsApp";
+import { menuUrl } from "@/lib/menuUrl";
 
 const STEPS = [
   {
     n: "١",
     title: "عرّفنا على مطعمك",
-    body: "الاسم ورابط المنيو ونوع النشاط. الرابط هو ما سيفتحه زبونك، مثل cloudsmenu.netlify.app/aldiwan — اختره قصيراً وسهل النطق.",
+    body: `الاسم ورابط المنيو ونوع النشاط. الرابط **تختاره أنت** ولا يُولَّد لك، وهو ما سيفتحه زبونك ويُطبع على طاولاتك: ${menuUrl("aldiwan")?.replace("https://", "")} — اختره قصيراً وسهل النطق، بحروف إنجليزية صغيرة وأرقام وشرطة. ويمكن تغييره **مرّة واحدة** لاحقاً من الإعدادات، ويبقى القديم يعمل ويحوّل إلى الجديد.`,
   },
   {
     n: "٢",

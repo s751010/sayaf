@@ -19,6 +19,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import MenuPage from "@/pages/MenuPage";
 import Login from "@/pages/Login";
 import NotFound from "@/pages/NotFound";
+import { slugFromRequest } from "@/lib/menuUrl";
 
 const Landing = lazy(() => import("@/pages/Landing"));
 const Blog = lazy(() => import("@/pages/Blog"));
@@ -29,12 +30,21 @@ const Demo = lazy(() => import("@/pages/Demo"));
 const Help = lazy(() => import("@/pages/Help"));
 const ApiDocs = lazy(() => import("@/pages/ApiDocs"));
 const About = lazy(() => import("@/pages/About"));
+
 const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 const Stamp = lazy(() => import("@/pages/Stamp"));
 // الصفحتان القانونيتان في قطعة واحدة: تتقاسمان القالب وكتلة الهوية، ومن يفتح
 // إحداهما غالباً يفتح الأخرى.
 const Privacy = lazy(() => import("@/pages/Legal").then((m) => ({ default: m.Privacy })));
 const Terms = lazy(() => import("@/pages/Legal").then((m) => ({ default: m.Terms })));
+
+/**
+ * هل فُتح التطبيق على نطاق فرعي لمطعم؟ يُحسب مرّة عند التحميل — المضيف لا
+ * يتغيّر داخل الجلسة، وحسابُه في كل تصيير هدرٌ بلا سبب.
+ */
+const ON_MENU_HOST =
+  typeof window !== "undefined" &&
+  slugFromRequest(window.location.host, "/") !== null;
 
 function PageLoader() {
   return (
@@ -52,7 +62,25 @@ export default function App() {
           <BrowserRouter>
             <Suspense fallback={<PageLoader />}>
               <Routes>
-                <Route path="/" element={<Landing />} />
+                {/**
+                  * ⚠️ **على نطاق فرعي، `/` هو المنيو لا صفحة الهبوط.**
+                  *
+                  * `aldiwan.cloudmenu.sa/` يجب أن يفتح منيو الديوان؛ وتوجيهه
+                  * إلى صفحة التسويق كان سيجعل كل كود QR على النطاق الفرعي
+                  * يعرض إعلاناً عن المنصّة بدل منيو المطعم.
+                  */}
+                <Route
+                  path="/"
+                  element={
+                    ON_MENU_HOST ? (
+                      <ErrorBoundary>
+                        <MenuPage />
+                      </ErrorBoundary>
+                    ) : (
+                      <Landing />
+                    )
+                  }
+                />
                 <Route path="/demo" element={<Demo />} />
                 <Route path="/help" element={<Help />} />
                 <Route path="/about" element={<About />} />
