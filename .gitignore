@@ -39,3 +39,6 @@ app/scripts/migrate-data-uris.owner.sql
 # (graphify-out/ مسار قديم من نسخة أسبق؛ المسار الحالي .graphify/)
 .graphify/
 graphify-out/
+
+# حالة تركيب ECC — مسارات مطلقة خاصة بالجهاز، تُولَّد عند التركيب.
+.claude/ecc/install-state.json
