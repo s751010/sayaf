@@ -154,7 +154,9 @@ export default function Comms() {
     if (!pTitle.trim()) return toast("اكتب عنوان المقال.", "err");
     const payload = {
       title: pTitle.trim(),
-      // الرابط يُشتقّ من العنوان إن تُرك فارغاً — `slugify` نفسها التي تولّد روابط المطاعم.
+      // الرابط يُشتقّ من العنوان إن تُرك فارغاً — وهذا مقبول هنا وحده: المقال
+      // تكتبه أنت، ورابطه لا يُطبع على طاولة مطعم. أما رابط المنيو فيكتبه
+      // التاجر بنفسه ولا يُولَّد له شيء (انظر `shared/menu-url.mjs`).
       slug: (pSlug.trim() || slugify(pTitle)).slice(0, 80) || null,
       excerpt: pExcerpt.trim() || null,
       content: pContent.trim() || null,

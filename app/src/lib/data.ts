@@ -340,6 +340,42 @@ export async function getMyRestaurant(userId: string): Promise<Restaurant | null
   return rows[0] ?? null;
 }
 
+/**
+ * هل رابط المنيو متاح؟
+ *
+ * ⚠️ **يفحص الأسماء البديلة أيضاً**: اسمٌ يُحوِّل اليوم إلى مطعم آخر (من كود
+ * مطبوع على طاولاته) لا يجوز أن يأخذه غيره — وإلا سُرقت زبائنه.
+ *
+ * استشاريّ لا أمنيّ: الحارس الحقيقي `UNIQUE(slug)` و`change_restaurant_slug`
+ * في القاعدة. الفائدة أن يعرف التاجر **أثناء الكتابة** لا بعد الضغط.
+ */
+export async function isSlugTaken(slug: string): Promise<boolean> {
+  const s = slug.trim().toLowerCase();
+  if (!s) return false;
+  const q = `slug=eq.${encodeURIComponent(s)}&select=slug&limit=1`;
+  const [taken, alias] = await Promise.all([
+    rest<{ slug: string }[]>(`restaurants?${q}`, { anonymous: true }),
+    rest<{ old_slug: string }[]>(
+      `restaurant_slug_aliases?old_slug=eq.${encodeURIComponent(s)}&select=old_slug&limit=1`,
+      { anonymous: true }
+    ),
+  ]);
+  return taken.length > 0 || alias.length > 0;
+}
+
+/**
+ * يغيّر رابط المنيو عبر دالة القاعدة — **لا PATCH مباشر**.
+ *
+ * الدالة تسجّل الاسم القديم بديلاً في نفس المعاملة، وتريجر على الجدول يرفض
+ * أي تغيير لا يمرّ بها. فالكود المطبوع على الطاولات يبقى يعمل.
+ */
+export async function changeSlug(restaurantId: string, slug: string): Promise<string> {
+  return rest<string>("rpc/change_restaurant_slug", {
+    method: "POST",
+    body: { p_restaurant: restaurantId, p_slug: slug.trim().toLowerCase() },
+  });
+}
+
 export async function createRestaurant(payload: {
   name: string;
   slug: string;

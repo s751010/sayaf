@@ -9,6 +9,19 @@ export default defineConfig({
   resolve: {
     alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
   },
+  server: {
+    fs: {
+      /**
+       * ⚠️ **ضروري لـ`shared/`** — وإلا انكسر `npm run dev` وحده.
+       *
+       * `lib/menuUrl.ts` يستورد `../../../shared/menu-url.mjs` (شيفرة خالصة
+       * تتشاركها الواجهة ودالة الحافة وسكربت الخريطة والاختبارات). البناء
+       * يحلّها بلا مشكلة — لكن خادم التطوير يمنع ما هو **خارج جذره** فيردّ
+       * «403 Restricted». مُتحقَّق بالفعل: البناء أخضر والتطوير كان يسقط.
+       */
+      allow: [fileURLToPath(new URL("..", import.meta.url))],
+    },
+  },
   build: {
     outDir: "../deploy",
     emptyOutDir: true,

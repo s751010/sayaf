@@ -44,11 +44,13 @@ import {
   getMyMenus,
   getMyRestaurant,
   isFounder,
+  isSlugTaken,
   startTrial,
 } from "@/lib/data";
+import { menuUrl, slugError, urlAffixes } from "@/lib/menuUrl";
 import { getRestaurantById, logAudit } from "@/lib/founder";
 import { STARTER_TYPES } from "@/lib/starterMenus";
-import { cn, slugify } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import type { Menu, Restaurant } from "@/lib/types";
 import type { SessionUser } from "@/lib/session";
 
@@ -106,17 +108,60 @@ function Onboarding({ user, onDone }: { user: SessionUser; onDone: (r: Restauran
   const [type, setType] = useState(RESTAURANT_TYPES[0]);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  /** `null` = لم يُفحص بعد · `true` = محجوز · `false` = متاح. */
+  const [taken, setTaken] = useState<boolean | null>(null);
+  const [checking, setChecking] = useState(false);
+
+  const clean = slug.trim().toLowerCase();
+  const slugMsg = clean ? slugError(clean) : null;
+  const affix = urlAffixes();
+
+  /**
+   * فحص التوفّر **أثناء الكتابة**.
+   *
+   * كان التاجر لا يعرف إلا بعد الضغط، ورسالة الفشل تخمين: «**قد** يكون
+   * الرابط مستخدماً» — لأنها تُستنتج من فشل الإدراج لا من فحص. ونصف ثانية
+   * تأخير تكفي كي لا نسأل القاعدة عن كل حرف.
+   */
+  useEffect(() => {
+    if (!clean || slugMsg) {
+      setTaken(null);
+      return;
+    }
+    setChecking(true);
+    const t = setTimeout(() => {
+      isSlugTaken(clean)
+        .then(setTaken)
+        // فشل الشبكة لا يمنع المتابعة: `UNIQUE` في القاعدة هو الحارس الفعلي،
+        // وهذا إرشاد. إظهار خطأ هنا يوقف تسجيلاً صالحاً بلا سبب.
+        .catch(() => setTaken(null))
+        .finally(() => setChecking(false));
+    }, 400);
+    return () => {
+      clearTimeout(t);
+      setChecking(false);
+    };
+  }, [clean, slugMsg]);
 
   async function submit(e: FormEvent) {
     e.preventDefault();
-    const cleanSlug = slugify(slug || name);
-    if (!name.trim() || !cleanSlug) return setError("أدخل اسم المطعم والرابط.");
+    /**
+     * ⚠️ **لا توليد إطلاقاً.** كان هنا `slugify(slug || name)`: من ترك الحقل
+     * فارغاً يُشتقّ له رابط من اسم مطعمه — فيخرج عربياً (`مشراق`) يظهر في
+     * شريط العنوان `%D9%85%D8%B4…`، لا يستطيع التاجر إملاءه على الهاتف ولا
+     * كتابته على لوحة. والرابط عنوان مطعمه لا حقلٌ نملؤه عنه.
+     */
+    const clean = slug.trim().toLowerCase();
+    const bad = slugError(clean);
+    if (!name.trim()) return setError("أدخل اسم المطعم.");
+    if (bad) return setError(bad);
+    if (taken === true) return setError("هذا الرابط محجوز — اختر غيره.");
     setBusy(true);
     setError("");
     try {
       const r = await createRestaurant({
         name: name.trim(),
-        slug: cleanSlug,
+        slug: clean,
         type,
         user_id: user.id,
       });
@@ -155,13 +200,63 @@ function Onboarding({ user, onDone }: { user: SessionUser; onDone: (r: Restauran
               required
             />
           </Field>
-          <Field label="رابط المنيو" hint={`سيكون منيوك على: cloudsmenu.netlify.app/${slugify(slug || name) || "…"}`}>
-            <Input
+          {/**
+           * ⚠️ **الحقل والنطاق وحدة واحدة لا حقل ولاحقة.**
+           *
+           * التاجر يقرأ عنوان مطعمه كاملاً وهو يكتبه، فيعرف ما سيُطبع على
+           * طاولاته. والنطاق يأتي من `MENU_DOMAIN` لا مكتوباً هنا — فيوم
+           * يُربَط `cloudmenu.sa` يتغيّر هذا المعروض وكل موضع آخر معاً.
+           */}
+          <Field label="رابط منيوك" hint="اختره قصيراً وسهل النطق — هذا ما سيُطبع على طاولاتك.">
+            <div
               dir="ltr"
-              value={slug}
-              onChange={(e) => setSlug(e.target.value)}
-              placeholder="aldiwan"
-            />
+              className={cn(
+                "flex items-stretch overflow-hidden rounded-xl border bg-panel2 transition-colors",
+                slugMsg || taken === true ? "border-bad" : taken === false ? "border-good" : "border-line"
+              )}
+            >
+              {affix.before && (
+                <span className="grid select-none place-items-center border-e border-line bg-panel px-3 text-sm font-bold text-dim">
+                  {affix.before}
+                </span>
+              )}
+              <input
+                dir="ltr"
+                value={slug}
+                onChange={(e) => setSlug(e.target.value)}
+                // `inputMode` و`autoCapitalize` معاً: لوحة الجوال العربية تفتح
+                // بالعربية وتُكبّر أول حرف — وكلاهما ينتج رابطاً مرفوضاً.
+                inputMode="url"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+                placeholder="aldiwan"
+                aria-label="رابط منيوك"
+                aria-invalid={!!slugMsg || taken === true}
+                className="min-w-0 flex-1 bg-transparent px-3.5 py-2.5 text-sm text-ink outline-none placeholder:text-faint"
+              />
+              {affix.after && (
+                <span className="grid select-none place-items-center border-s border-line bg-panel px-3 text-sm font-bold text-dim">
+                  {affix.after}
+                </span>
+              )}
+            </div>
+            <p
+              className={cn(
+                "mt-1.5 text-xs leading-relaxed",
+                slugMsg || taken === true ? "text-bad" : taken === false ? "text-good" : "text-faint"
+              )}
+            >
+              {slugMsg
+                ? slugMsg
+                : checking
+                  ? "نتحقّق…"
+                  : taken === true
+                    ? "هذا الرابط محجوز — اختر غيره."
+                    : taken === false
+                      ? `متاح ✓ — منيوك سيكون على ${menuUrl(clean)?.replace("https://", "")}`
+                      : "حروف إنجليزية صغيرة وأرقام وشرطة."}
+            </p>
           </Field>
           <Field label="نوع النشاط">
             <Select value={type} onChange={(e) => setType(e.target.value)}>
