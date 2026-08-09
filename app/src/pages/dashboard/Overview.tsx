@@ -18,7 +18,7 @@ import type { AnalyticsRow, Dish } from "@/lib/types";
 import { useDashboard } from "./Dashboard";
 import { DishGlyph } from "@/lib/icons";
 import { Icon } from "@/lib/icons";
-import { MENU_DOMAIN, menuUrl } from "@/lib/menuUrl";
+import { menuUrl, urlAffixes } from "@/lib/menuUrl";
 
 export default function Overview() {
   const { user, restaurant, menus, ent } = useDashboard();
@@ -90,7 +90,7 @@ export default function Overview() {
           <div className="min-w-0">
             <p className="text-sm font-bold text-ink">رابط منيوك العام</p>
             <p className="truncate text-sm text-gold" dir="ltr">
-              {publicUrl?.replace("https://", "") ?? `${MENU_DOMAIN}/…`}
+              {publicUrl?.replace("https://", "") ?? `${urlAffixes().before}…`}
             </p>
           </div>
           {publicUrl && (

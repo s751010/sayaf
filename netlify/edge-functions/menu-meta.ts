@@ -94,7 +94,8 @@ export default async function handler(request: Request, context: Context) {
       if (id) {
         const target = await ask(`restaurants?id=eq.${id}&select=slug&limit=1`);
         const next = Array.isArray(target) ? target[0]?.slug : null;
-        const to = next ? menuUrl(next, url.search) : null;
+        // أصل الطلب لا نطاق مفترَض: التحويل يبقى على النطاق الذي جاء منه الزائر.
+        const to = next ? menuUrl(next, url.search, url.origin) : null;
         if (to) return Response.redirect(to, 301);
       }
       return response;

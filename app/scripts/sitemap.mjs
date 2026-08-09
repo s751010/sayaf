@@ -27,6 +27,9 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+// القائمة مشتركة مع دالة حافة معاينة واتساب: القائمتان كانتا ستتباعدان،
+// فيُدرَج في الخريطة رابطٌ لا يفتح أو تُحقن وسوم في مسار ليس منيواً.
+import { RESERVED, menuUrl, siteOrigin } from "../../shared/menu-url.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const app = join(here, "..");
@@ -37,9 +40,15 @@ const pick = (name) => config.match(new RegExp(`${name}\\s*=\\s*\\n?\\s*"([^"]+)
 
 const SUPABASE_URL = pick("SUPABASE_URL");
 const ANON = pick("SUPABASE_ANON_KEY");
-// ⚠️ من `siteOrigin()` لا من `SITE_URL` في config: مصدران للنطاق يتباعدان،
-// وقد تباعدا فعلاً (SEO على أحدهما وبقيّة الصفحات على `location.origin`).
-const SITE = siteOrigin();
+/**
+ * ⚠️ **يُقرأ من `SITE_URL` ويُمرَّر إلى `menuUrl()`.**
+ *
+ * `MENU_DOMAIN` تلقائي (`null`) — يحلّه المتصفّح من `location.origin`. وهذا
+ * السكربت يعمل في Node بلا `window`، فلا مصدر له إلا `SITE_URL`: عنوان النشر.
+ * وهو المصدر الصحيح هنا تحديداً: خريطة الموقع تُقرأ من قِبل قوقل على عنوان
+ * الموقع المنشور لا على مضيف من بنى.
+ */
+const SITE = siteOrigin(pick("SITE_URL"));
 
 /**
  * ⚠️ **يُتخطّى في CI** (`SKIP_SITEMAP=1`).
@@ -53,7 +62,7 @@ if (process.env.SKIP_SITEMAP === "1") {
   process.exit(0);
 }
 
-if (!SUPABASE_URL || !ANON) {
+if (!SUPABASE_URL || !ANON || !SITE) {
   console.error("✗ تعذّر قراءة الإعدادات من src/lib/config.ts");
   process.exit(1);
 }
@@ -65,10 +74,6 @@ async function rest(path) {
   if (!res.ok) throw new Error(`${res.status} ${await res.text()}`);
   return res.json();
 }
-
-// القائمة مشتركة مع دالة حافة معاينة واتساب: القائمتان كانتا ستتباعدان،
-// فيُدرَج في الخريطة رابطٌ لا يفتح أو تُحقن وسوم في مسار ليس منيواً.
-import { RESERVED, menuUrl, siteOrigin } from "../../shared/menu-url.mjs";
 
 /**
  * أقلّ عدد أصناف يدخل به منيو الخريطة.
@@ -117,7 +122,7 @@ try {
       // ⚠️ **مطلق من `menuUrl()`** لا مسار نسبي: في وضع النطاق الفرعي عنوان
       // المنيو ليس `الأصل + /slug`، فخريطةٌ تبنيه بيدها ترشد قوقل إلى عنوان
       // غير الذي يفتحه الزبون.
-      loc: menuUrl(r.slug),
+      loc: menuUrl(r.slug, "", SITE),
       priority: "0.8",
       changefreq: "weekly",
       lastmod: r.created_at?.slice(0, 10),

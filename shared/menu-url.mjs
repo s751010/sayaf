@@ -17,16 +17,57 @@
  * ومفحوصان **الآن** معاً، ويبقى التحويل سطرين.
  */
 
-/** النطاق الذي يُعرض ويُطبع. ⟵ يصير `"cloudmenu.sa"` بعد الشراء والربط. */
-export const MENU_DOMAIN = "cloudsmenu.netlify.app";
+/**
+ * النطاق الذي يُعرض ويُطبع — و**`null` يعني تلقائياً**: هو ما فُتح عليه
+ * الموقع فعلاً.
+ *
+ * ═══ ⚠️ لماذا `null` وليس نطاقاً مكتوباً ═══
+ *
+ * كُتب هنا `"cloudsmenu.netlify.app"` مرّةً، فصار كل رابط يُبنى منه **بغضّ
+ * النظر عن المضيف الذي وصل عليه الطلب**. ومقيسٌ على البناء: صفحة المنيو تفتح
+ * على أي مضيف، لكن `canonical` و`og:url` — و**كود QR في بطاقة تُطبع** — تخرج
+ * كلها بالنطاق المكتوب. أي أن توجيه نطاق جديد إلى الموقع كان سيترك كل مطبوع
+ * يشير إلى القديم حتى يعدّل أحدٌ هذا السطر.
+ *
+ * فالتلقائي هو الافتراض: انشر على ما شئت ويعمل. وكتابةُ النطاق قرارٌ يُتَّخذ
+ * **بعد** ربطه فعلاً، لا قبله.
+ *
+ * ⟵ اكتبه (`"cloudmenu.sa"`) يوم يُربَط، فتنتقل المواضع كلها معاً.
+ */
+export const MENU_DOMAIN = null;
 
 /**
  * `"subdomain"` ⇒ `aldiwan.cloudmenu.sa` · `"path"` ⇒ `cloudmenu.sa/aldiwan`.
  *
- * ⟵ يصير `"subdomain"` بعد إضافة بدل عامّ `*.cloudmenu.sa` في Netlify DNS
+ * ⚠️ **لا يعمل إلا مع `MENU_DOMAIN` مكتوب**: بلا نطاق أساس لا يمكن معرفة أي
+ * جزء من المضيف هو الـslug — ولا يجوز التخمين. فيبقى `"path"` حتى ذلك اليوم.
+ *
+ * ⟵ يصير `"subdomain"` بعد كتابة النطاق **و**إضافة بدل عامّ `*` في DNS
  * وشهادة wildcard. وقبلهما يعطي نطاقاً فرعياً لا يُحلّ.
  */
 export const MENU_MODE = "path";
+
+/** هل النطاق الفرعي مُفعَّل فعلاً؟ الوضع وحده لا يكفي — يحتاج نطاقاً أساساً. */
+const subdomainMode = () => MENU_MODE === "subdomain" && !!MENU_DOMAIN;
+
+/**
+ * أصل الموقع وقت النداء.
+ *
+ * الترتيب: النطاق المكتوب إن وُجد ⇐ ثم المضيف الحقيقي في المتصفّح ⇐ ثم
+ * `fallback` لمن يعمل بلا متصفّح (سكربت الخريطة ودالة الحافة يمرّرانه).
+ */
+function resolveOrigin(fallback) {
+  if (MENU_DOMAIN) return `https://${MENU_DOMAIN}`;
+  if (typeof window !== "undefined" && window.location?.origin) {
+    return window.location.origin;
+  }
+  return String(fallback ?? "").replace(/\/+$/, "");
+}
+
+/** المضيف وحده (بلا مخطّط) — لعرضه في حقل اختيار الرابط. */
+function resolveHost(fallback) {
+  return resolveOrigin(fallback).replace(/^https?:\/\//, "");
+}
 
 /**
  * ⚠️ **وضع المسار يبقى للأبد** ولا يُحذف يوم التحويل: تسعة عشر رابطاً في
@@ -90,8 +131,8 @@ export function isValidSlug(value) {
 }
 
 /** أصل الموقع (اللوحة والصفحات) — لا يتغيّر بوضع الرابط. */
-export function siteOrigin() {
-  return `https://${MENU_DOMAIN}`;
+export function siteOrigin(fallback) {
+  return resolveOrigin(fallback);
 }
 
 /**
@@ -99,17 +140,18 @@ export function siteOrigin() {
  *
  * `extra` لمعاملات مثل `?table=5` أو `?preview=1`.
  */
-export function menuUrl(slug, extra = "") {
+export function menuUrl(slug, extra = "", origin) {
   const s = String(slug ?? "").trim();
   if (!s) return null;
   const q = extra ? (extra.startsWith("?") ? extra : `?${extra}`) : "";
+  const base = resolveOrigin(origin);
 
   // ⚠️ الرابط العربي القديم يبقى على المسار حتى في وضع النطاق الفرعي:
   // لا يصلح تسمية DNS، ووضعه في نطاق فرعي يعطي عنواناً لا يُحلّ.
-  if (MENU_MODE === "subdomain" && isValidSlug(s)) {
+  if (subdomainMode() && isValidSlug(s)) {
     return `https://${s}.${MENU_DOMAIN}${q}`;
   }
-  return `https://${MENU_DOMAIN}/${encodeURIComponent(s)}${q}`;
+  return `${base}/${encodeURIComponent(s)}${q}`;
 }
 
 /**
@@ -120,10 +162,10 @@ export function menuUrl(slug, extra = "") {
  * يأتي **قبله** (`cloudmenu.sa/` `aldiwan`). ولاحقةٌ مكتوبة بيد في الصفحة
  * كانت ستكذب على التاجر في أحد الوضعين — وهو يقرأ منها ما سيُطبع على طاولاته.
  */
-export function urlAffixes() {
-  return MENU_MODE === "subdomain"
+export function urlAffixes(origin) {
+  return subdomainMode()
     ? { before: "", after: `.${MENU_DOMAIN}` }
-    : { before: `${MENU_DOMAIN}/`, after: "" };
+    : { before: `${resolveHost(origin)}/`, after: "" };
 }
 
 /**
@@ -135,8 +177,14 @@ export function urlAffixes() {
 export function slugFromRequest(host, pathname) {
   const h = String(host ?? "").toLowerCase().split(":")[0];
 
-  // ١) نطاق فرعي: `aldiwan.cloudmenu.sa`
-  if (h.endsWith(`.${MENU_DOMAIN}`)) {
+  /**
+   * ١) نطاق فرعي: `aldiwan.cloudmenu.sa`
+   *
+   * ⚠️ **يُتخطّى تماماً بلا نطاق أساس مكتوب.** بدونه لا يمكن معرفة أي جزء من
+   * المضيف هو الـslug: أهو `aldiwan` في `aldiwan.example.com`، أم أن المضيف
+   * كلّه نطاق الموقع؟ والتخمين هنا يعني عرض منيو مطعم على عنوان ليس له.
+   */
+  if (MENU_DOMAIN && h.endsWith(`.${MENU_DOMAIN}`)) {
     const label = h.slice(0, -(MENU_DOMAIN.length + 1));
     // نطاق فرعي من مستويين (`a.b.cloudmenu.sa`) ليس منيواً.
     if (label && !label.includes(".") && !RESERVED.has(label) && isValidSlug(label)) {

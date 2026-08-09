@@ -16,7 +16,8 @@
 // @ts-expect-error — وحدة JS خالصة بلا تعريفات؛ الأنواع مُصرَّح بها أدناه.
 import * as shared from "../../../shared/menu-url.mjs";
 
-export const MENU_DOMAIN: string = shared.MENU_DOMAIN;
+/** `null` = تلقائي: النطاق هو ما فُتح عليه الموقع. */
+export const MENU_DOMAIN: string | null = shared.MENU_DOMAIN;
 export const MENU_MODE: "path" | "subdomain" = shared.MENU_MODE;
 export const SLUG_MIN: number = shared.SLUG_MIN;
 export const SLUG_MAX: number = shared.SLUG_MAX;
@@ -28,14 +29,17 @@ export const slugError: (value: string | null | undefined) => string | null = sh
 export const isValidSlug: (value: string | null | undefined) => boolean = shared.isValidSlug;
 
 /** أصل الموقع (اللوحة والصفحات العامّة). */
-export const siteOrigin: () => string = shared.siteOrigin;
+export const siteOrigin: (fallback?: string) => string = shared.siteOrigin;
 
 /**
  * عنوان منيو مطعم — **المصدر الوحيد**. لا تبنِ الرابط بيدك في صفحة:
  * `window.location.origin` هو مضيف اللوحة لا مضيف المنيو.
  */
-export const menuUrl: (slug: string | null | undefined, extra?: string) => string | null =
-  shared.menuUrl;
+export const menuUrl: (
+  slug: string | null | undefined,
+  extra?: string,
+  origin?: string
+) => string | null = shared.menuUrl;
 
 /** يستخرج الـslug من المضيف أو المسار — نفس منطق الحافة حرفياً. */
 export const slugFromRequest: (
@@ -44,4 +48,5 @@ export const slugFromRequest: (
 ) => string | null = shared.slugFromRequest;
 
 /** ما يُعرض قبل خانة الكتابة وبعدها في حقل اختيار الرابط. */
-export const urlAffixes: () => { before: string; after: string } = shared.urlAffixes;
+export const urlAffixes: (origin?: string) => { before: string; after: string } =
+  shared.urlAffixes;

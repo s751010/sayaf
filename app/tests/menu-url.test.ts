@@ -13,7 +13,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 type MenuUrlModule = typeof import("../../shared/menu-url.mjs");
 
 /** يعيد تحميل الوحدة بثابتين مختلفين. */
-async function withMode(mode: "path" | "subdomain", domain = "cloudmenu.sa") {
+async function withMode(
+  mode: "path" | "subdomain",
+  domain: string | null = "cloudmenu.sa"
+) {
   vi.resetModules();
   vi.doMock("../../shared/menu-url.mjs", async () => {
     const actual = (await vi.importActual("../../shared/menu-url.mjs")) as MenuUrlModule;
@@ -23,7 +26,10 @@ async function withMode(mode: "path" | "subdomain", domain = "cloudmenu.sa") {
     fs.readFileSync(new URL("../../shared/menu-url.mjs", import.meta.url), "utf8")
   );
   const patched = src
-    .replace(/export const MENU_DOMAIN = "[^"]*";/, `export const MENU_DOMAIN = "${domain}";`)
+    .replace(
+      /export const MENU_DOMAIN = (?:null|"[^"]*");/,
+      `export const MENU_DOMAIN = ${domain === null ? "null" : `"${domain}"`};`
+    )
     .replace(/export const MENU_MODE = "[^"]*";/, `export const MENU_MODE = "${mode}";`);
   return (await import(
     `data:text/javascript;base64,${Buffer.from(patched, "utf8").toString("base64")}`
@@ -168,5 +174,62 @@ describe("slugFromRequest", () => {
       const url = new URL(m.menuUrl("aldiwan")!);
       expect(m.slugFromRequest(url.host, url.pathname), mode).toBe("aldiwan");
     }
+  });
+});
+
+/* ══ الوضع التلقائي — وهو وضع الإنتاج اليوم ═══════════════════════════ */
+
+describe("MENU_DOMAIN = null — النطاق هو ما فُتح عليه الموقع", () => {
+  it("⚠️ المستودع اليوم على التلقائي — لا نطاق مكتوب", async () => {
+    // هذا هو الفحص الذي يمنع تثبيت نطاق بلا قصد: نطاقٌ مكتوب يعني أن كل
+    // كود QR يُطبع سيحمله مهما كان المضيف الذي نُشر عليه الموقع.
+    const live = (await import("../../shared/menu-url.mjs")) as MenuUrlModule;
+    expect(live.MENU_DOMAIN).toBeNull();
+    expect(live.MENU_MODE).toBe("path");
+  });
+
+  it("يبني الرابط على الأصل المُمرَّر", async () => {
+    const m = await withMode("path", null);
+    expect(m.menuUrl("aldiwan", "", "https://any-domain.example")).toBe(
+      "https://any-domain.example/aldiwan"
+    );
+    expect(m.menuUrl("aldiwan", "?table=3", "https://x.netlify.app")).toBe(
+      "https://x.netlify.app/aldiwan?table=3"
+    );
+  });
+
+  it("الشرطة المائلة الزائدة في الأصل تُقصّ", async () => {
+    const m = await withMode("path", null);
+    expect(m.menuUrl("aldiwan", "", "https://x.test/")).toBe("https://x.test/aldiwan");
+  });
+
+  it("اللاحقة المعروضة تتبع المضيف الحقيقي", async () => {
+    const m = await withMode("path", null);
+    expect(m.urlAffixes("https://my-site.test")).toEqual({
+      before: "my-site.test/",
+      after: "",
+    });
+  });
+
+  it("⚠️ بلا نطاق أساس لا يُخمَّن نطاق فرعي", async () => {
+    const m = await withMode("path", null);
+    // `aldiwan` هنا قد يكون slug وقد يكون جزءاً من نطاق الموقع نفسه — والتخمين
+    // يعني عرض منيو مطعم على عنوان ليس له.
+    expect(m.slugFromRequest("aldiwan.example.com", "/")).toBeNull();
+    expect(m.slugFromRequest("example.com", "/aldiwan")).toBe("aldiwan");
+  });
+
+  it("⚠️ `subdomain` بلا نطاق مكتوب يسقط إلى المسار — لا عنوان لا يُحلّ", async () => {
+    const m = await withMode("subdomain", null);
+    expect(m.menuUrl("aldiwan", "", "https://x.test")).toBe("https://x.test/aldiwan");
+  });
+
+  it("كتابة النطاق تُحوّل كل شيء معاً", async () => {
+    const m = await withMode("path", "cloudmenu.sa");
+    // الأصل المُمرَّر يُتجاهَل حين يُكتب النطاق — وهو المقصود: يوم تُربط،
+    // تصير كل الروابط عليه أياً كان المضيف الذي فُتحت منه اللوحة.
+    expect(m.menuUrl("aldiwan", "", "https://old.netlify.app")).toBe(
+      "https://cloudmenu.sa/aldiwan"
+    );
   });
 });

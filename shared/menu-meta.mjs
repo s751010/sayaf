@@ -84,7 +84,7 @@ export function injectMeta(html, restaurant, siteUrl, slug) {
   // ⚠️ من `menuUrl()` لا مبنيّاً هنا: canonical و`og:url` يجب أن يكونا
   // **العنوان الذي يفتحه الزبون فعلاً** — وفي وضع النطاق الفرعي ليس ذلك
   // `الأصل + /slug`. زاحفٌ يرى canonical مخالفاً للعنوان يفهرس الخطأ.
-  const url = menuUrl(slug) ?? `${origin}/${encodeURIComponent(slug)}`;
+  const url = menuUrl(slug, "", origin) ?? `${origin}/${encodeURIComponent(slug)}`;
   const title = `${name} — المنيو`;
   const description =
     String(restaurant?.description ?? "").trim() ||
