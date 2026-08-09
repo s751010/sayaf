@@ -38,6 +38,8 @@
 | **`_shared` ونظائرها متطابقة** | معرّف الإضافة موضعٌ في مصفوفة؛ التباعد يُحصّل خطأً | `parity.test.ts` |
 | **الباقة الواحدة `standard` بـ٩٩ ر.س** | رقم الطلب في الويبهوك يُقرأ منها؛ تغيير المعرّف يسجّل الإيراد خطأً | §4 في `docs/payments.md` |
 | **قفل النشر يبدأ مطفأً** | تشغيله يُطفئ منيو كل تاجر بلا اشتراك نشط | §21 · `LAUNCH.md` |
+| **رابط المنيو لا يُبنى بيد** | `location.origin` مضيف اللوحة لا مضيف المنيو، والرابط يدخل كود QR **مطبوعاً** | `shared/menu-url.mjs` |
+| **تغيير رابط بلا تسجيل القديم بديلاً** | يُطفئ منيو مطعم عامل — الكود المطبوع لا يُحدَّث | `change_restaurant_slug` |
 
 ---
 
@@ -109,6 +111,7 @@ app/src/
     storage.ts          مفاتيح localStorage/sessionStorage الموحّدة (K)
     pixels.ts           حقن بكسلات التتبّع في صفحة المنيو (§15)
     apiKeys.ts          توليد مفاتيح API في المتصفح + هاشها (§14)
+    menuUrl.ts          واجهة مُنمَّطة لـshared/menu-url.mjs — **كل رابط منيو منها**
 ```
 
 اللغة: عربية RTL. الخطوط ذاتية الاستضافة عبر `@fontsource` (لا Google Fonts).
@@ -126,7 +129,7 @@ Project ref: `wjqpsbpebpntpeinqccl` · URL في `app/src/lib/config.ts`.
 `revenue_log` `support_tickets` `site_settings` `blog_posts` `loyalty_customers`
 `promo_codes` `announcements` `survey_responses` `restaurant_payment_settings`
 `staff_pins` `founder_audit` `api_keys` `api_usage` `webhooks` `webhook_events`
-`internal_secrets` `client_errors`.
+`internal_secrets` `client_errors` `restaurant_slug_aliases`.
 
 > ⚠️ **`survey_responses` غير مستعمَل**: صفر صفّ و**صفر سطر شيفرة** يقرؤه أو
 > يكتب فيه. بقايا استطلاع رضا لم يُبنَ. لم يُحذف الجدول (حذفٌ بلا مكسب، وله
