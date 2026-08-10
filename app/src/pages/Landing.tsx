@@ -926,65 +926,90 @@ export function PricingCards({
   selectLabel?: string;
 }) {
   const yearly = cycle === "yearly";
+  // باقة واحدة تُعرض عرضاً كاملاً بعمودين، وأكثرُ منها شبكةً. الشبكة كانت
+  // `sm:grid-cols-2` **ثابتة** بينما `PLANS` طولها واحد — فكانت البطاقة تجلس
+  // في نصف الحاوية والنصف الآخر فراغ، في القسم الذي يقرّر عنده التاجر الدفع.
+  const solo = PLANS.length === 1;
   return (
-    <div className="mx-auto grid max-w-3xl gap-5 sm:grid-cols-2">
+    <div
+      className={cn(
+        "mx-auto grid gap-5",
+        solo ? "max-w-4xl" : "max-w-3xl sm:grid-cols-2"
+      )}
+    >
       {PLANS.map((p, i) => (
         <Card
           key={p.id}
           className={cn(
             "anim-fade-up relative flex flex-col",
+            solo && "gap-8 md:flex-row md:items-start",
             p.featured && "border-gold/40 bg-gold/[.04] shadow-[0_0_50px_-18px_var(--c-glow)]"
           )}
         >
-          {p.featured && (
+          {/* شارة «الأكثر اختياراً» تُعرض عند وجود ما يُقارَن به فقط —
+              وحدَها بلا باقة ثانية نصٌّ بلا معنى. */}
+          {p.featured && !solo && (
             <Badge className="absolute -top-3 right-5">الأكثر اختياراً</Badge>
           )}
-          <h3 className={cn("font-display text-xl font-extrabold text-ink", i === 0 && "mt-0")}>
-            {p.name}
-          </h3>
-          <div className="mt-3 flex items-baseline gap-2">
-            <span className="font-display text-4xl font-black text-gold">
-              {formatPrice(planPrice(p, cycle))}
-            </span>
-            <span className="text-sm text-dim">
-              {CURRENCY} / {yearly ? "سنوياً" : "شهرياً"}
-            </span>
+
+          <div className={cn("flex flex-col", solo && "md:w-[15.5rem] md:shrink-0")}>
+            <h3 className={cn("font-display text-xl font-extrabold text-ink", i === 0 && "mt-0")}>
+              {p.name}
+            </h3>
+            <div className="mt-3 flex items-baseline gap-2">
+              <span className="font-display text-4xl font-black text-gold" dir="ltr">
+                {formatPrice(planPrice(p, cycle))}
+              </span>
+              <span className="text-sm text-dim">
+                {CURRENCY} / {yearly ? "سنوياً" : "شهرياً"}
+              </span>
+            </div>
+            {/* `text-dim` لا `text-faint`: الأخير 3.76:1 على الداكن و2.58:1
+                على الفاتح — يسقط AA، وهذا سطر تسعير يُقرأ لا زخرفة. */}
+            <p className="mt-1 h-4 text-xs text-dim">
+              {yearly ? `يعادل ${formatPrice(effectiveMonthly(p, cycle))} ${CURRENCY}/شهر` : ""}
+            </p>
+
+            {onSelect ? (
+              <button
+                onClick={() => onSelect(p.id)}
+                className={cn(
+                  "mt-6 inline-flex min-h-11 w-full items-center justify-center rounded-xl py-2.5 text-sm font-bold transition-colors",
+                  p.featured
+                    ? "bg-gold text-on-gold hover:bg-gold2"
+                    : "border border-line-gold text-ink hover:bg-gold/10"
+                )}
+              >
+                {selectLabel}
+              </button>
+            ) : (
+              <Link
+                to="/login?mode=signup"
+                className={cn(
+                  "mt-6 inline-flex min-h-11 w-full items-center justify-center rounded-xl py-2.5 text-center text-sm font-bold transition-colors",
+                  p.featured
+                    ? "bg-gold text-on-gold hover:bg-gold2"
+                    : "border border-line-gold text-ink hover:bg-gold/10"
+                )}
+              >
+                {selectLabel}
+              </Link>
+            )}
           </div>
-          <p className="mt-1 h-4 text-xs text-faint">
-            {yearly ? `يعادل ${formatPrice(effectiveMonthly(p, cycle))} ${CURRENCY}/شهر` : ""}
-          </p>
-          <ul className="mt-5 flex flex-1 flex-col gap-2.5">
+
+          <ul
+            className={cn(
+              "flex flex-1 flex-col gap-2.5",
+              solo ? "md:mt-0 md:grid md:grid-cols-2 md:gap-x-6" : "mt-5"
+            )}
+          >
             {p.features.map((f) => (
-              <li key={f} className="flex items-center gap-2 text-sm text-ink">
-                <span className="text-good">✓</span> {f}
+              <li key={f} className="flex items-start gap-2 text-sm text-ink">
+                <span className="mt-0.5 shrink-0 text-good">✓</span>
+                <span>{f}</span>
               </li>
             ))}
           </ul>
-          {onSelect ? (
-            <button
-              onClick={() => onSelect(p.id)}
-              className={cn(
-                "mt-6 inline-flex min-h-11 w-full items-center justify-center rounded-xl py-2.5 text-sm font-bold transition-colors",
-                p.featured
-                  ? "bg-gold text-on-gold hover:bg-gold2"
-                  : "border border-line-gold text-ink hover:bg-gold/10"
-              )}
-            >
-              {selectLabel}
-            </button>
-          ) : (
-            <Link
-              to="/login?mode=signup"
-              className={cn(
-                "mt-6 inline-flex min-h-11 w-full items-center justify-center rounded-xl py-2.5 text-center text-sm font-bold transition-colors",
-                p.featured
-                  ? "bg-gold text-on-gold hover:bg-gold2"
-                  : "border border-line-gold text-ink hover:bg-gold/10"
-              )}
-            >
-              {selectLabel}
-            </Link>
-          )}
         </Card>
       ))}
     </div>
