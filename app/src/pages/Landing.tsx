@@ -5,10 +5,13 @@
  * على مكتبة حركة: الحزمة الرئيسية تخدم **صفحة المنيو** التي تُفتح من كود QR على
  * بيانات جوال، فكل كيلوبايت يُضاف لتسويقنا يدفعه زبون التاجر.
  */
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
 import { Navbar, Footer } from "@/components/site";
 import { Badge, Card } from "@/components/ui";
+import { Reveal } from "@/components/landing/Reveal";
+import { LiveDemo } from "@/components/landing/LiveDemo";
+import { SwitchCost } from "@/components/landing/SwitchCost";
 import {
   CURRENCY,
   CURRENCY_CODE,
@@ -714,26 +717,8 @@ function ThemeRail({ value, onChange }: { value: string; onChange: (id: string) 
  * `delay` بالمللي ثانية لتتابع الأبناء: ظهور ثمانِ بطاقات دفعةً واحدة يبدو
  * وميضاً، وظهورها بفارق ٦٠ مللي يبدو ترتيباً مقصوداً.
  */
-function Reveal({
-  children,
-  delay = 0,
-  className,
-}: {
-  children: ReactNode;
-  delay?: number;
-  className?: string;
-}) {
-  const { ref, shown } = useReveal();
-  return (
-    <div
-      ref={ref}
-      className={cn("reveal", shown && "is-shown", className)}
-      style={shown ? { animationDelay: `${delay}ms` } : undefined}
-    >
-      {children}
-    </div>
-  );
-}
+/* استُخرج إلى `components/landing/Reveal.tsx` حين احتاجته أقسام في ملفّات
+   أخرى — نسخة واحدة كي لا يظهر قسمٌ بإيقاع وقسمٌ بآخر. */
 
 /** رقم يعدّ عند ظهوره — الأرقام الثابتة لا تُقرأ، والمتحرّكة تُلاحَظ. */
 function Stat({ to, suffix, label }: { to: number; suffix?: string; label: string }) {
@@ -1346,7 +1331,15 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* «جرّبه الآن» — الدليل الوحيد المتاح.
+          لا شهادات ولا شعارات ولا عدّاد مستخدمين: لا يوجد عميل واحد بعد،
+          وكل حساب في القاعدة يخصّ المالك. فالمنتج نفسه هو البرهان. */}
+      <LiveDemo theme={theme} />
+
       <ThemeStage />
+
+      {/* كلفة التحويل — الاعتراضان اللذان يمنعان الاشتراك، قبل السعر لا بعده. */}
+      <SwitchCost />
 
       {/* أرقام المنتج */}
       <section className="border-y border-line bg-panel/40">

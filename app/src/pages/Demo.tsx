@@ -230,20 +230,32 @@ export default function Demo() {
     ? { ...DEMO, menus: DEMO.menus.map((m) => ({ ...m, theme })) }
     : DEMO;
 
+  /**
+   * `?embed=1` — الديمو معروضاً داخل إطار جوّال في صفحة الهبوط.
+   *
+   * الشريط العلوي يشرح للزائر المستقلّ أن هذا عرض تجريبي ويعيده إلى التسجيل.
+   * وداخل الإطار **يصير ضجيجاً**: القسم المحيط يقول إنه ديمو أصلاً، والشريط
+   * يسرق ارتفاعاً من شاشة ضيّقة ويضع دعوةً ثانية تنافس دعوة الصفحة. فيُكبح،
+   * ويبقى المنيو وحده — وهو المقصود بالعرض.
+   */
+  const embedded = params.get("embed") === "1";
+
   return (
     <div className="relative">
-      {/* شريط علوي يوضّح أن هذا عرض تجريبي ويعيد الزائر إلى التسجيل. */}
-      <div className="sticky top-0 z-40 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 border-b border-line bg-panel/95 px-4 py-2 text-center backdrop-blur">
-        <span className="text-xs font-bold text-dim">
-          👋 هذا منيو تجريبي — جرّبه كما يراه زبونك تماماً.
-        </span>
-        <Link
-          to="/login?mode=signup"
-          className="inline-flex min-h-11 items-center text-xs font-black text-gold hover:underline"
-        >
-          أنشئ منيوك مجاناً →
-        </Link>
-      </div>
+      {!embedded && (
+        /* شريط علوي يوضّح أن هذا عرض تجريبي ويعيد الزائر إلى التسجيل. */
+        <div className="sticky top-0 z-40 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 border-b border-line bg-panel/95 px-4 py-2 text-center backdrop-blur">
+          <span className="text-xs font-bold text-dim">
+            👋 هذا منيو تجريبي — جرّبه كما يراه زبونك تماماً.
+          </span>
+          <Link
+            to="/login?mode=signup"
+            className="inline-flex min-h-11 items-center text-xs font-black text-gold hover:underline"
+          >
+            أنشئ منيوك مجاناً →
+          </Link>
+        </div>
+      )}
 
       <MenuPage demo={data} />
     </div>
