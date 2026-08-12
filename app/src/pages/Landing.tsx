@@ -831,7 +831,10 @@ function CardShowcase() {
  */
 const TRUST: { icon: IconName; label: string }[] = [
   { icon: "sparkle", label: "تجهيز في دقائق" },
-  { icon: "money", label: "مدى وApple Pay" },
+  // فاصل لا واو: «مدى وApple Pay» تضع واواً عربية ملاصقة لنصّ لاتيني، فتقذفها
+  // خوارزمية الاتجاه ثنائي الاتجاه إلى يسار العبارة — فتُقرأ «مدى Apple Payg»
+  // والواو تبدو حرفاً ملتصقاً بالكلمة. النقطة الوسطى محايدة اتجاهياً فتسلم.
+  { icon: "money", label: "مدى · Apple Pay" },
   { icon: "shield", label: "متوافق مع SFDA" },
 ];
 
