@@ -1,12 +1,24 @@
 /**
  * صلاحيات المستخدم.
  *
- * باقة واحدة تفتح كل المزايا، فالسؤال الوحيد هو: هل الاشتراك نشط؟
- * كل مزايا اللوحة متاحة للتجربة بلا اشتراك — ما يتوقّف بدونه هو **نشر** المنيو
- * للزبائن (انظر `isMenuPublished` في lib/data).
+ * ═══ ما تغيّر، ولماذا ═══
+ *
+ * كانت القاعدة: كل المزايا مفتوحة للجميع، وما يتوقّف بلا اشتراك هو **نشر**
+ * المنيو. أي أن المقابل كان **ظهور** التاجر أمام زبائنه.
+ *
+ * وهذا انقلب. السوق فيه منيو QR مجاني بأصناف غير محدودة وثنائي اللغة، فجدارٌ
+ * على المنيو نفسه لا يحمي إيراداً بل يمنع الدخول. والأخطر أن إطفاء منيو مطعم
+ * عامل فعلٌ رهينة تنتشر سمعته.
+ *
+ * فصار المقابل **الأدوات لا الظهور**: من لا اشتراك له يبقى منيوه يعمل للأبد
+ * (`FREE_LIMITS`)، ويفقد السلّة والدفع والولاء والكاشير والتحليلات وبطاقة
+ * الطباعة والـAPI.
+ *
+ * ⚠️ وعليه فقفل النشر (`enforce_publishing`) **لا يُشغَّل أبداً** — لم يعد
+ * احتياطاً مؤقّتاً بل صار تشغيله نقضاً لنموذج العمل نفسه.
  */
 import { getActiveSubscription } from "./data";
-import { PLAN, type PlanLimits } from "./plans";
+import { FREE_LIMITS, PLAN, type PlanLimits } from "./plans";
 
 export type Entitlements = PlanLimits & {
   planId: string;
@@ -24,10 +36,20 @@ export type Entitlements = PlanLimits & {
   loading: boolean;
 };
 
+/** اسم الطبقة المجانية كما يراه التاجر — مصدر واحد. */
+export const FREE_PLAN_NAME = "المنيو المجاني";
+
+/**
+ * الحالة الابتدائية **مجانية لا مدفوعة**.
+ *
+ * كانت تنسخ `PLAN.limits` (كل المزايا)، فيرى التاجر أثناء التحميل أدواتٍ
+ * مفتوحة ثم تُغلق أمامه حين تُحسم الصلاحيات — وميضُ صلاحية أسوأ من انتظار.
+ * والاتجاه الصحيح للسقوط هنا هو الأقلّ: لا نمنح ما لم يُدفع ثمنه.
+ */
 export const DEFAULT_ENTITLEMENTS: Entitlements = {
-  ...PLAN.limits,
-  planId: PLAN.id,
-  planName: PLAN.name,
+  ...FREE_LIMITS,
+  planId: "free",
+  planName: FREE_PLAN_NAME,
   active: false,
   trial: false,
   trialDaysLeft: 0,
@@ -39,7 +61,9 @@ export const DEFAULT_ENTITLEMENTS: Entitlements = {
  */
 export function planLabel(ent: Entitlements): string {
   if (ent.loading) return "…";
-  if (!ent.active) return "بدون اشتراك";
+  // «بدون اشتراك» كانت تصف نقصاً؛ والمجاني الآن **طبقة قائمة بذاتها** ومنيوه
+  // يعمل للأبد. الفرق ليس تجميلاً: التاجر يقرأ الأولى إنذاراً والثانية حالة.
+  if (!ent.active) return FREE_PLAN_NAME;
   if (ent.trial) {
     return ent.trialDaysLeft <= 1
       ? "التجربة تنتهي اليوم"
@@ -68,10 +92,11 @@ export async function fetchEntitlements(userId: string): Promise<Entitlements> {
   } catch {
     /* فشل القراءة ⇒ نفترض عدم الاشتراك (لا نمنح نشراً بالخطأ) */
   }
+  // الاشتراك النشط (أو التجربة) يفتح كل شيء؛ وبدونه تبقى الطبقة المجانية.
   return {
-    ...PLAN.limits,
-    planId: PLAN.id,
-    planName: PLAN.name,
+    ...(active ? PLAN.limits : FREE_LIMITS),
+    planId: active ? PLAN.id : "free",
+    planName: active ? PLAN.name : FREE_PLAN_NAME,
     active,
     trial,
     trialDaysLeft,

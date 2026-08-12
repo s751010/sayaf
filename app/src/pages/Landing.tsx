@@ -15,6 +15,7 @@ import { SwitchCost } from "@/components/landing/SwitchCost";
 import {
   CURRENCY,
   CURRENCY_CODE,
+  FREE_FEATURES,
   PLANS,
   effectiveMonthly,
   planPrice,
@@ -914,33 +915,53 @@ export function PricingCards({
   selectLabel?: string;
 }) {
   const yearly = cycle === "yearly";
-  // باقة واحدة تُعرض عرضاً كاملاً بعمودين، وأكثرُ منها شبكةً. الشبكة كانت
-  // `sm:grid-cols-2` **ثابتة** بينما `PLANS` طولها واحد — فكانت البطاقة تجلس
-  // في نصف الحاوية والنصف الآخر فراغ، في القسم الذي يقرّر عنده التاجر الدفع.
-  const solo = PLANS.length === 1;
+  // بطاقتان: المجانية أولاً — والترتيب مقصود. التاجر يقارننا بمنيو مجاني في
+  // السوق، فإخفاء مجانيّنا يجعله يقارن ٩٩ بصفر. وإظهاره أولاً وبثقة يجعله
+  // يقارن **أداةً بأداة**.
   return (
-    <div
-      className={cn(
-        "mx-auto grid gap-5",
-        solo ? "max-w-4xl" : "max-w-3xl sm:grid-cols-2"
-      )}
-    >
+    <div className="mx-auto grid max-w-5xl items-start gap-5 md:grid-cols-2">
+      {/* الطبقة المجانية — ليست باقة في `PLANS` بل حالة من لا اشتراك له،
+          ولهذا تُرسم هنا لا تُشتقّ من الكتالوج. التفصيل في `plans.ts`. */}
+      <Card className="anim-fade-up flex flex-col">
+        <h3 className="font-display text-xl font-extrabold text-ink">المنيو المجاني</h3>
+        <div className="mt-3 flex items-baseline gap-2">
+          <span className="font-display text-4xl font-black text-ink">مجاناً</span>
+          <span className="text-sm text-dim">للأبد</span>
+        </div>
+        <p className="mt-1 h-4 text-xs text-dim">بلا بطاقة ائتمان، وبلا مدّة تنتهي</p>
+
+        <Link
+          to="/login?mode=signup"
+          className="mt-6 inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-line-gold py-2.5 text-center text-sm font-bold text-ink transition-colors hover:bg-gold/10"
+        >
+          ابدأ مجاناً
+        </Link>
+
+        <ul className="mt-5 flex flex-1 flex-col gap-2.5">
+          {FREE_FEATURES.map((f) => (
+            <li key={f} className="flex items-start gap-2 text-sm text-ink">
+              <span className="mt-0.5 shrink-0 text-good">✓</span>
+              <span>{f}</span>
+            </li>
+          ))}
+        </ul>
+      </Card>
+
       {PLANS.map((p, i) => (
         <Card
           key={p.id}
           className={cn(
             "anim-fade-up relative flex flex-col",
-            solo && "gap-8 md:flex-row md:items-start",
             p.featured && "border-gold/40 bg-gold/[.04] shadow-[0_0_50px_-18px_var(--c-glow)]"
           )}
         >
-          {/* شارة «الأكثر اختياراً» تُعرض عند وجود ما يُقارَن به فقط —
-              وحدَها بلا باقة ثانية نصٌّ بلا معنى. */}
-          {p.featured && !solo && (
-            <Badge className="absolute -top-3 right-5">الأكثر اختياراً</Badge>
+          {/* الشارة تصف ما يشتريه التاجر لا شعبيّةً مُدّعاة: لا يوجد عميل
+              واحد بعد، و«الأكثر اختياراً» بلا عملاء ادّعاءٌ كاذب. */}
+          {p.featured && (
+            <Badge className="absolute -top-3 right-5">حين يجلب المنيو مالاً</Badge>
           )}
 
-          <div className={cn("flex flex-col", solo && "md:w-[15.5rem] md:shrink-0")}>
+          <div className="flex flex-col">
             <h3 className={cn("font-display text-xl font-extrabold text-ink", i === 0 && "mt-0")}>
               {p.name}
             </h3>
@@ -985,12 +1006,12 @@ export function PricingCards({
             )}
           </div>
 
-          <ul
-            className={cn(
-              "flex flex-1 flex-col gap-2.5",
-              solo ? "md:mt-0 md:grid md:grid-cols-2 md:gap-x-6" : "mt-5"
-            )}
-          >
+          {/* بلا هذا السطر تُقرأ القائمة بديلاً عن المجاني لا إضافةً عليه —
+              فيظنّ التاجر أن الاشتراك يُفقده ما كان يراه مجاناً. */}
+          <p className="mt-5 border-t border-line pt-4 text-sm font-bold text-ink">
+            كل ما في المجاني، وإضافةً إليه:
+          </p>
+          <ul className="mt-3 flex flex-1 flex-col gap-2.5">
             {p.features.map((f) => (
               <li key={f} className="flex items-start gap-2 text-sm text-ink">
                 <span className="mt-0.5 shrink-0 text-good">✓</span>
