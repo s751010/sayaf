@@ -941,7 +941,19 @@ export function PricingCards({
             <h3 className={cn("font-display text-xl font-extrabold text-ink", i === 0 && "mt-0")}>
               {p.name}
             </h3>
-            <div className="mt-3 flex items-baseline gap-2">
+            {/* السنوي **عرضٌ لا دورة فوترة**.
+                عرضُ «٥٩٩ سنوياً» وحده رقمٌ كبير يُقارَن بـ٥٩، فيبدو أغلى.
+                والمرساة هي ما يدفعه فعلاً لو بقي شهرياً — ٥٩×١٢ — مشطوبةً
+                بجانبه. بلا المرساة لا يوجد عرض، بل سعرٌ ثانٍ. */}
+            {yearly && (
+              <p className="mt-3 flex items-baseline gap-2 text-sm text-dim">
+                <span className="line-through decoration-2" dir="ltr">
+                  {formatPrice(p.monthly * 12)}
+                </span>
+                <span>{CURRENCY} لو بقيتَ شهرياً</span>
+              </p>
+            )}
+            <div className={cn("flex items-baseline gap-2", yearly ? "mt-1" : "mt-3")}>
               <span className="font-display text-5xl font-black text-gold" dir="ltr">
                 {formatPrice(planPrice(p, cycle))}
               </span>
@@ -951,8 +963,18 @@ export function PricingCards({
             </div>
             {/* `text-dim` لا `text-faint`: الأخير 3.76:1 على الداكن و2.58:1
                 على الفاتح — يسقط AA، وهذا سطر تسعير يُقرأ لا زخرفة. */}
-            <p className="mt-1 h-4 text-xs text-dim">
-              {yearly ? `يعادل ${formatPrice(effectiveMonthly(p, cycle))} ${CURRENCY} في الشهر` : ""}
+            <p className="mt-2 min-h-5 text-sm">
+              {yearly ? (
+                <span className="font-bold text-good">
+                  توفّر {formatPrice(p.monthly * 12 - p.yearly)} {CURRENCY} — أي{" "}
+                  {formatPrice(effectiveMonthly(p, cycle))} {CURRENCY} في الشهر
+                </span>
+              ) : (
+                <span className="text-dim">
+                  أو {formatPrice(p.yearly)} {CURRENCY} سنوياً ووفّر{" "}
+                  {formatPrice(p.monthly * 12 - p.yearly)}
+                </span>
+              )}
             </p>
 
             {/* المدخل: تجربة تنتهي لا باب مفتوح. وذكرُ «بلا بطاقة» هنا لا في
