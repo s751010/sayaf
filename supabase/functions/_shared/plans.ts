@@ -18,10 +18,15 @@
 
 export type Cycle = "monthly" | "yearly";
 
-const YEARLY_MONTHS = 11;
-
+/**
+ * ⚠️ السنوي **رقم صريح لا مشتقّ**.
+ *
+ * كان `monthly * 11`، فكان تغييرُ الشهري يحرّك السنوي بلا قرار. والسنوي الآن
+ * قرار تسعير مستقلّ (٥٩٩ ≈ ٥٠ شهرياً) — ولو بقي مشتقّاً لأعطى ٦٤٩، أي أن
+ * الخادم كان **سيحصّل مبلغاً غير الذي عُرض على التاجر**.
+ */
 export const PLAN_CATALOG = {
-  standard: { name: "كلاود منيو", monthly: 99 },
+  standard: { name: "كلاود منيو", monthly: 59, yearly: 599 },
 } as const;
 
 export type PlanId = keyof typeof PLAN_CATALOG;
@@ -40,8 +45,8 @@ export function planName(planId: PlanId): string {
 
 /** السعر القائم (قبل أي خصم) بالريال السعودي. */
 export function listPrice(planId: PlanId, cycle: Cycle): number {
-  const monthly = PLAN_CATALOG[planId].monthly;
-  return cycle === "yearly" ? monthly * YEARLY_MONTHS : monthly;
+  const plan = PLAN_CATALOG[planId];
+  return cycle === "yearly" ? plan.yearly : plan.monthly;
 }
 
 /** مدة الاشتراك بالأيام. */

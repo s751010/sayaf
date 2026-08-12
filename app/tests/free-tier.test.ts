@@ -1,9 +1,10 @@
 /**
- * الطبقة المجانية — حدودها، وأنها ليست باقة تُشترى.
+ * التسعير — الباقة الوحيدة، وحدود من لا اشتراك له.
  *
  * ═══ لماذا وُجد هذا الفحص ═══
  *
- * المجاني هنا **ليس باقة** بل حالة من لا اشتراك له. والإغراء الطبيعي لأي
+ * لا توجد طبقة مجانية تُسوَّق؛ المدخل تجربةٌ تنتهي. لكن من لا اشتراك له يبقى
+ * له منيوه، وهذه الحدود تصف ما يبقى. والإغراء الطبيعي لأي
  * مساهم لاحق أن «يُكمل الناقص» فيضيف `free` إلى `PLANS` أو إلى
  * `PLAN_CATALOG` في الخادم. وذاك يفتح سطحاً يُنشئ فواتير بصفر ريال —
  * وهو حرفياً الخلل الذي أُغلق حين حُذفت `premium` من كتالوج الخادم
@@ -16,7 +17,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { FREE_FEATURES, FREE_LIMITS, PLANS } from "@/lib/plans";
+import { FREE_LIMITS, PLANS } from "@/lib/plans";
 import { DEFAULT_ENTITLEMENTS } from "@/lib/entitlements";
 
 const shared = readFileSync(
@@ -35,15 +36,25 @@ describe("الطبقة المجانية ليست باقة تُباع", () => {
     expect(catalog).not.toMatch(/\bfree\b/);
   });
 
-  it("الباقة المدفوعة الوحيدة ما زالت standard بـ٩٩", () => {
+  it("الخادم يحمل نفس السنوي — وإلا حصّل غير ما عُرض", () => {
+    // السنوي لم يعد `monthly × 11`. لو بقي مشتقّاً في الخادم لأعطى ٦٤٩
+    // بينما تعرض الصفحة ٥٩٩ — أي فرقٌ يدفعه التاجر بلا أن يراه.
+    expect(shared).toMatch(/yearly\s*:\s*599\b/);
+    expect(shared).not.toMatch(/YEARLY_MONTHS/);
+  });
+
+  it("الباقة المدفوعة الوحيدة standard — ٥٩ شهرياً و٥٩٩ سنوياً", () => {
     // الثابت السادس: رقم الطلب في الويبهوك يُقرأ من المعرّف والسعر.
     expect(PLANS).toHaveLength(1);
     expect(PLANS[0].id).toBe("standard");
-    expect(PLANS[0].monthly).toBe(99);
+    expect(PLANS[0].monthly).toBe(59);
+    // السنوي رقم مستقلّ لا مشتقّ — لو عاد اشتقاقه من الشهري لأعطى ٦٤٩،
+    // أي مبلغاً غير الذي عُرض على التاجر.
+    expect(PLANS[0].yearly).toBe(599);
   });
 });
 
-describe("المنيو نفسه مجاني بلا سقف", () => {
+describe("من لا اشتراك له: المنيو يبقى بلا سقف", () => {
   it("لا حدّ على الأصناف ولا القوائم", () => {
     expect(FREE_LIMITS.maxDishes).toBeNull();
     expect(FREE_LIMITS.maxMenus).toBeNull();
@@ -71,13 +82,6 @@ describe("المنيو نفسه مجاني بلا سقف", () => {
     expect(FREE_LIMITS.onlinePayment).toBe(false);
   });
 
-  it("قائمة مزايا المجاني ليست فارغة ولا تعِد بأداة مدفوعة", () => {
-    expect(FREE_FEATURES.length).toBeGreaterThan(3);
-    const text = FREE_FEATURES.join(" ");
-    for (const paid of ["الولاء", "الكاشير", "تحليلات", "API"]) {
-      expect(text, `المجاني يعِد بأداة مدفوعة: ${paid}`).not.toContain(paid);
-    }
-  });
 });
 
 /**
@@ -92,12 +96,8 @@ describe("المنيو نفسه مجاني بلا سقف", () => {
  * يُحذف الفحص بقرار صريح، لا يمرّ الادّعاء سهواً.
  */
 describe("لا ادّعاء دفعٍ إلكتروني قبل تفعيله", () => {
-  const CLAIMS = ["Apple Pay", "مدى", "دفع إلكتروني", "الدفع الإلكتروني", "بلا عمولة على أي طلب"];
+  const CLAIMS = ["Apple Pay", "مدى", "دفع إلكتروني", "الدفع الإلكتروني"];
 
-  it("لا في مزايا المجاني", () => {
-    const text = FREE_FEATURES.join(" ");
-    for (const c of CLAIMS) expect(text, `ادّعاء دفع: ${c}`).not.toContain(c);
-  });
 
   it("ولا في مزايا الباقة المدفوعة", () => {
     const text = PLANS.flatMap((p) => p.features).join(" ");
