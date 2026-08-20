@@ -150,3 +150,60 @@ create policy subscriptions_insert on public.subscriptions
 
 grant execute on function public.is_menu_published(text)     to anon, authenticated;
 grant execute on function public.increment_dish_views(uuid)  to anon, authenticated;
+
+
+-- ═══ (ج) مدّة التجربة: مصدر واحد ═══════════════════════════════════
+--
+-- كانت المدّة في مكانين لا يعرف أحدهما الآخر: `TRIAL_DAYS = 3` في الواجهة
+-- تحسب `end_date` وترسله، و`guard_client_subscription` يقبل أي قيمة حتى
+-- ١٥ يوماً. فمن يعدّل جسم الطلب يأخذ **خمسة أضعاف** ما تبيعه المنصّة، ومن
+-- يرفع الثابت في الواجهة فوق ١٥ يكسر التسجيل بصمت.
+--
+-- الحلّ ليس تشديد الحدّ بل **نزع القرار من العميل**: القاعدة تحسب `end_date`
+-- بنفسها وتتجاهل ما يصل. فلا حدّ يُتجاوز ولا ثابتان يتباعدان.
+--
+-- المدّة في `site_settings.billing.trial_days` ليغيّرها المؤسّس من لوحته بلا
+-- هجرة ولا نشر، مقصوصة بين يوم و٣٠ يوماً.
+create or replace function public.trial_days()
+returns integer
+language sql stable security definer set search_path to 'public'
+as $$
+  select least(30, greatest(1, coalesce(
+    (select (value ->> 'trial_days')::int
+       from public.site_settings where key = 'billing'), 3)))
+$$;
+revoke all on function public.trial_days() from public;
+grant execute on function public.trial_days() to anon, authenticated;
+
+create or replace function public.guard_client_subscription()
+returns trigger
+language plpgsql security definer set search_path to 'public'
+as $$
+begin
+  if auth.uid() is null or public.is_founder() then
+    return new;  -- الويبهوك بمفتاح الخدمة، والمؤسس
+  end if;
+
+  if new.user_id is distinct from auth.uid() then
+    raise exception 'لا يمكن إنشاء اشتراك لمستخدم آخر';
+  end if;
+  if coalesce(new.plan_id, '') <> 'trial' then
+    raise exception 'الاشتراك المدفوع يُنشأ من بوابة الدفع فقط';
+  end if;
+  if exists (select 1 from public.subscriptions
+              where user_id = new.user_id and plan_id = 'trial') then
+    raise exception 'استُخدمت التجربة المجانية مسبقاً';
+  end if;
+
+  -- ⬇️ تُفرض هنا ولا تُقرأ من الطلب إطلاقاً.
+  new.start_date := now();
+  new.end_date   := now() + (public.trial_days() || ' days')::interval;
+  new.active     := true;
+  return new;
+end;
+$$;
+
+-- مُتحقَّق حيّاً بمستخدم حقيقي:
+--   • طلب `plan_id:"standard"` من المتصفح  → مرفوض.
+--   • طلب `trial` بـ`end_date` بعد ٣٦٥ يوماً → قُبل، ونزل الصفّ بـ**٣ أيام**.
+--   • طلب تجربة ثانية                        → مرفوض.

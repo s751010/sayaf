@@ -29,7 +29,7 @@ import { CARD_LAYOUT_COUNT, PRINT_DPI, THEME_COUNT } from "@/lib/facts";
 import { PATTERN_SIZE, patternImage } from "@/lib/patterns";
 import { loadThemeFont } from "@/lib/fonts";
 import { absoluteUrl, useJsonLd, useSeo } from "@/lib/seo";
-import { TRIAL_DAYS } from "@/lib/data";
+import { TRIAL_DAYS, trialDays } from "@/lib/data";
 
 /* ── معاينة هاتف حيّة (عرض تسويقي ثابت) ────────────────────────────── */
 const DEMO_DISHES = [
@@ -907,6 +907,34 @@ const FAQS = [
   { q: "هل هناك باقات متعددة؟", a: `لا — باقة واحدة بـ${PLAN.monthly} ر.س شهرياً تفتح كل شيء بلا حدود: قوائم وأصناف غير محدودة، طلبات واتساب، ثنائي اللغة، بطاقة ولاء، تحليلات، وبطاقة كاشير للطباعة. أو ${PLAN.yearly} ر.س سنوياً — أي ما يعادل ${effectiveMonthly(PLAN, "yearly")} ر.س في الشهر.` },
 ];
 
+/**
+ * مدّة التجربة كما تفرضها القاعدة لا كما يظنّها العميل.
+ *
+ * القيمة الحقيقية في `site_settings.billing.trial_days`، ويقرأها التريجر
+ * نفسه. فتغييرها من لوحة المؤسّس يغيّر ما يُمنح **وما يُعرض** معاً — ولا
+ * يبقى رقمٌ في الواجهة يَعِد بما لا تعطيه القاعدة.
+ * `TRIAL_DAYS` هو رسمة أولى فقط حتى تصل الإعدادات.
+ */
+function useTrialDays(): number {
+  const [days, setDays] = useState(TRIAL_DAYS);
+  useEffect(() => {
+    let alive = true;
+    trialDays().then((n) => alive && setDays(n));
+    return () => {
+      alive = false;
+    };
+  }, []);
+  return days;
+}
+
+/** تمييز العدد في العربية: يوم · يومان · ٣–١٠ أيام · ١١+ يوماً. */
+function daysLabel(n: number): string {
+  if (n === 1) return "يوماً واحداً";
+  if (n === 2) return "يومين";
+  if (n <= 10) return `${n} أيام`;
+  return `${n} يوماً`;
+}
+
 export function PricingCards({
   cycle,
   onSelect,
@@ -917,6 +945,7 @@ export function PricingCards({
   selectLabel?: string;
 }) {
   const yearly = cycle === "yearly";
+  const days = useTrialDays();
   // بطاقة واحدة بعمودين — لا طبقة مجانية دائمة. القرار تجاري: مجانيٌّ دائم
   // بلا تمويل يمنح المنتج ولا يجلب إيراداً، والتاجر الذي لا يدفع أبداً لا
   // يصير عميلاً أبداً. المدخل تجربة تنتهي، لا بابٌ مفتوح.
@@ -980,7 +1009,7 @@ export function PricingCards({
             {/* المدخل: تجربة تنتهي لا باب مفتوح. وذكرُ «بلا بطاقة» هنا لا في
                 الأسئلة — لأنه الاعتراض الذي يوقف الضغطة، لا الذي يُبحث عنه. */}
             <p className="mt-4 rounded-xl border border-line-gold bg-gold/[.06] px-3 py-2.5 text-center text-sm font-bold text-ink">
-              جرّبه {TRIAL_DAYS} أيام مجاناً — بلا بطاقة
+              جرّبه {daysLabel(days)} مجاناً — بلا بطاقة
             </p>
 
             {onSelect ? (
