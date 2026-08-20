@@ -13,6 +13,8 @@
  * بدل أن يتنقّل بين ثلاث صفحات.
  */
 import { useEffect, useState } from "react";
+import { uploadImage } from "@/lib/api";
+import { renderOgImage } from "@/lib/ogImage";
 import {
   Button,
   Card,
@@ -101,6 +103,7 @@ export default function Design() {
   const [banner, setBanner] = useState(restaurant.banner_image ?? "");
   const [season, setSeason] = useState(restaurant.season ?? "");
   const [savingBrand, setSavingBrand] = useState(false);
+  const [makingOg, setMakingOg] = useState(false);
   const brandDirty =
     logo !== (restaurant.logo_image ?? "") || banner !== (restaurant.banner_image ?? "");
   const seasonDirty = season !== (restaurant.season ?? "");
@@ -323,6 +326,53 @@ export default function Design() {
               shape="wide"
             />
           </div>
+          {/* ── صورة المشاركة ───────────────────────────────────────────
+              ⚠️ **١٧ من ١٩ مطعماً بلا بانر**، وبطاقة المشاركة تسقط عندها إلى
+              صورة عامّة واحدة نفسها للجميع — فرابط المنيو على واتساب يبدو
+              مجهولاً. وتوليدها على الحافة غير ممكن عملياً: واتساب وفيسبوك لا
+              يعرضان SVG، وتحويله PNG هناك وزنٌ ومخاطرة. فتُولَّد هنا مرّة
+              واحدة وتُرفع كصورة غلاف حقيقية. */}
+          {!banner.trim() && (
+            <div className="mt-4 rounded-xl border border-gold/30 bg-gold/[.05] p-3.5">
+              <p className="text-sm font-bold text-ink">
+                ✨ ما عندك صورة غلاف — ولّدها بضغطة
+              </p>
+              <p className="mt-1 text-xs leading-relaxed text-faint">
+                نصنع بطاقة أنيقة باسم مطعمك ولون علامتك، تظهر حين يُشارَك رابط
+                منيوك على واتساب. تقدر تستبدلها بصورتك في أي وقت.
+              </p>
+              <Button
+                className="mt-3"
+                variant="outline"
+                disabled={makingOg}
+                onClick={async () => {
+                  setMakingOg(true);
+                  try {
+                    const blob = await renderOgImage({
+                      name: restaurant.name,
+                      accent: restaurant.cover_color || "#d4a843",
+                      logo: restaurant.logo,
+                      type: restaurant.type,
+                    });
+                    const url = await uploadImage(
+                      "restaurant-images",
+                      `${restaurant.id}/banner/og-${Date.now()}.png`,
+                      blob
+                    );
+                    setBanner(url);
+                    await saveFields({ banner_image: url }, "وُلّدت صورة المشاركة ✓");
+                  } catch {
+                    toast("تعذّر توليد الصورة.", "err");
+                  } finally {
+                    setMakingOg(false);
+                  }
+                }}
+              >
+                {makingOg ? "جارٍ التوليد…" : "ولّد صورة المشاركة"}
+              </Button>
+            </div>
+          )}
+
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <Button
               disabled={savingBrand || !brandDirty}

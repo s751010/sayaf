@@ -18,6 +18,7 @@ import { K, getJSON, removeItem, setJSON } from "@/lib/storage";
 import { formatPrice, whatsappUrl } from "@/lib/utils";
 import type { Dish } from "@/lib/types";
 import { Icon } from "@/lib/icons";
+import { DishArtwork } from "./DishArtwork";
 
 const mFont: CSSProperties = { fontFamily: "var(--m-font)" };
 
@@ -510,15 +511,15 @@ export function CartReview({
                 style={{ borderRadius: "calc(var(--m-radius) * 0.7)" }}
               />
             ) : (
-              <span
-                className="flex h-14 w-14 shrink-0 items-center justify-center text-2xl"
-                style={{
-                  background: "var(--m-bg-2)",
-                  borderRadius: "calc(var(--m-radius) * 0.7)",
-                }}
-              >
-                {r.dish?.emoji || "🍽️"}
-              </span>
+              // نفس الصورة المولَّدة التي في المنيو: الزبون يرى ما رآه هناك،
+              // فلا تنقلب البطاقة إلى مربّع رمادي عند المراجعة.
+              <DishArtwork
+                name={r.dish?.name ?? ""}
+                emoji={r.dish?.emoji}
+                glyphSize={24}
+                className="h-14 w-14 shrink-0"
+                style={{ borderRadius: "calc(var(--m-radius) * 0.7)" }}
+              />
             )}
 
             <div className="min-w-0 flex-1">

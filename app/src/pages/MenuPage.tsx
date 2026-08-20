@@ -62,7 +62,7 @@ import { getSeason } from "@/lib/seasons";
 import { installPixels } from "@/lib/pixels";
 import { loadSession } from "@/lib/session";
 import { getBillingSettings } from "@/lib/billing";
-import { absoluteUrl, useJsonLd, useSeo } from "@/lib/seo";
+import { absoluteUrl, dietOf, priceRangeOf, schemaHours, useJsonLd, useSeo } from "@/lib/seo";
 import { K, getItem, getJSON, setItem, setJSON } from "@/lib/storage";
 import { categoryId, cn, formatPrice, httpUrl, whatsappUrl } from "@/lib/utils";
 import type { Dish, LoyaltyCustomer, Menu, Restaurant } from "@/lib/types";
@@ -867,6 +867,39 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
             : undefined,
           // العملة صريحة: رقمٌ بلا عملة لا يُقرأ سعراً.
           currenciesAccepted: "SAR",
+          /**
+           * ساعات العمل — تُظهر «مفتوح الآن / يغلق ١١ م» في نتيجة قوقل، وهي
+           * أكثر ما يبحث عنه من يقرّر أين يأكل الآن. الصيغة `Sa 08:00-23:00`
+           * هي ما يفهمه schema.org، ونبنيها من نفس الجدول الذي تعرضه الترويسة.
+           */
+          openingHours: schemaHours(seoRestaurant.working_hours),
+          /**
+           * نطاق السعر من الأسعار الحقيقية لا تخميناً: علامات الريال في نتيجة
+           * البحث إشارةٌ يقرؤها الباحث قبل أن يفتح الرابط.
+           */
+          priceRange: priceRangeOf(state.dishes),
+          /**
+           * ⚠️ يُبثّ **فقط** لمن فتح الطلب فعلاً. إعلان قدرة طلبٍ لا وجود لها
+           * يجعل قوقل يعرض زرّاً يقود إلى صفحة بلا سلّة — وعدٌ لا يُوفى أسوأ
+           * من غيابه.
+           */
+          potentialAction:
+            state.restaurant.online_payment_enabled === true &&
+            state.restaurant.accepting_orders !== false
+              ? {
+                  "@type": "OrderAction",
+                  target: {
+                    "@type": "EntryPoint",
+                    urlTemplate: absoluteUrl(`/${slug ?? ""}`),
+                    inLanguage: "ar",
+                    actionPlatform: [
+                      "http://schema.org/DesktopWebPlatform",
+                      "http://schema.org/MobileWebPlatform",
+                    ],
+                  },
+                  deliveryMethod: "http://purl.org/goodrelations/v1#PickUp",
+                }
+              : undefined,
           hasMenu: {
             "@type": "Menu",
             name: state.menus[0]?.name || "المنيو",
@@ -884,7 +917,17 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
                 "@type": "MenuItem",
                 name: d.name,
                 description: d.description || undefined,
-                offers: { "@type": "Offer", price: d.price, priceCurrency: "SAR" },
+                offers: {
+                  "@type": "Offer",
+                  price: d.price,
+                  priceCurrency: "SAR",
+                  // صنفٌ نفد يُعلَن نافداً: قوقل يخفيه بدل أن يرسل باحثاً إليه.
+                  availability:
+                    d.available === false
+                      ? "https://schema.org/OutOfStock"
+                      : "https://schema.org/InStock",
+                },
+                suitableForDiet: dietOf(d),
                 nutrition:
                   d.calories != null
                     ? { "@type": "NutritionInformation", calories: `${d.calories} calories` }

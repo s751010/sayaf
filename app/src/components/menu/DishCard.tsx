@@ -16,7 +16,8 @@ import { displayAllergens } from "@/lib/allergens";
 import type { ImageShape, MenuDesign, PriceStyle } from "@/lib/themes";
 import type { Dish } from "@/lib/types";
 import { cn, formatPrice } from "@/lib/utils";
-import { DishGlyph, Icon } from "@/lib/icons";
+import { Icon } from "@/lib/icons";
+import { DishArtwork } from "./DishArtwork";
 
 const mFont: CSSProperties = { fontFamily: "var(--m-font)" };
 
@@ -184,14 +185,32 @@ export function DishCard({
         )}
         style={{ borderColor: "var(--m-border)" }}
       >
-        {hasImage && (
+        {/* ⚠️ كان `hasImage &&` وحده: طبقٌ بلا صورة لا يرسم شيئاً، فيبدو الصفّ
+            ناقصاً لا بسيطاً. والواقع أن ١٥ من ٢١ طبقاً بلا صورة. */}
+        {hasImage ? (
           <SafeImage
             src={dish.image}
             alt={name(dish, en)}
             className="h-16 w-16 shrink-0 object-cover"
             wrapperClassName="h-16 w-16 shrink-0"
             style={{ borderRadius: radius, background: "var(--m-bg-2)" } as CSSProperties}
-            fallback={<span />}
+            fallback={
+              <DishArtwork
+                name={dish.name}
+                emoji={dish.emoji}
+                glyphSize={26}
+                className="h-16 w-16 shrink-0"
+                style={{ borderRadius: radius }}
+              />
+            }
+          />
+        ) : (
+          <DishArtwork
+            name={dish.name}
+            emoji={dish.emoji}
+            glyphSize={26}
+            className="h-16 w-16 shrink-0"
+            style={{ borderRadius: radius }}
           />
         )}
         <span className="min-w-0 flex-1">
@@ -256,12 +275,12 @@ export function DishCard({
           wrapperClassName="aspect-[16/10] w-full text-6xl"
           style={{ background: "var(--m-bg-2)" } as CSSProperties}
           fallback={
-            <div
-              className="flex aspect-[16/10] w-full items-center justify-center text-6xl"
-              style={{ background: "var(--m-bg-2)" } as CSSProperties}
-            >
-              <DishGlyph value={dish.emoji} size={28} />
-            </div>
+            <DishArtwork
+              name={dish.name}
+              emoji={dish.emoji}
+              glyphSize={44}
+              className="aspect-[16/10] w-full"
+            />
           }
         />
         <div className="flex flex-1 flex-col gap-1.5 p-4">
@@ -309,12 +328,13 @@ export function DishCard({
           wrapperClassName="aspect-square w-full text-5xl"
           style={{ background: "var(--m-bg-2)", borderRadius: radius } as CSSProperties}
           fallback={
-            <div
-              className="flex aspect-square w-full items-center justify-center text-5xl"
-              style={{ background: "var(--m-bg-2)", borderRadius: radius } as CSSProperties}
-            >
-              <DishGlyph value={dish.emoji} size={28} />
-            </div>
+            <DishArtwork
+              name={dish.name}
+              emoji={dish.emoji}
+              glyphSize={38}
+              className="aspect-square w-full"
+              style={{ borderRadius: radius } as CSSProperties}
+            />
           }
         />
       </div>

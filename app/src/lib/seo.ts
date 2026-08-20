@@ -26,6 +26,7 @@
  */
 import { useEffect } from "react";
 import { SITE_NAME, SITE_URL } from "./config";
+import { parseWeek } from "./hours";
 
 const BASE = SITE_URL.replace(/\/+$/, "");
 
@@ -213,3 +214,68 @@ export const ORGANIZATION = {
   url: BASE,
   logo: absoluteUrl("/icon-512.png"),
 };
+
+/* ── مساعدات مخطّط المطعم ────────────────────────────────────────────── */
+
+/** أحرف اليوم كما يفهمها schema.org — مرتّبة كترتيب `DAYS` في `lib/hours.ts`. */
+const SCHEMA_DAY: Record<string, string> = {
+  sat: "Sa",
+  sun: "Su",
+  mon: "Mo",
+  tue: "Tu",
+  wed: "We",
+  thu: "Th",
+  fri: "Fr",
+};
+
+/**
+ * ساعات العمل بصيغة schema.org (`Sa 08:00-23:00`).
+ *
+ * ⚠️ **الأيام المغلقة تُحذف لا تُصفَّر**: `Fr 00:00-00:00` يقرؤه قوقل «مفتوح
+ * لحظةً» لا «مغلق»، فيعرض «مفتوح الآن» ليوم إجازة المطعم.
+ *
+ * ويعود `undefined` إن لم يكن هناك يوم مفتوح واحد — و`prune` يحذف الحقل، فلا
+ * يخرج مخطّط بمصفوفة فارغة.
+ */
+export function schemaHours(raw: string | null | undefined): string[] | undefined {
+  const week = parseWeek(raw);
+  if (!week) return undefined;
+  const lines = (Object.keys(SCHEMA_DAY) as (keyof typeof SCHEMA_DAY)[])
+    .map((id) => {
+      const day = week[id as keyof typeof week];
+      if (!day?.open || !day.from || !day.to) return null;
+      return `${SCHEMA_DAY[id]} ${day.from}-${day.to}`;
+    })
+    .filter((v): v is string => v !== null);
+  return lines.length ? lines : undefined;
+}
+
+/**
+ * نطاق السعر من الأسعار الحقيقية.
+ *
+ * علامات الريال في نتيجة البحث إشارةٌ يقرؤها الباحث قبل أن يفتح الرابط —
+ * والعتبات مقيسة على السوق السعودي لا منقولة عن دليل أمريكي.
+ */
+export function priceRangeOf(dishes: { price: number | null }[]): string | undefined {
+  const prices = dishes.map((d) => Number(d.price ?? 0)).filter((p) => p > 0);
+  if (prices.length === 0) return undefined;
+  const avg = prices.reduce((s, p) => s + p, 0) / prices.length;
+  if (avg < 25) return "﷼";
+  if (avg < 60) return "﷼﷼";
+  if (avg < 120) return "﷼﷼﷼";
+  return "﷼﷼﷼﷼";
+}
+
+/**
+ * الحمية المناسبة من مسبّبات الحساسية المسجّلة.
+ *
+ * ⚠️ **استنتاج محافظ**: طبقٌ **بلا** قائمة حساسية لا يُعلَن خالياً من الغلوتين
+ * — غيابُ البيانات ليس إثباتاً. فلا نبثّ شيئاً إلا لطبق سجّل التاجر حساسياته
+ * فعلاً، لأن ادّعاءً خاطئاً هنا يصل مصاباً بحساسية القمح.
+ */
+export function dietOf(dish: { allergens: string[] | null }): string | undefined {
+  const list = dish.allergens;
+  if (!Array.isArray(list) || list.length === 0) return undefined;
+  if (!list.includes("gluten")) return "https://schema.org/GlutenFreeDiet";
+  return undefined;
+}
