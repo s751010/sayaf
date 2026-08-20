@@ -33,6 +33,8 @@ export type PatternId =
   | "crescent"
   | "qatt"
   | "najma"
+  | "mawj"
+  | "hasir"
   | "none";
 
 /**
@@ -234,6 +236,52 @@ function crescent(color: string, opacity: number): string {
   );
 }
 
+/**
+ * الموج المتداخل — أقواس متراكبة على نسق «سيغايها» البحري القديم.
+ *
+ * **إنشاء أصلي** بأشكال هندسية بسيطة: البنية (أنصاف دوائر متحدة المركز
+ * تتراكب صفوفاً بإزاحة نصف بلاطة) نمط بحري قديم مِلكيةٌ عامة بقِدَمه،
+ * والمسارات هنا كُتبت من الصفر. لا تعبئة ولا حجب: خطوط فقط بشفافية منخفضة،
+ * فالتراكب يقرأ نسيجاً لا فوضى.
+ */
+function mawj(color: string, opacity: number): string {
+  const fan = (cx: number, cy: number) =>
+    [12, 8, 4]
+      .map((r) => `<path d='M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}'/>`)
+      .join("");
+  return wrap(
+    48,
+    `<g fill='none' stroke='${color}' stroke-opacity='${opacity}' stroke-width='1.3'>
+      ${fan(12, 24)} ${fan(36, 24)}
+      ${fan(0, 12)} ${fan(24, 12)} ${fan(48, 12)}
+      ${fan(12, 0)} ${fan(36, 0)}
+      ${fan(0, 36)} ${fan(24, 36)} ${fan(48, 36)}
+      ${fan(12, 48)} ${fan(36, 48)}
+     </g>`
+  );
+}
+
+/**
+ * الحصير — نسج سعف النخيل: أشرطة أفقية ورأسية تتعاقب كتلاً كرقعة النسّاج.
+ *
+ * **إنشاء أصلي**: نسج السلّة (basketweave) بنية هندسية أقدم من أي حقّ،
+ * والتنفيذ هنا من الصفر — كتلتان أفقيتان وكتلتان رأسيتان في بلاطة ٤٠×٤٠،
+ * كل كتلة ثلاثة أشرطة، فيقرأ العين التعاقب نسيجَ حصيرٍ لا شبكة.
+ */
+function hasir(color: string, opacity: number): string {
+  const hBars = (x: number, y: number) =>
+    [0, 7, 14].map((dy) => `<rect x='${x}' y='${y + dy}' width='18' height='4'/>`).join("");
+  const vBars = (x: number, y: number) =>
+    [0, 7, 14].map((dx) => `<rect x='${x + dx}' y='${y}' width='4' height='18'/>`).join("");
+  return wrap(
+    40,
+    `<g fill='${color}' fill-opacity='${opacity}'>
+      ${hBars(1, 1)} ${vBars(21, 1)}
+      ${vBars(1, 21)} ${hBars(21, 21)}
+     </g>`
+  );
+}
+
 const BUILDERS: Record<Exclude<PatternId, "none">, (c: string, o: number) => string> = {
   sadu,
   mashrabiya,
@@ -242,6 +290,8 @@ const BUILDERS: Record<Exclude<PatternId, "none">, (c: string, o: number) => str
   crescent,
   qatt,
   najma,
+  mawj,
+  hasir,
 };
 
 /**
@@ -262,6 +312,8 @@ export const PATTERN_SIZE: Record<PatternId, string> = {
   crescent: "72px 72px",
   qatt: "56px 56px",
   najma: "64px 64px",
+  mawj: "48px 48px",
+  hasir: "44px 44px",
   none: "auto",
 };
 
@@ -281,5 +333,7 @@ export const PATTERN_MM: Record<PatternId, number> = {
   crescent: 16,
   qatt: 11,
   najma: 14,
+  mawj: 10,
+  hasir: 9,
   none: 0,
 };

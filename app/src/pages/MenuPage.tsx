@@ -14,6 +14,7 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import { Logo } from "@/components/site";
 import { SafeImage, Skeleton } from "@/components/ui";
 import { MenuHeader } from "@/components/menu/MenuHeader";
+import { DishArtwork } from "@/components/menu/DishArtwork";
 import { DishCard, type CardReserve } from "@/components/menu/DishCard";
 import { DishOfTheDay } from "@/components/menu/DishOfTheDay";
 import {
@@ -74,7 +75,7 @@ import { absoluteUrl, dietOf, priceRangeOf, schemaHours, useJsonLd, useSeo } fro
 import { K, getItem, getJSON, setItem, setJSON } from "@/lib/storage";
 import { categoryId, cn, formatPrice, httpUrl, whatsappUrl } from "@/lib/utils";
 import type { Dish, LoyaltyCustomer, Menu, Restaurant } from "@/lib/types";
-import { DishGlyph, Icon, type IconName } from "@/lib/icons";
+import { Icon, type IconName } from "@/lib/icons";
 import { menuUrl, slugFromRequest } from "@/lib/menuUrl";
 
 /* ── أدوات عرض صغيرة ──────────────────────────────────────────────── */
@@ -260,11 +261,14 @@ function DishModal({
   dish,
   en,
   cart,
+  popular = false,
   onClose,
 }: {
   dish: Dish;
   en: boolean;
   cart: Cart | null;
+  /** ضمن الأكثر طلباً فعلياً — تُمرَّر من نفس مصدر شارة البطاقة. */
+  popular?: boolean;
   onClose: () => void;
 }) {
   const [picked, setPicked] = useState<string[]>([]);
@@ -299,7 +303,7 @@ function DishModal({
         role="dialog"
         aria-modal="true"
         onClick={(e) => e.stopPropagation()}
-        className="anim-fade-up max-h-[92dvh] w-full max-w-lg overflow-y-auto border"
+        className="anim-fade-up relative max-h-[92dvh] w-full max-w-lg overflow-y-auto border"
         style={{
           background: "var(--m-bg-2)",
           borderColor: "var(--m-border)",
@@ -311,18 +315,33 @@ function DishModal({
           alt=""
           className="h-56 w-full object-cover"
           fallback={
-            <div
-              className="flex h-44 w-full items-center justify-center text-7xl"
-              style={{ background: "var(--m-bg)" } as CSSProperties}
-            >
-              <DishGlyph value={dish.emoji} size={30} />
-            </div>
+            <DishArtwork name={dish.name} emoji={dish.emoji} glyphSize={48} className="h-44 w-full" />
           }
         />
+
+        {/* ⚠️ زرّ إغلاق ظاهر: كان الإغلاق بالنقر خارج النافذة أو Escape —
+            و**لا Escape على الجوال**، والنقر خارجها ليس بديهياً لكل زبون.
+            نافذة بلا مخرج مرئي تحبس من لا يعرف العُرف. */}
+        <button
+          onClick={onClose}
+          aria-label={en ? "Close" : "إغلاق"}
+          className="absolute end-3 top-3 flex h-10 w-10 items-center justify-center rounded-full text-sm font-black shadow-md"
+          style={{ background: "var(--m-bg-2)", color: "var(--m-text)" }}
+        >
+          ✕
+        </button>
         <div className="p-5">
           <div className="flex items-start justify-between gap-3">
             <h3 className="text-xl font-black" style={{ color: "var(--m-text)", ...mFont }}>
               {dishName(dish, en)}
+              {popular && (
+                <span
+                  className="ms-2 inline-flex translate-y-[-2px] items-center gap-1 rounded-full px-2 py-0.5 align-middle text-[10px] font-black"
+                  style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}
+                >
+                  🔥 {en ? "Popular" : "الأكثر طلباً"}
+                </span>
+              )}
             </h3>
             <span className="shrink-0 text-lg font-black" style={{ color: "var(--m-accent)" }}>
               {formatPrice(dish.price ?? 0)} ر.س
@@ -1817,6 +1836,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
           dish={openDish}
           en={en}
           cart={cartOn ? cart : null}
+          popular={popularIds.has(openDish.id)}
           onClose={() => setOpenDish(null)}
         />
       )}

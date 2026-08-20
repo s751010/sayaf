@@ -640,6 +640,61 @@ const CLASSIC_THEMES: MenuTheme[] = [
     },
     design: design({ layout: "list", density: "airy", imageShape: "square", divider: "rule", depth: "flat", sheen: "none", entrance: "fade", edge: "hairline" }),
   },
+  {
+    id: "bahri",
+    name: "بحري",
+    tagline: "رملي فاتح وموجٌ متداخل بأزرق الخليج — للمأكولات البحرية",
+    vars: {
+      "--m-bg": "#f7f4ee",
+      "--m-bg-2": "#eee9df",
+      "--m-surface": "#fdfcf9",
+      "--m-text": "#1a2530",
+      "--m-muted": "#5f6f7c",
+      // أزرق خليجي عميق: تباينه مع الأرضية ≈ 6.9:1 — فوق حدّ AA بوضوح.
+      "--m-accent": "#155e75",
+      "--m-accent-2": "#7fb2c4",
+      "--m-on-accent": "#ffffff",
+      "--m-border": "rgba(26,37,48,.10)",
+      "--m-font": FONT.tajawal,
+      "--m-radius": "0.9rem",
+    },
+    design: design({
+      pattern: "mawj",
+      patternOpacity: 0.06,
+      header: "band",
+      imageShape: "rounded",
+      density: "airy",
+      depth: "raised", sheen: "silk", entrance: "rise", edge: "hairline",
+    }),
+  },
+  {
+    id: "majlis",
+    name: "مجلس",
+    tagline: "بُنّي دافئ ونسيج حصير بلمسة نحاسية — دفء الديوانية",
+    vars: {
+      "--m-bg": "#211913",
+      "--m-bg-2": "#2b211a",
+      "--m-surface": "#2f251d",
+      "--m-text": "#f3e9dc",
+      "--m-muted": "#b3a394",
+      // نحاسي دافئ: تباينه مع الأرضية الداكنة ≈ 6.4:1، والنص فوقه غامق.
+      "--m-accent": "#cf9445",
+      "--m-accent-2": "#8a6b45",
+      "--m-on-accent": "#211913",
+      "--m-border": "rgba(243,233,220,.12)",
+      "--m-font": FONT.reem,
+      "--m-radius": "0.8rem",
+    },
+    design: design({
+      pattern: "hasir",
+      patternOpacity: 0.05,
+      header: "arch",
+      heading: "ornament",
+      imageShape: "rounded",
+      priceStyle: "badge",
+      depth: "raised", sheen: "gold", entrance: "fade", edge: "plain",
+    }),
+  },
 ];
 
 export const THEMES: MenuTheme[] = CLASSIC_THEMES;

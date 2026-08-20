@@ -148,6 +148,17 @@ body {
   animation: float-y 5s ease-in-out infinite;
 }
 
+/* نبضة شريط السلة عند تغيّر العدد: الزبون يضيف طبقاً من أعلى الصفحة
+   والشريط في أسفلها — النبضة هي إيصال الاستلام البصري. */
+@keyframes cart-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.045); }
+  100% { transform: scale(1); }
+}
+.anim-cart-pop {
+  animation: cart-pop 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 /* هيكل تحميل (skeleton) */
 .skeleton {
   border-radius: 0.75rem;

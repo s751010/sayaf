@@ -11,7 +11,7 @@
  * (هذا الملف ودالة الحافة) يحلّلان العمود بنفس المنطق، فالموضع يعني الشيء نفسه
  * عندهما. أي تغيير في `lib/options.ts` يوجب تغييراً مطابقاً في الدالة.
  */
-import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { parseOptions } from "@/lib/options";
 import { createOrder, getOrderStatus, verifyOrder, type PublicOrder } from "@/lib/data";
 import { K, getJSON, removeItem, setJSON } from "@/lib/storage";
@@ -164,6 +164,24 @@ export function CartBar({
 }) {
   const empty = count === 0;
 
+  /**
+   * نبضة عند تغيّر العدد.
+   *
+   * الزبون يضيف الطبق من أعلى الصفحة والشريط في أسفلها — خارج بؤرة نظره.
+   * النبضة هي إيصال الاستلام: «وصلت إضافتك». تُعاد بإزالة الصنف ثم إعادة
+   * الصنف الفوري (`requestAnimationFrame`) كي يعيد المتصفح تشغيل الحركة،
+   * وتُتجاهَل أول قيمة كي لا ينبض الشريط لمجرّد فتح الصفحة بسلة محفوظة.
+   */
+  const [pop, setPop] = useState(false);
+  const prevCount = useRef(count);
+  useEffect(() => {
+    if (prevCount.current !== count && count > 0) {
+      setPop(false);
+      requestAnimationFrame(() => setPop(true));
+    }
+    prevCount.current = count;
+  }, [count]);
+
   if (!open) {
     return (
       <div className="fixed inset-x-0 bottom-0 z-40 p-3">
@@ -187,7 +205,7 @@ export function CartBar({
       <button
         onClick={onOpen}
         disabled={empty}
-        className="anim-fade-up mx-auto flex w-full max-w-md items-center justify-between gap-3 px-5 py-3.5 text-sm font-black shadow-2xl transition-transform enabled:hover:scale-[1.01]"
+        className={`anim-fade-up mx-auto flex w-full max-w-md items-center justify-between gap-3 px-5 py-3.5 text-sm font-black shadow-2xl transition-transform enabled:hover:scale-[1.01] ${pop ? "anim-cart-pop" : ""}`}
         style={{
           background: empty ? "var(--m-surface)" : "var(--m-accent)",
           color: empty ? "var(--m-text)" : "var(--m-on-accent)",
