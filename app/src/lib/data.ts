@@ -94,6 +94,64 @@ export async function getRestaurantBySlug(
 }
 
 /**
+ * أقلّ عدد أصناف يدخل به مطعمٌ الدليل — **نفس `MIN_DISHES` في
+ * `scripts/sitemap.mjs`**. منيو بصنف واحد محتوىً رقيق: لا يستحق زائراً من
+ * الدليل ولا رابطاً في خريطة الموقع.
+ */
+export const DIRECTORY_MIN_DISHES = 2;
+
+/** صفّ في دليل المطاعم العام — ما تعرضه البطاقة لا أكثر. */
+export type DirectoryRow = {
+  id: string;
+  name: string;
+  slug: string;
+  type: string | null;
+  logo: string | null;
+  logo_image: string | null;
+  cover_color: string | null;
+  dishes: number;
+};
+
+/**
+ * مطاعم الدليل العام (`/restaurants`).
+ *
+ * ═══ نفس معيار `sitemap.mjs` حرفياً ═══
+ *
+ * slug + قائمة مفعّلة + طبقان فأكثر. ونفس **الاستعلامات الثلاثة** كذلك، لا
+ * صياغة أخرى تعطي الجواب نفسه اليوم وتتباعد غداً: دليلٌ يعرض مطعماً تستثنيه
+ * خريطة الموقع (أو العكس) عطلٌ صامت لا يشتكي منه أحد.
+ *
+ * ⚠️ **لا `dishes(count)` عبر embed**: العدّ التجميعي يطلب `SELECT` على
+ * **الجدول** لا على أعمدته، وصلاحيات `anon` هنا على مستوى العمود (القاعدة (و))
+ * — فيردّ PostgREST بـ«permission denied for table dishes». والعدّ من
+ * `restaurant_id` وحده أرخص على الشبكة من تضمين معرّفات كل طبق.
+ */
+export async function listPublicRestaurants(): Promise<DirectoryRow[]> {
+  const [restaurants, menus, dishes] = await Promise.all([
+    rest<Omit<DirectoryRow, "dishes">[]>(
+      `restaurants?select=id,name,slug,type,logo,logo_image,cover_color` +
+        `&slug=not.is.null&order=created_at.desc&limit=200`,
+      { anonymous: true }
+    ),
+    rest<{ restaurant_id: string; active: boolean | null }[]>(
+      "menus?select=restaurant_id,active",
+      { anonymous: true }
+    ),
+    rest<{ restaurant_id: string }[]>("dishes?select=restaurant_id&limit=5000", {
+      anonymous: true,
+    }),
+  ]);
+
+  const withMenu = new Set(menus.filter((m) => m.active !== false).map((m) => m.restaurant_id));
+  const count = new Map<string, number>();
+  for (const d of dishes) count.set(d.restaurant_id, (count.get(d.restaurant_id) ?? 0) + 1);
+
+  return restaurants
+    .filter((r) => r.slug && withMenu.has(r.id) && (count.get(r.id) ?? 0) >= DIRECTORY_MIN_DISHES)
+    .map((r) => ({ ...r, dishes: count.get(r.id) ?? 0 }));
+}
+
+/**
  * هل منيو هذا المطعم منشور للزبائن (صاحبه مشترك بشكل نشط)؟
  *
  * عبر دالة `is_menu_published` لأن `subscriptions_select` مقصورة على صاحب الصف

@@ -79,6 +79,9 @@ function resolveHost(fallback) {
 export const RESERVED_PATHS = new Set([
   "demo", "help", "about", "blog", "login", "dashboard", "founder",
   "stamp", "reset-password", "docs", "privacy", "terms", "assets",
+  // دليل المطاعم. لولا حجزه لأخذه تاجرٌ فصار منيوه غير قابل للفتح: مسار
+  // الراوتر يسبق، و**كود QR مطبوع** لا يُحدَّث.
+  "restaurants",
 ]);
 
 /**

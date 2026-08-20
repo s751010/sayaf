@@ -132,3 +132,23 @@ describe("تكافؤ دالة الحافة ⟷ config.ts", () => {
     expect(grab(edge, "SUPABASE_URL")).toBe(grab(config, "SUPABASE_URL"));
   });
 });
+
+/* ══ ٤) معيار الظهور: الدليل ⟷ خريطة الموقع ══════════════════════════ */
+
+describe("تكافؤ معيار الظهور العام", () => {
+  /**
+   * قارئان لنفس السؤال: «أي مطعم يستحق أن يُعرَض؟». `sitemap.mjs` يجيب لقوقل،
+   * و`listPublicRestaurants()` تجيب للزائر. تباعدهما **لا يُسقط شيئاً**: يظهر
+   * مطعمٌ في الخريطة ويغيب عن الدليل (أو العكس) بلا خطأ ولا سجلّ.
+   *
+   * ولا يمكن استيراد الحدّ من الطرف الآخر: السكربت `.mjs` يعمل في Node بلا
+   * بناء، فلا يقرأ TypeScript. فالفحص هو الرابط.
+   */
+  it("حدّ الأصناف واحد في الاثنين", async () => {
+    const { DIRECTORY_MIN_DISHES } = await import("@/lib/data");
+    const script = readFileSync(repo("app/scripts/sitemap.mjs"), "utf8");
+    const inScript = Number(script.match(/const MIN_DISHES\s*=\s*(\d+)/)?.[1]);
+    expect(inScript, "لم يُقرأ MIN_DISHES من sitemap.mjs").toBeGreaterThan(0);
+    expect(inScript).toBe(DIRECTORY_MIN_DISHES);
+  });
+});

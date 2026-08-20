@@ -196,6 +196,7 @@ export function Footer() {
           <ul className="flex flex-col gap-2 text-sm text-dim">
             <li><Link to="/about" className="inline-flex min-h-9 items-center hover:text-gold">من نحن</Link></li>
             <li><Link to="/demo" className="inline-flex min-h-9 items-center hover:text-gold">منيو تجريبي</Link></li>
+            <li><Link to="/restaurants" className="inline-flex min-h-9 items-center hover:text-gold">دليل المطاعم</Link></li>
             <li><a href="/#features" className="inline-flex min-h-9 items-center hover:text-gold">المزايا</a></li>
             <li><a href="/#pricing" className="inline-flex min-h-9 items-center hover:text-gold">الأسعار</a></li>
             <li><Link to="/help" className="inline-flex min-h-9 items-center hover:text-gold">المساعدة والأسئلة</Link></li>

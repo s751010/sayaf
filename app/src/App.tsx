@@ -32,6 +32,8 @@ const Demo = lazy(() => import("@/pages/Demo"));
 const Help = lazy(() => import("@/pages/Help"));
 const ApiDocs = lazy(() => import("@/pages/ApiDocs"));
 const About = lazy(() => import("@/pages/About"));
+/** دليل المطاعم — صفحة فهرس عامة تنمو مع كل تاجر جديد. */
+const Restaurants = lazy(() => import("@/pages/Restaurants"));
 
 const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 const Stamp = lazy(() => import("@/pages/Stamp"));
@@ -86,6 +88,7 @@ export default function App() {
                 <Route path="/demo" element={<Demo />} />
                 <Route path="/help" element={<Help />} />
                 <Route path="/about" element={<About />} />
+                <Route path="/restaurants" element={<Restaurants />} />
                 <Route path="/docs/api" element={<ApiDocs />} />
                 <Route path="/privacy" element={<Privacy />} />
                 <Route path="/terms" element={<Terms />} />
