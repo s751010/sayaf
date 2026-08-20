@@ -55,8 +55,10 @@ app/src/
   main.tsx              نقطة الدخول (خطوط، ثيم، service worker)
   App.tsx               الراوتر + AuthProvider + ToastProvider + ErrorBoundary
   pages/
-    Landing.tsx         صفحة الهبوط + PricingCards (مُعاد استخدامها في Billing)
+    Landing.tsx         صفحة الهبوط (الأقسام والحركة)
     MenuPage.tsx        المنيو العام /:slug — أهم صفحة في المنتج
+    Restaurants.tsx     دليل المطاعم العام /restaurants
+    OrderStatus.tsx     متابعة الطلب /o/:id
     Demo.tsx            منيو تجريبي حي /demo (بيانات محلية، بدون شبكة)
     Login.tsx  ResetPassword.tsx  Stamp.tsx (وضع الكاشير العام)
     Blog.tsx  BlogPost.tsx  Help.tsx  ApiDocs.tsx  NotFound.tsx
@@ -71,7 +73,14 @@ app/src/
     menu/DishCard.tsx    بطاقة الطبق بثلاثة تخطيطات (شبكة/قائمة/عرض)
     menu/DishOfTheDay.tsx بطاقة «طبق اليوم» للطبق المميّز الأول
     menu/ThemePreview.tsx معاينة الطابع المصغّرة في اللوحة
-    menu/Cart.tsx        سلة الزبون + الدفع الإلكتروني (§13)
+    menu/chrome.tsx      قِطَع المنيو الصغيرة: Chip · MenuSheet · SectionHeading · mFont
+    menu/DishModal.tsx   نافذة الطبق — **نقطة اختيار الإضافات الوحيدة**
+    menu/LoyaltyCard.tsx بطاقة الولاء داخل المنيو (تُحفظ محلياً)
+    menu/Cart.tsx        السلّة نفسها: useCart · CartBar · AddToCartButton (§13)
+    menu/CartReview.tsx  شاشة المراجعة والدفع (§13)
+    menu/PickupTicket.tsx تذكرة الاستلام بعد الدفع (§13)
+    landing/PhonePreview.tsx معاينة الهاتف الحيّة في صفحة الهبوط
+    landing/PricingCards.tsx بطاقات الأسعار — أرقامها من lib/plans لا من نصّ
     ImageUploader.tsx   رفع صورة واحدة (يستورد الضغط من lib/image)
     BulkImages.tsx      رفع صور متعدد + ربط كل صورة بطبقها
     DishImport.tsx      استيراد أصناف (لصق نص أو CSV) + جدول مراجعة
@@ -112,6 +121,7 @@ app/src/
     pixels.ts           حقن بكسلات التتبّع في صفحة المنيو (§15)
     apiKeys.ts          توليد مفاتيح API في المتصفح + هاشها (§14)
     menuUrl.ts          واجهة مُنمَّطة لـshared/menu-url.mjs — **كل رابط منيو منها**
+    menuText.ts         نصوص المنيو بلغة الزبون — **مصدر واحد** لاسم الطبق ووصفه
 ```
 
 اللغة: عربية RTL. الخطوط ذاتية الاستضافة عبر `@fontsource` (لا Google Fonts).
