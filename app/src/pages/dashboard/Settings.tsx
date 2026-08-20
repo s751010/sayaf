@@ -198,6 +198,9 @@ export default function Settings() {
     social_maps: restaurant.social_maps ?? "",
     social_whatsapp: restaurant.social_whatsapp ?? "",
     whatsapp_orders_enabled: restaurant.whatsapp_orders_enabled ?? false,
+    accepting_orders: restaurant.accepting_orders ?? true,
+    prep_minutes: String(restaurant.prep_minutes ?? 20),
+    min_order_amount: String(restaurant.min_order_amount ?? 0),
     social_instagram: restaurant.social_instagram ?? "",
     social_twitter: restaurant.social_twitter ?? "",
     social_tiktok: restaurant.social_tiktok ?? "",
@@ -497,6 +500,75 @@ export default function Settings() {
             id="orders"
             keys={["whatsapp_orders_enabled"]}
             patch={() => ({ whatsapp_orders_enabled: f.whatsapp_orders_enabled })}
+          />
+        </CollapsibleCard>
+
+        {/* الدفع الإلكتروني — قسم مستقلّ عن واتساب: مساران مختلفان تماماً،
+            هذا يقبض ثمن الطلب مقدَّماً وذاك يرسل نصّاً. */}
+        <CollapsibleCard
+          title="💳 الطلب والدفع الإلكتروني"
+          subtitle="الزبون يدفع من المنيو، ويصلك الطلب برقم استلام في لوحة الطلبات"
+        >
+          {!restaurant.online_payment_enabled && (
+            <p className="mb-3 rounded-xl border border-line bg-bg-2 px-3.5 py-2.5 text-xs leading-relaxed text-faint">
+              اربط بوابة الدفع أولاً من صفحة «الاشتراك والفوترة» ← بطاقة «الدفع
+              الإلكتروني». بدونها لا تظهر السلّة لزبائنك.
+            </p>
+          )}
+
+          <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-line p-3.5">
+            <Switch
+              checked={f.accepting_orders}
+              onChange={(v) => set("accepting_orders", v)}
+              label="استقبال الطلبات الآن"
+            />
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-bold text-ink">نستقبل طلبات الآن</span>
+              <span className="mt-1 block text-xs leading-relaxed text-faint">
+                أغلقه عند الضغط أو بعد إقفال المطعم — تختفي السلّة من المنيو فوراً،
+                فلا يدفع زبون ثمن طلبٍ لن يُحضَّر. وتقدر تفتحه وتغلقه بضغطة من
+                صفحة «الطلبات» أثناء الدوام.
+              </span>
+            </span>
+          </label>
+
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <Field label="وقت التحضير (دقيقة)" hint="يُعرض للزبون كوعد، ويُلوّن الطلب المتأخّر في لوحتك">
+              <Input
+                type="number"
+                min="1"
+                max="240"
+                inputMode="numeric"
+                value={f.prep_minutes}
+                onChange={(e) => set("prep_minutes", e.target.value)}
+              />
+            </Field>
+            <Field label="أقل مبلغ للطلب (ر.س)" hint="صفر = بلا حدّ">
+              <Input
+                type="number"
+                min="0"
+                inputMode="decimal"
+                value={f.min_order_amount}
+                onChange={(e) => set("min_order_amount", e.target.value)}
+              />
+            </Field>
+          </div>
+
+          <SaveRow
+            id="online-orders"
+            keys={["accepting_orders", "prep_minutes", "min_order_amount"]}
+            patch={() => ({
+              accepting_orders: f.accepting_orders,
+              // القاعدة تقصّ ١..٢٤٠؛ نقصّه هنا أيضاً كي لا يُرفض الحفظ بخطأ خام.
+              prep_minutes: Math.min(
+                240,
+                Math.max(1, Math.round(Number(normalizeDigits(f.prep_minutes)) || 20))
+              ),
+              min_order_amount: Math.max(
+                0,
+                Number(normalizeDigits(f.min_order_amount)) || 0
+              ),
+            })}
           />
         </CollapsibleCard>
 

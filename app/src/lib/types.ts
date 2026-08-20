@@ -50,6 +50,12 @@ export interface Restaurant {
   online_payment_enabled: boolean | null;
   /** استقبال الطلبات نصّاً على واتساب — مستقلّ عن بوابة الدفع. */
   whatsapp_orders_enabled: boolean | null;
+  /** هل يستقبل المطعم طلبات الآن؟ مفتاح يدوي مستقلّ عن وجود البوّابة. */
+  accepting_orders: boolean | null;
+  /** متوسط وقت التحضير بالدقائق — وعدٌ للزبون ومقياسُ تأخّرٍ للكاشير. */
+  prep_minutes: number | null;
+  /** أقل مبلغ للطلب. صفر = بلا حدّ. يُفحص في الخادم لا في المتصفح. */
+  min_order_amount: number | null;
   /**
    * بوّابة واجهة API — **يفتحها المؤسس وحده** (تريجر `guard_api_enabled` يرفض
    * تغييرها لغيره)، ثم يولّد التاجر مفتاحه بنفسه من إعداداته. انظر §14.

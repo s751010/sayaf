@@ -226,12 +226,34 @@ Deno.serve(async (req) => {
 
   const { data: restRows } = await admin
     .from("restaurants")
-    .select("name, slug, prices_include_vat")
+    .select("name, slug, prices_include_vat, accepting_orders, min_order_amount")
     .eq("id", restaurantId)
     .limit(1);
   const restaurant = restRows?.[0] as
-    | { name: string; slug: string | null; prices_include_vat: boolean | null }
+    | {
+        name: string;
+        slug: string | null;
+        prices_include_vat: boolean | null;
+        accepting_orders: boolean | null;
+        min_order_amount: number | null;
+      }
     | undefined;
+
+  /**
+   * ⚠️ **الضوابط تُفحص هنا لا في المتصفّح.**
+   *
+   * `PickupBanner` و`CartBar` يخفيان السلّة حين يُغلق المطعم — وهذا لطفٌ
+   * بالزبون لا حارس. من ينسخ جسم الطلب ويرسله مباشرةً يتجاوز الواجهة كلّها،
+   * ولو لم يُفحص هنا لدفع ثمن طلبٍ الثالثة فجراً ولا أحد يحضّره.
+   */
+  if (restaurant?.accepting_orders === false) {
+    return json({ error: "المطعم لا يستقبل طلبات حالياً." }, 409);
+  }
+
+  const minOrder = Number(restaurant?.min_order_amount ?? 0);
+  if (minOrder > 0 && amount < minOrder) {
+    return json({ error: `أقل مبلغ للطلب ${minOrder} ر.س.` }, 400);
+  }
 
   const table = String(body.table ?? "").replace(/\D/g, "").slice(0, 3);
   const customer = (body.customer ?? {}) as Record<string, unknown>;

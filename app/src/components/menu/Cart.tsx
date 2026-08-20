@@ -133,42 +133,146 @@ export function AddToCartButton({
 
 /* ── الشريط السفلي ────────────────────────────────────────────────── */
 
+/**
+ * الشريط السفلي للطلب.
+ *
+ * ⚠️ **كان يختفي كلياً حين تفرغ السلة** (`if (count === 0) return null`) — أي
+ * أن من يفتح منيو مطعمٍ يستقبل طلبات لا يرى **أي إشارة** أن الطلب ممكن
+ * أصلاً، ويُفترض به أن يخمّن. وهذه أغلى فجوة في المسار كلّه: ميزةٌ مبنيّة
+ * بالكامل ولا أحد يعلم بوجودها.
+ *
+ * فالشريط الآن حالتان: دعوةٌ حين تفرغ السلة، ومراجعةٌ حين تمتلئ. وحين يكون
+ * المطعم مغلقاً يقول ذلك بوضوح بدل أن يقبل طلباً لن يُحضَّر.
+ */
 export function CartBar({
   count,
   total,
   en,
   onOpen,
+  open = true,
+  prepMinutes = null,
 }: {
   count: number;
   total: number;
   en: boolean;
   onOpen: () => void;
+  /** هل يستقبل المطعم طلبات الآن؟ */
+  open?: boolean;
+  /** وقت التحضير المعلَن — يُحوّل الدعوة من مبهمة إلى وعد. */
+  prepMinutes?: number | null;
 }) {
-  if (count === 0) return null;
+  const empty = count === 0;
+
+  if (!open) {
+    return (
+      <div className="fixed inset-x-0 bottom-0 z-40 p-3">
+        <div
+          className="mx-auto flex w-full max-w-md items-center justify-center gap-2 px-5 py-3 text-xs font-bold shadow-xl"
+          style={{
+            background: "var(--m-surface)",
+            color: "var(--m-muted)",
+            border: "1px solid var(--m-border)",
+            borderRadius: "calc(var(--m-radius) * 1.2)",
+          }}
+        >
+          {en ? "Not accepting orders right now" : "المطعم لا يستقبل طلبات حالياً"}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="fixed inset-x-0 bottom-0 z-40 p-3">
       <button
         onClick={onOpen}
-        className="anim-fade-up mx-auto flex w-full max-w-md items-center justify-between gap-3 px-5 py-3.5 text-sm font-black shadow-2xl transition-transform hover:scale-[1.01]"
+        disabled={empty}
+        className="anim-fade-up mx-auto flex w-full max-w-md items-center justify-between gap-3 px-5 py-3.5 text-sm font-black shadow-2xl transition-transform enabled:hover:scale-[1.01]"
         style={{
-          background: "var(--m-accent)",
-          color: "var(--m-on-accent)",
+          background: empty ? "var(--m-surface)" : "var(--m-accent)",
+          color: empty ? "var(--m-text)" : "var(--m-on-accent)",
+          border: empty ? "1px solid var(--m-accent)" : "1px solid transparent",
           borderRadius: "calc(var(--m-radius) * 1.2)",
         }}
       >
-        <span className="flex items-center gap-2">
-          <span
-            className="flex h-6 min-w-6 items-center justify-center rounded-full px-1.5 text-xs"
-            style={{ background: "var(--m-on-accent)", color: "var(--m-accent)" }}
-          >
-            {count}
-          </span>
-          {en ? "View order" : "مراجعة الطلب"}
-        </span>
-        <span dir="ltr">
-          {formatPrice(total)} {en ? "SAR" : "ر.س"}
-        </span>
+        {empty ? (
+          <>
+            <span className="flex items-center gap-2">
+              🛍️ {en ? "Order for pickup" : "اطلب واستلم من الفرع"}
+            </span>
+            {prepMinutes ? (
+              <span className="text-xs font-bold" style={{ opacity: 0.7 }}>
+                {en ? `~${prepMinutes} min` : `~${prepMinutes} دقيقة`}
+              </span>
+            ) : null}
+          </>
+        ) : (
+          <>
+            <span className="flex items-center gap-2">
+              <span
+                className="flex h-6 min-w-6 items-center justify-center rounded-full px-1.5 text-xs"
+                style={{ background: "var(--m-on-accent)", color: "var(--m-accent)" }}
+              >
+                {count}
+              </span>
+              {en ? "View order" : "مراجعة الطلب"}
+            </span>
+            <span dir="ltr">
+              {formatPrice(total)} {en ? "SAR" : "ر.س"}
+            </span>
+          </>
+        )}
       </button>
+    </div>
+  );
+}
+
+/**
+ * شريط «استلام من الفرع» أعلى المنيو.
+ *
+ * الزبون في تطبيقات الطلب يبحث أولاً عن سؤالين: **أستلم أم يُوصَّل؟** و**متى
+ * يجهز؟** فيُجابان قبل أن يسأل، ومرّةً واحدة أعلى الصفحة — لا استلامٌ مخبوء
+ * في شاشة الدفع بعد أن يبني الزبون سلّته كلّها.
+ */
+export function PickupBanner({
+  open,
+  prepMinutes,
+  minOrder,
+  en,
+}: {
+  open: boolean;
+  prepMinutes: number | null;
+  minOrder: number;
+  en: boolean;
+}) {
+  return (
+    <div
+      className="mx-auto mt-4 flex max-w-md flex-wrap items-center justify-center gap-x-3 gap-y-1 px-4 py-2.5 text-xs font-bold"
+      style={{
+        background: open ? "var(--m-surface)" : "var(--m-bg-2)",
+        border: `1px solid ${open ? "var(--m-accent)" : "var(--m-border)"}`,
+        borderRadius: "var(--m-radius)",
+        color: open ? "var(--m-text)" : "var(--m-muted)",
+      }}
+    >
+      <span style={{ color: open ? "var(--m-accent)" : "var(--m-muted)" }}>
+        🛍️ {en ? "Pickup only" : "استلام من الفرع"}
+      </span>
+      {open ? (
+        <>
+          {prepMinutes ? (
+            <span style={{ color: "var(--m-muted)" }}>
+              ⏱ {en ? `Ready in ~${prepMinutes} min` : `يجهز خلال ~${prepMinutes} دقيقة`}
+            </span>
+          ) : null}
+          {minOrder > 0 ? (
+            <span style={{ color: "var(--m-muted)" }}>
+              {en ? `Min ${formatPrice(minOrder)} SAR` : `أقل طلب ${formatPrice(minOrder)} ر.س`}
+            </span>
+          ) : null}
+        </>
+      ) : (
+        <span>{en ? "Closed for orders now" : "مغلق للطلبات الآن"}</span>
+      )}
     </div>
   );
 }

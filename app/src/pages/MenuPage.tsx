@@ -19,6 +19,7 @@ import { DishOfTheDay } from "@/components/menu/DishOfTheDay";
 import {
   AddToCartButton,
   CartBar,
+  PickupBanner,
   CartReview,
   PickupTicket,
   unitPrice,
@@ -1095,6 +1096,14 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
   }
 
   const { restaurant } = state;
+  /**
+   * «نستقبل الآن» غير «البوّابة مربوطة». مطعمٌ مربوط وبابه مغلق كان سيعرض
+   * زرّ طلبٍ يقبض ثمنه ولا يحضّره. الافتراض `true` كي لا يُغلق مطعمٌ لم
+   * يُحدَّث صفّه بعد.
+   */
+  const acceptingOrders = restaurant.accepting_orders !== false;
+  const prepMinutes = restaurant.prep_minutes ?? null;
+  const minOrder = Number(restaurant.min_order_amount ?? 0);
 
   /**
    * التقييم والموقع يصعدان أعلى الصفحة.
@@ -1251,6 +1260,15 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
           </div>
         )}
       </MenuHeader>
+
+      {cartOn && (
+        <PickupBanner
+          open={acceptingOrders}
+          prepMinutes={prepMinutes}
+          minOrder={minOrder}
+          en={en}
+        />
+      )}
 
       <main className={cn("mx-auto max-w-3xl px-4", cart.count > 0 && "pb-24")}>
         {/* عودة الزبون من بوابة الدفع — أعلى شيء يراه، قبل الأطباق. */}
@@ -1554,7 +1572,14 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
       )}
 
       {cartOn && (
-        <CartBar count={cart.count} total={cartTotal} en={en} onOpen={() => setCartOpen(true)} />
+        <CartBar
+          count={cart.count}
+          total={cartTotal}
+          en={en}
+          onOpen={() => setCartOpen(true)}
+          open={acceptingOrders}
+          prepMinutes={prepMinutes}
+        />
       )}
 
       {cartOpen && (

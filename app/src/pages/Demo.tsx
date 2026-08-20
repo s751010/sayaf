@@ -73,6 +73,9 @@ const restaurant: Restaurant = {
   snap_pixel_id: null,
   // الديمو يعرض المسار الجديد: الرقم أعلاه وهمي، والزرّ يُظهر الطلب كما يصل التاجر.
   whatsapp_orders_enabled: true,
+  accepting_orders: true,
+  prep_minutes: 20,
+  min_order_amount: 0,
 };
 
 const menus: Menu[] = [

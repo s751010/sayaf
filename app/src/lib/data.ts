@@ -41,6 +41,10 @@ const PUBLIC_RESTAURANT_COLS = [
   "social_snapchat", "social_whatsapp", "social_maps", "english_enabled",
   "loyalty_enabled", "loyalty_goal", "loyalty_reward",
   "prices_include_vat", "vat_number", "category_order", "season",
+  // ضوابط تشغيل الطلبات — القاعدة (و) بشقّيها: مُنحت لـanon في نفس الهجرة.
+  // `accepting_orders` غير `online_payment_enabled`: الأول «نستقبل الآن»
+  // والثاني «البوّابة مربوطة». مطعمٌ مربوط وبابه مغلق لا يستقبل شيئاً.
+  "accepting_orders", "prep_minutes", "min_order_amount",
   // الإشارة العامة الوحيدة لتشغيل السلة: `restaurant_payment_settings.enabled`
   // محجوب عن anon بالكامل (فيه المفتاح السرّي)، فلا يستطيع الزبون سؤاله.
   "online_payment_enabled",
@@ -415,6 +419,10 @@ export type RestaurantSettingsPayload = {
   ga_measurement_id: string | null;
   snap_pixel_id: string | null;
   whatsapp_orders_enabled: boolean;
+  /** ضوابط الطلبات — القاعدة (أ): عمود ⇐ نوع ⇐ payload ⇐ فورم. */
+  accepting_orders: boolean;
+  prep_minutes: number;
+  min_order_amount: number;
 };
 
 export async function updateRestaurant(
@@ -787,6 +795,14 @@ export async function createOrder(input: {
 
 /* ── الطلبات ────────────────────────────────────────────────────────── */
 
+/** سطر في الطلب — لقطة الاسم والسعر وقت الشراء لا مرجع للطبق الحيّ. */
+export type OrderItemLine = {
+  name: string;
+  options: string | null;
+  qty: number;
+  line_total: number;
+};
+
 export type OrderStatus =
   | "pending_payment"
   | "new"
@@ -802,9 +818,32 @@ export type PublicOrder = {
   total: number;
   vat_included: boolean;
   created_at: string;
+  /** وقت الجاهزية المتوقَّع — لقطة وقت الدفع لا حسابٌ متجدّد. */
+  ready_eta: string | null;
   restaurant: string;
-  items: { name: string; options: string | null; qty: number; line_total: number }[];
+  restaurant_slug: string | null;
+  restaurant_phone: string | null;
+  address: string | null;
+  maps: string | null;
+  items: OrderItemLine[];
 };
+
+/**
+ * حالة طلب بلا سؤال بوّابة الدفع.
+ *
+ * `verifyOrder` تسأل PayLink وتؤكّد — وهي الصحيحة **مرّة واحدة** بعد العودة
+ * من الدفع. أما متابعة الحالة بعد ذلك فقراءةٌ محضة: مناداة PayLink كل عشر
+ * ثوانٍ لطلبٍ مؤكَّد إهدارٌ لحصّة التاجر عند البوّابة. هذه الدالة تقرأ الصفّ
+ * وحده عبر `order_public_status` — وهي الوحيدة التي يناديها الاستطلاع.
+ */
+export async function getOrderStatus(orderId: string): Promise<PublicOrder | null> {
+  const view = await rest<PublicOrder | null>("rpc/order_public_status", {
+    method: "POST",
+    body: { p_order: orderId },
+    anonymous: true,
+  });
+  return view ?? null;
+}
 
 /**
  * تأكيد الدفع ومتابعة الحالة.
@@ -822,13 +861,27 @@ export async function verifyOrder(
   return callFunction("order-verify", { order_id: orderId }, { anonymous: true });
 }
 
-/** طلب كما يراه التاجر — يشمل بيانات الزبون التي يحتاجها للتسليم. */
-export type MerchantOrder = PublicOrder & {
+/**
+ * طلب كما يراه التاجر.
+ *
+ * ⚠️ **لا يرث `PublicOrder`.** الشكلان يخدمان شاشتين ويُجلبان باستعلامين
+ * مختلفين: الزبون يحتاج عنوان الفرع وهاتفه، والتاجر يحتاج جوال زبونه
+ * وملاحظته. والوراثة كانت تُلزم استعلام التاجر بحقول لا يجلبها.
+ */
+export type MerchantOrder = {
   id: string;
+  code: number;
+  status: OrderStatus;
+  total: number;
+  vat_included: boolean;
+  created_at: string;
+  paid_at: string | null;
+  /** الوعد المقطوع للزبون — يُلوَّن الطلب أحمر حين يتجاوزه. */
+  ready_eta: string | null;
   customer_name: string | null;
   customer_phone: string | null;
   note: string | null;
-  paid_at: string | null;
+  items: OrderItemLine[];
 };
 
 /**
@@ -843,7 +896,7 @@ export async function listOrders(restaurantId: string): Promise<MerchantOrder[]>
   const rows = await rest<Record<string, unknown>[]>(
     `orders?restaurant_id=eq.${restaurantId}` +
       `&status=neq.pending_payment` +
-      `&select=id,code,status,total,vat_included,created_at,paid_at,` +
+      `&select=id,code,status,total,vat_included,created_at,paid_at,ready_eta,` +
       `customer_name,customer_phone,note,order_items(name,options_label,qty,line_total)` +
       `&order=created_at.desc&limit=200`
   );
@@ -855,7 +908,7 @@ export async function listOrders(restaurantId: string): Promise<MerchantOrder[]>
     vat_included: r.vat_included !== false,
     created_at: String(r.created_at),
     paid_at: (r.paid_at as string | null) ?? null,
-    restaurant: "",
+    ready_eta: (r.ready_eta as string | null) ?? null,
     customer_name: (r.customer_name as string | null) ?? null,
     customer_phone: (r.customer_phone as string | null) ?? null,
     note: (r.note as string | null) ?? null,
@@ -866,6 +919,32 @@ export async function listOrders(restaurantId: string): Promise<MerchantOrder[]>
       line_total: Number(i.line_total),
     })),
   }));
+}
+
+/** ملخّص اليوم كما يحتاجه التاجر في الرئيسية: كم طلباً، كم ريالاً، وكم ينتظر. */
+export type OrdersToday = { count: number; revenue: number; open: number };
+
+/**
+ * ملخّص طلبات اليوم.
+ *
+ * يُحسب من الصفوف لا بـ`count` منفصل: العدد والإيراد والمفتوح ثلاثة أسئلة عن
+ * نفس المجموعة، وثلاث رحلات إلى الشبكة من أجلها إسرافٌ في شاشةٍ تُفتح كل يوم.
+ * والحدّ الأعلى ٥٠٠ صفّ يكفي أضخم يوم في مطعم استلام.
+ */
+export async function getOrdersToday(restaurantId: string): Promise<OrdersToday> {
+  const since = new Date();
+  since.setHours(0, 0, 0, 0);
+  const rows = await rest<{ status: OrderStatus; total: number }[]>(
+    `orders?restaurant_id=eq.${restaurantId}` +
+      `&status=neq.pending_payment&created_at=gte.${since.toISOString()}` +
+      `&select=status,total&limit=500`
+  );
+  const live = rows.filter((r) => r.status !== "cancelled");
+  return {
+    count: live.length,
+    revenue: live.reduce((sum, r) => sum + Number(r.total ?? 0), 0),
+    open: rows.filter((r) => ["new", "preparing", "ready"].includes(r.status)).length,
+  };
 }
 
 /**

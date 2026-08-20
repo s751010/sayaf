@@ -81,6 +81,9 @@ function payloadOf(r: Restaurant): RestaurantSettingsPayload {
     ga_measurement_id: r.ga_measurement_id,
     snap_pixel_id: r.snap_pixel_id,
     whatsapp_orders_enabled: r.whatsapp_orders_enabled ?? false,
+    accepting_orders: r.accepting_orders ?? true,
+    prep_minutes: r.prep_minutes ?? 20,
+    min_order_amount: r.min_order_amount ?? 0,
   };
 }
 

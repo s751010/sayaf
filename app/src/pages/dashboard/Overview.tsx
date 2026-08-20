@@ -10,7 +10,7 @@ import { Link } from "react-router-dom";
 import { Badge, Card, Skeleton } from "@/components/ui";
 import { PreviewMenuButton } from "@/components/site";
 import { ShareMenu } from "@/components/ShareMenu";
-import { getMyAnalytics, getMyDishes } from "@/lib/data";
+import { getMyAnalytics, getMyDishes, getOrdersToday, type OrdersToday } from "@/lib/data";
 import { buildNextStep } from "@/lib/nextStep";
 import { planLabel } from "@/lib/entitlements";
 import { formatPrice } from "@/lib/utils";
@@ -24,11 +24,16 @@ export default function Overview() {
   const { user, restaurant, menus, ent } = useDashboard();
   const [dishes, setDishes] = useState<Dish[] | null>(null);
   const [rows, setRows] = useState<AnalyticsRow[] | null>(null);
+  const [today, setToday] = useState<OrdersToday | null>(null);
 
   useEffect(() => {
     document.title = "لوحة التحكم — كلاود منيو";
     getMyDishes(restaurant.id).then(setDishes).catch(() => setDishes([]));
     getMyAnalytics(user.id).then(setRows).catch(() => setRows([]));
+    // الطلبات تُجلب لمن ربط بوّابة فقط: نداءٌ لا معنى له عند البقيّة.
+    if (restaurant.online_payment_enabled) {
+      getOrdersToday(restaurant.id).then(setToday).catch(() => setToday(null));
+    }
   }, [restaurant.id, user.id]);
 
   // مشاهدات المنيو فقط — الصفوف التي تحمل dish_id هي فتح أطباق لا مشاهدات.
@@ -197,6 +202,47 @@ export default function Overview() {
             👁️ {views30 ?? 0} مشاهدة في ٣٠ يوماً · 🍽️ {dishes?.length ?? 0} طبقاً ·
             📋 {menus?.length ?? 0} قائمة
           </p>
+        </Card>
+      )}
+
+      {/* طلبات اليوم — أول ما يسأل عنه من يستقبل طلبات، فأول ما يراه. */}
+      {today !== null && (
+        <Card className="mt-4">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="inline-flex items-center gap-2 font-display text-base font-extrabold text-ink">
+              <Icon name="ticket" size={16} /> طلبات اليوم
+            </h2>
+            <Link to="/dashboard/orders" className="text-xs font-bold text-gold underline">
+              فتح اللوحة
+            </Link>
+          </div>
+          <div className="mt-3 grid grid-cols-3 gap-3">
+            <div>
+              <p className="text-2xl font-black tabular-nums text-ink">{today.count}</p>
+              <p className="text-xs text-faint">طلب</p>
+            </div>
+            <div>
+              <p className="text-2xl font-black tabular-nums text-ink">
+                {formatPrice(today.revenue)}
+              </p>
+              <p className="text-xs text-faint">ريال</p>
+            </div>
+            <div>
+              <p
+                className={`text-2xl font-black tabular-nums ${
+                  today.open > 0 ? "text-gold" : "text-ink"
+                }`}
+              >
+                {today.open}
+              </p>
+              <p className="text-xs text-faint">قيد التنفيذ</p>
+            </div>
+          </div>
+          {today.open > 0 && (
+            <p className="mt-3 rounded-xl bg-gold/10 px-3 py-2 text-xs font-bold text-gold">
+              ⏳ عندك {today.open} طلباً ينتظر — افتح اللوحة.
+            </p>
+          )}
         </Card>
       )}
 

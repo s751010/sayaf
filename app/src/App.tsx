@@ -25,6 +25,8 @@ const Landing = lazy(() => import("@/pages/Landing"));
 const Blog = lazy(() => import("@/pages/Blog"));
 const BlogPostPage = lazy(() => import("@/pages/BlogPost"));
 const Dashboard = lazy(() => import("@/pages/dashboard/Dashboard"));
+/** متابعة الطلب — رابط يُحفظ ويُرسَل، لا لوحة تختفي بأول تحديث. */
+const OrderStatus = lazy(() => import("@/pages/OrderStatus"));
 const Founder = lazy(() => import("@/pages/founder/Founder"));
 const Demo = lazy(() => import("@/pages/Demo"));
 const Help = lazy(() => import("@/pages/Help"));
@@ -93,6 +95,7 @@ export default function App() {
                 {/* قبل `/:slug` — مسارات ثابتة لا يجوز أن يلتقطها slug مطعم. */}
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/stamp" element={<Stamp />} />
+                <Route path="/o/:id" element={<OrderStatus />} />
                 <Route path="/dashboard/*" element={<Dashboard />} />
                 {/* `/*` لأن اللوحة صارت أقساماً براوتر فرعي داخلها. */}
                 <Route path="/founder/*" element={<Founder />} />
