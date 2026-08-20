@@ -25,7 +25,7 @@ import {
 } from "@/components/menu/Cart";
 import { CartReview } from "@/components/menu/CartReview";
 import { PickupTicket } from "@/components/menu/PickupTicket";
-import { allergenLabel, buildAllergenIndex } from "@/lib/menuText";
+import { allergenLabel, buildAllergenIndex, restaurantTypeLabel } from "@/lib/menuText";
 import { Chip, LAYOUT_CLASS, MenuSheet, SectionHeading, sectionReserve } from "@/components/menu/chrome";
 import { DishModal } from "@/components/menu/DishModal";
 import { LoyaltyCard } from "@/components/menu/LoyaltyCard";
@@ -288,7 +288,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
             ? "جرّب منيو كلاود منيو الرقمي كما يراه زبونك تماماً."
             : [
                 `منيو ${seoRestaurant.name} الرقمي`,
-                seoRestaurant.type,
+                restaurantTypeLabel(seoRestaurant.type),
                 seoRestaurant.address,
               ]
                 .filter(Boolean)
@@ -318,7 +318,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
           name: seoRestaurant.name,
           url: absoluteUrl(`/${slug ?? ""}`),
           image: seoRestaurant.logo_image || seoRestaurant.banner_image || undefined,
-          servesCuisine: seoRestaurant.type || undefined,
+          servesCuisine: restaurantTypeLabel(seoRestaurant.type) || undefined,
           telephone: seoRestaurant.phone || undefined,
           address: seoRestaurant.address
             ? { "@type": "PostalAddress", addressCountry: "SA", streetAddress: seoRestaurant.address }

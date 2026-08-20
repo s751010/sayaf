@@ -152,3 +152,33 @@ describe("تكافؤ معيار الظهور العام", () => {
     expect(inScript).toBe(DIRECTORY_MIN_DISHES);
   });
 });
+
+/* ══ ٥) نوع النشاط كما يراه الزبون ═══════════════════════════════════ */
+
+describe("نوع النشاط المعروض للزبون", () => {
+  /**
+   * `restaurants.type` حقلٌ حرّ، وفيه قيم إنجليزية قديمة — `general` لأربعة
+   * عشر مطعماً من تسعة عشر. وكانت تُطبع كما هي تحت اسم المطعم في ترويسة
+   * منيوه وفي `servesCuisine` داخل JSON-LD الذي يقرؤه قوقل.
+   */
+  it("يترجم القيم الإنجليزية القديمة", async () => {
+    const { restaurantTypeLabel } = await import("@/lib/menuText");
+    expect(restaurantTypeLabel("general")).toBe("مطعم");
+    expect(restaurantTypeLabel("cafe")).toBe("كافيه");
+    expect(restaurantTypeLabel("restaurant")).toBe("مطعم");
+  });
+
+  it("يعرض كلمات التاجر العربية كما كتبها", async () => {
+    const { restaurantTypeLabel } = await import("@/lib/menuText");
+    // تصنيفٌ نختاره له أفقر ممّا كتب عن نفسه.
+    expect(restaurantTypeLabel("مأكولات سعودية وعالمية")).toBe("مأكولات سعودية وعالمية");
+    expect(restaurantTypeLabel("كافيه")).toBe("كافيه");
+  });
+
+  it("الفراغ فراغ — لا نملأه بتخمين", async () => {
+    const { restaurantTypeLabel } = await import("@/lib/menuText");
+    expect(restaurantTypeLabel(null)).toBeNull();
+    expect(restaurantTypeLabel("")).toBeNull();
+    expect(restaurantTypeLabel("   ")).toBeNull();
+  });
+});

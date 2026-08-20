@@ -17,6 +17,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Navbar, Footer } from "@/components/site";
 import { listPublicRestaurants, type DirectoryRow } from "@/lib/data";
+import { restaurantTypeLabel } from "@/lib/menuText";
 import { menuUrl } from "@/lib/menuUrl";
 import { Icon } from "@/lib/icons";
 
@@ -36,7 +37,9 @@ export default function Restaurants() {
     const needle = q.trim().toLowerCase();
     if (!needle) return rows ?? [];
     return (rows ?? []).filter((r) =>
-      [r.name, r.type].filter(Boolean).some((s) => s!.toLowerCase().includes(needle))
+      [r.name, restaurantTypeLabel(r.type)]
+        .filter(Boolean)
+        .some((s) => s!.toLowerCase().includes(needle))
     );
   }, [rows, q]);
 
@@ -73,6 +76,7 @@ export default function Restaurants() {
             {visible.map((r) => {
               const href = menuUrl(r.slug, "");
               const accent = r.cover_color || "#d4a843";
+              const typeLabel = restaurantTypeLabel(r.type);
               return (
                 <a
                   key={r.id}
@@ -100,8 +104,8 @@ export default function Restaurants() {
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-base font-black text-ink">{r.name}</span>
                       <span className="mt-0.5 flex items-center gap-2 text-xs text-muted">
-                        {r.type && <span className="truncate">{r.type}</span>}
-                        {r.type && <span aria-hidden="true">·</span>}
+                        {typeLabel && <span className="truncate">{typeLabel}</span>}
+                        {typeLabel && <span aria-hidden="true">·</span>}
                         <span className="shrink-0">{r.dishes} طبقاً</span>
                       </span>
                     </span>

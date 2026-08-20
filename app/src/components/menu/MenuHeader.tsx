@@ -11,6 +11,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { SafeImage } from "@/components/ui";
 import { patternImage, PATTERN_SIZE } from "@/lib/patterns";
 import type { MenuTheme } from "@/lib/themes";
+import { restaurantTypeLabel } from "@/lib/menuText";
 import type { Restaurant } from "@/lib/types";
 import { Icon } from "@/lib/icons";
 
@@ -184,9 +185,9 @@ export function MenuHeader({
         >
           {restaurant.name}
         </h1>
-        {restaurant.type && (
+        {restaurantTypeLabel(restaurant.type) && (
           <p className="text-sm" style={{ color: "var(--m-muted)" }}>
-            {restaurant.type}
+            {restaurantTypeLabel(restaurant.type)}
           </p>
         )}
 

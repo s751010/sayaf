@@ -12,6 +12,7 @@
  * كلّها **خالصة**: بلا حالة ولا شبكة ولا DOM.
  */
 import { ALLERGENS, displayAllergens } from "@/lib/allergens";
+import { aliasType } from "@/lib/starterMenus";
 import type { Dish } from "@/lib/types";
 
 /**
@@ -31,6 +32,26 @@ export function dishDesc(d: Dish, en: boolean): string | null {
 export function allergenLabel(id: string, en: boolean): string {
   const a = ALLERGENS.find((x) => x.id === id);
   return a ? (en ? a.en : a.ar) : id;
+}
+
+/**
+ * نوع النشاط كما **يُعرَض للزبون**.
+ *
+ * ═══ العطل الذي أوجدها ═══
+ *
+ * `restaurants.type` حقلٌ حرّ، وفيه قيم قديمة بالإنجليزية من نسخة سابقة —
+ * `general` لأربعة عشر مطعماً من تسعة عشر. وكانت تُطبع كما هي تحت اسم المطعم
+ * في ترويسة منيوه، وتُرسَل في `servesCuisine` داخل JSON-LD الذي يقرؤه قوقل.
+ * أي أن زبون «القرموشي» كان يقرأ كلمة **general** تحت اسم مطعمه.
+ *
+ * القاعدة: كلمات التاجر العربية تُعرض كما كتبها — «مأكولات سعودية وعالمية»
+ * أنفع من أي تصنيف نختاره له. وما لا حرف عربي فيه يُترجَم عبر `aliasType`
+ * (نفس القاموس الذي يختار قالب قائمة البداية، فلا مفردتان لشيء واحد).
+ */
+export function restaurantTypeLabel(type: string | null | undefined): string | null {
+  const v = (type ?? "").trim();
+  if (!v) return null;
+  return /[؀-ۿ]/.test(v) ? v : aliasType(v);
 }
 
 /** فهرس «مسبب → الأطباق التي تحتويه» لصفحة المسببات، الأكثر شيوعاً أوّلاً. */
