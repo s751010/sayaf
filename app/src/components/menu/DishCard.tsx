@@ -156,15 +156,40 @@ export function DishCard({
   en,
   design,
   reserve,
+  popular = false,
   onOpen,
 }: {
   dish: Dish;
   en: boolean;
   design: MenuDesign;
   reserve?: CardReserve;
+  /** ضمن الأكثر طلباً فعلياً — من `popular_dishes` لا من تخمين. */
+  popular?: boolean;
   onOpen: () => void;
 }) {
   const { layout, imageShape, priceStyle, divider } = design;
+
+  /**
+   * شارة «الأكثر طلباً».
+   *
+   * ⚠️ لا تجتمع مع «مميّز» في مكان واحد: «مميّز» اختيارُ التاجر و«الأكثر
+   * طلباً» حكمُ الزبائن، وعرضهما معاً على بطاقة واحدة يُفقد الثانية معناها —
+   * فالأولى تُصبح ادّعاءً بجانب دليل. فحين يجتمعان يظهر الدليل وحده.
+   */
+  const badge = popular ? (
+    <span
+      className="pointer-events-none absolute z-[1] inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-black shadow-sm"
+      style={{
+        background: "var(--m-accent)",
+        color: "var(--m-on-accent)",
+        insetInlineStart: layout === "list" ? undefined : "0.5rem",
+        insetInlineEnd: layout === "list" ? "0.25rem" : undefined,
+        top: layout === "list" ? "0.25rem" : "0.5rem",
+      }}
+    >
+      🔥 {en ? "Popular" : "الأكثر طلباً"}
+    </span>
+  ) : null;
   const surface: CSSProperties = {
     background: "var(--m-surface)",
     borderColor: "var(--m-border)",
@@ -183,8 +208,9 @@ export function DishCard({
           divider === "rule" && "border-b",
           divider === "dots" && "border-b border-dashed"
         )}
-        style={{ borderColor: "var(--m-border)" }}
+        style={{ borderColor: "var(--m-border)", position: "relative" }}
       >
+        {badge}
         {/* ⚠️ كان `hasImage &&` وحده: طبقٌ بلا صورة لا يرسم شيئاً، فيبدو الصفّ
             ناقصاً لا بسيطاً. والواقع أن ١٥ من ٢١ طبقاً بلا صورة. */}
         {hasImage ? (
@@ -220,7 +246,7 @@ export function DishCard({
               style={{ color: "var(--m-text)", ...mFont }}
             >
               {name(dish, en)}
-              {dish.featured && (
+              {dish.featured && !popular && (
               <Icon name="star" size={12} className="mb-0.5 inline-block align-middle" />
             )}
             </span>
@@ -263,9 +289,10 @@ export function DishCard({
     return (
       <button
         onClick={onOpen}
-        className="m-surface group flex h-full w-full flex-col overflow-hidden border text-start transition-transform hover:-translate-y-0.5"
+        className="m-surface group relative flex h-full w-full flex-col overflow-hidden border text-start transition-transform hover:-translate-y-0.5"
         style={surface}
       >
+        {badge}
         {/* الصورة العريضة لا تأخذ `imageShape`: قصّها دائرةً يقطع الطبق نفسه،
             وهذا التخطيط قائم على الصورة الكبيرة. */}
         <SafeImage
@@ -292,7 +319,7 @@ export function DishCard({
             style={{ color: "var(--m-text)", ...mFont }}
           >
             {name(dish, en)}
-            {dish.featured && (
+            {dish.featured && !popular && (
               <Icon name="star" size={12} className="mb-0.5 inline-block align-middle" />
             )}
           </p>
@@ -314,9 +341,10 @@ export function DishCard({
   return (
     <button
       onClick={onOpen}
-      className="m-surface group flex h-full flex-col overflow-hidden border text-start transition-transform hover:-translate-y-0.5"
+      className="m-surface group relative flex h-full flex-col overflow-hidden border text-start transition-transform hover:-translate-y-0.5"
       style={surface}
     >
+      {badge}
       {/* مربّع تماماً: صور التجّار تأتي بأبعاد شتّى، و`object-cover` على نسبة
           واحدة يجعلها كلها بحجم واحد. الرافع يضغط بـ`square` أصلاً.
           و`circle` تحتاج حشوة حولها وإلا لامست الدائرةُ حوافَّ البطاقة. */}
@@ -344,7 +372,7 @@ export function DishCard({
           style={{ color: "var(--m-text)", ...mFont }}
         >
           {name(dish, en)}
-          {dish.featured && (
+          {dish.featured && !popular && (
               <Icon name="star" size={12} className="mb-0.5 inline-block align-middle" />
             )}
         </p>

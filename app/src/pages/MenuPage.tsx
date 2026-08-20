@@ -46,8 +46,16 @@ import {
   joinLoyalty,
   trackDishView,
   trackMenuView,
+  getPopularDishes,
 } from "@/lib/data";
 import { categoryIcon, parseCategoryOrder, sortCategories } from "@/lib/categories";
+import { ALLERGENS } from "@/lib/allergens";
+
+/** اسم المسبّب بلغة الزبون — من نفس مصدر `ALLERGENS` فلا يتباعد الاسمان. */
+function allergenLabel(id: string, en: boolean): string {
+  const a = ALLERGENS.find((x) => x.id === id);
+  return a ? (en ? a.en : a.ar) : id;
+}
 import {
   entranceClass,
   getTheme,
@@ -652,6 +660,16 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
   const [search, setSearch] = useState("");
   const [activeCat, setActiveCat] = useState<string | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
+  /**
+   * استبعاد مسبّبات الحساسية.
+   *
+   * ⚠️ **استبعاد لا اختيار**: الزبون هنا يقول «لا أستطيع أكل هذا»، لا «أريد
+   * هذا». والفرق ليس لفظياً — طبق **بلا** قائمة حساسية يبقى ظاهراً، لأن
+   * غياب البيانات ليس إثبات خلوّ، وإخفاؤه يوحي بأن الظاهر آمن وهو ادّعاء
+   * قد يصل مصاباً. فالتصفية تُخفي **ما ثبت** أنه يحتويه فقط.
+   */
+  const [avoid, setAvoid] = useState<Set<string>>(() => new Set());
+  const [avoidOpen, setAvoidOpen] = useState(false);
   const [showTop, setShowTop] = useState(false);
   const navRef = useRef<HTMLElement | null>(null);
   const catRefs = useRef<Record<string, HTMLAnchorElement | null>>({});
@@ -1006,13 +1024,15 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
   const { featured, categories } = useMemo(() => {
     if (state.status !== "ready") return { featured: [], categories: [] as { name: string; dishes: Dish[] }[] };
     const q = search.trim().toLowerCase();
-    const visible = q
-      ? state.dishes.filter((d) =>
-          [d.name, d.name_en, d.description, d.description_en, d.category]
-            .filter(Boolean)
-            .some((s) => s!.toLowerCase().includes(q))
-        )
-      : state.dishes;
+    const matchesSearch = (d: Dish) =>
+      !q ||
+      [d.name, d.name_en, d.description, d.description_en, d.category]
+        .filter(Boolean)
+        .some((s) => s!.toLowerCase().includes(q));
+    // الطبق يُخفى إن حمل **صراحةً** أحد ما يتجنّبه الزبون. وبلا قائمة يبقى.
+    const passesAvoid = (d: Dish) =>
+      avoid.size === 0 || !(d.allergens ?? []).some((a) => avoid.has(a));
+    const visible = state.dishes.filter((d) => matchesSearch(d) && passesAvoid(d));
     const byCat = new Map<string, Dish[]>();
     for (const d of visible) {
       const cat = d.category?.trim() || (en ? "Other" : "أخرى");
@@ -1022,13 +1042,13 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
     // لمجرّد أن أول طبق مضاف كان حلوى).
     const order = parseCategoryOrder(state.restaurant.category_order);
     return {
-      featured: q ? [] : visible.filter((d) => d.featured),
+      featured: q || avoid.size > 0 ? [] : visible.filter((d) => d.featured),
       categories: sortCategories([...byCat.keys()], order).map((name) => ({
         name,
         dishes: byCat.get(name)!,
       })),
     };
-  }, [state, search, en]);
+  }, [state, search, en, avoid]);
 
   /**
    * تتبّع القسم الظاهر أثناء التمرير.
@@ -1140,6 +1160,34 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
   }
 
   const { restaurant } = state;
+  /**
+   * الأطباق الأكثر طلباً — تُجلب **بعد** المنيو لا معه.
+   *
+   * الشارة زينة والمنيو أصل: تأخيرُ ظهور الطبق حتى يعود عدّادٌ تسويقي يعاقب
+   * الزبون على ميزة لا تخصّه. فتصل متأخّرة وتظهر بلا إزعاج، وفشلها صامت.
+   */
+  /**
+   * مسبّبات الحساسية الموجودة **في هذا المنيو** لا القائمة الكاملة.
+   *
+   * عرض أربعة عشر مسبّباً على منيو قهوة يجعل الزبون يبحث وسط ما لا يعنيه.
+   * فتُبنى من أطباق المطعم نفسه، وتختفي الميزة كلّها إن لم يسجّل التاجر شيئاً.
+   */
+  const allergensInMenu = useMemo(() => {
+    if (state.status !== "ready") return [] as string[];
+    const seen = new Set<string>();
+    for (const d of state.dishes) for (const a of d.allergens ?? []) seen.add(a);
+    return ALLERGENS.filter((a) => seen.has(a.id)).map((a) => a.id);
+  }, [state]);
+
+  const [popularIds, setPopularIds] = useState<Set<string>>(() => new Set());
+  useEffect(() => {
+    if (!restaurant.id || demo || preview) return;
+    let alive = true;
+    getPopularDishes(restaurant.id).then((ids) => alive && setPopularIds(ids));
+    return () => {
+      alive = false;
+    };
+  }, [restaurant.id, demo, preview]);
   /**
    * «نستقبل الآن» غير «البوّابة مربوطة». مطعمٌ مربوط وبابه مغلق كان سيعرض
    * زرّ طلبٍ يقبض ثمنه ولا يحضّره. الافتراض `true` كي لا يُغلق مطعمٌ لم
@@ -1426,7 +1474,58 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
                 <Icon name="search" size={16} />
               </button>
             )}
+
+            {/* زرّ استبعاد الحساسية — يظهر فقط إن سجّل التاجر حساسياتٍ فعلاً.
+                زرٌّ يفتح قائمة فارغة أسوأ من غيابه. */}
+            {allergensInMenu.length > 0 && (
+              <button
+                onClick={() => setAvoidOpen(true)}
+                aria-label={en ? "Dietary filter" : "استبعاد مسبّبات الحساسية"}
+                className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full border"
+                style={
+                  avoid.size > 0
+                    ? { background: "var(--m-accent)", color: "var(--m-on-accent)", borderColor: "transparent" }
+                    : { borderColor: "var(--m-border)", color: "var(--m-muted)" }
+                }
+              >
+                <Icon name="sliders" size={16} />
+                {avoid.size > 0 && (
+                  <span
+                    className="absolute -top-0.5 -end-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-black"
+                    style={{ background: "var(--m-text)", color: "var(--m-bg)" }}
+                  >
+                    {avoid.size}
+                  </span>
+                )}
+              </button>
+            )}
           </nav>
+        )}
+
+        {/* شريط يوضّح أن ما يراه مُصفّى — الزبون لا يجب أن يظنّ المنيو ناقصاً. */}
+        {avoid.size > 0 && (
+          <div
+            className="mx-auto mt-3 flex max-w-md items-center justify-between gap-3 px-4 py-2.5 text-xs font-bold"
+            style={{
+              background: "var(--m-surface)",
+              border: "1px solid var(--m-accent)",
+              borderRadius: "var(--m-radius)",
+              color: "var(--m-text)",
+            }}
+          >
+            <span className="min-w-0 truncate">
+              {en
+                ? `Hiding dishes with: ${[...avoid].map((id) => allergenLabel(id, en)).join(", ")}`
+                : `مخفيّ ما يحتوي: ${[...avoid].map((id) => allergenLabel(id, en)).join("، ")}`}
+            </span>
+            <button
+              onClick={() => setAvoid(new Set())}
+              className="shrink-0 underline underline-offset-2"
+              style={{ color: "var(--m-accent)" }}
+            >
+              {en ? "Clear" : "إلغاء"}
+            </button>
+          </div>
         )}
 
         {/* الأقسام */}
@@ -1491,6 +1590,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
                       en={en}
                       design={design}
                       reserve={sectionReserve(cat.dishes, en)}
+                      popular={popularIds.has(d.id)}
                       onOpen={() => { setOpenDish(d); if (!demo && !preview) trackDishView(d, { table, lang }); }}
                     />
                     {cartOn && Number(d.price ?? 0) > 0 && (
@@ -1626,6 +1726,70 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
           open={acceptingOrders}
           prepMinutes={prepMinutes}
         />
+      )}
+
+      {avoidOpen && (
+        <MenuSheet
+          title={en ? "Dietary filter" : "استبعاد مسبّبات الحساسية"}
+          onClose={() => setAvoidOpen(false)}
+        >
+          <div className="flex flex-col gap-3">
+            <p className="text-xs leading-relaxed" style={{ color: "var(--m-muted)" }}>
+              {en
+                ? "We hide dishes the restaurant marked as containing these. A dish with no allergen data stays visible — missing data isn't proof it's free of them."
+                : "نُخفي ما وسمه المطعم بأنه يحتوي عليها. والطبق الذي لم يسجّل المطعم حساسياته يبقى ظاهراً — غياب البيانات ليس إثبات خلوّ، فتأكّد بالسؤال."}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {allergensInMenu.map((id) => {
+                const on = avoid.has(id);
+                const a = ALLERGENS.find((x) => x.id === id);
+                return (
+                  <button
+                    key={id}
+                    onClick={() =>
+                      setAvoid((prev) => {
+                        const next = new Set(prev);
+                        if (next.has(id)) next.delete(id);
+                        else next.add(id);
+                        return next;
+                      })
+                    }
+                    className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-bold transition-colors"
+                    style={
+                      on
+                        ? { background: "var(--m-accent)", color: "var(--m-on-accent)" }
+                        : {
+                            border: "1px solid var(--m-border)",
+                            color: "var(--m-text)",
+                            background: "var(--m-surface)",
+                          }
+                    }
+                  >
+                    <span aria-hidden="true">{a?.emoji}</span>
+                    {allergenLabel(id, en)}
+                    {on && <span aria-hidden="true">✕</span>}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="mt-1 flex items-center justify-between gap-3">
+              <button
+                onClick={() => setAvoid(new Set())}
+                className="text-xs font-bold underline underline-offset-2"
+                style={{ color: "var(--m-muted)" }}
+              >
+                {en ? "Clear all" : "إلغاء الكل"}
+              </button>
+              <button
+                onClick={() => setAvoidOpen(false)}
+                className="min-h-11 rounded-full px-5 text-sm font-black"
+                style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}
+              >
+                {en ? "Show results" : "اعرض النتائج"}
+              </button>
+            </div>
+          </div>
+        </MenuSheet>
       )}
 
       {cartOpen && (

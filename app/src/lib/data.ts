@@ -921,6 +921,28 @@ export async function listOrders(restaurantId: string): Promise<MerchantOrder[]>
   }));
 }
 
+/**
+ * الأطباق الأكثر طلباً — دليل اجتماعي في صفحة المنيو.
+ *
+ * ⚠️ الزبون لا يقرأ `orders` ولا `order_items` (فيهما جوالات الزبائن
+ * ومراجع الدفع). الدالة تُرجع **معرّفات وأعداداً فقط**، وتشترط ثلاثة طلبات
+ * على الأقل — «الأكثر طلباً» بطلبين كذبة تُضعف ثقة الزبون حين يكتشفها.
+ *
+ * وفشلها لا يُعطّل المنيو: الشارة زينة، والمنيو أصل.
+ */
+export async function getPopularDishes(restaurantId: string): Promise<Set<string>> {
+  try {
+    const rows = await rest<{ dish_id: string }[]>("rpc/popular_dishes", {
+      method: "POST",
+      body: { p_restaurant: restaurantId },
+      anonymous: true,
+    });
+    return new Set(rows.map((r) => r.dish_id));
+  } catch {
+    return new Set();
+  }
+}
+
 /** ملخّص اليوم كما يحتاجه التاجر في الرئيسية: كم طلباً، كم ريالاً، وكم ينتظر. */
 export type OrdersToday = { count: number; revenue: number; open: number };
 
