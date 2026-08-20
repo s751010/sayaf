@@ -1596,6 +1596,10 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
             payOn={paymentOn}
             whatsapp={waNumber}
             table={table}
+            acceptingOrders={acceptingOrders}
+            prepMinutes={prepMinutes}
+            minOrder={minOrder}
+            vatIncluded={restaurant.prices_include_vat !== false}
             onClose={() => setCartOpen(false)}
           />
         </MenuSheet>
