@@ -57,6 +57,7 @@ import type { SessionUser } from "@/lib/session";
 import Overview from "./Overview";
 import Menus from "./Menus";
 import Dishes from "./Dishes";
+import Orders from "./Orders";
 import Design from "./Design";
 import Qr from "./Qr";
 import Cards from "./Cards";
@@ -303,6 +304,17 @@ const NAV = [
   { to: "/dashboard/settings", label: "الإعدادات", icon: "sliders" },
 ];
 
+/**
+ * الشريط لمن يستقبل طلبات أونلاين.
+ *
+ * ⚠️ **ستة عناصر لا سبعة.** الحشوة والحجم أدناه مقيسان على ٣٩٠px، وإضافة
+ * عنصر سابع تُعيد التمرير الأفقي الذي عولج سابقاً. فحين تُفتح الطلبات تحلّ
+ * محلّ «التحليلات» في الشريط — والتحليلات شاشة تُقرأ بهدوء آخر اليوم، أما
+ * الطلبات فتُلمح بين زبونين. وتبقى التحليلات موجودة على مسارها ومن الرئيسية،
+ * فلا يفقدها أحد.
+ */
+const ORDERS_NAV = { to: "/dashboard/orders", label: "الطلبات", icon: "ticket", end: false };
+
 /** عنصر لا يراه إلا صاحب المنصة — يُلحق بـ`NAV` عند التحقّق فقط. */
 const FOUNDER_NAV = { to: "/founder", label: "لوحة المؤسس", icon: "shield", end: false };
 
@@ -321,7 +333,13 @@ function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode
       alive = false;
     };
   }, []);
-  const nav = founder === true ? [...NAV, FOUNDER_NAV] : NAV;
+  // الطلبات تظهر لمن ربط بوّابة دفع فقط: مطعمٌ بلا بوّابة لا سلّة له أصلاً،
+  // وشاشة طلبات فارغة أبداً وعدٌ لا يُوفى.
+  const ordersOn = ctx.restaurant?.online_payment_enabled === true;
+  const base = ordersOn
+    ? NAV.map((n) => (n.to === "/dashboard/analytics" ? ORDERS_NAV : n))
+    : NAV;
+  const nav = founder === true ? [...base, FOUNDER_NAV] : base;
 
   const links = (compact: boolean) =>
     nav.map((n) => (
@@ -586,6 +604,7 @@ export default function Dashboard() {
           <Route index element={<Overview />} />
           <Route path="menus" element={<Menus />} />
           <Route path="dishes" element={<Dishes />} />
+          <Route path="orders" element={<Orders />} />
           <Route path="design" element={<Design />} />
           <Route path="cards" element={<Cards />} />
           <Route path="qr" element={<Qr />} />

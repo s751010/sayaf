@@ -771,9 +771,116 @@ export async function createOrder(input: {
   restaurant_id: string;
   items: OrderLine[];
   table?: string | null;
+  note?: string | null;
   customer?: { name?: string; mobile?: string };
-}): Promise<{ url: string; transactionNo: string; amount: number }> {
+}): Promise<{
+  url: string;
+  transactionNo: string;
+  amount: number;
+  /** معرّف الصفّ في `orders` — هو مفتاح الزبون لمتابعة طلبه. */
+  order_id: string;
+  /** رقم الاستلام الذي يُنادى به: تسلسل يومي لكل مطعم. */
+  code: number;
+}> {
   return callFunction("paylink-order-create", input, { anonymous: true });
+}
+
+/* ── الطلبات ────────────────────────────────────────────────────────── */
+
+export type OrderStatus =
+  | "pending_payment"
+  | "new"
+  | "preparing"
+  | "ready"
+  | "picked_up"
+  | "cancelled";
+
+/** الطلب كما يراه الزبون — بلا جوال ولا اسم ولا مرجع دفع. */
+export type PublicOrder = {
+  code: number;
+  status: OrderStatus;
+  total: number;
+  vat_included: boolean;
+  created_at: string;
+  restaurant: string;
+  items: { name: string; options: string | null; qty: number; line_total: number }[];
+};
+
+/**
+ * تأكيد الدفع ومتابعة الحالة.
+ *
+ * ⚠️ **الزبون لا يقرأ جدول الطلبات إطلاقاً** — لا سياسة RLS تسمح له. هذه
+ * الدالة تمرّ بدالة الحافة التي تسأل PayLink بمفاتيح المطعم، فالمتصفّح لا
+ * يعرف عن الطلب إلا ما يخصّ زبونه.
+ *
+ * ومتكافئة: مناداتها عشر مرات (والزبون يحدّث الصفحة) لا تُغيّر شيئاً.
+ * `{ pending: true }` تعني أن الدفع لم يكتمل بعد — وهي حالة عادية لا خطأ.
+ */
+export async function verifyOrder(
+  orderId: string
+): Promise<PublicOrder | { pending: true }> {
+  return callFunction("order-verify", { order_id: orderId }, { anonymous: true });
+}
+
+/** طلب كما يراه التاجر — يشمل بيانات الزبون التي يحتاجها للتسليم. */
+export type MerchantOrder = PublicOrder & {
+  id: string;
+  customer_name: string | null;
+  customer_phone: string | null;
+  note: string | null;
+  paid_at: string | null;
+};
+
+/**
+ * طلبات المطعم لليوم. RLS تقصرها على صاحب المطعم وحده، فلا حاجة لتصفية
+ * إضافية هنا — لكن `restaurant_id` يبقى في الاستعلام لأن التاجر قد يملك
+ * أكثر من مطعم مستقبلاً.
+ *
+ * `pending_payment` مستبعدة عمداً: طلبٌ لم يُدفع ليس طلباً بعد، وعرضه يُربك
+ * الكاشير بصفوف تختفي.
+ */
+export async function listOrders(restaurantId: string): Promise<MerchantOrder[]> {
+  const rows = await rest<Record<string, unknown>[]>(
+    `orders?restaurant_id=eq.${restaurantId}` +
+      `&status=neq.pending_payment` +
+      `&select=id,code,status,total,vat_included,created_at,paid_at,` +
+      `customer_name,customer_phone,note,order_items(name,options_label,qty,line_total)` +
+      `&order=created_at.desc&limit=200`
+  );
+  return rows.map((r) => ({
+    id: String(r.id),
+    code: Number(r.code),
+    status: r.status as OrderStatus,
+    total: Number(r.total),
+    vat_included: r.vat_included !== false,
+    created_at: String(r.created_at),
+    paid_at: (r.paid_at as string | null) ?? null,
+    restaurant: "",
+    customer_name: (r.customer_name as string | null) ?? null,
+    customer_phone: (r.customer_phone as string | null) ?? null,
+    note: (r.note as string | null) ?? null,
+    items: ((r.order_items ?? []) as Record<string, unknown>[]).map((i) => ({
+      name: String(i.name),
+      options: (i.options_label as string | null) ?? null,
+      qty: Number(i.qty),
+      line_total: Number(i.line_total),
+    })),
+  }));
+}
+
+/**
+ * نقل حالة الطلب.
+ *
+ * ⚠️ المنح على مستوى العمود يقصر ما يستطيع التاجر تغييره على الحالة وطوابعها
+ * — لا المبالغ ولا الدفع. وتريجر `guard_order_status` يمنع الرجوع بالحالة
+ * إلى الوراء أو فتح طلبٍ مغلق، فالسجلّ التشغيلي يبقى صادقاً.
+ */
+export async function setOrderStatus(id: string, status: OrderStatus): Promise<void> {
+  await rest(`orders?id=eq.${id}`, {
+    method: "PATCH",
+    headers: { Prefer: "return=minimal" },
+    body: { status },
+  });
 }
 
 export async function getMyMenus(restaurantId: string): Promise<Menu[]> {

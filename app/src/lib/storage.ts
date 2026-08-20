@@ -3,6 +3,8 @@
  * `cm2_session` مفتاح جديد كي لا يتعارض مع جلسة النسخة القديمة (`cm_session`).
  */
 export const K = {
+  /** معرّف آخر طلب دفعه الزبون — احتياط حين يقصّ رابط العودة معاملاته. */
+  LAST_ORDER: "cm_last_order",
   SESSION: "cm2_session",
   THEME: "cm2_theme",
   /** سر المؤسس — sessionStorage فقط (نفس سلوك النسخة الأصلية). */

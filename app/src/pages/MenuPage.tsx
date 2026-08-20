@@ -20,7 +20,7 @@ import {
   AddToCartButton,
   CartBar,
   CartReview,
-  OrderResult,
+  PickupTicket,
   unitPrice,
   useCart,
   type Cart,
@@ -664,6 +664,14 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
   const [orderResult, setOrderResult] = useState<"paid" | "cancelled" | null>(
     orderParam === "paid" || orderParam === "cancelled" ? orderParam : null
   );
+  /**
+   * معرّف الطلب العائد من البوّابة (`?o=`)، ومعه احتياطٌ محلّي.
+   *
+   * بعض بوّابات الدفع تقصّ معاملات رابط العودة، وبعض الزبائن يفتحون الرابط في
+   * تبويب آخر. ومن دفع يستحقّ أن يجد رقم استلامه في الحالتين — فالمعرّف يُحفظ
+   * محلياً لحظة بدء الدفع ويُقرأ من هنا إن غاب عن الرابط.
+   */
+  const orderId = params.get("o") || getJSON<string>(K.LAST_ORDER) || null;
   const tracked = useRef(false);
   /**
    * وضع المعاينة: التاجر يفتح منيوه من اللوحة قبل الطباعة.
@@ -917,10 +925,10 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
   );
   const cartOn = cart.enabled;
 
-  // الدفع نجح ⇒ السلة أدّت غرضها. الإلغاء لا يمسّها: الزبون قد يعيد المحاولة.
-  useEffect(() => {
-    if (orderResult === "paid") cart.clear();
-  }, [orderResult, cart.clear]);
+  // ⚠️ السلة لم تعد تُفرَّغ بمجرّد رؤية `?order=paid` في الرابط: الرابط نيّة
+  // لا إثبات، ومن يكتبه بيده كان يفقد سلّته بلا دفع. التفريغ الآن من
+  // `PickupTicket` بعد أن تؤكّد PayLink الدفعة فعلاً (`onConfirmed`).
+  // والإلغاء لا يمسّ السلة أصلاً: الزبون قد يعيد المحاولة.
 
   /**
    * بكسلات التاجر — في صفحة المنيو وحدها، وبعد استقرار البيانات.
@@ -1247,7 +1255,13 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
       <main className={cn("mx-auto max-w-3xl px-4", cart.count > 0 && "pb-24")}>
         {/* عودة الزبون من بوابة الدفع — أعلى شيء يراه، قبل الأطباق. */}
         {orderResult && (
-          <OrderResult status={orderResult} en={en} onDismiss={() => setOrderResult(null)} />
+          <PickupTicket
+            orderId={orderId}
+            status={orderResult}
+            en={en}
+            onDismiss={() => setOrderResult(null)}
+            onConfirmed={cart.clear}
+          />
         )}
 
         {/* التقييم والموقع — أعلى الصفحة حيث يراهما الزبون فعلاً. */}
