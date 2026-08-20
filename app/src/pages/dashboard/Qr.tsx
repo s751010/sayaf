@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import QRCode from "qrcode";
 import { qrDataUrl } from "@/lib/qr";
+import { qrSafeColor } from "@/lib/themes";
 import { Button, Card, ErrorNote, Field, Input, Switch, useToast } from "@/components/ui";
 import { PreviewMenuButton } from "@/components/site";
 import { track } from "@/lib/track";
@@ -53,22 +54,38 @@ export default function Qr() {
 
   const logo = withLogo ? (restaurant.logo_image?.trim() || null) : null;
 
+  /**
+   * لون الكود من لون علامة التاجر — بعد أن يمرّ بحارس التباين.
+   *
+   * ⚠️ `qrSafeColor` ليست تجميلاً: الماسح يقرأ التباين لا اللون، وذهبيٌّ فاتح
+   * يُنتج كوداً أنيقاً **لا يُمسح** — يكتشفه التاجر بعد أن يطبع خمسين بطاقة.
+   * فاللون يُغمَّق حتى يبلغ ٧:١، وإن استحال سقط إلى الغامق الافتراضي.
+   */
+  const [brandQr, setBrandQr] = useState(true);
+  const qrColors = brandQr
+    ? { dark: qrSafeColor(restaurant.cover_color || "#141210") }
+    : {};
+
   useEffect(() => {
     if (!url) return setDataUrl("");
     let active = true;
-    qrDataUrl(url, logo)
+    qrDataUrl(url, logo, 640, qrColors)
       .then((d) => active && setDataUrl(d))
       .catch(() => active && setDataUrl(""));
     return () => {
       active = false;
     };
-  }, [url, logo]);
+  }, [url, logo, qrColors.dark]);
 
   async function downloadSvg() {
     if (!url) return;
     let objectUrl: string | null = null;
     try {
-      const svg = await QRCode.toString(url, { type: "svg", margin: 2 });
+      const svg = await QRCode.toString(url, {
+        type: "svg",
+        margin: 2,
+        color: qrColors.dark ? { dark: qrColors.dark, light: "#ffffff" } : undefined,
+      });
       const blob = new Blob([svg], { type: "image/svg+xml" });
       objectUrl = URL.createObjectURL(blob);
       download(objectUrl, `qr-${slug}${table ? `-table-${table}` : ""}.svg`);
@@ -92,7 +109,7 @@ export default function Qr() {
       const cards = await Promise.all(
         [...Array(n)].map(async (_, i) => {
           const t = i + 1;
-          const d = await qrDataUrl(menuUrl(slug, `?table=${t}`)!, logo, 480);
+          const d = await qrDataUrl(menuUrl(slug, `?table=${t}`)!, logo, 480, qrColors);
           return `<div class="card">
   <p class="brand">${name}</p>
   <img src="${d}" alt="">
@@ -182,6 +199,27 @@ export default function Qr() {
                 </p>
               </div>
               <Switch checked={withLogo} onChange={setWithLogo} label="الشعار في الكود" />
+            </div>
+          )}
+
+          {/* لون الكود — يظهر فقط لمن اختار لون علامة، فلا خيار بلا أثر. */}
+          {restaurant.cover_color && (
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-line p-3.5">
+              <div className="min-w-0">
+                <p className="flex items-center gap-2 text-sm font-bold text-ink">
+                  <span
+                    aria-hidden="true"
+                    className="inline-block h-3.5 w-3.5 rounded-full ring-1 ring-line"
+                    style={{ background: qrSafeColor(restaurant.cover_color) }}
+                  />
+                  كودك بلون علامتك
+                </p>
+                <p className="text-xs leading-relaxed text-faint">
+                  نُغمّق اللون تلقائياً إن لزم — الماسح يقرأ التباين لا اللون،
+                  وكودٌ فاتح يبدو أنيقاً ولا يُمسح.
+                </p>
+              </div>
+              <Switch checked={brandQr} onChange={setBrandQr} label="لون العلامة في الكود" />
             </div>
           )}
           {dataUrl && (
