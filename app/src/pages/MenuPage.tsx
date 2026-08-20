@@ -18,6 +18,7 @@ import { DishCard, type CardReserve } from "@/components/menu/DishCard";
 import { DishOfTheDay } from "@/components/menu/DishOfTheDay";
 import {
   AddToCartButton,
+  ActiveOrderStrip,
   CartBar,
   PickupBanner,
   CartReview,
@@ -1260,6 +1261,8 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
           </div>
         )}
       </MenuHeader>
+
+      {cartOn && <ActiveOrderStrip en={en} />}
 
       {cartOn && (
         <PickupBanner

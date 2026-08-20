@@ -13,7 +13,7 @@
  */
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
 import { parseOptions } from "@/lib/options";
-import { createOrder, verifyOrder, type PublicOrder } from "@/lib/data";
+import { createOrder, getOrderStatus, verifyOrder, type PublicOrder } from "@/lib/data";
 import { K, getJSON, removeItem, setJSON } from "@/lib/storage";
 import { formatPrice, whatsappUrl } from "@/lib/utils";
 import type { Dish } from "@/lib/types";
@@ -820,10 +820,101 @@ export function PickupTicket({
               : "غير شامل ضريبة القيمة المضافة ١٥٪"}
         </p>
 
-        <button onClick={onDismiss} className="mt-3 w-full text-xs underline" style={{ color: "var(--m-muted)" }}>
+        {/* ⚠️ هذا الرابط ليس زينة: بدونه تبقى صفحة المتابعة يتيمة لا يصلها
+            أحد. الزبون يقفل جواله وينتظر، والتذكرة داخل المنيو تختفي بأول
+            تحديث — فالرابط هو ما يعيده إلى طلبه. */}
+        <a
+          href={`/o/${orderId}`}
+          className="mt-3 flex w-full items-center justify-center gap-1.5 py-2.5 text-sm font-black"
+          style={{
+            background: "var(--m-bg-2)",
+            color: "var(--m-text)",
+            border: "1px solid var(--m-border)",
+            borderRadius: "var(--m-radius)",
+          }}
+        >
+          📲 {en ? "Track my order" : "تابع طلبك — احفظ الرابط"}
+        </a>
+
+        <button onClick={onDismiss} className="mt-2 w-full text-xs underline" style={{ color: "var(--m-muted)" }}>
           {en ? "Back to menu" : "العودة للمنيو"}
         </button>
       </div>
     </div>
+  );
+}
+
+
+/* ── شريط الطلب الجاري ─────────────────────────────────────────────── */
+
+/**
+ * الزبون الذي طلب ثم عاد للمنيو.
+ *
+ * بعد الدفع يغلق الزبون جواله وينتظر، ثم يفتح المنيو مرّة أخرى ليتصفّح أو
+ * ليطمئنّ — فيجد الصفحة كما لو أنه لم يطلب شيئاً قطّ. هذا الشريط يتذكّر له:
+ * يقرأ آخر طلب من التخزين المحلّي، ويختفي وحده حين يُسلَّم أو يُلغى.
+ */
+export function ActiveOrderStrip({ en }: { en: boolean }) {
+  const [order, setOrder] = useState<{ id: string; view: PublicOrder } | null>(null);
+
+  useEffect(() => {
+    const id = getJSON<string>(K.LAST_ORDER);
+    if (!id) return;
+    let alive = true;
+    getOrderStatus(id)
+      .then((view) => {
+        if (!alive || !view) return;
+        // طلبٌ انتهى ليس «جارياً» — ونُنسي المتصفّح إيّاه كي لا يعود غداً.
+        if (view.status === "picked_up" || view.status === "cancelled") {
+          removeItem(K.LAST_ORDER);
+          return;
+        }
+        setOrder({ id, view });
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  if (!order) return null;
+  const ready = order.view.status === "ready";
+
+  return (
+    <a
+      href={`/o/${order.id}`}
+      className="anim-fade-up mx-auto mt-4 flex max-w-md items-center gap-3 px-4 py-3"
+      style={{
+        background: ready ? "var(--m-accent)" : "var(--m-surface)",
+        color: ready ? "var(--m-on-accent)" : "var(--m-text)",
+        border: `1px solid var(--m-accent)`,
+        borderRadius: "var(--m-radius)",
+      }}
+    >
+      <span
+        className="flex h-10 w-10 shrink-0 flex-col items-center justify-center rounded-xl text-lg font-black tabular-nums"
+        style={{
+          background: ready ? "var(--m-on-accent)" : "var(--m-accent)",
+          color: ready ? "var(--m-accent)" : "var(--m-on-accent)",
+        }}
+      >
+        {order.view.code}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-sm font-black" style={mFont}>
+          {ready
+            ? en
+              ? "Your order is ready!"
+              : "طلبك جاهز للاستلام!"
+            : en
+              ? "Your order is on the way"
+              : "طلبك قيد التنفيذ"}
+        </span>
+        <span className="block text-xs" style={{ opacity: 0.75 }}>
+          {en ? "Tap to track" : "اضغط للمتابعة"}
+        </span>
+      </span>
+      <span className="shrink-0 text-lg">‹</span>
+    </a>
   );
 }
