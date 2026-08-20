@@ -34,6 +34,12 @@ export interface Restaurant {
    * وجوده هنا يتيح لصفحة المنيو العامة معرفة توفّر الدفع دون لمس جدول الأسرار.
    */
   online_payment_enabled: boolean | null;
+  /** يفتح مسار الطلب عبر واتساب في المنيو العام — مستقلّ عن بوابة الدفع. */
+  whatsapp_orders_enabled: boolean | null;
+  /** هل الأسعار المعروضة شاملة ضريبة القيمة المضافة (١٥٪). */
+  prices_include_vat: boolean | null;
+  /** الرقم الضريبي للمنشأة — يُعرض في تذييل المنيو إن وُجد. */
+  vat_number: string | null;
   created_at: string;
 }
 
@@ -55,13 +61,14 @@ export const PUBLIC_RESTAURANT_COLUMNS = [
   "allergens_text", "working_hours", "social_instagram", "social_twitter",
   "social_tiktok", "social_snapchat", "social_whatsapp", "social_maps",
   "english_enabled", "loyalty_enabled", "loyalty_goal", "loyalty_reward",
-  "reviews_enabled", "online_payment_enabled",
+  "reviews_enabled", "online_payment_enabled", "whatsapp_orders_enabled",
+  "prices_include_vat", "vat_number",
 ].join(", ");
 
 /** أعمدة القائمة المسموح بها للزائر (بلا user_id). */
 export const PUBLIC_MENU_COLUMNS = [
   "id", "restaurant_id", "name", "description", "theme", "language",
-  "cover_image", "active", "views", "created_at",
+  "cover_image", "active", "views", "created_at", "window_from", "window_to",
 ].join(", ");
 
 /** أعمدة الصنف المسموح بها للزائر (بلا user_id). */
@@ -69,7 +76,7 @@ export const PUBLIC_DISH_COLUMNS = [
   "id", "menu_id", "restaurant_id", "name", "description", "price", "category",
   "emoji", "image", "featured", "available", "views", "calories", "sodium_mg",
   "caffeine_mg", "burn_minutes", "is_high_sodium", "sfda_compliant",
-  "allergens", "name_en", "description_en", "options", "created_at",
+  "allergens", "name_en", "description_en", "options", "sort_order", "created_at",
 ].join(", ");
 
 export type PublicMenuRow = Omit<Menu, "user_id">;
@@ -113,6 +120,9 @@ export interface Menu {
   cover_image: string | null;
   active: boolean | null;
   views: number | null;
+  /** نافذة ظهور القائمة بتوقيت الرياض بصيغة HH:MM — null = بلا تقييد. */
+  window_from: string | null;
+  window_to: string | null;
   created_at: string;
 }
 
@@ -139,6 +149,8 @@ export interface Dish {
   allergens: string[] | null;
   name_en: string | null;
   description_en: string | null;
+  /** ترتيب الطبق داخل تصنيفه (تصاعدي). */
+  sort_order: number | null;
   options: string | null;
   created_at: string;
 }

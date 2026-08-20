@@ -1,24 +1,26 @@
 import { AtSign, MapPin, MessageCircle, Star } from "lucide-react";
 import type { PublicRestaurant } from "@/lib/types";
-
-function waLink(v: string | null): string | null {
-  if (!v) return null;
-  return v.startsWith("http") ? v : `https://wa.me/${v.replace(/[^\d]/g, "")}`;
-}
+import { safeExternalUrl, safeWhatsAppUrl } from "@/lib/safe-url";
 
 export function SocialLinks({ restaurant }: { restaurant: PublicRestaurant }) {
+  // كل رابط يمرّ بالمعقِّم: `https` فقط. رابط بمخطَّط آخر (مثل `javascript:`)
+  // يُسقط بصمت بدل أن يُعرض للزبون على نطاق المنصّة.
   const items: { href: string | null; label: string; icon?: React.ReactNode }[] = [
     {
-      href: restaurant.google_review_url,
+      href: safeExternalUrl(restaurant.google_review_url),
       label: "قيّمنا على قوقل",
       icon: <Star size={14} className="text-[#FBBC05]" />,
     },
-    { href: waLink(restaurant.social_whatsapp), label: "واتساب", icon: <MessageCircle size={14} /> },
-    { href: restaurant.social_instagram, label: "Instagram", icon: <AtSign size={14} /> },
-    { href: restaurant.social_twitter, label: "X" },
-    { href: restaurant.social_tiktok, label: "TikTok" },
-    { href: restaurant.social_snapchat, label: "Snapchat" },
-    { href: restaurant.social_maps, label: "الموقع", icon: <MapPin size={14} /> },
+    {
+      href: safeWhatsAppUrl(restaurant.social_whatsapp),
+      label: "واتساب",
+      icon: <MessageCircle size={14} />,
+    },
+    { href: safeExternalUrl(restaurant.social_instagram), label: "Instagram", icon: <AtSign size={14} /> },
+    { href: safeExternalUrl(restaurant.social_twitter), label: "X" },
+    { href: safeExternalUrl(restaurant.social_tiktok), label: "TikTok" },
+    { href: safeExternalUrl(restaurant.social_snapchat), label: "Snapchat" },
+    { href: safeExternalUrl(restaurant.social_maps), label: "الموقع", icon: <MapPin size={14} /> },
   ];
   const visible = items.filter((i) => i.href);
   if (visible.length === 0) return null;
@@ -30,7 +32,7 @@ export function SocialLinks({ restaurant }: { restaurant: PublicRestaurant }) {
           key={i.label}
           href={i.href!}
           target="_blank"
-          rel="noreferrer"
+          rel="noreferrer nofollow ugc"
           className="inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[13px] font-semibold transition-colors hover:opacity-80"
           style={{
             background: "var(--m-surface)",

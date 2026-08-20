@@ -128,6 +128,48 @@ export function SettingsForm({
         </div>
       </Card>
 
+      <Card className="flex flex-col gap-4">
+        <h2 className="font-bold text-cream">الطلبات والضريبة</h2>
+
+        <label className="flex items-center gap-2 text-sm text-cream">
+          <input
+            type="checkbox"
+            name="whatsapp_orders_enabled"
+            defaultChecked={r.whatsapp_orders_enabled ?? false}
+            className="h-4 w-4 accent-gold"
+          />
+          استقبال الطلبات عبر واتساب من صفحة المنيو
+        </label>
+        <p className="text-xs text-muted">
+          يظهر للزبون زرّ سلّة يرسل الطلب نصّاً على رقم الواتساب أعلاه. مستقلّ عن
+          بوابة الدفع — مطعم بلا بوابة يستطيع استقبال الطلبات.
+        </p>
+
+        <label className="flex items-center gap-2 text-sm text-cream">
+          <input
+            type="checkbox"
+            name="prices_include_vat"
+            defaultChecked={r.prices_include_vat ?? true}
+            className="h-4 w-4 accent-gold"
+          />
+          الأسعار المعروضة شاملة ضريبة القيمة المضافة (١٥٪)
+        </label>
+
+        <Field label="الرقم الضريبي (١٥ رقماً — اختياري)" htmlFor="vat_number">
+          <Input
+            id="vat_number"
+            name="vat_number"
+            dir="ltr"
+            inputMode="numeric"
+            defaultValue={r.vat_number ?? ""}
+            placeholder="3xxxxxxxxxxxxx3"
+          />
+        </Field>
+        <p className="text-xs text-muted">
+          يُعرض في تذييل المنيو. يُحفظ فقط إن كان ١٥ رقماً بالضبط.
+        </p>
+      </Card>
+
       <Card className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <h2 className="font-bold text-cream">المنيو ثنائي اللغة</h2>

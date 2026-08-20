@@ -6,6 +6,7 @@ import { createServerSupabase, getCurrentUser } from "@/lib/supabase/server";
 import { getMyRestaurant } from "@/lib/owner";
 import { getMyEntitlements } from "@/lib/entitlements";
 import { parseDishOptions, serializeDishOptions } from "@/lib/options";
+import { safeExternalUrl, safeWhatsAppUrl } from "@/lib/safe-url";
 import type { Dish, Menu } from "@/lib/types";
 
 export type ActionState = { error?: string; message?: string };
@@ -31,6 +32,18 @@ function numOrNull(v: FormDataEntryValue | null): number | null {
 function strOrNull(v: FormDataEntryValue | null): string | null {
   const s = String(v ?? "").trim();
   return s === "" ? null : s;
+}
+
+/** رقم ضمن مدى، أو null. */
+function clampOrNull(n: number | null, min: number, max: number): number | null {
+  if (n === null) return null;
+  return Math.min(Math.max(Math.round(n), min), max);
+}
+
+/** الرقم الضريبي السعودي: ١٥ رقماً بالضبط، وإلا لا يُحفظ. */
+function vatOrNull(v: FormDataEntryValue | null): string | null {
+  const digits = String(v ?? "").replace(/\D/g, "");
+  return digits.length === 15 ? digits : null;
 }
 
 /** نص مفصول بفواصل (عربية أو إنجليزية) → مصفوفة نظيفة. */
@@ -87,18 +100,26 @@ export async function updateRestaurant(
     banner_image: strOrNull(formData.get("banner_image")),
     working_hours: strOrNull(formData.get("working_hours")),
     allergens_text: strOrNull(formData.get("allergens_text")),
-    google_review_url: strOrNull(formData.get("google_review_url")),
-    social_whatsapp: strOrNull(formData.get("social_whatsapp")),
-    social_instagram: strOrNull(formData.get("social_instagram")),
-    social_twitter: strOrNull(formData.get("social_twitter")),
-    social_tiktok: strOrNull(formData.get("social_tiktok")),
-    social_snapchat: strOrNull(formData.get("social_snapchat")),
-    social_maps: strOrNull(formData.get("social_maps")),
+    // الروابط تُعقَّم عند الحفظ أيضاً لا عند العرض فقط: قيمة `javascript:`
+    // في القاعدة تبقى قنبلة موقوتة لأي واجهة مستقبلية تقرأها بلا فحص.
+    google_review_url: safeExternalUrl(formData.get("google_review_url") as string),
+    social_whatsapp: safeWhatsAppUrl(formData.get("social_whatsapp") as string),
+    social_instagram: safeExternalUrl(formData.get("social_instagram") as string),
+    social_twitter: safeExternalUrl(formData.get("social_twitter") as string),
+    social_tiktok: safeExternalUrl(formData.get("social_tiktok") as string),
+    social_snapchat: safeExternalUrl(formData.get("social_snapchat") as string),
+    social_maps: safeExternalUrl(formData.get("social_maps") as string),
     english_enabled: ent.english && formData.get("english_enabled") === "on",
     loyalty_enabled: ent.loyalty && formData.get("loyalty_enabled") === "on",
-    loyalty_goal: numOrNull(formData.get("loyalty_goal")),
+    // القاعدة تقصّه إلى ١..٢٠ في `staff_stamp`؛ نمنع الحفظ خارج المدى أصلاً.
+    loyalty_goal: clampOrNull(numOrNull(formData.get("loyalty_goal")), 1, 20),
     loyalty_reward: strOrNull(formData.get("loyalty_reward")),
     reviews_enabled: formData.get("reviews_enabled") === "on",
+    // مسار الطلب عبر واتساب: قرار كل مطعم على حدة، لا علم عام على المنصّة.
+    whatsapp_orders_enabled: formData.get("whatsapp_orders_enabled") === "on",
+    // ضريبة القيمة المضافة — يُعرضان في تذييل المنيو للزبون.
+    prices_include_vat: formData.get("prices_include_vat") === "on",
+    vat_number: vatOrNull(formData.get("vat_number")),
   };
 
   const { error } = await supabase

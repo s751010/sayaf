@@ -51,6 +51,10 @@ export default async function MenuPage({ params }: Params) {
   // علم عام على صف المطعم يزامنه مُشغِّل في قاعدة البيانات — لا تصل أي بيانات
   // اعتماد لهذه الصفحة ولا للمتصفح.
   const onlinePayment = restaurant.online_payment_enabled === true;
+  // الطلب عبر واتساب قرار كل مطعم: العلم العام في `site_settings` يوقف
+  // الميزة للمنصّة كلها، وعلم المطعم يفتحها له. كان كل مطعم يحصل على زرّ
+  // الطلب رغماً عنه لأن علم المطعم لم يكن مقروءاً أصلاً.
+  const whatsappOrders = restaurant.whatsapp_orders_enabled === true;
   const theme = getTheme(menu?.theme);
   const rootStyle = { ...theme.vars, background: "var(--m-bg)", color: "var(--m-text)" } as CSSProperties;
   const display = { fontFamily: "var(--m-font)" } as CSSProperties;
@@ -136,7 +140,7 @@ export default async function MenuPage({ params }: Params) {
           featured={featured}
           categories={categories}
           englishEnabled={!!restaurant.english_enabled}
-          orderingEnabled={features.orders_enabled}
+          orderingEnabled={features.orders_enabled && (whatsappOrders || onlinePayment)}
           whatsapp={restaurant.social_whatsapp}
           phone={restaurant.phone}
           restaurantId={restaurant.id}
@@ -148,6 +152,14 @@ export default async function MenuPage({ params }: Params) {
             ⚠️ {restaurant.allergens_text}
           </p>
         )}
+
+        {/* إفصاح الضريبة — متطلَّب عرضٍ معتاد في السوق السعودي. */}
+        <p className="mt-4 text-center text-[11px]" style={{ color: "var(--m-muted)" }}>
+          {restaurant.prices_include_vat === false
+            ? "الأسعار غير شاملة ضريبة القيمة المضافة (١٥٪)."
+            : "الأسعار شاملة ضريبة القيمة المضافة (١٥٪)."}
+          {restaurant.vat_number ? ` — الرقم الضريبي: ${restaurant.vat_number}` : ""}
+        </p>
       </div>
 
       {/* Footer */}
