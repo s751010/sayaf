@@ -1,0 +1,53 @@
+-- ═══════════════════════════════════════════════════════════════════
+--  طلبات الاستلام المدفوعة أونلاين — ٢٠٢٦/٠٨/٢٠
+--
+--  مطبَّق على wjqpsbpebpntpeinqccl عبر هجرتين:
+--    20260820_orders_pickup_online_payment
+--    20260820_orders_rpcs_and_status_guard
+--  هذا الملفّ سجلّ مقروء؛ القاعدة هي المصدر الحيّ.
+--
+--  ═══ الفجوة التي سُدّت ═══
+--
+--  كان مسار الدفع مبنيّاً بالكامل (`paylink-order-create`) وبلا ذاكرة:
+--  الزبون يدفع، والمال يصل حساب المطعم، ثم يعود بـ`?order=paid` فتُفرَّغ
+--  السلة — **ولا يعرف التاجر أن أحداً طلب ولا ماذا طلب**.
+--
+--  ═══ ثلاثة قرارات تصميم ═══
+--
+--  ① **أسطر الطلب لقطة لا مرجع.** الاسم والسعر يُنسخان وقت الطلب، فتعديل
+--     الطبق غداً لا يعيد كتابة فاتورة الأمس.
+--
+--  ② **رقم الاستلام تسلسل يومي تحت قفل.** `max + 1` من خارج معاملة يعطي
+--     زبونين نفس الرقم عند طلبين متزامنين — خطأٌ لا يظهر إلا في الذروة، أي
+--     حين يؤلم. `pg_advisory_xact_lock` على المطعم وحده يحلّه بلا قفل جدول.
+--
+--  ③ **الزبون لا يقرأ الجدول إطلاقاً.** لا سياسة تسمح لدور anon، وحالة طلبه
+--     تصله عبر `order_public_status` التي تُرجع الحقول الآمنة وحدها — بلا
+--     جوال ولا اسم ولا مرجع دفع. والمعرّف نفسه هو الصلاحية: uuid لا يُخمَّن.
+-- ═══════════════════════════════════════════════════════════════════
+
+-- الجداول والسياسات والدوال كاملةً في القاعدة. الملخّص:
+--
+--   orders(id, restaurant_id, user_id, code, order_day, status, customer_name,
+--          customer_phone, note, subtotal, total, vat_included, payment_ref,
+--          paid_at, ready_at, picked_up_at, created_at, updated_at)
+--     status ∈ pending_payment | new | preparing | ready | picked_up | cancelled
+--     unique (restaurant_id, order_day, code)
+--
+--   order_items(id, order_id, dish_id, name, options_label, unit_price, qty,
+--               line_total generated)
+--
+--   RLS: قراءة/تحديث للتاجر المالك أو المؤسس فقط. لا سياسة إدراج إطلاقاً —
+--        مفتاح الخدمة وحده يكتب. والتحديث مقصور بالمنح على الأعمدة
+--        (status, ready_at, picked_up_at, updated_at): التاجر ينقل الحالة
+--        ولا يلمس المبالغ ولا الدفع.
+--
+--   place_order()          — إنشاء ذرّي + توليد الرقم تحت قفل. service_role.
+--   mark_order_paid()      — متكافئة؛ تشترط pending_payment. service_role.
+--   order_public_status()  — حالة الزبون، حقول آمنة فقط. anon + authenticated.
+--   guard_order_status()   — الحالة تتقدّم ولا ترجع، والمغلق لا يُفتح.
+--   orders_fill_owner()    — يشتقّ user_id من المطعم ويحدّث updated_at.
+--
+-- مُتحقَّق حيّاً: تسلسل ١ ثم ٢ · التكافؤ بلا أثر · الزائر يُمنع من الجدولين
+-- (401) · order_public_status تُرجع null لطلب لم يُدفع ولمعرّف عشوائي ·
+-- place_order و mark_order_paid مرفوضتان للزائر (401).

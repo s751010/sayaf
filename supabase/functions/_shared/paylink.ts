@@ -136,8 +136,14 @@ export type InvoiceDetails = {
  * الويبهوك إطلاقاً في تفعيل أي اشتراك — يُعاد سؤال PayLink بمفاتيحنا الخاصة،
  * وردّ هذه الدالة هو ما يُبنى عليه القرار.
  */
-export async function getInvoice(transactionNo: string): Promise<InvoiceDetails> {
-  const token = await authToken();
+export async function getInvoice(
+  transactionNo: string,
+  creds?: PaylinkCredentials
+): Promise<InvoiceDetails> {
+  // ⚠️ `creds` ليست رفاهية: فاتورة **اشتراك** تُنشأ على حساب المنصّة فتُتحقَّق
+  // بمفاتيحها، وفاتورة **طلب زبون** تُنشأ على حساب المطعم فلا يعرف عنها حساب
+  // المنصّة شيئاً. التحقّق بالمفاتيح الخطأ يُرجع «غير موجودة» لطلبٍ مدفوع.
+  const token = await authToken(creds);
   const res = await fetch(
     `${paylinkBase()}/api/getInvoice/${encodeURIComponent(transactionNo)}`,
     {
