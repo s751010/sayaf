@@ -543,6 +543,47 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  /**
+   * ⚠️ **هذه الثلاثة فوق العوائد المبكّرة عمداً — ولا تُنقل تحتها أبداً.**
+   *
+   * الصفحة تعود مبكّراً في `loading` و`unpublished` و`notfound`. وخطّافٌ
+   * تحت ذلك يعمل في الرسمة الجاهزة ولا يعمل في رسمة التحميل، فيتغيّر عدد
+   * الخطّافات بين الرسمتين ⇒ **React #310 وشاشة الاعتذار على كل منيو**.
+   * وقع هذا فعلاً: نُقلت تحت العوائد لإرضاء `tsc` (كانت تقرأ `restaurant`
+   * قبل تعريفه)، فرضي المترجم وسقط المنتج. الحلّ أن يُشتقّ المعرّف بأمان
+   * من `state` — لا أن يهبط الخطّاف إلى حيث يصير الشرط مضموناً.
+   */
+  const readyRestaurantId = state.status === "ready" ? state.restaurant.id : null;
+
+  /**
+   * مسبّبات الحساسية الموجودة **في هذا المنيو** لا القائمة الكاملة.
+   *
+   * عرض أربعة عشر مسبّباً على منيو قهوة يجعل الزبون يبحث وسط ما لا يعنيه.
+   * فتُبنى من أطباق المطعم نفسه، وتختفي الميزة كلّها إن لم يسجّل التاجر شيئاً.
+   */
+  const allergensInMenu = useMemo(() => {
+    if (state.status !== "ready") return [] as string[];
+    const seen = new Set<string>();
+    for (const d of state.dishes) for (const a of d.allergens ?? []) seen.add(a);
+    return ALLERGENS.filter((a) => seen.has(a.id)).map((a) => a.id);
+  }, [state]);
+
+  /**
+   * الأطباق الأكثر طلباً — تُجلب **بعد** المنيو لا معه.
+   *
+   * الشارة زينة والمنيو أصل: تأخيرُ ظهور الطبق حتى يعود عدّادٌ تسويقي يعاقب
+   * الزبون على ميزة لا تخصّه. فتصل متأخّرة وتظهر بلا إزعاج، وفشلها صامت.
+   */
+  const [popularIds, setPopularIds] = useState<Set<string>>(() => new Set());
+  useEffect(() => {
+    if (!readyRestaurantId || demo || preview) return;
+    let alive = true;
+    getPopularDishes(readyRestaurantId).then((ids) => alive && setPopularIds(ids));
+    return () => {
+      alive = false;
+    };
+  }, [readyRestaurantId, demo, preview]);
+
   /* حالات غير جاهزة */
   if (state.status === "loading") {
     return (
@@ -600,34 +641,6 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
   }
 
   const { restaurant } = state;
-  /**
-   * الأطباق الأكثر طلباً — تُجلب **بعد** المنيو لا معه.
-   *
-   * الشارة زينة والمنيو أصل: تأخيرُ ظهور الطبق حتى يعود عدّادٌ تسويقي يعاقب
-   * الزبون على ميزة لا تخصّه. فتصل متأخّرة وتظهر بلا إزعاج، وفشلها صامت.
-   */
-  /**
-   * مسبّبات الحساسية الموجودة **في هذا المنيو** لا القائمة الكاملة.
-   *
-   * عرض أربعة عشر مسبّباً على منيو قهوة يجعل الزبون يبحث وسط ما لا يعنيه.
-   * فتُبنى من أطباق المطعم نفسه، وتختفي الميزة كلّها إن لم يسجّل التاجر شيئاً.
-   */
-  const allergensInMenu = useMemo(() => {
-    if (state.status !== "ready") return [] as string[];
-    const seen = new Set<string>();
-    for (const d of state.dishes) for (const a of d.allergens ?? []) seen.add(a);
-    return ALLERGENS.filter((a) => seen.has(a.id)).map((a) => a.id);
-  }, [state]);
-
-  const [popularIds, setPopularIds] = useState<Set<string>>(() => new Set());
-  useEffect(() => {
-    if (!restaurant.id || demo || preview) return;
-    let alive = true;
-    getPopularDishes(restaurant.id).then((ids) => alive && setPopularIds(ids));
-    return () => {
-      alive = false;
-    };
-  }, [restaurant.id, demo, preview]);
   /**
    * «نستقبل الآن» غير «البوّابة مربوطة». مطعمٌ مربوط وبابه مغلق كان سيعرض
    * زرّ طلبٍ يقبض ثمنه ولا يحضّره. الافتراض `true` كي لا يُغلق مطعمٌ لم
