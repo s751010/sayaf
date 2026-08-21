@@ -12,6 +12,7 @@ import { Badge, Card } from "@/components/ui";
 import { Reveal } from "@/components/landing/Reveal";
 import { LiveDemo } from "@/components/landing/LiveDemo";
 import { SwitchCost } from "@/components/landing/SwitchCost";
+import { ScanDemo } from "@/components/landing/ScanDemo";
 import { PhonePreview } from "@/components/landing/PhonePreview";
 import { PricingCards } from "@/components/landing/PricingCards";
 import {
@@ -673,6 +674,8 @@ export default function Landing() {
       {/* «جرّبه الآن» — الدليل الوحيد المتاح.
           لا شهادات ولا شعارات ولا عدّاد مستخدمين: لا يوجد عميل واحد بعد،
           وكل حساب في القاعدة يخصّ المالك. فالمنتج نفسه هو البرهان. */}
+      <ScanDemo />
+
       <LiveDemo theme={theme} />
 
       <ThemeStage />

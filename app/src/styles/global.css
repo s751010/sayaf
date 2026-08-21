@@ -1195,3 +1195,20 @@ body {
     animation: none;
   }
 }
+
+/* ورقة المنيو في عرض الهبوط: ميلٌ خفيف يوحي بصورة جوال لا بمستند.
+   يستقيم أثناء المسح كي يقرأ الزائر ما يُمسح. */
+.scan-paper {
+  transform: rotate(-1.2deg);
+  transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.scan-paper-still {
+  transform: rotate(-1.2deg) scale(0.995);
+}
+@media (prefers-reduced-motion: reduce) {
+  .scan-paper,
+  .scan-paper-still {
+    transform: none;
+    transition: none;
+  }
+}
