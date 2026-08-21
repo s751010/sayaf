@@ -1135,3 +1135,63 @@ body {
     transition: none;
   }
 }
+
+/* ══ قراءة المنيو بالذكاء الاصطناعي ══════════════════════════════════
+   القراءة تستغرق ثلاث ثوانٍ — ودوّارةٌ صامتة ثلاث ثوانٍ تُقرأ «تعطّل».
+   فالشريط يمسح الصورة فيقول «أنا أقرأ الآن» بلا كلمة.
+   والحركة على `transform` و`opacity` وحدهما — لا تُرغم المتصفّح على
+   إعادة تخطيط في كل إطار. */
+.scan-frame::after {
+  /* حجابٌ خفيف يجعل الشريط أظهر فوق الصور الفاتحة. */
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.12), transparent 45%, rgba(0, 0, 0, 0.12));
+  pointer-events: none;
+}
+.scan-beam {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 22%;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(212, 168, 67, 0.18) 42%,
+    rgba(212, 168, 67, 0.55) 50%,
+    rgba(212, 168, 67, 0.18) 58%,
+    transparent
+  );
+  box-shadow: 0 0 26px 6px rgba(212, 168, 67, 0.28);
+  will-change: transform;
+  animation: scan-sweep 1.9s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+}
+@keyframes scan-sweep {
+  0% { transform: translateY(-110%); }
+  100% { transform: translateY(560%); }
+}
+
+.scan-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--c-gold);
+  will-change: transform, opacity;
+  animation: scan-pulse 1.1s ease-in-out infinite;
+}
+@keyframes scan-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(0.55); opacity: 0.45; }
+}
+
+/* ⚠️ من يطلب تقليل الحركة يحصل على حالةٍ ساكنة **ظاهرة** لا على فراغ:
+   الشريط يبقى مرئياً في مكانه، والنقطة ثابتة. */
+@media (prefers-reduced-motion: reduce) {
+  .scan-beam {
+    animation: none;
+    top: 40%;
+  }
+  .scan-dot {
+    animation: none;
+  }
+}

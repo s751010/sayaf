@@ -313,6 +313,43 @@ export async function getSiteSetting<T>(key: string): Promise<T | null> {
   }
 }
 
+/** صنفٌ قرأه النموذج من صورة المنيو — قبل مراجعة التاجر. */
+export type ScannedItem = {
+  name: string;
+  price: number | null;
+  category: string | null;
+  description: string | null;
+};
+
+/**
+ * يقرأ صورة منيو مطبوع ويُعيد أصنافه — **عبر دالة الحافة لا مباشرةً**.
+ *
+ * مفتاح النموذج سرٌّ يعيش في أسرار Supabase. ولو نُودي النموذج من هنا لكان
+ * المفتاح في الحزمة التي يُنزّلها كل زائر.
+ *
+ * ⚠️ والناتج **اقتراح لا حقيقة**: يمرّ على شاشة المراجعة في `DishImport`
+ * قبل أن يُحفظ صنفٌ واحد.
+ */
+export async function scanMenuImage(
+  restaurantId: string,
+  image: Blob
+): Promise<ScannedItem[]> {
+  const b64 = await new Promise<string>((resolve, reject) => {
+    const fr = new FileReader();
+    fr.onerror = () => reject(new Error("تعذّرت قراءة الصورة."));
+    // `readAsDataURL` يعطي "data:<mime>;base64,<payload>" — نأخذ الحمولة.
+    fr.onload = () => resolve(String(fr.result).split(",")[1] ?? "");
+    fr.readAsDataURL(image);
+  });
+
+  const res = await callFunction<{ items?: ScannedItem[] }>("menu-scan", {
+    restaurant_id: restaurantId,
+    image: b64,
+    mime: image.type || "image/jpeg",
+  });
+  return Array.isArray(res.items) ? res.items : [];
+}
+
 /**
  * تسجيل مشاهدة منيو — **عبر `track_view` لا بإدراج مباشر**.
  *

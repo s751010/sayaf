@@ -215,3 +215,47 @@ describe("المبلغ المعروض", () => {
     }
   });
 });
+
+/* ══ ٧) رسائل الخطأ التي يقرؤها الإنسان ══════════════════════════════ */
+
+describe("خطأ دالة الحافة كما يراه التاجر", () => {
+  /**
+   * دوالّ الحافة تُعيد حقلين: `error` رمزٌ للشيفرة و`message` نصٌّ عربي.
+   * وكانت `callFunction` تقرأ `error` وحدها — فظهر على شاشة التاجر
+   * **«not_configured»** حرفياً عند أول فحص لقارئ المنيو. الرمز
+   * الإنجليزي في وجه المستخدم أسوأ من «حدث خطأ».
+   */
+  /** نفس منطق الاختيار في `callFunction` — الفحص يحرس القاعدة لا النصّ. */
+  const pickMessage = (parsed: unknown, fallback: string) => {
+    const o = (parsed ?? {}) as { message?: unknown; error?: unknown };
+    return typeof o.message === "string" && o.message.trim()
+      ? o.message
+      : typeof o.error === "string"
+        ? o.error
+        : fallback;
+  };
+
+  it("تُفضّل message العربية على رمز error", () => {
+    expect(
+      pickMessage({ error: "not_configured", message: "الميزة غير مفعّلة بعد." }, "x")
+    ).toBe("الميزة غير مفعّلة بعد.");
+  });
+
+  it("تسقط إلى الرمز حين لا رسالة", () => {
+    expect(pickMessage({ error: "forbidden" }, "x")).toBe("forbidden");
+    expect(pickMessage({ error: "e", message: "   " }, "x")).toBe("e");
+  });
+
+  it("وإلى النصّ الاحتياطي حين لا شيء", () => {
+    expect(pickMessage(null, "menu-scan 502")).toBe("menu-scan 502");
+    expect(pickMessage({}, "menu-scan 502")).toBe("menu-scan 502");
+  });
+
+  it("والمصدر نفسه يقرأ message أوّلاً", () => {
+    const src = readFileSync(repo("app/src/lib/api.ts"), "utf8");
+    const i = src.indexOf("obj.message");
+    const j = src.indexOf("obj.error");
+    expect(i, "obj.message غير موجودة في callFunction").toBeGreaterThan(0);
+    expect(i, "تُقرأ error قبل message").toBeLessThan(j);
+  });
+});

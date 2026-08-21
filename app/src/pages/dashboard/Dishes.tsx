@@ -680,8 +680,19 @@ export default function Dishes() {
             </h2>
             <p className="mt-1 text-sm text-dim">كلها تنتهي بمنيو تعدّله كما تشاء.</p>
           </div>
-          <div className="grid gap-3 sm:grid-cols-3">
+          {/* ⚠️ التصوير **أوّلاً** عمداً: ١٣ من ١٩ تاجراً توقّفوا عند صفر
+              صنف، وهذا أقصر طريق من «منيو فارغ» إلى «منيو كامل» — دقائق
+              بدل ساعة إدخال يدوي. ودفنُه داخل «الصق منيوك» كان يعني ميزةً
+              لا يجدها من بُنيت له. */}
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {[
+              {
+                icon: "image" as const,
+                title: "صوّر منيوك",
+                desc: "صورة للمنيو المطبوع — نقرأ الأصناف والأسعار ونصنّفها.",
+                note: "الأذكى — ثوانٍ",
+                onClick: () => setImporting(true),
+              },
               {
                 icon: "sparkle" as const,
                 title: "قائمة جاهزة",
@@ -693,7 +704,7 @@ export default function Dishes() {
                 icon: "upload" as const,
                 title: "الصق منيوك",
                 desc: "عندك المنيو في إكسل أو مكتوب؟ الصقه أو ارفع CSV.",
-                note: "الأدقّ — أسعارك أنت",
+                note: "لمن عنده نصّ جاهز",
                 onClick: () => setImporting(true),
               },
               {
@@ -984,6 +995,7 @@ export default function Dishes() {
         open={importing}
         onClose={() => setImporting(false)}
         menus={menus}
+        restaurantId={restaurant.id}
         knownCategories={knownCategories}
         existingNames={(dishes ?? []).map((d) => d.name)}
         remaining={

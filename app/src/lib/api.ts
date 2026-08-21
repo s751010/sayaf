@@ -148,10 +148,19 @@ export async function callFunction<T>(
     parsed = undefined;
   }
   if (!res.ok) {
+    /**
+     * ⚠️ **`message` قبل `error`.** دوالّنا تُعيد الاثنين: `error` رمزٌ
+     * للشيفرة (`not_configured`) و`message` نصٌّ عربي للإنسان. وكانت
+     * تُقرأ `error` وحدها، فيرى التاجر **«not_configured»** على شاشته.
+     * والرمز الإنجليزي في وجه المستخدم أسوأ من «حدث خطأ».
+     */
+    const obj = (parsed ?? {}) as { message?: unknown; error?: unknown };
     const message =
-      parsed && typeof parsed === "object" && typeof (parsed as { error?: unknown }).error === "string"
-        ? (parsed as { error: string }).error
-        : `${name} ${res.status}`;
+      typeof obj.message === "string" && obj.message.trim()
+        ? obj.message
+        : typeof obj.error === "string"
+          ? obj.error
+          : `${name} ${res.status}`;
     throw new ApiError(res.status, message);
   }
   return parsed as T;

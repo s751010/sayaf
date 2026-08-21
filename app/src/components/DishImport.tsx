@@ -15,7 +15,8 @@ import {
   Textarea,
 } from "@/components/ui";
 import { normalizeCategory, parseMenuCsv, parseMenuText, type ParsedRow } from "@/lib/import";
-import { numOrNull } from "@/lib/utils";
+import { MenuScan } from "@/components/MenuScan";
+import { cn, numOrNull } from "@/lib/utils";
 import type { Menu } from "@/lib/types";
 import { Icon } from "@/lib/icons";
 
@@ -33,6 +34,7 @@ export function DishImport({
   open,
   onClose,
   menus,
+  restaurantId,
   knownCategories,
   existingNames,
   remaining,
@@ -42,6 +44,8 @@ export function DishImport({
   onClose: () => void;
   /** `null` = القوائم ما زالت تُحمَّل. */
   menus: Menu[] | null;
+  /** لقراءة صورة المنيو — الدالة تتحقّق أن المطعم للتاجر نفسه. */
+  restaurantId: string;
   knownCategories: string[];
   /** أسماء الأطباق الحالية — للتحذير من التكرار (لا لمنعه). */
   existingNames: string[];
@@ -49,6 +53,11 @@ export function DishImport({
   remaining: number | null;
   onImport: (rows: ParsedRow[], menuId: string) => Promise<void>;
 }) {
+  /**
+   * مصدر الأصناف. **ثلاثة مصادر وأنبوبٌ واحد**: كلّها تنتهي إلى `review()`
+   * ثم جدول المراجعة ثم `onImport` — فلا مسار حفظ ثانٍ ولا تحقّق ثانٍ.
+   */
+  const [source, setSource] = useState<"scan" | "text">("scan");
   const [text, setText] = useState("");
   const [drafts, setDrafts] = useState<Draft[] | null>(null);
   const [menuId, setMenuId] = useState("");
@@ -122,6 +131,33 @@ export function DishImport({
     <Modal open={open} onClose={close} title="استيراد أصناف" wide>
       {drafts === null ? (
         <div className="flex flex-col gap-4">
+          {/* المسح أوّلاً عمداً: أسرع طريق من «منيو فارغ» إلى «منيو جاهز»،
+              وهو ما توقّف عنده أكثر التجّار. واللصق يبقى لمن يملك نصّاً. */}
+          <div className="flex gap-2 rounded-xl border border-line bg-card p-1">
+            {([["scan", "📷 صوّر منيوك"], ["text", "⌨️ الصق نصّاً"]] as const).map(
+              ([id, label]) => (
+                <button
+                  key={id}
+                  onClick={() => setSource(id)}
+                  className={cn(
+                    "flex-1 rounded-lg px-3 py-2 text-sm font-bold transition-colors",
+                    source === id ? "bg-gold text-on-gold" : "text-muted hover:text-ink"
+                  )}
+                >
+                  {label}
+                </button>
+              )
+            )}
+          </div>
+
+          {source === "scan" ? (
+            <MenuScan
+              restaurantId={restaurantId}
+              knownCategories={knownCategories}
+              onRows={review}
+            />
+          ) : (
+          <>
           <Field
             label="الصق قائمتك"
             hint="سطر لكل صنف. السطر بلا سعر يصبح عنوان تصنيف لما بعده. تنسخ من Excel؟ الصق مباشرة."
@@ -158,6 +194,8 @@ export function DishImport({
           <p className="text-xs leading-relaxed text-faint">
             ملفات Excel: صدّرها بصيغة CSV، أو انسخ الخلايا والصقها في الصندوق أعلاه.
           </p>
+          </>
+          )}
           {error && <ErrorNote>{error}</ErrorNote>}
         </div>
       ) : (
