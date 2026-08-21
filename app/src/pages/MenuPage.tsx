@@ -650,6 +650,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
   const prepMinutes = restaurant.prep_minutes ?? null;
   const minOrder = Number(restaurant.min_order_amount ?? 0);
 
+
   /**
    * التقييم والموقع يصعدان أعلى الصفحة.
    *
@@ -692,6 +693,23 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
   const week = parseWeek(restaurant.working_hours);
   const live = week ? openState(week, en, new Date(nowTick)) : null;
   const todayId = riyadhTodayId(new Date(nowTick));
+
+  /**
+   * الطلب مفتوح بشرطين معاً: مفتاح التاجر **وساعات عمله**.
+   *
+   * كان الشرط الأول وحده، والترويسة تعرض «يفتح ١٣:٠٠» بينما الشريط أسفلها
+   * يعرض «ادفع واطلب» فوق وعدٍ نصّه «يجهز خلال ٢٠ دقيقة». أي أن زبوناً في
+   * الثالثة فجراً يدفع لمطعم لا أحد فيه — وأسوأ ما في المنتج أن يأخذ مالاً
+   * مقابل شيء لن يحدث.
+   *
+   * ⚠️ **الفشل مفتوح**: `?? true`. `live` تكون `null` إن لم يضبط التاجر
+   * ساعاته أو كان النصّ غير مقروء — وأكثر المطاعم كذلك. فإغلاق الطلب عند
+   * الشكّ كان يُطفئ الميزة لمن لم يملأ حقلاً.
+   */
+  const withinHours = live?.open ?? true;
+  const ordersOpen = acceptingOrders && withinHours;
+  /** سبب الإغلاق بلغة الزبون — نفس نصّ الترويسة فلا يتناقض الاثنان. */
+  const closedLabel = !acceptingOrders ? null : (live?.label ?? null);
 
   return (
     <div
@@ -810,7 +828,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
 
       {cartOn && (
         <PickupBanner
-          open={acceptingOrders}
+          open={ordersOpen}
           prepMinutes={prepMinutes}
           minOrder={minOrder}
           en={en}
@@ -1046,7 +1064,9 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
                       popular={popularIds.has(d.id)}
                       onOpen={() => { setOpenDish(d); if (!demo && !preview) trackDishView(d, { table, lang }); }}
                     />
-                    {cartOn && Number(d.price ?? 0) > 0 && (
+                    {/* ⚠️ `ordersOpen` لا `cartOn` وحده: زرُّ إضافةٍ على منيو مغلق
+                        يملأ سلّةً لا مخرج لها — والشريط أسفلها يقول «يفتح ١٣:٠٠». */}
+                    {cartOn && ordersOpen && Number(d.price ?? 0) > 0 && (
                       <AddToCartButton
                         label={en ? `Add ${d.name}` : `أضِف ${d.name}`}
                         onAdd={() => cart.add(d.id)}
@@ -1176,7 +1196,8 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
           total={cartTotal}
           en={en}
           onOpen={() => setCartOpen(true)}
-          open={acceptingOrders}
+          open={ordersOpen}
+          closedLabel={closedLabel}
           prepMinutes={prepMinutes}
         />
       )}
@@ -1256,7 +1277,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
             payOn={paymentOn}
             whatsapp={waNumber}
             table={table}
-            acceptingOrders={acceptingOrders}
+            acceptingOrders={ordersOpen}
             prepMinutes={prepMinutes}
             minOrder={minOrder}
             vatIncluded={restaurant.prices_include_vat !== false}
@@ -1269,7 +1290,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
         <DishModal
           dish={openDish}
           en={en}
-          cart={cartOn ? cart : null}
+          cart={cartOn && ordersOpen ? cart : null}
           popular={popularIds.has(openDish.id)}
           onClose={() => setOpenDish(null)}
         />

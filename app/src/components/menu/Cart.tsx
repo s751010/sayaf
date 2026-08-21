@@ -152,15 +152,27 @@ export function CartBar({
   onOpen,
   open = true,
   prepMinutes = null,
+  closedLabel = null,
 }: {
   count: number;
   total: number;
   en: boolean;
   onOpen: () => void;
-  /** هل يستقبل المطعم طلبات الآن؟ */
+  /**
+   * هل يستقبل المطعم طلبات الآن؟ **شرطان معاً**: مفتاح التاجر
+   * (`accepting_orders`) وساعات عمله. كان يقرأ الأول وحده، فيقبل مطعمٌ
+   * يفتح ١:٠٠ ظهراً دفعةً في الثالثة فجراً — والوعد المكتوب فوقها
+   * «يجهز خلال ٢٠ دقيقة» ولا أحد في الفرع.
+   */
   open?: boolean;
   /** وقت التحضير المعلَن — يُحوّل الدعوة من مبهمة إلى وعد. */
   prepMinutes?: number | null;
+  /**
+   * سبب الإغلاق بلغة الزبون — **من `openState().label` نفسها** التي تعرضها
+   * الترويسة («يفتح ١٣:٠٠»). صياغة نصّ ثانٍ هنا كانت تعني ترويسةً تقول
+   * «يفتح ١:٠٠» وشريطاً يقول «مغلق» بلا موعد.
+   */
+  closedLabel?: string | null;
 }) {
   const empty = count === 0;
 
@@ -194,7 +206,7 @@ export function CartBar({
             borderRadius: "calc(var(--m-radius) * 1.2)",
           }}
         >
-          {en ? "Not accepting orders right now" : "المطعم لا يستقبل طلبات حالياً"}
+          {closedLabel ?? (en ? "Not accepting orders right now" : "المطعم لا يستقبل طلبات حالياً")}
         </div>
       </div>
     );
