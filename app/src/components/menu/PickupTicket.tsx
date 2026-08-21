@@ -8,7 +8,7 @@
 import { useEffect, useState, type CSSProperties } from "react";
 import { mFont } from "@/components/menu/chrome";
 import { verifyOrder, type PublicOrder } from "@/lib/data";
-import { formatPrice } from "@/lib/utils";
+import { formatMoney } from "@/lib/utils";
 
 /** الحالات كما يقرؤها الزبون — لا أسماء تقنية. */
 const STATUS_VIEW: Record<
@@ -212,7 +212,7 @@ export function PickupTicket({
                 {item.qty} × {item.name}
                 {item.options ? ` — ${item.options}` : ""}
               </span>
-              <span className="tabular-nums">{formatPrice(item.line_total)}</span>
+              <span className="tabular-nums">{formatMoney(item.line_total)}</span>
             </li>
           ))}
         </ul>
@@ -222,7 +222,7 @@ export function PickupTicket({
             {en ? "Total" : "الإجمالي"}
           </span>
           <span className="text-sm font-black tabular-nums" style={{ color: "var(--m-text)" }}>
-            {formatPrice(order.total)}
+            {formatMoney(order.total, en)}
           </span>
         </div>
         <p className="mt-1 text-[11px]" style={{ color: "var(--m-muted)" }}>

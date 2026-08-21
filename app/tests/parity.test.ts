@@ -182,3 +182,36 @@ describe("نوع النشاط المعروض للزبون", () => {
     expect(restaurantTypeLabel("   ")).toBeNull();
   });
 });
+
+/* ══ ٦) المبالغ تحمل عملتها ══════════════════════════════════════════ */
+
+describe("المبلغ المعروض", () => {
+  /**
+   * `formatPrice` تعيد الرقم عارياً، وكانت «ر.س» تُلصق يدوياً حيث تذكّر
+   * الكاتب — فخرجت **سبعة مواضع** بلا عملة: بطاقة الكاشير تقول «٨٦»
+   * وحدها، وشاشة الزبون تقول «الإجمالي ٨٦»، وتذكرة الطباعة تخلط السطرين.
+   * والمبلغ العاري في شاشة دفع لا يعرف قارئه أهي ريالات أم قطع.
+   */
+  it("يحمل عملته بالعربية والإنجليزية", async () => {
+    const { formatMoney } = await import("@/lib/utils");
+    expect(formatMoney(86)).toBe("86 ر.س");
+    expect(formatMoney(86, true)).toBe("86 SAR");
+    expect(formatMoney(1250.5)).toBe("1,250.5 ر.س");
+  });
+
+  it("شاشات الطلب لا تعرض رقماً عارياً", () => {
+    const files = [
+      "app/src/pages/OrderStatus.tsx",
+      "app/src/pages/dashboard/Orders.tsx",
+      "app/src/components/menu/PickupTicket.tsx",
+    ];
+    for (const f of files) {
+      const src = readFileSync(repo(f), "utf8");
+      // `formatPrice` بلا عملة في سطرها = رقم عارٍ.
+      const bare = src
+        .split("\n")
+        .filter((l) => /\bformatPrice\(/.test(l) && !/ر\.س|SAR/.test(l));
+      expect(bare, `${f}: مبلغ بلا عملة\n${bare.join("\n")}`).toEqual([]);
+    }
+  });
+});

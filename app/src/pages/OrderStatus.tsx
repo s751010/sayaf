@@ -16,7 +16,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { getOrderStatus, type OrderStatus as Status, type PublicOrder } from "@/lib/data";
-import { formatPrice, httpUrl } from "@/lib/utils";
+import { formatMoney, httpUrl } from "@/lib/utils";
 import { Icon } from "@/lib/icons";
 
 /** المراحل كما يعيشها الزبون. الإلغاء ليس مرحلة — لذلك خارج المسار. */
@@ -191,14 +191,14 @@ export default function OrderStatusPage() {
                 <span className="font-bold tabular-nums">{item.qty}×</span> {item.name}
                 {item.options ? <span className="text-xs text-muted"> — {item.options}</span> : null}
               </span>
-              <span className="tabular-nums text-muted">{formatPrice(item.line_total)}</span>
+              <span className="tabular-nums text-muted">{formatMoney(item.line_total)}</span>
             </li>
           ))}
         </ul>
         <div className="mt-3 flex items-baseline justify-between border-t border-line pt-3">
           <span className="text-sm font-black text-ink">الإجمالي</span>
           <span className="text-sm font-black tabular-nums text-ink">
-            {formatPrice(order.total)}
+            {formatMoney(order.total)}
           </span>
         </div>
         <p className="mt-1 text-[11px] text-muted">

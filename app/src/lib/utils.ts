@@ -10,6 +10,22 @@ export function formatPrice(n: number): string {
   return new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 }).format(n);
 }
 
+/**
+ * مبلغ **مع عملته** — لكل موضع يقرأ فيه إنسانٌ مالاً.
+ *
+ * ═══ لماذا دالة لا لصقُ «ر.س» عند كل نداء ═══
+ *
+ * `formatPrice` تعيد الرقم عارياً، والعملة كانت تُلصق يدوياً حيث تذكّر
+ * الكاتب. فخرجت ستّة مواضع بلا عملة، أظهرها بطاقةُ الكاشير التي تقول
+ * **«٨٦»** وحدها، وشاشةُ الزبون التي تقول «الإجمالي ٨٦». والمبلغ العاري
+ * في شاشة دفع أسوأ من مبلغ خطأ: لا يعرف قارئه أهي ريالات أم قطع.
+ *
+ * تبقى `formatPrice` لما تُعرض عملته منفصلةً بتنسيق آخر (بطاقة الطبق).
+ */
+export function formatMoney(n: number, en = false): string {
+  return `${formatPrice(n)} ${en ? "SAR" : "ر.س"}`;
+}
+
 /** تاريخ مقروء بالعربية. */
 export function formatDate(iso: string | null | undefined): string {
   if (!iso) return "";

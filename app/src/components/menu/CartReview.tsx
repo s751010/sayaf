@@ -16,7 +16,7 @@ import { createOrder } from "@/lib/data";
 import { parseOptions } from "@/lib/options";
 import { K, setJSON } from "@/lib/storage";
 import { dishName } from "@/lib/menuText";
-import { formatPrice, whatsappUrl } from "@/lib/utils";
+import { formatMoney, formatPrice, whatsappUrl } from "@/lib/utils";
 import type { Dish } from "@/lib/types";
 import { Icon } from "@/lib/icons";
 
@@ -398,7 +398,7 @@ export function CartReview({
         <div className="flex items-center justify-between text-sm" style={{ color: "var(--m-muted)" }}>
           <span>{en ? "Subtotal" : "الإجمالي الفرعي"}</span>
           <span dir="ltr" className="tabular-nums">
-            {formatPrice(total)}
+            {formatMoney(total, en)}
           </span>
         </div>
         <div

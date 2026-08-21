@@ -22,7 +22,7 @@ import {
   type MerchantOrder,
   type OrderStatus,
 } from "@/lib/data";
-import { formatPrice } from "@/lib/utils";
+import { formatMoney } from "@/lib/utils";
 import { useDashboard } from "./Dashboard";
 
 /** الحالة التالية وزرّها. `null` = الطلب انتهى. */
@@ -114,7 +114,7 @@ function printTicket(order: MerchantOrder, restaurantName: string) {
       (i) =>
         `<tr><td class="q">${esc(i.qty)}×</td><td>${esc(i.name)}${
           i.options ? `<div class="opt">${esc(i.options)}</div>` : ""
-        }</td><td class="p">${esc(formatPrice(i.line_total))}</td></tr>`
+        }</td><td class="p">${esc(formatMoney(i.line_total))}</td></tr>`
     )
     .join("");
   win.document.write(`<!doctype html><html dir="rtl" lang="ar"><head>
@@ -135,7 +135,7 @@ function printTicket(order: MerchantOrder, restaurantName: string) {
   <div class="lbl">رقم الاستلام</div>
   <div class="code">${esc(order.code)}</div>
   <hr><table>${rows}</table><hr>
-  <div class="tot"><span>الإجمالي</span><span>${esc(formatPrice(order.total))} ر.س</span></div>
+  <div class="tot"><span>الإجمالي</span><span>${esc(formatMoney(order.total))}</span></div>
   ${order.note ? `<div class="note">⚠️ ${esc(order.note)}</div>` : ""}
   <div class="meta">${esc(order.customer_name ?? "")} ${esc(order.customer_phone ?? "")}</div>
   <div class="meta">${esc(new Date(order.created_at).toLocaleString("ar-SA"))}</div>
@@ -323,7 +323,7 @@ export default function Orders() {
                   {late && <Badge variant="red">تأخّر</Badge>}
                   <span className="text-xs text-muted">{since(order.created_at)}</span>
                   <span className="text-xs font-bold tabular-nums text-ink">
-                    {formatPrice(order.total)}
+                    {formatMoney(order.total)}
                   </span>
                 </div>
 
@@ -404,7 +404,7 @@ export default function Orders() {
                     {order.items.map((i) => `${i.qty}× ${i.name}`).join("، ")}
                   </span>
                   <span className="text-xs font-bold tabular-nums text-ink">
-                    {formatPrice(order.total)}
+                    {formatMoney(order.total)}
                   </span>
                 </Card>
               );
