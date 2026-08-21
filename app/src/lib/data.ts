@@ -314,47 +314,31 @@ export async function getSiteSetting<T>(key: string): Promise<T | null> {
 }
 
 /**
- * صفّ حدث في `analytics`.
+ * تسجيل مشاهدة منيو — **عبر `track_view` لا بإدراج مباشر**.
  *
- * `date`/`hour` بتوقيت **الرياض** (UTC+3) لا UTC: التاجر يقرأ «الساعة ٢١» على
- * أنها التاسعة مساءً عنده، وكانت تُكتب بـUTC فتُقرأ منزاحة ثلاث ساعات، ويقع
- * حدث ما بعد منتصف الليل في يوم خاطئ.
+ * ═══ العطل الذي أوجب الدالة ═══
  *
- * سياسة `analytics_insert` تتطلّب `menu_id` غير فارغ ومملوكاً للـ`user_id`،
- * فكل حدث — حتى فتح طبق — يحمل معرّف القائمة.
- */
-function analyticsRow(menuId: string, ownerId: string | null) {
-  const riyadh = new Date(Date.now() + 3 * 3600_000);
-  return {
-    menu_id: menuId,
-    user_id: ownerId,
-    date: riyadh.toISOString().slice(0, 10),
-    hour: riyadh.getUTCHours(),
-    views: 1,
-  };
-}
-
-/**
- * تسجيل مشاهدة منيو.
+ * كان الإدراج مباشراً بـ`views: 1`، والجدول عليه مفتاح فريد. فأول مشاهدة في
+ * اليوم تنجح، و**كل ما بعدها يعود ٤٠٩ ويُبتلع في `.catch`**. حصيلة شهرين:
+ * ٢٧ مشاهدة في تسع قوائم. واللوحة ترسم «المشاهدات حسب الساعة» و`insights`
+ * تنصح بـ«ساعة الذروة» — من عمود لا يحمل إلا ساعة أول مشاهدة.
  *
- * `ownerId` يجوز أن يكون `null`: الزائر المجهول لا يستطيع قراءة
- * `restaurants.user_id` (محجوب عنه عمداً)، وتريجر `analytics_fill_owner`
- * يشتقّ المالك من القائمة في القاعدة فتمرّ سياسة `analytics_insert`.
+ * والزيادة لا يعبّر عنها PostgREST: `merge-duplicates` تكتب `views = 1` فوق
+ * القديمة، فيبقى العدّاد واحداً أبداً. فالتراكم في القاعدة أو لا يكون.
+ *
+ * و`user_id` لم يعد يُرسَل: كان في جسم الطلب من المتصفّح، فأي زائر ينسب
+ * مشاهدات إلى تاجر آخر. الدالة تشتقّه من القائمة.
  */
 export function trackMenuView(
   menuId: string,
-  ownerId: string | null,
+  _ownerId: string | null,
   meta: { table?: string | null; lang?: string } = {}
 ): void {
-  rest("analytics", {
+  rest("rpc/track_view", {
     method: "POST",
     anonymous: true,
     headers: { Prefer: "return=minimal" },
-    body: {
-      ...analyticsRow(menuId, ownerId),
-      table_no: meta.table ?? null,
-      lang: meta.lang ?? "ar",
-    },
+    body: { p_menu_id: menuId, p_table: meta.table ?? null, p_lang: meta.lang ?? "ar" },
   }).catch(() => {});
 }
 
@@ -380,15 +364,15 @@ export function trackDishView(
   // (٢) حدث مؤرَّخ في analytics — يمنح الطبق بعداً زمنياً كان مفقوداً تماماً
   //     (العدّاد وحده لا يجيب «أي طبق صعد هذا الأسبوع؟»).
   if (!dish.menu_id) return;
-  rest("analytics", {
+  rest("rpc/track_view", {
     method: "POST",
     anonymous: true,
     headers: { Prefer: "return=minimal" },
     body: {
-      ...analyticsRow(dish.menu_id, dish.user_id),
-      dish_id: dish.id,
-      table_no: meta.table ?? null,
-      lang: meta.lang ?? "ar",
+      p_menu_id: dish.menu_id,
+      p_dish_id: dish.id,
+      p_table: meta.table ?? null,
+      p_lang: meta.lang ?? "ar",
     },
   }).catch(() => {});
 }
