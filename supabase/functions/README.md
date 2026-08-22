@@ -18,14 +18,14 @@
 | `paylink-webhook/` | ❌ | لا يُصدَّق جسمها: تُسأل PayLink بمفاتيحنا · حارس مبلغ · تكافؤ |
 | `moyasar-webhook/` | ❌ | `secret_token` بمقارنة زمن ثابت · إعادة جلب الدفعة من Moyasar |
 | `payments/` | ✅ | + `getUser()` صريح · CORS محصور · **مسار خامل** (المسار الحيّ PayLink) |
-| `billing-admin/` | ❌ | نفس بوّابة `founder-admin` |
+| `billing-admin/` | ❌ | نفس بوّابة `founder-admin` · CORS محصور |
 
 ⚠️ **النشر لا يتم من هنا تلقائياً.** تعديل الملف هنا لا يغيّر الدالة المنشورة —
 انشرها عبر أدوات Supabase ثم حدّث الملف ليطابقها. الملف توثيق ومراجعة لا مصدر
 نشر.
 
 ✅ **الفجوة أُغلقت**: كانت `founder-admin` و`moyasar-webhook` و`payments`
-و`notify-support` تعيش على Supabase وحدها — أي أن أخطر دالّة في المنتج
+و`notify-support` و`billing-admin` تعيش على Supabase وحدها — أي أن أخطر دالّة في المنتج
 (`founder-admin`، وكيل PostgREST بمفتاح الخدمة) لم تكن مراجعة تغييرٍ فيها
 ممكنة ولا معرفةُ متى تغيّرت. الأربع هنا الآن، والباقي على اللوحة ليس إلا
 شواهد القبور الستّ.

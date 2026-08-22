@@ -1,25 +1,14 @@
 /**
  * billing-admin — حالة بوّابة الدفع للمؤسّس وحده.
  *
- * ═══ لماذا دالة مستقلّة ═══
+ * ينشر بـ verify_jwt = false؛ التحقّق يدوي بالكامل (بوّابتان تُقبل أيّهما).
+ * **لا تعيد `PAYLINK_SECRET_KEY` ولا أي جزء منه، ولا تقبله** — قرار المالك.
  *
- * `founder-admin` **وكيل جداول** بقائمة بيضاء، لا مُرسِل أفعال. وفحص الاتصال
- * بـPayLink ليس قراءة جدول: هو نداء خارجي بمفاتيح لا يجوز أن تلمس المتصفّح.
- *
- * ═══ ما لا تفعله هذه الدالة ═══
- *
- * **لا تعيد `PAYLINK_SECRET_KEY` ولا أي جزء منه، ولا تقبله.** المفاتيح تعيش
- * في أسرار دوال Supabase وحدها؛ ما لا يدخل المتصفّح لا يُسرق منه — لا بـXSS
- * ولا من حافظة ولا من جسم POST. وهذا قرار المالك الصريح.
- *
- * ما تعيده كلّه غير سرّي:
- *   { credentials_set, connected, env, checked_at, api_id_tail, webhook_url, … }
- *
- * `api_id_tail` آخر ثلاثة محارف من **المعرّف** لا السرّ — يكفي لتعرف أي حساب
- * موصول، ولا يكفي لانتحاله.
- *
- * ينشر بـ verify_jwt = false لأن بوّابة السرّ الاحتياطية بلا JWT؛ التحقّق يدوي
- * بالكامل هنا، وهو **نفس منطق `founder-admin` حرفياً** (بوّابتان تُقبل أيّهما).
+ * ⚠️ **لم يكن لهذه الدالة مصدر في المستودع** حتى ٢٢/٠٨/٢٠٢٦، وكانت تحمل
+ * **نسخة قديمة مجرّدة** من `_shared/paylink.ts`: بلا تعليقات، و`getInvoice`
+ * فيها بلا معامل `creds`. الملفّ المشترك يُرفع مع كل دالّة **وقت نشرها**،
+ * فدالّة لم يُعد نشرها منذ شهر تحمل مشتركاً عمره شهر. هذا ما جعل النسختين
+ * تتباعدان بلا أن يظهر شيء.
  */
 import {
   apiIdTail,
@@ -27,33 +16,43 @@ import {
   hasPlatformCredentials,
   isProduction,
 } from "../_shared/paylink.ts";
+import { safeEqual } from "../_shared/safe-equal.ts";
 
-const CORS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-founder-secret",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+/**
+ * ⚠️ **CORS محصور بعد أن كان `*`.**
+ *
+ * نقطةُ إدارةٍ تقرأ حالة بوّابة الدفع لا تُعلن نفسها لكل أصل. نفس قائمة
+ * `founder-admin` و`payments` — والبوّابة هي الحارس لا CORS.
+ */
+const ALLOWED_ORIGINS = new Set([
+  "https://cloudsmenu.netlify.app",
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+  ...(Deno.env.get("ALLOWED_ORIGINS") ?? "").split(",").map((o) => o.trim()).filter(Boolean),
+]);
+/** معاينات Netlify (`deploy-preview-12--cloudsmenu.netlify.app`). */
+const PREVIEW_RE = /^https:\/\/[a-z0-9-]+--cloudsmenu\.netlify\.app$/;
+const isAllowedOrigin = (o: string) => ALLOWED_ORIGINS.has(o) || PREVIEW_RE.test(o);
+
+function cors(req: Request): Record<string, string> {
+  const origin = req.headers.get("Origin") ?? "";
+  return {
+    ...(isAllowedOrigin(origin) ? { "Access-Control-Allow-Origin": origin } : {}),
+    Vary: "Origin",
+    "Access-Control-Allow-Headers":
+      "authorization, x-client-info, apikey, content-type, x-founder-secret",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+  };
+}
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-function json(body: unknown, status = 200): Response {
+function json(req: Request, body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...CORS, "Content-Type": "application/json" },
+    headers: { ...cors(req), "Content-Type": "application/json" },
   });
-}
-
-/** مقارنة بزمن ثابت — تمنع استنتاج السرّ من فروق التوقيت. */
-function safeEqual(a: string, b: string): boolean {
-  const enc = new TextEncoder();
-  const x = enc.encode(a);
-  const y = enc.encode(b);
-  if (x.length !== y.length) return false;
-  let diff = 0;
-  for (let i = 0; i < x.length; i++) diff |= x[i] ^ y[i];
-  return diff === 0;
 }
 
 let founderEmail: string | null = null;
@@ -105,20 +104,15 @@ function hasFounderSecret(req: Request): boolean {
 }
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
-  if (req.method !== "POST") return json({ error: "POST فقط." }, 405);
+  if (req.method === "OPTIONS") return new Response("ok", { headers: cors(req) });
+  if (req.method !== "POST") return json(req, { error: "POST فقط." }, 405);
 
   const allowed = hasFounderSecret(req) || (await isFounderSession(req));
-  if (!allowed) return json({ error: "غير مصرّح." }, 401);
+  if (!allowed) return json(req, { error: "غير مصرّح." }, 401);
 
   const siteUrl = (Deno.env.get("SITE_URL") ?? "").replace(/\/+$/, "");
   const credentialsSet = hasPlatformCredentials();
 
-  /**
-   * فحص حيّ: نطلب رمز وصول من PayLink. نجاحه يعني أن المعرّف والسرّ صحيحان
-   * وأن البيئة المضبوطة تقبلهما — وهو أصدق من مجرّد «المتغيّر موجود».
-   * وأي رسالة خطأ تُختصر ولا تُمرَّر كما هي، كي لا يتسرّب شيء في نصّها.
-   */
   let connected = false;
   let error: string | null = null;
   if (credentialsSet) {
@@ -126,20 +120,21 @@ Deno.serve(async (req) => {
       await authToken();
       connected = true;
     } catch (err) {
+      // ⚠️ يُعاد للمؤسّس وحده (البوّابة أعلاه)، وهو تشخيصُ بوّابته هو. ولا
+      // يحمل سرّاً: `authToken` تصوغ خطأها بالحالة وحدها بلا نصّ الرد.
       error = err instanceof Error ? err.message.slice(0, 120) : "فشل غير معروف";
     }
   } else {
     error = "المفاتيح غير مضبوطة في أسرار الدوال.";
   }
 
-  return json({
+  return json(req, {
     credentials_set: credentialsSet,
     connected,
     env: isProduction() ? "production" : "test",
     api_id_tail: apiIdTail(),
     checked_at: new Date().toISOString(),
     error,
-    // الروابط التي يلصقها المؤسّس في لوحة PayLink — تُولَّد هنا فلا تُكتب بيدٍ.
     webhook_url: `${SUPABASE_URL}/functions/v1/paylink-webhook`,
     callback_url: `${siteUrl}/dashboard/billing?payment=done`,
     cancel_url: `${siteUrl}/dashboard/billing?payment=cancelled`,
