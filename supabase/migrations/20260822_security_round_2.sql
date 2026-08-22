@@ -112,3 +112,16 @@ on conflict (key) do nothing;
 --                   headers := {'x-notify-secret': <السرّ>},
 --                   body := {'record': {…}})
 -- create trigger notify_support_ticket after insert on public.support_tickets
+
+-- ═══ ٧) `promo_use` — زيادة ذرّية لعدّاد كود الخصم ═══
+--
+-- كان `paylink-webhook` يقرأ `uses` ثم يكتب `uses + 1`. دفعتان تصلان معاً
+-- تقرآن الرقم نفسه فتكتبانه نفسه: استخدام واحد يُحتسب لاثنين، و`max_uses`
+-- يُتجاوَز بصمت. وPayLink تعيد المحاولة حتى ١٠ مرات، فالتزامن هنا ليس فرضاً.
+--
+-- create function public.promo_use(p_id uuid) returns void
+--   language sql security definer set search_path = public as $$
+--     update public.promo_codes set uses = coalesce(uses, 0) + 1 where id = p_id;
+--   $$;
+--
+-- التنفيذ لـ`service_role` وحده (الدالة تُنادى من الويبهوك بمفتاح الخدمة).

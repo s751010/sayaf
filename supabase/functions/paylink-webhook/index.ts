@@ -17,8 +17,8 @@
  * فنتحقق من `payment_ref` قبل إنشاء أي صف.
  */
 import { createClient } from "jsr:@supabase/supabase-js@2";
-import { getInvoice, isPaid } from "../_shared/paylink.ts";
-import { cycleDays, parseOrderNumber, planName } from "../_shared/plans.ts";
+import { getInvoice, isPaid, PAYLINK_MIN_AMOUNT } from "../_shared/paylink.ts";
+import { cycleDays, listPrice, parseOrderNumber, planName } from "../_shared/plans.ts";
 
 /** نردّ 200 دائماً على الحالات المفهومة حتى لا تُعيد PayLink المحاولة بلا داعٍ. */
 function ok(note: string): Response {
@@ -70,6 +70,26 @@ Deno.serve(async (req) => {
 
   const { userId, planId, cycle, promoCode } = parsed;
   const amount = Number(invoice.amount ?? invoice.gatewayOrderRequest?.amount ?? 0);
+
+  // ── حارس المبلغ ──────────────────────────────────────────────────────
+  //
+  // ⚠️ **لا تُطابَق المساواة التامّة عمداً.** المبلغ المشروع ليس رقماً واحداً:
+  // `paylink-create` يخصم نسبة كود الخصم وقت الإنشاء، والكود قد يُبطَل أو
+  // تتغيّر نسبته أو ينتهي بين الإنشاء والدفع — فمطابقةُ السعر القائم كانت
+  // سترفض فاتورة صحيحة دُفعت فعلاً (وهذا بالضبط ما كان `moyasar-webhook`
+  // يفعله بجدول أسعار قديم: يرفض كل دفعة صحيحة).
+  //
+  // فالمقبول **مدى**: من الحدّ الأدنى الذي يقبله PayLink (وهو أرضية
+  // `paylink-create` عند خصم ١٠٠٪) إلى السعر القائم بلا خصم. وما فوق السعر
+  // القائم ليس دفعةً لهذه الباقة — أيّاً كان مصدره.
+  //
+  // والحارس دفاعٌ بعمق لا خطّ أوّل: الفاتورة لا تُنشأ بلا `PAYLINK_SECRET_KEY`،
+  // والمبلغ يُحسب في الخادم. لكن شبكة الأمان تُوضع قبل أن تُحتاج.
+  const ceiling = listPrice(planId, cycle);
+  if (!Number.isFinite(amount) || amount < PAYLINK_MIN_AMOUNT || amount > ceiling) {
+    console.error("amount out of range", { transactionNo, amount, ceiling });
+    return ok("تُجوهلت: مبلغ خارج المدى المقبول للباقة");
+  }
 
   const admin = createClient(
     Deno.env.get("SUPABASE_URL")!,
@@ -127,19 +147,21 @@ Deno.serve(async (req) => {
   if (revErr) console.error("revenue_log:", revErr.message);
 
   // ── احتساب استخدام كود الخصم بعد نجاح الدفع فقط ──────────────────────
+  //
+  // ⚠️ الزيادة **ذرّية عبر `promo_use`** لا قراءةً ثمّ كتابة. كانت الدالة
+  // تقرأ `uses` ثم تكتب `uses + 1`: دفعتان تصلان معاً تقرآن الرقم نفسه
+  // فتكتبانه نفسه، فيُحتسب استخدام واحد لاثنين — و`max_uses` يُتجاوَز بصمت.
+  // وPayLink تعيد المحاولة حتى ١٠ مرات، فالتزامن هنا ليس فرضاً نظرياً.
   if (promoCode) {
     const { data: promoRows } = await admin
       .from("promo_codes")
-      .select("id, uses")
+      .select("id")
       .ilike("code", promoCode)
       .limit(1);
-    const promo = promoRows?.[0] as { id: string; uses: number | null } | undefined;
+    const promo = promoRows?.[0] as { id: string } | undefined;
     if (promo) {
-      const { error: promoErr } = await admin
-        .from("promo_codes")
-        .update({ uses: (promo.uses ?? 0) + 1 })
-        .eq("id", promo.id);
-      if (promoErr) console.error("promo uses:", promoErr.message);
+      const { error: promoErr } = await admin.rpc("promo_use", { p_id: promo.id });
+      if (promoErr) console.error("promo_use:", promoErr.message);
     }
   }
 

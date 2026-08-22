@@ -6,7 +6,7 @@
  * (3) payload التحديث هنا. حقل ناقص = يُسقَط بصمت بلا أي خطأ.
  */
 import { callFunction, rest, restCount } from "./api";
-import { generateApiKey, hashApiKey, prefixOf } from "./apiKeys";
+import { generateApiKey, hashApiKey, prefixOf, randomFrom } from "./apiKeys";
 import type {
   AnalyticsRow,
   BlogPost,
@@ -271,11 +271,27 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
  *
  * لا بريد، ولا معرّف مستخدم، ولا محتوى نموذج. الرسالة وأول أسطر الأثر
  * والمسار ووكيل المتصفّح — ما يكفي لإعادة إنتاج العطل لا لمعرفة صاحبه.
- * و`?table=` يُقصّ من المسار: رقم طاولة الزبون لا شأن له بعطل برمجي.
+ *
+ * ⚠️ **والاستعلام بقائمة بيضاء لا بقصّ `table=` وحده.** كان يُرسَل كما هو بعد
+ * إخفاء رقم الطاولة، فيمرّ منه `?o=<order_id>` — و**معرّف الطلب هو صلاحية
+ * حامله** لمتابعته (`order_public_status`: «المعرّف نفسه هو الصلاحية»، §13).
+ * أي أن انهياراً في صفحة العودة من الدفع كان يكتب مفتاح طلب زبون في سجلّ.
+ * فما ليس في القائمة يُسقَط، ويبقى اسمه ليُعرف أن هناك معاملاً.
  *
  * والتوقيع (للتجميع وحدّ المعدّل) **يحسبه الخادم** لا نحن — العميل المنهار
  * أسوأ جهة تُؤتمَن على حساب مفتاح التجميع.
  */
+/** معاملات لا تحمل هوية ولا صلاحية — وما عداها يُخفى بقيمته لا باسمه. */
+const SAFE_PARAMS = new Set(["lang", "preview", "demo", "order"]);
+
+function safeSearch(search: string): string {
+  const q = new URLSearchParams(search);
+  const out = new URLSearchParams();
+  for (const [k, v] of q) out.append(k, SAFE_PARAMS.has(k) ? v : "…");
+  const s = out.toString();
+  return s ? `?${s}` : "";
+}
+
 export function reportClientError(
   error: Error,
   componentStack?: string | null
@@ -292,7 +308,7 @@ export function reportClientError(
         message: (error?.message || String(error) || "خطأ بلا رسالة").slice(0, 500),
         stack_head: cut(error?.stack, 2000),
         component_stack: cut(componentStack, 2000),
-        page: cut(window.location.pathname + window.location.search.replace(/([?&])table=[^&]*/g, "$1table=…"), 500),
+        page: cut(window.location.pathname + safeSearch(window.location.search), 500),
         user_agent: cut(navigator.userAgent, 400),
       },
     }).catch(() => {});
@@ -1478,9 +1494,7 @@ export async function joinLoyalty(payload: {
 const CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 
 function newCardCode(): string {
-  const bytes = new Uint8Array(6);
-  crypto.getRandomValues(bytes);
-  return Array.from(bytes, (b) => CODE_ALPHABET[b % CODE_ALPHABET.length]).join("");
+  return randomFrom(CODE_ALPHABET, 6);
 }
 
 export async function getLoyaltyCustomer(id: string): Promise<LoyaltyCustomer | null> {
@@ -1562,9 +1576,7 @@ export async function staffAction(params: {
 
 /** رمز كاشير جديد — نفس أبجدية بطاقة الولاء (بلا 0/O و 1/I/L). */
 export function newStaffPin(): string {
-  const bytes = new Uint8Array(6);
-  crypto.getRandomValues(bytes);
-  return Array.from(bytes, (b) => CODE_ALPHABET[b % CODE_ALPHABET.length]).join("");
+  return randomFrom(CODE_ALPHABET, 6);
 }
 
 /** يضبط رمز الكاشير (يستبدل السابق). التجزئة تتم في قاعدة البيانات. */

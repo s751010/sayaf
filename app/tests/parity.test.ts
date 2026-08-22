@@ -12,7 +12,7 @@
  *
  * التعليق «حافظ عليهما متطابقين» لا يحرس شيئاً. هذه الفحوص تُسقط CI.
  */
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
@@ -97,6 +97,41 @@ describe("تكافؤ plans.ts ⟷ _shared/plans.ts", () => {
         new RegExp(`monthly\\s*:\\s*${plan.monthly}\\b`)
       );
     }
+  });
+
+  /**
+   * ⚠️ **هذا الفحص وُجد لأن الجدول كان ثلاث نسخ.** `moyasar-webhook` كانت
+   * تحمل نسختها الخاصّة بـ٩٩ شهرياً و١٠٨٩ سنوياً — أي أرقام ما قبل توحيد
+   * الباقات على ٥٩/٥٩٩. فكان فحص المبلغ فيها **يرفض كل دفعة صحيحة**
+   * (`amount_mismatch`) ولا يُفعَّل اشتراك من دفع. والنسخة لا تُكتشف
+   * بالقراءة: الدالّتان تعملان، وكلٌّ منهما «صحيحة» وحدها.
+   *
+   * فأي دالّة حافة تذكر سعراً برقم بدل استيراده من `_shared/plans.ts` تُسقط
+   * CI هنا. والاستثناء الوحيد `_shared/plans.ts` نفسه — وهو المصدر.
+   */
+  it("لا دالّة حافة تكتب سعراً برقم", () => {
+    const dir = repo("supabase/functions");
+    const offenders: string[] = [];
+    const walk = (p: string) => {
+      for (const e of readdirSync(p, { withFileTypes: true })) {
+        const full = `${p}/${e.name}`;
+        if (e.isDirectory()) {
+          // `_archive` و`_tombstones` شيفرة ميّتة محفوظة عمداً.
+          if (e.name === "_archive" || e.name === "_tombstones") continue;
+          walk(full);
+        } else if (e.name.endsWith(".ts") && full !== repo("supabase/functions/_shared/plans.ts")) {
+          const src = readFileSync(full, "utf8");
+          for (const price of PLANS.flatMap((p) => [p.monthly, p.yearly, 99, 199, 1089])) {
+            if (new RegExp(`(monthly|yearly)\\s*:\\s*${price}\\b`).test(src)) {
+              offenders.push(`${full.split("/functions/")[1]} ← ${price}`);
+            }
+          }
+        }
+      }
+    };
+    walk(dir);
+    expect(offenders, `سعر مكتوب بيد خارج _shared/plans.ts:\n${offenders.join("\n")}`)
+      .toEqual([]);
   });
 
   it("الخادم لا يسعّر باقة لا تبيعها الواجهة", () => {

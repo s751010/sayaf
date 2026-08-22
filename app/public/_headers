@@ -18,6 +18,11 @@
 
 /*
   X-Frame-Options: SAMEORIGIN
+  # ⚠️ لم تكن موجودة. بلا HSTS يبقى أول طلب على `http://` قابلاً للاعتراض
+  # (SSL stripping) — والزبون يفتح المنيو من كود QR مطبوع على شبكة مطعم
+  # مفتوحة، وهو أسوأ موضع لطلبٍ غير مشفَّر. `preload` مُعلَنة عمداً: الموقع
+  # https فقط منذ نشأته، فلا مسار http يُكسر.
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: microphone=(), camera=(), geolocation=()
