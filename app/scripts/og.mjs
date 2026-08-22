@@ -40,11 +40,27 @@ if (!cairo || !reem) {
   process.exit(1);
 }
 
-const GOLD = "#d4a843";
-const GOLD2 = "#f0c96a";
-const PAGE = "#0e0c09";
-const INK = "#f5efe3";
-const DIM = "#a99f8c";
+/**
+ * ⚠️ **اللوحة النهارية — مطابقة للوضع الأساس في `styles/global.css`.**
+ *
+ * كانت البطاقة داكنة لأن المنتج كان داكناً. فلمّا صار الأبيض أساساً صارت
+ * بطاقةٌ سوداء في واتساب وعداً بشيء غير الذي يُفتح.
+ *
+ * والقيم الشفّافة تحتها **تُشتقّ من اللونين** لا تُكتب أرقاماً: كانت مكتوبة
+ * بيد بقنوات الذهب والحبر القديمين، فلو بُدّل `GOLD` وحده لبقيت الحدود
+ * والخلفيات على الذهب السابق بلا أن يظهر خطأ.
+ */
+const GOLD = "#a8821f";
+const GOLD2 = "#8a6a15";
+const PAGE = "#faf6ee";
+const INK = "#241d12";
+const DIM = "#746a58";
+
+/** `#rrggbb` → `r,g,b` — لبناء `rgba()` من نفس المصدر. */
+const rgb = (hex) =>
+  [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(",");
+const GOLD_RGB = rgb(GOLD);
+const INK_RGB = rgb(INK);
 
 /**
  * زخرفة الجيري — **مطابقة لما في `lib/patterns.ts`** لا رسم جديد.
@@ -72,27 +88,29 @@ const html = `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-
          position: relative; overflow: hidden; }
   .pattern { position: absolute; inset: 0;
     background-image: url("data:image/svg+xml;utf8,${encodeURIComponent(girih)}");
-    background-size: 90px 90px; opacity: 0.055; }
+    /* ⚠️ 0.055 كانت تكفي ذهباً على أسود؛ على ورقٍ فاتح تختفي الزخرفة تماماً. */
+    background-size: 90px 90px; opacity: 0.1; }
   .glow { position: absolute; width: 900px; height: 900px; border-radius: 50%;
-    background: radial-gradient(circle, rgba(212,168,67,0.16), transparent 62%);
+    /* توهّجٌ على أسود يصير بقعةً على أبيض — فيُخفَّف حتى يبقى دفئاً لا لطخة. */
+    background: radial-gradient(circle, rgba(${GOLD_RGB},0.1), transparent 62%);
     top: -420px; left: -180px; }
   .edge { position: absolute; inset: 0; border: 10px solid transparent;
-    border-image: linear-gradient(135deg, ${GOLD}, rgba(212,168,67,0.12) 45%, ${GOLD}) 1; }
+    border-image: linear-gradient(135deg, ${GOLD}, rgba(${GOLD_RGB},0.16) 45%, ${GOLD}) 1; }
   .wrap { position: relative; height: 100%; display: flex; flex-direction: column;
     justify-content: center; padding: 0 84px; }
   .kicker { display: inline-flex; align-items: center; gap: 12px; align-self: flex-start;
-    border: 1px solid rgba(212,168,67,0.34); border-radius: 999px;
+    border: 1px solid rgba(${GOLD_RGB},0.34); border-radius: 999px;
     padding: 11px 24px; color: ${GOLD}; font-size: 25px; font-weight: 700;
-    background: rgba(212,168,67,0.07); }
+    background: rgba(${GOLD_RGB},0.09); }
   h1 { font-family: "Reem", serif; font-size: 92px; line-height: 1.22; color: ${INK};
     margin-top: 34px; font-weight: 700; }
   h1 .g { background: linear-gradient(120deg, ${GOLD2}, ${GOLD} 55%, ${GOLD2});
     -webkit-background-clip: text; background-clip: text; color: transparent; }
   p { font-size: 31px; color: ${DIM}; margin-top: 26px; line-height: 1.6; max-width: 900px; }
   .feet { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 42px; max-width: 1032px; }
-  .chip { border: 1px solid rgba(245,239,227,0.14); border-radius: 14px;
+  .chip { border: 1px solid rgba(${INK_RGB},0.16); border-radius: 14px;
     padding: 13px 24px; color: ${INK}; font-size: 24px; font-weight: 700;
-    background: rgba(245,239,227,0.045); }
+    background: rgba(${INK_RGB},0.05); }
   .brand { position: absolute; bottom: 46px; left: 84px; display: flex; align-items: center;
     gap: 14px; color: ${GOLD}; font-size: 30px; font-weight: 900; direction: rtl; }
   .dot { width: 15px; height: 15px; border-radius: 50%; background: ${GOLD}; }

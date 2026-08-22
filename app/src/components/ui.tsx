@@ -454,23 +454,31 @@ export function useToast() {
   return useContext(ToastContext);
 }
 
-/* ── مبدّل الوضع (داكن/فاتح) ───────────────────────────────────────── */
+/* ── مبدّل الوضع (فاتح/داكن) ───────────────────────────────────────── */
+/**
+ * ⚠️ **الفاتح هو الأساس** — الغياب يعني فاتحاً، و`data-theme="dark"` هو
+ * الاستثناء المطلوب صراحةً. كان العكس، فقُلب.
+ *
+ * وقيمة `"light"` المخزَّنة من قبلُ تبقى مقروءة بلا هجرة: كل ما ليس `"dark"`
+ * فاتح. من ضغط الزرّ قديماً ليرى الأبيض يرى الأبيض، ومن لم يضغط قطّ يراه
+ * الآن كذلك — وهذا هو المقصود.
+ */
 export function applyStoredTheme() {
-  const stored = getItem(K.THEME);
-  if (stored === "light") document.documentElement.dataset.theme = "light";
+  if (getItem(K.THEME) === "dark") document.documentElement.dataset.theme = "dark";
 }
 
 export function ThemeToggle({ className }: { className?: string }) {
-  const [light, setLight] = useState(
-    () => document.documentElement.dataset.theme === "light"
+  const [dark, setDark] = useState(
+    () => document.documentElement.dataset.theme === "dark"
   );
   const toggle = () => {
-    const next = !light;
-    setLight(next);
-    if (next) document.documentElement.dataset.theme = "light";
+    const next = !dark;
+    setDark(next);
+    if (next) document.documentElement.dataset.theme = "dark";
     else delete document.documentElement.dataset.theme;
-    setItem(K.THEME, next ? "light" : "dark");
+    setItem(K.THEME, next ? "dark" : "light");
   };
+  const light = !dark;
   return (
     <button
       onClick={toggle}
