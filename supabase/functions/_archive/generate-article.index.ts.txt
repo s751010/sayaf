@@ -1,0 +1,75 @@
+// ════════════════════════════════════════════════════════════════════
+//  أُرشِف قبل الإقبار — ٢٠٢٦/٠٨/٢٢
+//
+//  slug: generate-article · verify_jwt: true · على مشروع wxrukupcyfypnqnotmxv
+//
+//  مولّد مقالات لمنصّة **«مرشد السلامة» (HSE)** — لا علاقة له بكلاود منيو،
+//  وSYSTEM_PROMPT فيه يشرح ذلك بنفسه. أُقبر لسببين:
+//
+//  ١. **منتج آخر يسكن مشروع كلاود منيو** — وهو عين السبب الذي نُقل المشروع
+//     من أجله (§٢ في CLAUDE.md). ودالّته تحمل مفتاح الخدمة لقاعدة فيها
+//     بيانات التجّار ومفاتيح PayLink.
+//  ٢. **بريد المؤسّس مكتوب بيدٍ ثانية** (`FOUNDER_EMAIL` ثابت في الملفّ) بدل
+//     `founder_email()` في القاعدة — مصدران للهوية يتباعدان يوم يتغيّر البريد.
+//
+//  الحراسة نفسها كانت سليمة (مؤسّس فقط)، فالإقبار تنظيفُ حدودٍ لا سدُّ ثغرة.
+//  إن عادت الميزة فمكانها مشروع HSE، وبريدها من دالّة قاعدة لا من ثابت.
+// ════════════════════════════════════════════════════════════════════
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const cors = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+const FOUNDER_EMAIL = "seeaf2013@gmail.com";
+
+function json(obj: unknown, status: number) {
+  return new Response(JSON.stringify(obj), { status, headers: { ...cors, "Content-Type": "application/json" } });
+}
+
+const SYSTEM_PROMPT = `أنت خبير سلامة وصحة مهنية (HSE) سعودي … [المطالبة كاملة محفوظة في تاريخ Supabase]`;
+
+Deno.serve(async (req: Request) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
+
+  const auth = req.headers.get("Authorization");
+  if (!auth) return json({ error: "Unauthorized" }, 401);
+
+  const svc = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+  const { data: { user }, error } = await svc.auth.getUser(auth.replace("Bearer ", ""));
+  if (error || !user) return json({ error: "Invalid token" }, 401);
+  if (user.email !== FOUNDER_EMAIL) return json({ error: "هذه الميزة للمؤسس فقط" }, 403);
+
+  const { data: secret } = await svc.from("platform_secrets").select("value").eq("key", "openai_api_key").single();
+  const OPENAI_KEY = (secret?.value ?? "").trim();
+  if (!OPENAI_KEY) return json({ error: "لم يتم تكوين مفتاح AI" }, 503);
+
+  let payload: { topic?: string; standard?: string; category?: string };
+  try { payload = await req.json(); } catch { return json({ error: "طلب غير صالح" }, 400); }
+  const topic = (payload.topic ?? "").trim();
+  if (!topic) return json({ error: "أدخل موضوع المقال" }, 400);
+  const userMsg = `الموضوع المطلوب: ${topic}\nالمعيار المستهدف: ${payload.standard?.trim() || "اختر الأنسب للموضوع"}\nالتصنيف: ${payload.category?.trim() || "عام"}`;
+
+  let oaRes: Response;
+  try {
+    oaRes = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${OPENAI_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "gpt-4o", temperature: 0.6, max_tokens: 2800,
+        response_format: { type: "json_object" },
+        messages: [{ role: "system", content: SYSTEM_PROMPT }, { role: "user", content: userMsg }],
+      }),
+    });
+  } catch (_e) {
+    return json({ error: "تعذّر الاتصال بـ OpenAI" }, 502);
+  }
+
+  const data = await oaRes.json();
+  if (!oaRes.ok) return json({ error: data?.error?.message || "تعذّر توليد المقال" }, 502);
+  const content = data?.choices?.[0]?.message?.content || "{}";
+  let article: Record<string, unknown>;
+  try { article = JSON.parse(content); } catch { return json({ error: "استجابة غير صالحة من النموذج" }, 502); }
+  return json({ article }, 200);
+});

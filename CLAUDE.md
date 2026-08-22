@@ -163,8 +163,21 @@ Project ref: `wxrukupcyfypnqnotmxv` (اسمه «claudmenu» · سنغافورة)
 `founder-admin` · `moyasar-webhook` · `notify-support` ·
 `dynamic-task` · `payments` · `paylink-create` · `paylink-webhook` ·
 `paylink-order-create` · `order-verify` (§13) · `api` (§14) ·
-`webhook-dispatch` (§16) · `billing-admin` · `menu-scan` (قراءة المنيو من
-صورة) · `migrate-images` (أداة نقل انتهت — رمزها مُلغى، فهي عاجزة الآن).
+`webhook-dispatch` (§16) · `billing-admin` · `menu-scan` (قراءة المنيو من صورة).
+
+> ⚠️ **`verify_jwt: true` لا تعني «مستخدم مسجَّل».** تعني «أي JWT موقَّع بمفتاح
+> المشروع» — و**مفتاح `anon` منها**، وهو منشور في حزمة جافاسكربت التي ينزّلها
+> كل زائر. فكل دالّة تحتاج هويةً حقيقية **تفحصها بنفسها**: ترفض
+> `token === ANON` ثم تسأل `/auth/v1/user` (كما تفعل `menu-scan`)، أو تحرس
+> نفسها بسرّ مشترك (كما تفعل `webhook-dispatch` و`notify-support`).
+>
+> أربع نقاط مكشوفة في فحص ٢٠٢٦/٠٨/٢٢ أصلُها هذا الظنّ وحده — أخطرها وسيط
+> OpenAI مفتوح لكل زائر على فاتورة المالك.
+
+> **ستّ دوالّ مُقبَرة** تردّ 410 ولا تفعل شيئاً: `ai-proxy` · `dynamic-task` ·
+> `OpenAI` · `openai-proxy` · `generate-article` · `migrate-images`. مصادرها
+> في `supabase/functions/_archive/` وشواهدها في `_tombstones/`، والسبب في
+> `_archive/README.md`. ✅ للمالك حذفها نهائياً من اللوحة.
 
 > `founder-admin` **موجود ونشط**. (توثيق قديم في `web/MIGRATION.md` كان يقول
 > غير ذلك — كان خطأً، والمجلد حُذف.)
@@ -184,6 +197,9 @@ Project ref: `wxrukupcyfypnqnotmxv` (اسمه «claudmenu» · سنغافورة)
 `trial_days` · `abuse_hit` ·
 `staff_stamp` و `set_staff_pin` (وضع الكاشير، انظر §8) ·
 `founder_email` (بريد المؤسس — مصدر واحد، انظر §10) ·
+`notify_support_ticket` (تريجر `AFTER INSERT` على `support_tickets` يوقظ
+`notify-support` بـ`pg_net` — التوصيل من الهجرات لا من لوحة Supabase، فلا
+يضيع عند النقل التالي) ·
 `founder_overview` · `founder_merchants` · `founder_funnel` ·
 `founder_revenue_monthly` · `founder_revenue_orphans` · `founder_health`
 (لوحة المؤسس، انظر §11) · `api_rate_hit` (حدّ معدّل الـAPI، انظر §14).
