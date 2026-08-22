@@ -10,6 +10,22 @@
  *    التاجر عن نفسه ليست بيانات إعلانية.
  * 3. **النطاقات مسمّاة في CSP** (`app/public/_headers`). أي مزوّد جديد يحتاج
  *    إضافة نطاقه صراحةً — بلا `*` وبلا `unsafe-inline` للسكربتات.
+ * 4. **المعرّف يُفحص شكلاً قبل أن يُحقن** — انظر `GTM-` أدناه.
+
+ * ═══ ⚠️ لماذا `GTM-` مرفوض تحديداً ═══
+ *
+ * `googletagmanager.com/gtag/js?id=…` يقبل شكلين:
+ *   • معرّف قياس/إعلان (`G-` · `AW-` · `GT-`) ⇒ يحمّل شفرة قياس محدودة.
+ *   • معرّف **حاوية** (`GTM-`) ⇒ يحمّل ما وضعه صاحب الحاوية فيها، **وهو
+ *     جافاسكربت حرّة**.
+ *
+ * والحقن يقع على نطاق المنصّة، وجلسة التاجر في `localStorage` عليه. فتاجرٌ
+ * يضع `GTM-XXXX` لحاوية يملكها يزرع شفرةً تعمل في منيوه — وأي تاجر آخر
+ * (أو المؤسّس) يفتح ذلك المنيو وهو مسجَّل يسلّمه جلسته. ليست ثغرة في قوقل
+ * بل في **الثقة بمعرّف يكتبه المستخدم**.
+ *
+ * القيد الحقيقي في القاعدة (`restaurants_ga_id_shape`) لأن API التاجر (§14)
+ * يتجاوز هذه الصفحة؛ وهذا الفحص طبقةٌ ثانية عند نقطة الحقن نفسها.
  *
  * ═══ لماذا لا `dangerouslySetInnerHTML` بسكربت مضمَّن ═══
  *
@@ -37,6 +53,23 @@ declare global {
 
 const MARK = "data-cm-pixel";
 
+/**
+ * أشكال المعرّفات المقبولة — نسخة مطابقة لقيود `restaurants_*_shape` في
+ * القاعدة. القيدان يحرسان مدخلين مختلفين (اللوحة وAPI التاجر)، فتباعدهما
+ * يعني معرّفاً يُحفظ ولا يُحقن أو العكس.
+ */
+const SHAPE = {
+  ga: /^(G|AW|GT)-[A-Z0-9]{4,20}$/,
+  meta: /^[0-9]{6,20}$/,
+  snap: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+} as const;
+
+/** يُعيد المعرّف إن كان شكله مقبولاً، وإلا `null` — فلا يُحمَّل شيء. */
+export function validPixelId(kind: keyof typeof SHAPE, raw: string | null): string | null {
+  const v = (raw ?? "").trim();
+  return v && SHAPE[kind].test(v) ? v : null;
+}
+
 function addScript(src: string): void {
   const s = document.createElement("script");
   s.async = true;
@@ -56,7 +89,12 @@ export function installPixels(ids: PixelIds): void {
   if (typeof document === "undefined") return;
   if (document.head.querySelector(`[${MARK}]`)) return; // حُقنت في هذا التحميل
 
-  if (ids.meta) {
+  // ⚠️ الفحص هنا لا عند القراءة: هذه آخر نقطة قبل بناء رابط السكربت.
+  const meta = validPixelId("meta", ids.meta);
+  const ga = validPixelId("ga", ids.ga);
+  const snap = validPixelId("snap", ids.snap);
+
+  if (meta) {
     // نسخة مكافئة لشفرة Meta الرسمية، مبنية بدوال لا بنصّ مضمَّن (انظر أعلاه).
     const fbq = function (...args: unknown[]) {
       const f = window.fbq!;
@@ -71,11 +109,11 @@ export function installPixels(ids: PixelIds): void {
       fbq.version = "2.0";
       addScript("https://connect.facebook.net/en_US/fbevents.js");
     }
-    window.fbq!("init", ids.meta);
+    window.fbq!("init", meta);
     window.fbq!("track", "PageView");
   }
 
-  if (ids.ga) {
+  if (ga) {
     window.dataLayer = window.dataLayer ?? [];
     // gtag تعتمد على `arguments` حرفياً — سهم بمعاملات مفرودة يكسر تنسيقها.
     window.gtag = function gtag() {
@@ -83,11 +121,11 @@ export function installPixels(ids: PixelIds): void {
       window.dataLayer!.push(arguments);
     } as typeof window.gtag;
     window.gtag!("js", new Date());
-    window.gtag!("config", ids.ga);
-    addScript(`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(ids.ga)}`);
+    window.gtag!("config", ga);
+    addScript(`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(ga)}`);
   }
 
-  if (ids.snap) {
+  if (snap) {
     const snaptr = function (...args: unknown[]) {
       const s = window.snaptr!;
       if (s.handleRequest) s.handleRequest(...args);
@@ -98,7 +136,7 @@ export function installPixels(ids: PixelIds): void {
       snaptr.queue = [];
       addScript("https://sc-static.net/scevent.min.js");
     }
-    window.snaptr!("init", ids.snap);
+    window.snaptr!("init", snap);
     window.snaptr!("track", "PAGE_VIEW");
   }
 }

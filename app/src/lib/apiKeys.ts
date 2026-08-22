@@ -26,19 +26,32 @@ const PREFIX_LENGTH = KEY_PREFIX.length + 8;
  * التوزيع منتظم بالرفض (`rejection sampling`): أخذ `byte % 57` كان سيجعل أوّل
  * ٢٦ رمزاً أكثر احتمالاً من الباقي (256 لا تقبل القسمة على 57).
  */
-export function generateApiKey(): string {
-  const max = Math.floor(256 / ALPHABET.length) * ALPHABET.length;
+/**
+ * نصّ عشوائي من أبجدية، **بتوزيع منتظم**.
+ *
+ * ⚠️ مُصدَّرة ليستعملها مولّد رمز الكاشير وبطاقة الولاء (`lib/data.ts`)
+ * أيضاً: كانا يأخذان `byte % 31` مباشرةً، و٢٥٦ لا تقبل القسمة على ٣١ —
+ * فأوّل ثمانية رموز أكثر احتمالاً من الباقي. الفرق ضئيل (ينقص الإنتروبيا
+ * أجزاءً من البت) لكنه **معياران في ملفّين**: هذا الملفّ يفعلها صواباً
+ * ويشرح لماذا، وذاك يفعلها خطأً. نسخة واحدة تُنهي السؤال.
+ */
+export function randomFrom(alphabet: string, length: number): string {
+  const max = Math.floor(256 / alphabet.length) * alphabet.length;
   let out = "";
-  const buf = new Uint8Array(SECRET_LENGTH * 2);
-  while (out.length < SECRET_LENGTH) {
+  const buf = new Uint8Array(length * 2);
+  while (out.length < length) {
     crypto.getRandomValues(buf);
     for (const b of buf) {
-      if (b >= max) continue;
-      out += ALPHABET[b % ALPHABET.length];
-      if (out.length === SECRET_LENGTH) break;
+      if (b >= max) continue;   // الرفض: هو ما يجعل التوزيع منتظماً
+      out += alphabet[b % alphabet.length];
+      if (out.length === length) break;
     }
   }
-  return KEY_PREFIX + out;
+  return out;
+}
+
+export function generateApiKey(): string {
+  return KEY_PREFIX + randomFrom(ALPHABET, SECRET_LENGTH);
 }
 
 export async function hashApiKey(key: string): Promise<string> {

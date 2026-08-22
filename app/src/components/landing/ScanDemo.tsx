@@ -21,6 +21,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Icon } from "@/lib/icons";
 import { useReveal } from "@/lib/reveal";
+import { CTA_PRIMARY } from "@/lib/facts";
 
 /**
  * ⚠️ **هذه بيانات إنتاج حقيقية** — منيو «مطعم الديوان» كما هو في قاعدتنا،
@@ -119,19 +120,27 @@ export function ScanDemo() {
     >
       <div className="mx-auto w-full max-w-6xl px-5 py-16">
         <div className="mx-auto max-w-2xl text-center">
+          {/* ⚠️ **هذا القسم صار برهاناً لا إعلاناً.**
+              كان يحمل الوعد («صوّر منيوك المطبوع… ويصير رقمياً») لأن البطل
+              كان يفتتح بتعريف الفئة. ولمّا انتقل الوعد إلى البطل صارت الجملتان
+              متتاليتين متطابقتين — والزائر يقرأ الشيء نفسه مرّتين في شاشتين.
+
+              فالعنوان هنا لم يعد يَعِد: يقول **النتيجة المقيسة**. والرقم
+              حقيقيّ (١٢ من ١٢ صنفاً وسعراً وتصنيفاً، صفر اختراع) وهو نفسه
+              الذي يعدّه العرض أمام الزائر بعد سطرين. */}
           <span className="inline-flex items-center gap-1.5 rounded-full border border-line-gold bg-gold/10 px-3.5 py-1.5 text-xs font-bold text-gold">
             <Icon name="sparkle" size={13} />
-            جديد · الذكاء الاصطناعي
+            شوفها تشتغل
           </span>
           <h2
             id="scan-demo-title"
             className="mt-4 font-display text-3xl font-black leading-tight text-ink sm:text-4xl"
           >
-            صوّر منيوك المطبوع… ويصير رقمياً
+            منيو حقيقي — <span className="text-gold-grad">١٢ صنفاً من ١٢</span>
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-base leading-relaxed text-dim">
-            لا إدخال يدوي ولا كتابة أسعار. صورة واحدة، ونستخرج الأصناف
-            والأسعار ونرتّبها في تصنيفاتها — وتراجعها قبل أن تُحفظ.
+            هذه ليست رسمة توضيحية: صورة منيو «مطعم الديوان» كما هي، وما قرأه
+            النموذج منها فعلاً — كل صنف وكل سعر وكل تصنيف، وصفر اختراع.
           </p>
         </div>
 
@@ -225,7 +234,7 @@ export function ScanDemo() {
                 to="/login"
                 className="rounded-xl bg-gold px-5 py-2.5 text-sm font-black text-on-gold transition-transform hover:scale-[1.02]"
               >
-                جرّبه على منيوك مجاناً
+                {CTA_PRIMARY}
               </Link>
             </div>
           </div>

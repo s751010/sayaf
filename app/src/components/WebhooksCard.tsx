@@ -9,6 +9,8 @@
  * القاعدة، فلا يستطيع من يصل للوحة لاحقاً انتحال توقيعنا تجاه خادم التاجر.
  */
 import { useCallback, useEffect, useState } from "react";
+// ⚠️ نفس الحارس الذي تستعمله `webhook-dispatch` — لا نسخة ثانية بيد.
+import { checkWebhookUrl } from "../../../supabase/functions/_shared/url-guard";
 import { Badge, Button, Card, ErrorNote, Field, Input, useToast } from "@/components/ui";
 import {
   createWebhook,
@@ -23,6 +25,18 @@ import {
 import { cn, formatDate } from "@/lib/utils";
 import type { Restaurant } from "@/lib/types";
 import { Icon } from "@/lib/icons";
+
+/**
+ * رسائل عربية لأصناف الرفض. الحارس نفسه في `_shared/url-guard.ts` — نسخة
+ * واحدة يستوردها المتصفّح والحافة معاً، فلا قائمتان تتباعدان.
+ */
+const URL_ERRORS: Record<NonNullable<ReturnType<typeof checkWebhookUrl>>, string> = {
+  malformed: "هذا ليس رابطاً صالحاً.",
+  not_https: "الرابط يجب أن يبدأ بـ https:// — نرسل بيانات طلبات، وhttp مكشوف.",
+  bad_port: "المنفذ يجب أن يكون 443 (الافتراضي لـhttps).",
+  ip_literal: "اكتب اسم نطاق لا عنوان IP.",
+  internal_host: "هذا عنوان داخلي لا يصله خادمنا — اكتب نطاقاً عامّاً.",
+};
 
 export function WebhooksCard({
   restaurant,
@@ -49,11 +63,11 @@ export function WebhooksCard({
 
   async function add() {
     const clean = url.trim();
-    // نفحصه هنا أيضاً رغم قيد `CHECK` في القاعدة: رسالة واضحة قبل الإرسال خير
-    // من خطأ Postgres خام. والقيد هو الحارس الحقيقي.
-    if (!/^https:\/\//i.test(clean)) {
-      return setError("الرابط يجب أن يبدأ بـ https:// — نرسل بيانات طلبات، وhttp مكشوف.");
-    }
+    // نفحصه هنا أيضاً رغم قيدَي `CHECK` في القاعدة وحارس الدالّة: رسالة واضحة
+    // قبل الإرسال خير من خطأ Postgres خام. والقيدان هما الحارس الحقيقي —
+    // هذا لطفٌ بالتاجر لا حاجز أمني.
+    const why = checkWebhookUrl(clean);
+    if (why) return setError(URL_ERRORS[why]);
     if (picked.length === 0) return setError("اختر حدثاً واحداً على الأقل.");
     setBusy(true);
     setError("");

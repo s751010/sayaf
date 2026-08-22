@@ -1,0 +1,54 @@
+// ════════════════════════════════════════════════════════════════════
+//  أُرشِف قبل الإقبار — ٢٠٢٦/٠٨/٢٢
+//
+//  slug: OpenAI · verify_jwt: true · على مشروع wxrukupcyfypnqnotmxv
+//
+//  ⚠️ هذه هي الثغرة الحرِجة في فحص ٢٢/٠٨: وسيط OpenAI **مفتوح بلا حراسة
+//  إطلاقاً**. لا فحص مستخدم، ولا حدّ معدّل، ولا تقييد نموذج، ولا سقف إنفاق —
+//  والجسم يُمرَّر كما هو.
+//
+//  و`verify_jwt: true` لا تحميه: هي تقبل **أي JWT موقَّع بمفتاح المشروع**،
+//  ومفتاح `anon` واحد منها — وهو منشور في حزمة جافاسكربت التي ينزّلها كل زائر.
+//
+//  أُثبت حيّاً بنداء واحد غير مُنفِق بمفتاح anon العام:
+//    → {"error":{"message":"you must provide a model parameter", …}}
+//  وهو ردّ OpenAI لطلب **موثَّق بمفتاح صالح** (المفتاح الغائب يعطي 401).
+//
+//  تخصّ منصّة HSE لا كلاود منيو. أُقبرت بقرار المالك: باب مفتوح على فاتورته
+//  أسوأ من ميزة معطّلة في منتج آخر يمكن إعادة بنائها بحراسة — وفي مشروعها هي.
+// ════════════════════════════════════════════════════════════════════
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, content-type",
+};
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+
+  try {
+    const body = await req.json();
+    const apiKey = Deno.env.get("OPENAI_API_KEY");
+
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    const data = await res.json();
+    return new Response(JSON.stringify(data), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: res.status,
+    });
+  } catch (e) {
+    return new Response(JSON.stringify({ error: e.message }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500,
+    });
+  }
+});

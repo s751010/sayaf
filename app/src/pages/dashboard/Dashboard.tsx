@@ -26,6 +26,7 @@ import {
   ErrorNote,
   Field,
   Input,
+  ScrollRow,
   Select,
   Spinner,
   ThemeToggle,
@@ -444,18 +445,12 @@ function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode
               </button>
             </div>
           </div>
-          {/* التبويبات ثمانية ولا تتّسع لها شاشة جوال: «الاشتراك» و«الإعدادات»
-              خارجها بلا أي إشارة تدلّ عليهما. التدرّج على الحافة يقول «خلفي
-              المزيد» — بلا حذف تبويب ولا إعادة ترتيب. */}
-          <div className="relative">
-            <nav className="flex gap-1 overflow-x-auto px-3 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {links(true)}
-            </nav>
-            <span
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-y-0 start-0 w-8 bg-gradient-to-l from-transparent to-page"
-            />
-          </div>
+          {/* ستّة عناصر تسع ٣٩٠px بلا تمرير (مقيسة — انظر `links`)، لكن عنصر
+              «لوحة المؤسّس» يجعلها سبعة فتفيض. فالتدرّج يقول «خلفي المزيد»
+              **عند وجوده فعلاً**، وعلى حافة النهاية حيث يختبئ المحتوى. */}
+          <ScrollRow className="gap-1 px-3 pb-2" itemCount={nav.length}>
+            {links(true)}
+          </ScrollRow>
         </header>
 
         <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-7 sm:px-6">

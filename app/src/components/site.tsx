@@ -6,6 +6,7 @@ import { getSiteSetting } from "@/lib/data";
 import { SITE_NAME } from "@/lib/config";
 import { menuUrl } from "@/lib/menuUrl";
 import { cn } from "@/lib/utils";
+import { CTA_PRIMARY } from "@/lib/facts";
 import { ThemeToggle } from "@/components/ui";
 import { SupportWhatsAppButton } from "@/components/SupportWhatsApp";
 import { Icon } from "@/lib/icons";
@@ -157,7 +158,7 @@ export function Navbar() {
                 to="/login?mode=signup"
                 className="inline-flex min-h-11 items-center rounded-xl bg-gold px-4 py-2 text-sm font-bold text-on-gold hover:bg-gold2"
               >
-                ابدأ مجاناً
+                {CTA_PRIMARY}
               </Link>
             </>
           )}

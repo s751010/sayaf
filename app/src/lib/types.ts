@@ -1,5 +1,5 @@
 /**
- * أنواع الجداول — مطابقة لسكيما Supabase الفعلية (مشروع wjqpsbpebpntpeinqccl).
+ * أنواع الجداول — مطابقة لسكيما Supabase الفعلية (مشروع wxrukupcyfypnqnotmxv).
  * أي حقل جديد هنا يجب أن يظهر أيضاً في الفورم + payload الإضافة + payload
  * التحديث (القاعدة أ في CLAUDE.md) وإلا يسقط بصمت.
  */

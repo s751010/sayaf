@@ -10,33 +10,90 @@ import type { BlogPost } from "@/lib/types";
 import { postExcerpt, postTitle } from "./Blog";
 
 /**
- * تنقية محافظة لمحتوى المقال قبل إدراجه كـHTML.
+ * تنقية محتوى المقال قبل إدراجه كـHTML — **قائمة بيضاء**.
  *
- * تُزيل فقط ما لا لبس في خطورته — وسوم تنفيذية، ومعالجات `on*`، وروابط
- * `javascript:` — ولا تلمس وسوم التنسيق التي يستخدمها المحتوى المشروع.
- * تعتمد على `DOMParser` فلا تُنفَّذ أي سكربتات أثناء التحليل.
+ * ═══ ⚠️ لماذا تُبدّلت القائمة السوداء ═══
+ *
+ * كانت تحذف وسوماً مسمّاة (`script` · `iframe` · `object` …) وتُبقي ما عداها.
+ * وثلاثة ثغرات في ذلك:
+ *
+ * ١. **`<template>` و`<noscript>` و`<svg>` و`<math>` لم تكن في القائمة.**
+ * ٢. **سمة `style` كانت تمرّ** — وهي تكفي لتغطية الصفحة بطبقة تلتقط النقرات.
+ * ٣. **والأخطر: دورة تحليل⇄تسلسل.** الدالة تُحلّل النصّ ثم تُعيده نصّاً
+ *    (`innerHTML`)، وReact يُعيد تحليله. والمحتوى الأجنبي (`svg`/`math`)
+ *    والمحتوى الخام (`noscript`) تختلف قواعد تحليلها عن تسلسلها، فنصٌّ يبدو
+ *    بريئاً بعد التنقية يعود وسماً تنفيذياً بعد التحليل الثاني — mXSS.
+ *
+ * فالقاعدة انعكست: **ما ليس مسموحاً صراحةً يُحذف**، وسمةٌ ليست في القائمة
+ * تُنزع. وسمٌ جديد يحتاجه المحتوى يُضاف هنا بقرار، لا يمرّ لأن أحداً نسي منعه.
+ *
+ * الكاتب هو المؤسّس وحده (سياسات `blog_posts`)، وCSP بلا `unsafe-inline`
+ * تحجب معالجات `on*` — لكن `script-src` يسمح بـ`googletagmanager.com`، وهو
+ * معبر معروف لتجاوز CSP. فلا يُتَّكل على طبقة واحدة.
  */
-function sanitizeHtml(html: string): string {
-  if (typeof DOMParser === "undefined") return html;
+const ALLOWED_TAGS = new Set([
+  "p", "br", "hr", "div", "span", "blockquote", "pre", "code",
+  "h1", "h2", "h3", "h4", "h5", "h6",
+  "ul", "ol", "li", "dl", "dt", "dd",
+  "strong", "b", "em", "i", "u", "s", "mark", "small", "sub", "sup",
+  "a", "img", "figure", "figcaption",
+  "table", "thead", "tbody", "tfoot", "tr", "th", "td", "caption",
+]);
+
+/** سمات مسموحة لكل وسم. وما عداها يُنزع — بما فيها `style` و`on*`. */
+const ALLOWED_ATTRS: Record<string, readonly string[]> = {
+  a: ["href", "title", "target", "rel"],
+  img: ["src", "alt", "title", "width", "height", "loading"],
+  th: ["colspan", "rowspan", "scope"],
+  td: ["colspan", "rowspan"],
+  "*": ["dir", "lang"],
+};
+
+/** مخطّطات الروابط المقبولة — `javascript:` و`data:` خارجها بالتعريف. */
+const SAFE_SCHEME = /^(https?:|mailto:|tel:|#|\/)/i;
+
+export function sanitizeHtml(html: string): string {
+  if (typeof DOMParser === "undefined") return "";
   const doc = new DOMParser().parseFromString(html, "text/html");
 
-  doc.querySelectorAll("script,iframe,object,embed,link,meta,style,form,base").forEach((el) =>
-    el.remove()
-  );
+  /**
+   * المرور بترتيب عكسي: حذف عنصر أثناء التقدّم للأمام يُزحزح ما بعده.
+   * و`querySelectorAll("*")` لقطة ساكنة، فالحذف منها آمن — لكن الأبناء
+   * يُحذفون مع آبائهم، فنفحص الانتماء قبل اللمس.
+   */
+  for (const el of [...doc.body.querySelectorAll("*")].reverse()) {
+    if (!el.isConnected) continue;
+    const tag = el.tagName.toLowerCase();
 
-  doc.querySelectorAll("*").forEach((el) => {
+    if (!ALLOWED_TAGS.has(tag)) {
+      // ⚠️ **يُستبدَل بمحتواه النصّي لا يُحذف بمحتواه**: فقرةٌ داخل وسم غير
+      // معروف كانت ستختفي كلّها، فيخسر المؤسّس نصّاً كتبه بلا أن يدري.
+      // والوسوم التنفيذية وحدها تُحذف كاملةً — نصّ سكربت ليس محتوى.
+      if (tag === "script" || tag === "style" || tag === "template" || tag === "noscript") {
+        el.remove();
+      } else {
+        el.replaceWith(...[...el.childNodes]);
+      }
+      continue;
+    }
+
+    const allowed = [...(ALLOWED_ATTRS[tag] ?? []), ...ALLOWED_ATTRS["*"]];
     for (const attr of [...el.attributes]) {
       const name = attr.name.toLowerCase();
-      const value = attr.value.replace(/\s+/g, "").toLowerCase();
-      if (name.startsWith("on")) el.removeAttribute(attr.name);
-      else if (
-        (name === "href" || name === "src" || name === "xlink:href") &&
-        (value.startsWith("javascript:") || value.startsWith("data:text/html"))
-      ) {
+      if (!allowed.includes(name)) {
+        el.removeAttribute(attr.name);
+        continue;
+      }
+      if ((name === "href" || name === "src") && !SAFE_SCHEME.test(attr.value.trim())) {
         el.removeAttribute(attr.name);
       }
     }
-  });
+
+    // رابطٌ يفتح في تبويب جديد بلا `noopener` يمنح الصفحة الهدف `window.opener`.
+    if (tag === "a" && el.getAttribute("target") === "_blank") {
+      el.setAttribute("rel", "noopener noreferrer");
+    }
+  }
 
   return doc.body.innerHTML;
 }

@@ -12,7 +12,12 @@ import { CURRENCY, PLANS, effectiveMonthly, planPrice, type BillingCycle } from 
 import { TRIAL_DAYS, trialDays } from "@/lib/data";
 import { cn, formatPrice } from "@/lib/utils";
 
-function useTrialDays(): number {
+/**
+ * مدّة التجربة كما تفرضها القاعدة — **مصدَّرة** لأن البطل يعرضها أيضاً.
+ * نسخةٌ ثانية تقرأ `TRIAL_DAYS` وحده كانت ستعرض الاحتياط لا القيمة النافذة،
+ * فيقول البطل رقماً وصفحة الأسعار آخر.
+ */
+export function useTrialDays(): number {
   const [days, setDays] = useState(TRIAL_DAYS);
   useEffect(() => {
     let alive = true;
@@ -25,7 +30,7 @@ function useTrialDays(): number {
 }
 
 /** تمييز العدد في العربية: يوم · يومان · ٣–١٠ أيام · ١١+ يوماً. */
-function daysLabel(n: number): string {
+export function daysLabel(n: number): string {
   if (n === 1) return "يوماً واحداً";
   if (n === 2) return "يومين";
   if (n <= 10) return `${n} أيام`;

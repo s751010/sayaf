@@ -25,6 +25,7 @@ import {
   ErrorNote,
   Field,
   Input,
+  ScrollRow,
   Skeleton,
   ThemeToggle,
 } from "@/components/ui";
@@ -243,7 +244,10 @@ export default function Founder() {
             </div>
           </div>
 
-          <nav className="-mx-1 flex gap-1 overflow-x-auto pb-2">
+          {/* ⚠️ خمسة تبويبات تفيض ١٦٨px على ٣٩٠px (مقيسة)، فتختفي «الصحة»
+              كاملاً. كانت بلا أي إشارة — و`ScrollRow` يضع التدرّج على حافة
+              النهاية عند وجود مخفيّ فعلاً. */}
+          <ScrollRow className="-mx-1 gap-1 pb-2" itemCount={NAV.length}>
             {NAV.map((n) => (
               <NavLink
                 key={n.to}
@@ -260,7 +264,7 @@ export default function Founder() {
                 {n.label}
               </NavLink>
             ))}
-          </nav>
+          </ScrollRow>
         </div>
       </header>
 

@@ -24,7 +24,7 @@
  *
  * ═══ التشغيل ═══
  *
- *   export SUPABASE_URL="https://wjqpsbpebpntpeinqccl.supabase.co"
+ *   export SUPABASE_URL="https://wxrukupcyfypnqnotmxv.supabase.co"
  *   export SUPABASE_SERVICE_ROLE_KEY="..."   # Settings ← API ← service_role
  *
  *   node app/scripts/migrate-data-uris.mjs             # فحص جافّ (الافتراضي)

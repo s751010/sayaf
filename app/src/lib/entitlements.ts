@@ -36,8 +36,17 @@ export type Entitlements = PlanLimits & {
   loading: boolean;
 };
 
-/** اسم الطبقة المجانية كما يراه التاجر — مصدر واحد. */
-export const FREE_PLAN_NAME = "المنيو المجاني";
+/**
+ * حالة من لا اشتراك له كما يراها التاجر — مصدر واحد.
+ *
+ * ⚠️ كانت «المنيو المجاني»، أي أنها **تُسوّق طبقةً مجانية** داخل اللوحة بينما
+ * المنتج اشتراكٌ بتجربة تنتهي — وصفحة الأسعار تقول ذلك منذ البداية. فكان
+ * التاجر يقرأ في لوحته وعداً يخالف ما اشترى عليه.
+ *
+ * والاسم الآن يصف الحالة ولا يَعِد بشيء. أمّا أن منيوه يبقى يعمل بلا اشتراك
+ * فسياسةُ عدم احتجاز (انظر `FREE_LIMITS`) — لا تُعلَن ولا تُباع.
+ */
+export const NO_PLAN_NAME = "بلا اشتراك";
 
 /**
  * الحالة الابتدائية **مجانية لا مدفوعة**.
@@ -49,7 +58,7 @@ export const FREE_PLAN_NAME = "المنيو المجاني";
 export const DEFAULT_ENTITLEMENTS: Entitlements = {
   ...FREE_LIMITS,
   planId: "free",
-  planName: FREE_PLAN_NAME,
+  planName: NO_PLAN_NAME,
   active: false,
   trial: false,
   trialDaysLeft: 0,
@@ -61,9 +70,7 @@ export const DEFAULT_ENTITLEMENTS: Entitlements = {
  */
 export function planLabel(ent: Entitlements): string {
   if (ent.loading) return "…";
-  // «بدون اشتراك» كانت تصف نقصاً؛ والمجاني الآن **طبقة قائمة بذاتها** ومنيوه
-  // يعمل للأبد. الفرق ليس تجميلاً: التاجر يقرأ الأولى إنذاراً والثانية حالة.
-  if (!ent.active) return FREE_PLAN_NAME;
+  if (!ent.active) return NO_PLAN_NAME;
   if (ent.trial) {
     return ent.trialDaysLeft <= 1
       ? "التجربة تنتهي اليوم"
@@ -96,7 +103,7 @@ export async function fetchEntitlements(userId: string): Promise<Entitlements> {
   return {
     ...(active ? PLAN.limits : FREE_LIMITS),
     planId: active ? PLAN.id : "free",
-    planName: active ? PLAN.name : FREE_PLAN_NAME,
+    planName: active ? PLAN.name : NO_PLAN_NAME,
     active,
     trial,
     trialDaysLeft,
