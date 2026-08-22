@@ -7,6 +7,7 @@ import {
   useRef,
   useState,
   type ButtonHTMLAttributes,
+  type HTMLAttributes,
   type ImgHTMLAttributes,
   type InputHTMLAttributes,
   type ReactNode,
@@ -452,6 +453,88 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
 export function useToast() {
   return useContext(ToastContext);
+}
+
+/* ── صفّ يتمرّر أفقياً ──────────────────────────────────────────────── */
+
+/**
+ * صفٌّ قابل للتمرير الأفقي، وعلى حافة نهايته تدرّجٌ يقول «خلفي المزيد»
+ * **عند وجوده فعلاً**.
+ *
+ * ═══ ⚠️ العطلان اللذان وُجد من أجلهما ═══
+ *
+ * كان في المنتج شريطان بنفس الشكل وبعطلين متقابلين:
+ *
+ * **شريط لوحة التاجر** حمل تدرّجاً ثابتاً بلا شرط وعلى حافة **البداية**.
+ * وفي RTL البداية هي اليمين — حيث المحتوى ظاهر؛ والفائض يختبئ في اليسار.
+ * فكان يطمس التبويب الأوّل («الرئيسية»، وهو النشط افتراضياً) بعشرين بكسلاً،
+ * ويَعِد بمحتوًى خلف حافةٍ فائضها **صفر** عند التاجر العادي. مقيسٌ كلاهما.
+ *
+ * **وشريط لوحة المؤسّس** بلا تدرّج إطلاقاً: يفيض ١٦٨px على ٣٩٠px، فيختفي
+ * تبويب «الصحة» كاملاً بلا أي إشارة تدلّ عليه.
+ *
+ * فالعلاج واحد، وهو هنا **مرّة واحدة**: نسختان مكتوبتان بيد تتباعدان —
+ * وللمستودع تاريخ في ذلك (انظر `parity.test.ts`).
+ *
+ * ⚠️ ولا يُفترض الفائض بل يُقاس: `scrollWidth` و`clientWidth` و`scrollLeft`.
+ * والأخير في RTL يبدأ صفراً ويسير **سالباً** نحو النهاية في المتصفّحات
+ * الحديثة، فيُؤخذ بمطلقه.
+ */
+export function ScrollRow({
+  children,
+  className,
+  /**
+   * ⚠️ عدد العناصر في تبعيات الأثر عمداً: إضافة عنصر تغيّر `scrollWidth`
+   * ولا تغيّر مقاس الصفّ نفسه، فلا يوقظ `ResizeObserver` شيئاً. وهذا يقع
+   * فعلاً — «الطلبات» تظهر بربط بوّابة، و«لوحة المؤسّس» بعد التحقّق.
+   */
+  itemCount,
+  ...rest
+}: {
+  children: ReactNode;
+  className?: string;
+  itemCount: number;
+} & Omit<HTMLAttributes<HTMLElement>, "children" | "className">) {
+  const ref = useRef<HTMLElement>(null);
+  const [more, setMore] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const check = () =>
+      setMore(el.scrollWidth - el.clientWidth - Math.abs(el.scrollLeft) > 1);
+    check();
+    el.addEventListener("scroll", check, { passive: true });
+    const ro = new ResizeObserver(check);
+    ro.observe(el);
+    return () => {
+      el.removeEventListener("scroll", check);
+      ro.disconnect();
+    };
+  }, [itemCount]);
+
+  return (
+    <div className="relative">
+      <nav
+        ref={ref}
+        className={cn(
+          "flex overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+          className
+        )}
+        {...rest}
+      >
+        {children}
+      </nav>
+      <span
+        aria-hidden="true"
+        className={cn(
+          // حافة **النهاية** — حيث يختبئ المحتوى فعلاً.
+          "pointer-events-none absolute inset-y-0 end-0 w-8 bg-gradient-to-l from-transparent to-page transition-opacity duration-200",
+          more ? "opacity-100" : "opacity-0"
+        )}
+      />
+    </div>
+  );
 }
 
 /* ── مبدّل الوضع (فاتح/داكن) ───────────────────────────────────────── */

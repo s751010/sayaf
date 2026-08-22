@@ -4,7 +4,6 @@ import {
   useCallback,
   useContext,
   useEffect,
-  useRef,
   useState,
   type FormEvent,
 } from "react";
@@ -27,6 +26,7 @@ import {
   ErrorNote,
   Field,
   Input,
+  ScrollRow,
   Select,
   Spinner,
   ThemeToggle,
@@ -314,50 +314,6 @@ const NAV = [
  * الطلبات فتُلمح بين زبونين. وتبقى التحليلات موجودة على مسارها ومن الرئيسية،
  * فلا يفقدها أحد.
  */
-/**
- * هل بقي محتوى **خلف حافة النهاية** في شريط قابل للتمرير أفقياً؟
- *
- * ═══ ⚠️ العطل الذي وُجد من أجله ═══
- *
- * كان تدرّج «خلفي المزيد» في الشريط `<span>` ثابتاً بلا شرط، وعلى حافة
- * **البداية**. وفي RTL البداية هي اليمين — حيث المحتوى **ظاهر**؛ والفائض
- * يختبئ في اليسار. فكان التدرّج:
- *
- *   • **يغطّي التبويب الأوّل** بلونٍ معتم بدل أن يشير إلى المخفيّ. وأوّل
- *     تبويب هو «الرئيسية» وهو النشط افتراضياً، فكان التاجر يرى تبويبه
- *     النشط مقصوصاً بحدٍّ رأسي — مقيسٌ: التدرّج [358..390] والتبويب
- *     [328..378] على شاشة ٣٩٠، أي عشرون بكسلاً مطموسة.
- *   • **ويكذب**: بستّة عناصر الفائض **صفر** (قُيس)، فلا شيء خلف الحافة
- *     أصلاً. الإشارة تَعِد بما ليس هناك.
- *
- * ولذلك يُقاس الفائض ولا يُفترض. و`scrollLeft` في RTL يبدأ صفراً ويسير
- * **سالباً** نحو النهاية في المتصفّحات الحديثة، فيُؤخذ بمطلقه.
- */
-function useHasOverflowEnd<T extends HTMLElement>(itemCount: number) {
-  const ref = useRef<T>(null);
-  const [more, setMore] = useState(false);
-  // ⚠️ `itemCount` في التبعيات عمداً: إضافة عنصر تغيّر `scrollWidth` ولا تغيّر
-  // مقاس الشريط نفسه، فلا يوقظ `ResizeObserver` شيئاً. وهذا يحدث فعلاً —
-  // «الطلبات» تظهر بربط بوّابة، و«لوحة المؤسّس» تظهر بعد التحقّق.
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const check = () =>
-      setMore(el.scrollWidth - el.clientWidth - Math.abs(el.scrollLeft) > 1);
-    check();
-    el.addEventListener("scroll", check, { passive: true });
-    // عنصرٌ يُضاف (الطلبات · لوحة المؤسّس) أو دوران الجهاز يغيّران الفائض
-    // بلا تمرير — فلا يكفي حدث التمرير وحده.
-    const ro = new ResizeObserver(check);
-    ro.observe(el);
-    return () => {
-      el.removeEventListener("scroll", check);
-      ro.disconnect();
-    };
-  }, [itemCount]);
-  return { ref, more };
-}
-
 const ORDERS_NAV = { to: "/dashboard/orders", label: "الطلبات", icon: "ticket", end: false };
 
 /** عنصر لا يراه إلا صاحب المنصة — يُلحق بـ`NAV` عند التحقّق فقط. */
@@ -385,7 +341,6 @@ function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode
     ? NAV.map((n) => (n.to === "/dashboard/analytics" ? ORDERS_NAV : n))
     : NAV;
   const nav = founder === true ? [...base, FOUNDER_NAV] : base;
-  const tabs = useHasOverflowEnd<HTMLElement>(nav.length);
 
   const links = (compact: boolean) =>
     nav.map((n) => (
@@ -493,21 +448,9 @@ function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode
           {/* ستّة عناصر تسع ٣٩٠px بلا تمرير (مقيسة — انظر `links`)، لكن عنصر
               «لوحة المؤسّس» يجعلها سبعة فتفيض. فالتدرّج يقول «خلفي المزيد»
               **عند وجوده فعلاً**، وعلى حافة النهاية حيث يختبئ المحتوى. */}
-          <div className="relative">
-            <nav
-              ref={tabs.ref}
-              className="flex gap-1 overflow-x-auto px-3 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-            >
-              {links(true)}
-            </nav>
-            <span
-              aria-hidden="true"
-              className={cn(
-                "pointer-events-none absolute inset-y-0 end-0 w-8 bg-gradient-to-l from-transparent to-page transition-opacity duration-200",
-                tabs.more ? "opacity-100" : "opacity-0"
-              )}
-            />
-          </div>
+          <ScrollRow className="gap-1 px-3 pb-2" itemCount={nav.length}>
+            {links(true)}
+          </ScrollRow>
         </header>
 
         <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-7 sm:px-6">
