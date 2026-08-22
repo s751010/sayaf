@@ -28,9 +28,9 @@ import { menuUrl, slugFromRequest } from "../../shared/menu-url.mjs";
  * الأصلي كما صُمّمت، فلا خطأ ولا سجلّ ولا شيء يُلاحَظ — ووسوم المطاعم لا
  * تُحقن أبداً. `config-parity.test.ts` يقارن الملفّين ويُسقط CI عند التباعد.
  */
-const SUPABASE_URL = "https://wjqpsbpebpntpeinqccl.supabase.co";
+const SUPABASE_URL = "https://wxrukupcyfypnqnotmxv.supabase.co";
 const SUPABASE_ANON_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndqcXBzYnBlYnBudHBlaW5xY2NsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNTE1MDEsImV4cCI6MjA5NTcyNzUwMX0.c2kB9phWo2SbOsaUmb_h5A9y0pcd7eKLzEbGmC41I4M";
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind4cnVrdXBjeWZ5cG5xbm90bXh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE0NjA2OTEsImV4cCI6MjA5NzAzNjY5MX0.68unhGtpIxnTg4XsjdYHLiXM7aLuwls5Jo0tSarqR90";
 
 /**
  * ⚠️ أعمدة صريحة — القاعدة (و) تنطبق هنا كما تنطبق في المتصفّح: صلاحيات

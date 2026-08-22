@@ -131,9 +131,18 @@ app/src/
 
 ## 2. الـBackend — Supabase
 
-Project ref: `wjqpsbpebpntpeinqccl` · URL في `app/src/lib/config.ts`.
+Project ref: `wxrukupcyfypnqnotmxv` (اسمه «claudmenu» · سنغافورة) · URL في
+`app/src/lib/config.ts`.
 **لا يوجد SDK** — كل شيء عبر `fetch` مباشرة إلى PostgREST، ويمر من دالة واحدة:
 `rest<T>()` في `app/src/lib/api.ts`. لا تنادِ `fetch` مباشرة من صفحة.
+
+> ⚠️ **المشروع انتقل (٢٠٢٦/٠٨/٢٢).** كان `wjqpsbpebpntpeinqccl` — ويسكنه
+> منتج آخر (عشرات دوالّ `sahse_*` وجدولها)، وهو سبب النقل: مشروع لمنتج
+> واحد. أي توثيق أو سكربت يذكر المعرّف القديم **قديم**، والسجلّ الكامل
+> للنقل — وما بقي على المالك ضبطه من اللوحة — في
+> `supabase/migrations/20260822_project_move_claudmenu.sql`.
+>
+> ولا يُنقَل شيء إلى القديم بعد اليوم؛ يبقى حيّاً كطريق رجوع لا أكثر.
 
 **الجداول:** `restaurants` `menus` `dishes` `analytics` `subscriptions`
 `revenue_log` `support_tickets` `site_settings` `blog_posts` `loyalty_customers`
@@ -153,7 +162,9 @@ Project ref: `wjqpsbpebpntpeinqccl` · URL في `app/src/lib/config.ts`.
 موجودة لكن لم تُعد الواجهة تستدعيها بعد حذف المستشار الذكي):
 `founder-admin` · `moyasar-webhook` · `notify-support` ·
 `dynamic-task` · `payments` · `paylink-create` · `paylink-webhook` ·
-`paylink-order-create` · `api` (§14) · `webhook-dispatch` (§16).
+`paylink-order-create` · `order-verify` (§13) · `api` (§14) ·
+`webhook-dispatch` (§16) · `billing-admin` · `menu-scan` (قراءة المنيو من
+صورة) · `migrate-images` (أداة نقل انتهت — رمزها مُلغى، فهي عاجزة الآن).
 
 > `founder-admin` **موجود ونشط**. (توثيق قديم في `web/MIGRATION.md` كان يقول
 > غير ذلك — كان خطأً، والمجلد حُذف.)
@@ -166,7 +177,11 @@ Project ref: `wjqpsbpebpntpeinqccl` · URL في `app/src/lib/config.ts`.
 
 **دوال RPC مُضافة:** `increment_dish_views` (زيادة ذرّية؛ سياسة `dishes_update`
 تمنع الزائر المجهول من PATCH مباشر) · `is_menu_published` (بوليان لقفل النشر) ·
-`track_menu_view` (موجودة مسبقاً، غير مستخدَمة من الواجهة) ·
+`track_view` (عدّاد المشاهدة الذرّي بالساعة وبتوقيت الرياض — الواجهة
+تناديه لكل فتح منيو) · `track_menu_view` (غلاف قديم عليه، غير مستخدَم) ·
+`place_order` · `mark_order_paid` · `order_public_status` · `popular_dishes`
+(منظومة الطلبات، §13 — والثلاث الأولى **لـservice_role وحده**) ·
+`trial_days` · `abuse_hit` ·
 `staff_stamp` و `set_staff_pin` (وضع الكاشير، انظر §8) ·
 `founder_email` (بريد المؤسس — مصدر واحد، انظر §10) ·
 `founder_overview` · `founder_merchants` · `founder_funnel` ·
