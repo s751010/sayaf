@@ -17,6 +17,7 @@ import {
   isProduction,
 } from "../_shared/paylink.ts";
 import { safeEqual } from "../_shared/safe-equal.ts";
+import { hasFounderSecret } from "../_shared/founder-secret.ts";
 
 /**
  * ⚠️ **CORS محصور بعد أن كان `*`.**
@@ -97,17 +98,11 @@ async function isFounderSession(req: Request): Promise<boolean> {
   return confirmed && safeEqual(email, expected);
 }
 
-function hasFounderSecret(req: Request): boolean {
-  const expected = Deno.env.get("FOUNDER_SECRET") ?? "";
-  if (expected.length < 24) return false;
-  return safeEqual(req.headers.get("x-founder-secret") ?? "", expected);
-}
-
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors(req) });
   if (req.method !== "POST") return json(req, { error: "POST فقط." }, 405);
 
-  const allowed = hasFounderSecret(req) || (await isFounderSession(req));
+  const allowed = (await hasFounderSecret(req)) || (await isFounderSession(req));
   if (!allowed) return json(req, { error: "غير مصرّح." }, 401);
 
   const siteUrl = (Deno.env.get("SITE_URL") ?? "").replace(/\/+$/, "");

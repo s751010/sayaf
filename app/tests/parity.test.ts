@@ -294,3 +294,60 @@ describe("خطأ دالة الحافة كما يراه التاجر", () => {
     expect(i, "تُقرأ error قبل message").toBeLessThan(j);
   });
 });
+
+/* ══ ٨) بوّابة المؤسّس: نسخة واحدة لا نسختان ══════════════════════════ */
+
+describe("بوّابة سرّ المؤسّس مشتركة", () => {
+  /**
+   * ⚠️ **نفس درس `safe-equal.ts` حرفياً، ووقع ثانيةً.** حين نُقل السرّ من
+   * أسرار الدوال إلى `internal_secrets`، كُتبت الدالّة **نسختين متطابقتين
+   * بيد** في `founder-admin` و`billing-admin` — لأن كلّاً منهما ملفّ مستقلّ
+   * ينشر وحده.
+   *
+   * والنسختان بوّابة **مصادقة**: مَن يشدّ إحداهما لاحقاً (طول أعلى، سجلّ
+   * محاولات، حدّ معدّل) يترك الأخرى مفتوحة بالقدر القديم — ولا شيء يصرخ،
+   * فكلتاهما تمرّ `deno check` وكلتاهما «تعمل». والفرق لا يظهر إلا لمن يفتح
+   * الملفَّين جنباً إلى جنب، وهو ما لا يفعله أحد.
+   *
+   * فالفحص يمنع عودة النسخة اليدوية: البوّابة تصل بالاستيراد أو لا تصل.
+   */
+  const GATED = ["founder-admin", "billing-admin"] as const;
+
+  it.each(GATED)("%s يستورد البوّابة ولا ينسخها", (fn) => {
+    const src = readFileSync(repo(`supabase/functions/${fn}/index.ts`), "utf8");
+    expect(src, "لا يستورد البوّابة المشتركة").toContain(
+      'from "../_shared/founder-secret.ts"'
+    );
+    // النسخة اليدوية تُعرَف بجلب `internal_secrets` داخل الدالّة نفسها.
+    expect(src, "نسخة يدوية عادت: تقرأ internal_secrets بنفسها").not.toContain(
+      "internal_secrets?key=eq.founder_secret"
+    );
+    expect(src, "نسخة يدوية عادت: تعرّف hasFounderSecret").not.toMatch(
+      /function\s+hasFounderSecret/
+    );
+  });
+
+  it("المشترك وحده يقرأ السرّ — ويقارنه بزمن ثابت", () => {
+    const shared = readFileSync(repo("supabase/functions/_shared/founder-secret.ts"), "utf8");
+    expect(shared).toContain("internal_secrets?key=eq.founder_secret");
+    // ⚠️ `!==` تسرّب طول البادئة الصحيحة — نفس سبب وجود `safe-equal.ts`.
+    expect(shared).toContain("safeEqual(sent, expected)");
+    // ومتغيّر البيئة يبقى احتياطاً: من ضبطه سابقاً لا ينكسر عنده شيء.
+    expect(shared).toContain('Deno.env.get("FOUNDER_SECRET")');
+  });
+
+  it("ولا سرّ مكتوب في المستودع", () => {
+    /**
+     * 🚫 السرّ ٦٤ محرفاً hex. أي ثابت بهذا الشكل في مصدر الدالّتين أو في
+     * المشترك يعني أن قيمةً حقيقية سُرّبت إلى git — ولا تُسحب من التاريخ.
+     */
+    const HEX64 = /["'`][0-9a-f]{64}["'`]/;
+    for (const rel of [
+      "supabase/functions/_shared/founder-secret.ts",
+      "supabase/functions/founder-admin/index.ts",
+      "supabase/functions/billing-admin/index.ts",
+    ]) {
+      expect(readFileSync(repo(rel), "utf8"), `سرّ مكتوب في ${rel}`).not.toMatch(HEX64);
+    }
+  });
+});

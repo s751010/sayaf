@@ -11,8 +11,9 @@
  *    أقوى من السرّ المشترك: كلمة مرور قابلة للتغيير، ولا سرّ يُلصق في متغيّر
  *    بيئة يُنسى.
  * 2. **`x-founder-secret`** كما كان — يبقى مساراً احتياطياً كي لا يُفقد الوصول
- *    إن تعطّل شيء في الأول. يعمل فقط إن كان `FOUNDER_SECRET` مضبوطاً (٢٤ محرفاً
- *    فأكثر)؛ وإن لم يكن، لا يُعطَّل المسار الأول.
+ *    إن تعطّل شيء في الأول. والسرّ يُقرأ من `internal_secrets` في القاعدة
+ *    (`_shared/founder-secret.ts`، وفيه لماذا نُقل من أسرار الدوال)، ويشترط
+ *    ٢٤ محرفاً فأكثر؛ وغيابه لا يُعطّل المسار الأول.
  *
  * بريد المؤسس **لا يُكرَّر هنا**: يُقرأ من `public.founder_email()` في القاعدة،
  * وهي نفسها التي تقرأها `is_founder()` في سياسات RLS — مصدر واحد.
@@ -25,6 +26,7 @@
  */
 import { checkFounderQuery } from "../_shared/founder-query.ts";
 import { safeEqual } from "../_shared/safe-equal.ts";
+import { hasFounderSecret } from "../_shared/founder-secret.ts";
 
 /**
  * ⚠️ **CORS محصور بعد أن كان `*`.**
@@ -131,18 +133,11 @@ async function isFounderSession(req: Request): Promise<boolean> {
   return confirmed && safeEqual(email, expected);
 }
 
-/** هل يحمل الطلب سرّ المؤسس الصحيح؟ (المسار الاحتياطي) */
-function hasFounderSecret(req: Request): boolean {
-  const expected = Deno.env.get("FOUNDER_SECRET") ?? "";
-  if (expected.length < 24) return false;
-  return safeEqual(req.headers.get("x-founder-secret") ?? "", expected);
-}
-
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors(req) });
   if (req.method !== "POST") return text(req, JSON.stringify({ error: "POST فقط." }), 405);
 
-  const allowed = hasFounderSecret(req) || await isFounderSession(req);
+  const allowed = (await hasFounderSecret(req)) || (await isFounderSession(req));
   if (!allowed) return text(req, JSON.stringify({ error: "غير مصرّح." }), 401);
 
   let payload: { table?: string; method?: string; query?: string; body?: unknown };
