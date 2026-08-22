@@ -19,6 +19,8 @@
  * رابطه.
  */
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { checkWebhookUrl, classifyFetchError } from "../_shared/url-guard.ts";
+import { safeEqual } from "../_shared/safe-equal.ts";
 
 /** حد المحاولات — بعده يُترك الصف بخطئه الأخير ليراه التاجر في لوحته. */
 const MAX_ATTEMPTS = 6;
@@ -48,14 +50,6 @@ async function sign(secret: string, message: string): Promise<string> {
   return [...new Uint8Array(mac)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-/** مقارنة بزمن ثابت — مقارنة `!==` تسرّب طول البادئة الصحيحة بفروق التوقيت. */
-function sameSecret(a: string, b: string): boolean {
-  if (a.length !== b.length) return false;
-  let diff = 0;
-  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  return diff === 0;
-}
-
 Deno.serve(async (req) => {
   const admin = createClient(
     Deno.env.get("SUPABASE_URL")!,
@@ -80,7 +74,7 @@ Deno.serve(async (req) => {
   // بلا سرّ لا تعمل الدالة إطلاقاً: الأسوأ من عدم التسليم أن يستطيع أي أحد
   // إغراق خوادم التجّار بإعادة تشغيلها.
   if (!expected) return new Response("not configured", { status: 503 });
-  if (!sameSecret(req.headers.get("x-cron-secret") ?? "", expected)) {
+  if (!safeEqual(req.headers.get("x-cron-secret") ?? "", expected)) {
     return new Response("forbidden", { status: 403 });
   }
 
@@ -136,6 +130,14 @@ Deno.serve(async (req) => {
 
       const results = await Promise.all(
         hooks.map(async (h) => {
+          /**
+           * ⚠️ **الفحص عند الإرسال لا عند الحفظ وحده.** قيد القاعدة يمنع أوضح
+           * الأشكال، لكن الصفوف المحفوظة قبله لم تمرّ به — ووجهةٌ حُفظت أمس
+           * تُرسَل اليوم. الحارس هنا هو الأخير قبل `fetch` بمفتاح الخدمة.
+           */
+          const bad = checkWebhookUrl(h.url);
+          if (bad) return `blocked_${bad}`;
+
           try {
             const signature = await sign(h.secret, `${ts}.${body}`);
             const ctrl = new AbortController();
@@ -152,9 +154,14 @@ Deno.serve(async (req) => {
               body,
               signal: ctrl.signal,
             }).finally(() => clearTimeout(timer));
-            return res.ok ? null : `HTTP ${res.status}`;
+            return res.ok ? null : `http_${res.status}`;
           } catch (e) {
-            return e instanceof Error ? e.message.slice(0, 200) : "فشل الاتصال";
+            /**
+             * ⚠️ **صنف لا نصّ.** `last_error` يظهر في لوحة التاجر، ونصّ الخطأ
+             * الخام يميّز «رُفض الاتصال» من «انتهت المهلة» من «فشل TLS» — أي
+             * يجيب عن «هل المنفذ مفتوح؟» طلباً بعد طلب.
+             */
+            return classifyFetchError(e);
           }
         })
       );
