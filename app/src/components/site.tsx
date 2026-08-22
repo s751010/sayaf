@@ -157,7 +157,7 @@ export function Navbar() {
                 to="/login?mode=signup"
                 className="inline-flex min-h-11 items-center rounded-xl bg-gold px-4 py-2 text-sm font-bold text-on-gold hover:bg-gold2"
               >
-                ابدأ مجاناً
+                ابدأ تجربتك
               </Link>
             </>
           )}

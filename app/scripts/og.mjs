@@ -119,9 +119,9 @@ const html = `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-
   <div class="wrap">
     <span class="kicker">🇸🇦 صُنع للمطاعم السعودية</span>
     <h1>منيو مطعمك<br><span class="g">تجربة رقمية فاخرة</span></h1>
-    <p>كود QR واحد يفتح لزبائنك منيو أنيقاً بتسعة عشر طابعاً — بلا تطبيقات وبلا تعقيد.</p>
+    <p>كود QR واحد يفتح لزبائنك منيو أنيقاً بـ21 طابعاً — بلا تطبيقات وبلا تعقيد.</p>
     <div class="feet">
-      <span class="chip">١٩ طابعاً</span>
+      <span class="chip">21 طابعاً</span>
       <span class="chip">بطاقة ولاء</span>
       <span class="chip">إحصائيات مباشرة</span>
       <span class="chip">٣٠٠ DPI للطباعة</span>

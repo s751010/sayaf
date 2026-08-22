@@ -225,7 +225,7 @@ export function ScanDemo() {
                 to="/login"
                 className="rounded-xl bg-gold px-5 py-2.5 text-sm font-black text-on-gold transition-transform hover:scale-[1.02]"
               >
-                جرّبه على منيوك مجاناً
+                جرّبه على منيوك
               </Link>
             </div>
           </div>
