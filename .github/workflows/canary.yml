@@ -1,0 +1,100 @@
+# نبضة المراقبة — هل المنتج حيّ الآن؟
+#
+# ═══ لماذا وُجد هذا الملفّ ═══
+#
+# CI يفحص **ما نكتب**. وهذا يفحص **ما يعمل**: بين الدفعتين قد يسقط المنتج بلا
+# أن تُغيَّر شيفرةٌ واحدة — عمودٌ يُضاف من لوحة Supabase، أو سياسة تُعدَّل، أو
+# نشرٌ يفشل نصفه. وكان الاكتشاف حينها يأتي من تاجر يتّصل، أو لا يأتي أصلاً.
+#
+# ═══ الفحص الثالث هو المهمّ ═══
+#
+# القاعدة (و) في `CLAUDE.md`: صلاحيات `anon` ممنوحة **على مستوى العمود**، فأي
+# عمود جديد بلا `grant select` يجعل الاستعلام العامّ يفشل كلّه — أي **تنطفئ
+# منيوهات كل المطاعم دفعةً واحدة**. وقد حدث فعلاً بعد أعمدة الضريبة والترتيب.
+# استعلامٌ عامّ حقيقي كل نصف ساعة يمسك ذلك قبل الزبون.
+#
+# ⚠️ **ولا سرّ هنا**: مفتاح `anon` عامّ بطبيعته ومنشور في حزمة جافاسكربت التي
+# ينزّلها كل زائر (وتحرسه RLS)، فوضعه في ملفّ سير عمل لا يكشف شيئاً. ولو وُضع
+# في `secrets` لصار الفحص يفشل صامتاً عند كل من يستنسخ المستودع.
+
+name: نبضة
+
+on:
+  schedule:
+    # كل نصف ساعة. GitHub يؤخّر الجدولة عند الضغط، وهذا مقبول: الغرض إنذارٌ
+    # خلال دقائق لا مراقبةٌ لحظية.
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+env:
+  SITE: https://cloudsmenu.netlify.app
+  SUPABASE_URL: https://wxrukupcyfypnqnotmxv.supabase.co
+  SUPABASE_ANON: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind4cnVrdXBjeWZ5cG5xbm90bXh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE0NjA2OTEsImV4cCI6MjA5NzAzNjY5MX0.68unhGtpIxnTg4XsjdYHLiXM7aLuwls5Jo0tSarqR90
+
+jobs:
+  pulse:
+    runs-on: ubuntu-latest
+    steps:
+      - name: الموقع يردّ
+        run: |
+          code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 20 "$SITE/")
+          echo "الرئيسية: $code"
+          [ "$code" = "200" ] || { echo "::error::الرئيسية تردّ $code"; exit 1; }
+
+      - name: الحزمة تُقلع بلا قاعدة
+        # `/demo` بيانات محلّية بلا شبكة — فسقوطها يعني عطلاً في النشر نفسه
+        # لا في القاعدة، وهذا يفصل السببين قبل أن تبدأ البحث.
+        run: |
+          code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 20 "$SITE/demo")
+          echo "المنيو التجريبي: $code"
+          [ "$code" = "200" ] || { echo "::error::/demo تردّ $code"; exit 1; }
+
+      - name: الاستعلام العامّ يعيد صفّاً
+        # نفس الأعمدة التي تطلبها `PUBLIC_RESTAURANT_COLS` — لا `select=*`:
+        # الفحص يجب أن يفشل حين يفشل المنتج، لا قبله ولا بعده.
+        run: |
+          body=$(curl -sS --max-time 20 \
+            -H "apikey: $SUPABASE_ANON" -H "Authorization: Bearer $SUPABASE_ANON" \
+            "$SUPABASE_URL/rest/v1/restaurants?select=id,slug,name&limit=1")
+          echo "الردّ: $body"
+          case "$body" in
+            *'"slug"'*) echo "✔ المنيوهات تُقرأ" ;;
+            *) echo "::error::الاستعلام العامّ لا يعيد مطعماً — تحقّق من منح anon على الأعمدة"; exit 1 ;;
+          esac
+
+      - name: افتح بلاغاً عند السقوط
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // بلاغ واحد يُعاد فتحه ويُعلَّق عليه — لا بلاغ جديد كل نصف ساعة.
+            const title = "🔴 النبضة: المنتج لا يستجيب";
+            const url = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const { data: open } = await github.rest.issues.listForRepo({
+              ...context.repo, state: "open", labels: "canary", per_page: 1,
+            });
+            if (open.length) {
+              await github.rest.issues.createComment({
+                ...context.repo, issue_number: open[0].number,
+                body: `ما زالت النبضة ساقطة — ${url}`,
+              });
+            } else {
+              await github.rest.issues.create({
+                ...context.repo, title, labels: ["canary"],
+                body: [
+                  "سقطت نبضة المراقبة. الترتيب في التشخيص:",
+                  "",
+                  "1. **الرئيسية** ساقطة ⇐ النشر أو Netlify.",
+                  "2. **`/demo`** وحدها ساقطة ⇐ الحزمة نفسها (بناءٌ نصفه نُشر).",
+                  "3. **الاستعلام العامّ** وحده ساقط ⇐ القاعدة: على الأرجح عمودٌ",
+                  "   جديد بلا `grant select (col) … to anon` — وهذا **يُطفئ منيو",
+                  "   كل تاجر دفعةً واحدة** (القاعدة «و» في `CLAUDE.md`).",
+                  "",
+                  `التشغيل: ${url}`,
+                ].join("\n"),
+              });
+            }
