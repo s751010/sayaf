@@ -44,11 +44,11 @@ describe("الطبقة المجانية ليست باقة تُباع", () => {
     expect(shared).not.toMatch(/YEARLY_MONTHS/);
   });
 
-  it("الباقة المدفوعة الوحيدة standard — ٥٩ شهرياً و٥٩٩ سنوياً", () => {
+  it("الباقة المدفوعة الوحيدة standard — ٩٩ شهرياً و٥٩٩ سنوياً", () => {
     // الثابت السادس: رقم الطلب في الويبهوك يُقرأ من المعرّف والسعر.
     expect(PLANS).toHaveLength(1);
     expect(PLANS[0].id).toBe("standard");
-    expect(PLANS[0].monthly).toBe(59);
+    expect(PLANS[0].monthly).toBe(99);
     // السنوي رقم مستقلّ لا مشتقّ — لو عاد اشتقاقه من الشهري لأعطى ٦٤٩،
     // أي مبلغاً غير الذي عُرض على التاجر.
     expect(PLANS[0].yearly).toBe(599);
