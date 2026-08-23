@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
-import { getSiteSetting } from "@/lib/data";
+import { getSiteSetting, reportSilentFailure } from "@/lib/data";
 import { SITE_NAME } from "@/lib/config";
 import { menuUrl } from "@/lib/menuUrl";
 import { cn } from "@/lib/utils";
@@ -179,7 +179,9 @@ type FooterSettings = {
 export function Footer() {
   const [s, setS] = useState<FooterSettings | null>(null);
   useEffect(() => {
-    getSiteSetting<FooterSettings>("footer").then(setS).catch(() => {});
+    getSiteSetting<FooterSettings>("footer")
+      .then(setS)
+      .catch((e) => reportSilentFailure("getSiteSetting:footer", e));
   }, []);
 
   return (

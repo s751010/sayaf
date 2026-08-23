@@ -22,6 +22,8 @@ createRoot(document.getElementById("root")!).render(
 // Service worker: قشرة أوفلاين + كاش الأصول — لا يكاش Supabase ولا بوّابة الدفع أبداً.
 if ("serviceWorker" in navigator && import.meta.env.PROD) {
   window.addEventListener("load", () => {
+    // صامتة عمداً: متصفّح يرفض عامل الخدمة (وضع خاصّ، أو إعداد مؤسّسي) يعمل
+    // بلا كاش ولا ينقص المستخدمَ شيء — فليست عطلاً يُبلَّغ عنه.
     navigator.serviceWorker.register("/sw.js").catch(() => {});
   });
 }

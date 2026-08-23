@@ -41,6 +41,7 @@ import {
   updateDish,
   updateDishPrice,
   type DishPayload,
+  reportSilentFailure,
 } from "@/lib/data";
 import {
   renameCategory,
@@ -476,7 +477,9 @@ export default function Dishes() {
       await reorderDishes(changed);
     } catch {
       toast("تعذّر حفظ الترتيب.", "err");
-      getMyDishes(restaurant.id).then(setDishes).catch(() => {});
+      getMyDishes(restaurant.id)
+        .then(setDishes)
+        .catch((e) => reportSilentFailure("getMyDishes:refresh", e));
     }
   }
 

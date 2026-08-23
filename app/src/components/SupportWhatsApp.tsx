@@ -8,7 +8,7 @@
  * لا رقم ⇒ لا زر: رابط إلى رقم لا يردّ أسوأ من غياب الزر.
  */
 import { useEffect, useState } from "react";
-import { getSiteSetting } from "@/lib/data";
+import { getSiteSetting, reportSilentFailure } from "@/lib/data";
 import { SUPPORT_WHATSAPP } from "@/lib/config";
 import { cn, whatsappUrl } from "@/lib/utils";
 import { Icon } from "@/lib/icons";
@@ -23,7 +23,9 @@ export function useSupportWhatsApp(): string | null {
         const raw = typeof v === "string" ? v : ((v as { number?: string } | null)?.number ?? "");
         if (raw.trim()) setNumber(raw.trim());
       })
-      .catch(() => {});
+      // فشلٌ هنا يعني **اختفاء زرّ الدعم** بلا أن يعرف أحد: التاجر يظنّ أن
+      // لا دعم، ونحن نظنّ أن لا أحد راسلنا.
+      .catch((e) => reportSilentFailure("getSiteSetting:support_whatsapp", e));
   }, []);
   return number;
 }

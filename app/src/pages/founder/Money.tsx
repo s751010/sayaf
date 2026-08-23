@@ -38,6 +38,7 @@ import { getSiteSettings, type SiteSetting } from "@/lib/founder";
 import { formatDate, formatPrice } from "@/lib/utils";
 import { Icon } from "@/lib/icons";
 import { BillingConsole } from "./BillingConsole";
+import { reportSilentFailure } from "@/lib/data";
 
 export default function Money() {
   const toast = useToast();
@@ -149,7 +150,11 @@ export default function Money() {
           كذباً — لا معنى لتحسين التحويل إن كان الدفع لا يصل أصلاً. */}
       <BillingConsole
         settings={settings}
-        onSettingsChange={() => void getSiteSettings().then(setSettings).catch(() => {})}
+        onSettingsChange={() =>
+          void getSiteSettings()
+            .then(setSettings)
+            .catch((e) => reportSilentFailure("getSiteSettings:money", e))
+        }
       />
 
       <div className="my-10 border-t border-line" />
