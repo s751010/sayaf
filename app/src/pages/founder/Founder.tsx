@@ -29,7 +29,7 @@ import {
   Skeleton,
   ThemeToggle,
 } from "@/components/ui";
-import { founderAdmin } from "@/lib/api";
+import { ApiError, founderAdmin } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { K, getItem, removeItem, setItem } from "@/lib/storage";
 import { cn } from "@/lib/utils";
@@ -50,6 +50,18 @@ const NAV = [
   { to: "/founder/health", label: "الصحة", icon: "pulse" },
 ];
 
+/**
+ * رسالة «لم نصل الخدمة» — نصّ واحد لثلاثة مواضع.
+ *
+ * تذكر **ما يفعله المالك** لا ما فشل عندنا: أوّل سبب واقعيّ هو أن نطاق
+ * الموقع غير مُدرَج في `ALLOWED_ORIGINS` لدالّة `founder-admin` (رُصد فعلاً
+ * على نطاق Netlify غير الرسمي)، ولا يظهر في الشيفرة خطأٌ إطلاقاً — المتصفّح
+ * يحجب الردّ قبلها.
+ */
+const UNREACHABLE =
+  "تعذّر الوصول إلى خدمة المؤسّس. تأكّد أن نطاق هذا الموقع مُدرَج في " +
+  "ALLOWED_ORIGINS لدالّة founder-admin، ثم أعد المحاولة.";
+
 export default function Founder() {
   const { user, loading: authLoading, login, logout } = useAuth();
   const [secret, setSecret] = useState(() => getItem(K.FSECRET, true) ?? "");
@@ -58,6 +70,20 @@ export default function Founder() {
   const [busy, setBusy] = useState(false);
   /** فحص الجلسة الحالية جارٍ — يمنع وميض شاشة الدخول أمام المؤسس المسجَّل. */
   const [probing, setProbing] = useState(true);
+  /**
+   * ⚠️ **هل وصلنا الخدمة أصلاً؟** — تمييزٌ كلّف المالك جلسةً كاملة.
+   *
+   * كل فشل هنا كان يُقرأ «هذا الحساب ليس حساب المؤسس»: الشبكة المقطوعة،
+   * وردّ ٥٠٠، و**أصلٌ محجوب بـCORS** — ثلاثتها برسالة واحدة تتّهم الحساب.
+   * فوقف المالك أمام لوحته مسجَّلاً ببريد المؤسّس نفسه، والصفحة تقول له إن
+   * حسابه ليس حسابه، فذهب يجرّب كلمات المرور — والعطل في مكان آخر تماماً:
+   * نطاق الموقع غير مُدرَج في `ALLOWED_ORIGINS` لدالّة `founder-admin`،
+   * فالمتصفّح يحجب الردّ قبل أن تصل الشيفرة إليه.
+   *
+   * والتمييز ممكن بلا تخمين: `founderAdmin` ترمي `ApiError` بحالة HTTP حين
+   * يردّ الخادم فعلاً، و`fetch` نفسها ترمي بلا حالة حين لا يصل الردّ.
+   */
+  const [reachable, setReachable] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showSecret, setShowSecret] = useState(false);
@@ -83,10 +109,11 @@ export default function Founder() {
     }
     probe()
       .then(() => alive && setUnlocked(true))
-      // ⚠️ **صامتة عمداً**: الفشل هنا معناه الغالب «سرٌّ خاطئ» — وهو مسار
-      // طبيعي لا عطل، والبوّابة تبقى مغلقة وهو الجواب الصحيح. وتبليغ كل
-      // محاولة فاشلة يجعل أي تخمينٍ على البوّابة يملأ سجلّ الأعطال.
-      .catch(() => {})
+      // ⚠️ لا تُبلَّغ (تخمينٌ على البوّابة يملأ سجلّ الأعطال)، لكنها **تُصنَّف**:
+      // ردٌّ من الخادم = جوابٌ عن الهوية · لا ردّ = عطلٌ في الوصول.
+      .catch((err: unknown) => {
+        if (alive && !(err instanceof ApiError)) setReachable(false);
+      })
       .finally(() => alive && setProbing(false));
     return () => {
       alive = false;
@@ -102,8 +129,13 @@ export default function Founder() {
       await login(email.trim(), password);
       await probe();
       setUnlocked(true);
-    } catch {
-      setError("البريد أو كلمة المرور غير صحيحة، أو هذا الحساب ليس حساب المؤسس.");
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setError("البريد أو كلمة المرور غير صحيحة، أو هذا الحساب ليس حساب المؤسس.");
+      } else {
+        setReachable(false);
+        setError(UNREACHABLE);
+      }
     } finally {
       setBusy(false);
     }
@@ -118,9 +150,14 @@ export default function Founder() {
     try {
       await probe();
       setUnlocked(true);
-    } catch {
+    } catch (err) {
       removeItem(K.FSECRET, true);
-      setError("السر غير صحيح أو الخدمة غير متاحة.");
+      if (err instanceof ApiError) {
+        setError("السرّ غير صحيح.");
+      } else {
+        setReachable(false);
+        setError(UNREACHABLE);
+      }
     } finally {
       setBusy(false);
     }
@@ -149,9 +186,11 @@ export default function Founder() {
             <span className="text-4xl">🛡️</span>
             <h1 className="mt-3 font-display text-xl font-black text-ink">لوحة المؤسس</h1>
             <p className="mt-1 text-sm text-dim">
-              {user
-                ? "هذا الحساب ليس حساب المؤسس — سجّل الدخول ببريد المؤسس."
-                : "سجّل الدخول ببريد المؤسس."}
+              {!reachable
+                ? UNREACHABLE
+                : user
+                  ? "هذا الحساب ليس حساب المؤسس — سجّل الدخول ببريد المؤسس."
+                  : "سجّل الدخول ببريد المؤسس."}
             </p>
 
             <form onSubmit={signIn} className="mt-5 flex flex-col gap-3 text-right">
