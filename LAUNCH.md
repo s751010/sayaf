@@ -134,12 +134,26 @@ select count(*) from public.menus       where cover_image like 'data:%';
 
 **كيف**:
 ```sql
+-- GA4 (مجاني، والأشهر):
 insert into public.site_settings (key, value)
-values ('analytics', '{"provider":"ga4","id":"G-XXXXXXX"}'::jsonb)
+values ('analytics', '{"provider":"ga4","id":"G-XXXXXXXXXX"}'::jsonb)
 on conflict (key) do update set value = excluded.value;
+
+-- أو Plausible (مدفوع · بلا كوكيز · المعرّف هو نطاقك):
+--   values ('analytics', '{"provider":"plausible","id":"cloudmenu.sa"}'::jsonb)
 ```
-⚠️ **وأضِف نطاق المزوّد إلى `app/public/_headers`** (المصدر — لا
-`deploy/_headers` فهو ناتج بناء)، وإلا حجبته CSP بلا خطأ ظاهر للمستخدم.
+
+> ✅ **والمزوّدان مدعومان في الشيفرة فعلاً** (٢٤ أغسطس). وقبل ذلك كانت هذه
+> التعليمة **تكذب**: `installProvider` تحمّل سكربت Plausible مهما كان
+> `provider`، فيمرّ معرّف `G-…` في `data-domain` — سكربتٌ يُحمَّل، ولا خطأ
+> يظهر، ولا حدثٌ يصل. ويحرس ذلك الآن `analytics-provider.test.ts`.
+>
+> و`provider` **اختياري**: معرّفٌ يبدأ بـ`G-` يُقرأ GA4 تلقائياً.
+
+⚠️ **ونطاقا GA4 مسموحان في CSP أصلاً** (`googletagmanager.com` و
+`google-analytics.com` في `app/public/_headers`) — فلا شيء يُضاف هناك لـGA4.
+أمّا مزوّد آخر فيحتاج نطاقه في `script-src` و`connect-src`، وإلا حجبته CSP
+بلا خطأ ظاهر للمستخدم.
 
 **كيف تتأكّد**: افتح الموقع وراقب تبويب الشبكة — طلب واحد إلى نطاق المزوّد
 وصفر خرق CSP في الـconsole.

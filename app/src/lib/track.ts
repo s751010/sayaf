@@ -36,18 +36,39 @@ export type TrackEvent =
   | "subscription_paid";
 
 type AnalyticsConfig = {
-  /** معرّف المزوّد. فارغ أو غائب ⇒ لا يُرسل شيء. */
+  /**
+   * معرّف المزوّد. فارغ أو غائب ⇒ لا يُرسل شيء.
+   * لـGA4: `G-XXXXXXXXXX` · ولـPlausible: نطاق الموقع (`cloudmenu.sa`).
+   */
   id?: string;
-  /** `plausible` مبدئياً؛ يتوسّع حين يُختار غيره. */
-  provider?: string;
-  /** نطاق السكربت لمن يستضيف بنفسه. */
+  /**
+   * ⚠️ **كان مُعلَناً وغير مقروء** — وهذه ثغرة وثائق لا تحسين.
+   *
+   * `LAUNCH.md` يطلب من المالك إدراج `{"provider":"ga4","id":"G-…"}`، وكان
+   * `installProvider` يحمّل **سكربت Plausible دائماً** ويمرّر المعرّف في
+   * `data-domain`. أي أن اتّباع التعليمة حرفياً كان يُركّب مزوّداً خاطئاً
+   * بمعرّفٍ لا يفهمه — بلا خطأ في الطرفية ولا حدث يصل. والمالك يرى سكربتاً
+   * يُحمَّل فيظنّ القياس يعمل.
+   *
+   * القيمتان المدعومتان الآن: `ga4` و`plausible` (الافتراض).
+   */
+  provider?: "ga4" | "plausible" | string;
+  /** نطاق السكربت لمن يستضيف Plausible بنفسه. */
   host?: string;
 };
 
 declare global {
   interface Window {
     plausible?: (event: string, opts?: { props?: Record<string, string> }) => void;
+    dataLayer?: unknown[];
+    gtag?: (...args: unknown[]) => void;
   }
+}
+
+/** GA4 يميّز نفسه بمعرّفه (`G-…`) — فلا يُشترط على المالك أن يكتب المزوّد. */
+function providerOf(cfg: AnalyticsConfig): "ga4" | "plausible" {
+  if (cfg.provider === "ga4" || cfg.provider === "plausible") return cfg.provider;
+  return /^(G|AW|GT)-/i.test(cfg.id ?? "") ? "ga4" : "plausible";
 }
 
 /** الطابور: أحداث وقعت قبل أن تُحسم الإعدادات — لا تضيع ولا تُرسَل مرّتين. */
@@ -72,11 +93,32 @@ function installProvider(cfg: AnalyticsConfig): void {
   if (!cfg.id) return;
   if (document.querySelector("script[data-cm-analytics]")) return;
 
-  // Plausible مبدئياً: بلا كوكيز، وخفيف، ولا يجمع هويات — يناسب منتجاً
-  // يَعِد الزبون في سياسته بألّا نتعقّبه.
   const el = document.createElement("script");
-  el.defer = true;
   el.setAttribute("data-cm-analytics", "");
+
+  if (providerOf(cfg) === "ga4") {
+    /**
+     * GA4 — ونطاقاه مسموحان في CSP أصلاً (`_headers`)، فلا شيء يُضاف هناك.
+     *
+     * ⚠️ `gtag` تعتمد على `arguments` حرفياً، فدالّة سهمٍ بمعاملات مفرودة
+     * تكسر تنسيقها — نفس الفخّ الموثَّق في `lib/pixels.ts`.
+     */
+    window.dataLayer = window.dataLayer ?? [];
+    window.gtag = function gtag() {
+      // eslint-disable-next-line prefer-rest-params
+      window.dataLayer!.push(arguments);
+    } as typeof window.gtag;
+    window.gtag!("js", new Date());
+    window.gtag!("config", cfg.id);
+    el.async = true;
+    el.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(cfg.id)}`;
+    document.head.appendChild(el);
+    return;
+  }
+
+  // Plausible: بلا كوكيز، وخفيف، ولا يجمع هويات — يناسب منتجاً يَعِد الزبون
+  // في سياسته بألّا نتعقّبه.
+  el.defer = true;
   el.setAttribute("data-domain", cfg.id);
   el.src = `${(cfg.host ?? "https://plausible.io").replace(/\/+$/, "")}/js/script.js`;
   document.head.appendChild(el);
@@ -104,7 +146,10 @@ function ensureConfig(): Promise<void> {
 }
 
 function send(event: TrackEvent): void {
-  window.plausible?.(event);
+  // كلاهما يقبل اسم الحدث نصّاً؛ والاسم واحد في المزوّدين فيبقى القمع مقروءاً
+  // لو بُدّل المزوّد لاحقاً.
+  if (config && providerOf(config) === "ga4") window.gtag?.("event", event);
+  else window.plausible?.(event);
 }
 
 /**
