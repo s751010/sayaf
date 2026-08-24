@@ -212,7 +212,7 @@ Project ref: `wxrukupcyfypnqnotmxv` (اسمه «claudmenu» · سنغافورة)
 تمنع الزائر المجهول من PATCH مباشر) · `is_menu_published` (بوليان لقفل النشر) ·
 `track_view` (عدّاد المشاهدة الذرّي بالساعة وبتوقيت الرياض — الواجهة
 تناديه لكل فتح منيو) · `track_menu_view` (غلاف قديم عليه، غير مستخدَم) ·
-`place_order` · `mark_order_paid` · `order_public_status` · `popular_dishes`
+`place_order` · `mark_order_paid` (**وتختم بطاقة الولاء على انتقال الطلب إلى مدفوع** — متكافئة، والختم داخل كتلة استثناء فلا يُسقط دفعة) · `order_public_status` · `popular_dishes`
 (منظومة الطلبات، §13 — والثلاث الأولى **لـservice_role وحده**) ·
 `trial_days` · `abuse_hit` ·
 `staff_stamp` و `set_staff_pin` (وضع الكاشير، انظر §8) ·
