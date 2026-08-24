@@ -51,6 +51,7 @@ import {
 import { menuUrl, slugError, urlAffixes } from "@/lib/menuUrl";
 import { getRestaurantById, logAudit } from "@/lib/founder";
 import { STARTER_TYPES } from "@/lib/starterMenus";
+import { buildDashboardNav } from "@/lib/nav";
 import { cn } from "@/lib/utils";
 import type { Menu, Restaurant } from "@/lib/types";
 import type { SessionUser } from "@/lib/session";
@@ -278,46 +279,6 @@ function Onboarding({ user, onDone }: { user: SessionUser; onDone: (r: Restauran
 }
 
 /* ── الشريط الجانبي ───────────────────────────────────────────────── */
-/**
- * ستّة عناصر — كانت ثمانية (تسعة للمؤسس).
- *
- * ⚠️ الثمانية لم تكن تتّسع لشاشة جوال: قياس فعلي على ٣٩٠px أعطى **٦٢٧ بكسل**
- * من المحتوى، فكان «الاشتراك» و«الإعدادات» خارج الشاشة بلا دليل عليهما. وقد
- * عُولج ذلك بتدرّج على الحافة يقول «خلفي المزيد» — وهي ضمادة تصف العطل ولا
- * تصلحه. الدمج هنا يُنهيه:
- *
- * - **القوائم** ⇐ تبويب داخل «منيوي»: أغلب التجّار عندهم قائمة واحدة، فعنصرٌ
- *   كامل لها يكلّف الجميع مقابل من يملك أكثر من واحدة.
- * - **الولاء** ⇐ تبويب داخل «التحليلات»: كلاهما «كيف يتصرّف زبوني».
- * - **الاشتراك** ⇐ شارة الباقة في القاع صارت رابطاً — وهي **ظاهرة دائماً**
- *   بلا تمرير، فصار أوضح مما كان.
- * - **التصميم** ⇐ عنصر جديد أخرج مُنتقي الطوابع من دفنه أسفل «القوائم».
- *
- * وكل المسارات القديمة تبقى تعمل (انظر `Routes` أدناه) — التجّار يحفظون روابط.
- */
-const NAV = [
-  { to: "/dashboard", label: "الرئيسية", icon: "home", end: true },
-  { to: "/dashboard/dishes", label: "منيوي", icon: "plate" },
-  { to: "/dashboard/design", label: "التصميم", icon: "palette" },
-  // بطاقة الكاشير وأكواد QR فعلٌ واحد عند التاجر («أجهّز ما يُطبع»).
-  { to: "/dashboard/cards", label: "الطباعة", icon: "printer" },
-  { to: "/dashboard/analytics", label: "التحليلات", icon: "bars" },
-  { to: "/dashboard/settings", label: "الإعدادات", icon: "sliders" },
-];
-
-/**
- * الشريط لمن يستقبل طلبات أونلاين.
- *
- * ⚠️ **ستة عناصر لا سبعة.** الحشوة والحجم أدناه مقيسان على ٣٩٠px، وإضافة
- * عنصر سابع تُعيد التمرير الأفقي الذي عولج سابقاً. فحين تُفتح الطلبات تحلّ
- * محلّ «التحليلات» في الشريط — والتحليلات شاشة تُقرأ بهدوء آخر اليوم، أما
- * الطلبات فتُلمح بين زبونين. وتبقى التحليلات موجودة على مسارها ومن الرئيسية،
- * فلا يفقدها أحد.
- */
-const ORDERS_NAV = { to: "/dashboard/orders", label: "الطلبات", icon: "ticket", end: false };
-
-/** عنصر لا يراه إلا صاحب المنصة — يُلحق بـ`NAV` عند التحقّق فقط. */
-const FOUNDER_NAV = { to: "/founder", label: "لوحة المؤسس", icon: "shield", end: false };
 
 function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode }) {
   const { logout } = useAuth();
@@ -335,12 +296,12 @@ function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode
     };
   }, []);
   // الطلبات تظهر لمن ربط بوّابة دفع فقط: مطعمٌ بلا بوّابة لا سلّة له أصلاً،
-  // وشاشة طلبات فارغة أبداً وعدٌ لا يُوفى.
-  const ordersOn = ctx.restaurant?.online_payment_enabled === true;
-  const base = ordersOn
-    ? NAV.map((n) => (n.to === "/dashboard/analytics" ? ORDERS_NAV : n))
-    : NAV;
-  const nav = founder === true ? [...base, FOUNDER_NAV] : base;
+  // وشاشة طلبات فارغة أبداً وعدٌ لا يُوفى. والتركيب في `lib/nav.ts` ويحرسه فحص:
+  // كان الاستبدال يُخفي التحليلات **والولاء معها** عند ربط بوّابة.
+  const nav = buildDashboardNav({
+    ordersOn: ctx.restaurant?.online_payment_enabled === true,
+    founder,
+  });
 
   const links = (compact: boolean) =>
     nav.map((n) => (
@@ -445,9 +406,10 @@ function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode
               </button>
             </div>
           </div>
-          {/* ستّة عناصر تسع ٣٩٠px بلا تمرير (مقيسة — انظر `links`)، لكن عنصر
-              «لوحة المؤسّس» يجعلها سبعة فتفيض. فالتدرّج يقول «خلفي المزيد»
-              **عند وجوده فعلاً**، وعلى حافة النهاية حيث يختبئ المحتوى. */}
+          {/* ستّة عناصر تسع ٣٩٠px بلا تمرير (مقيسة — انظر `links`)، وما زاد
+              عليها («الطلبات» لمن ربط بوّابة · «لوحة المؤسّس» بعد التحقّق)
+              يفيض فيمرّر. والتدرّج يقول «خلفي المزيد» **عند وجوده فعلاً**،
+              وعلى حافة النهاية حيث يختبئ المحتوى. */}
           <ScrollRow className="gap-1 px-3 pb-2" itemCount={nav.length}>
             {links(true)}
           </ScrollRow>
