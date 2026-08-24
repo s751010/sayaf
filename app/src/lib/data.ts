@@ -317,6 +317,34 @@ export function reportClientError(
   }
 }
 
+/**
+ * يبلّغ عن **فشلٍ صامت** — طلبٌ سقط ولم يُخبَر به أحد.
+ *
+ * ═══ لماذا وُجدت ═══
+ *
+ * `startTrial` كانت تفشل لكل تاجر، و`Dashboard.tsx` يبتلع الفشل بـ
+ * `.catch(() => {})`. النتيجة: **١٩ مطعماً بلا صفّ اشتراك**، وكانت منيوهاتهم
+ * ستنطفئ جميعاً لحظة تشغيل قفل النشر. لم يظهر شيء في شاشةٍ ولا في سجلّ —
+ * لأن `catch` الفارغة ليست معالجةً للخطأ، هي **حذفٌ له**.
+ *
+ * فالقاعدة الآن: الفشل يبقى صامتاً **للمستخدم** حيث يجب، ولا يبقى صامتاً
+ * **لنا** أبداً. وهذه الدالّة هي الفرق بين الاثنين.
+ *
+ * ═══ متى تُستعمَل ومتى لا ═══
+ *
+ * تُستعمَل حيث كان الفشل يختفي: قراءة اشتراك، حفظ لون، تحديث قائمة.
+ * ولا تُستعمَل في **قياسٍ أفضلُ جهد** بطبيعته (`track_view` وأخواتها): تلك
+ * تسقط عند كل زائر بلا شبكة، فتبليغها يملأ الجدول ضجيجاً يُخفي العطل الحقيقي.
+ */
+export function reportSilentFailure(where: string, error: unknown): void {
+  const message = error instanceof Error ? error.message : String(error ?? "");
+  reportClientError(
+    Object.assign(new Error(`[صامت] ${where}: ${message}`.slice(0, 500)), {
+      stack: error instanceof Error ? error.stack : undefined,
+    })
+  );
+}
+
 export async function getSiteSetting<T>(key: string): Promise<T | null> {
   try {
     const rows = await rest<{ value: T }[]>(
@@ -387,6 +415,10 @@ export function trackMenuView(
   _ownerId: string | null,
   meta: { table?: string | null; lang?: string } = {}
 ): void {
+  // ⚠️ **صامتة عمداً — ولا تُبلَّغ** (وكذلك أخواتها في `trackDishView`).
+  // هذه تسقط عند كل زائرٍ بلا شبكة أو بمانع إعلانات، وهي حالةٌ طبيعية بالآلاف.
+  // تبليغها يغرق `client_errors` فيُخفي العطل الحقيقي — وحارسٌ لا يُقرأ لا
+  // يحرس. والقاعدة: يُبلَّغ ما كان فشله **خبراً**، لا ما كان فشله متوقّعاً.
   rest("rpc/track_view", {
     method: "POST",
     anonymous: true,

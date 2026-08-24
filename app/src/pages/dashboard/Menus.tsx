@@ -23,6 +23,7 @@ import {
   deleteMenu,
   updateMenu,
   updateBrandColor,
+  reportSilentFailure,
 } from "@/lib/data";
 import {
   DESIGN_THEMES,
@@ -199,13 +200,25 @@ export default function Menus() {
     try {
       await applyThemeToAllMenus(restaurant.id, id);
       const hex = splitThemeId(id).hex;
+      // ⚠️ **نجاحٌ جزئي كان يُعرض نجاحاً كاملاً.** الطابع يُطبَّق على القوائم،
+      // ثم يُحفظ اللون في `cover_color` (يستخدمه تدرّج ترويسة المنيو) — وكان
+      // فشل الثانية مبتلَعاً بـ`catch` فارغة: يقرأ التاجر «طُبّق ✓» ويفتح
+      // منيوه فيجد ترويسةً بلون آخر، بلا سببٍ ظاهر ولا أثرٍ عندنا.
+      let colorSaved = true;
       if (hex) {
-        // اللون يُحفظ أيضاً في cover_color كي يستخدمه تدرّج ترويسة المنيو.
-        await updateBrandColor(restaurant.id, hex).catch(() => {});
+        await updateBrandColor(restaurant.id, hex).catch((e) => {
+          colorSaved = false;
+          reportSilentFailure("updateBrandColor", e);
+        });
         setRestaurant({ ...restaurant, cover_color: hex });
       }
       await refreshMenus();
-      toast("طُبّق الطابع على منيوك ✓");
+      toast(
+        colorSaved
+          ? "طُبّق الطابع على منيوك ✓"
+          : "طُبّق الطابع — وتعذّر حفظ لون العلامة، حاول مرّة أخرى.",
+        colorSaved ? undefined : "err"
+      );
     } catch {
       toast("تعذّر تطبيق الطابع.", "err");
     }

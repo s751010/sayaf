@@ -11,7 +11,8 @@
     "og": "node scripts/og.mjs",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@fontsource-variable/cairo": "^5.2.5",
@@ -28,6 +29,7 @@
     "react-router-dom": "^6.30.6"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@tailwindcss/vite": "^4.1.10",
     "@types/qrcode": "^1.5.5",
     "@types/react": "^18.3.23",

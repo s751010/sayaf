@@ -21,7 +21,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Badge, Button, Card, ErrorNote, Field, Input, useToast } from "@/components/ui";
-import { getActiveSubscription, getMyPayments, type PaymentRow } from "@/lib/data";
+import { getActiveSubscription, getMyPayments, type PaymentRow, reportSilentFailure } from "@/lib/data";
 import { startSubscription } from "@/lib/billing";
 import { ApiError } from "@/lib/api";
 import {
@@ -87,8 +87,15 @@ export default function Billing() {
     if (awaiting <= 0) return;
     timer.current = window.setTimeout(() => {
       refreshEnt();
-      getActiveSubscription(user.id).then(setSub).catch(() => {});
-      getMyPayments(user.id).then(setPayments).catch(() => {});
+      // ⚠️ **هنا وقع العطل الذي كلّف ١٩ صفّ اشتراك.** فشلُ قراءة الاشتراك
+      // مبتلَعاً يعني تاجراً يرى «بلا اشتراك» وهو دافع — أو العكس. ولا شيء
+      // يظهر لنا. فالقراءة تُبلَّغ، والشاشة تبقى كما هي (لا نُفزع بخطأ فنّي).
+      getActiveSubscription(user.id)
+        .then(setSub)
+        .catch((e) => reportSilentFailure("getActiveSubscription", e));
+      getMyPayments(user.id)
+        .then(setPayments)
+        .catch((e) => reportSilentFailure("getMyPayments", e));
       setAwaiting((n) => (n ?? 1) - 1);
     }, POLL_MS);
     return () => {

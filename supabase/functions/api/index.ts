@@ -121,6 +121,51 @@ Deno.serve(async (req) => {
   if (!key) return err("مفتاح API غير صالح.", 401);
   if (key.revoked_at) return err("هذا المفتاح مُبطَل.", 401);
 
+  /**
+   * ═══ الميزة المدفوعة تُفحَص هنا — لا في المتصفّح ═══
+   *
+   * `api: false` في `FREE_LIMITS`، أي أن الواجهة البرمجية **مقابل اشتراك**.
+   * لكن المنع كان في اللوحة وحدها (`ApiKeysCard` تُخفى بلا صلاحية)، وهذه
+   * الدالّة لا تعرف عن الاشتراك شيئاً — فمفتاحٌ أُصدر أثناء التجربة يبقى
+   * يعمل **بعد انتهائها إلى الأبد**. أي ميزة مدفوعة تُستهلك بلا دفع.
+   *
+   * والفحص من جهة الخادم لأنه الجهة الوحيدة التي لا يستطيع المستهلك تجاوزها:
+   * لا شاشة بيننا وبينه أصلاً.
+   *
+   * ⚠️ ٤٠٢ لا ٤٠١ ولا ٤٠٣: المفتاح **صحيح** وصاحبه معروف، والناقص دفعٌ لا
+   * هوية ولا إذن. ومستهلكٌ آليّ يفرّق بين الثلاثة ليقرّر: يعيد المصادقة، أم
+   * يتوقّف، أم يخبر صاحبه أن يجدّد.
+   */
+  const { data: owner } = await admin
+    .from("restaurants")
+    .select("user_id")
+    .eq("id", key.restaurant_id)
+    .single();
+
+  /**
+   * ⚠️ **نفس شرط `getActiveSubscription`** في `app/src/lib/data.ts` حرفاً
+   * بحرف: `active = true` **و**`end_date` في المستقبل (أو فارغ = مدى الحياة).
+   * شرطٌ ثالثٌ مختلف هنا يعني تاجراً يرى «مشترك» في لوحته و٤٠٢ في واجهته.
+   *
+   * ولا عمود `status` في الجدول — بل `active` منطقيّة؛ كُتب `status` أوّلاً
+   * ظنّاً، وكان سيجعل الاستعلام يفشل فيُمنع **كل** مستهلك حتى المشترك.
+   */
+  const nowIso = new Date().toISOString();
+  const { data: sub } = await admin
+    .from("subscriptions")
+    .select("id, end_date")
+    .eq("user_id", owner?.user_id ?? "")
+    .eq("active", true)
+    .or(`end_date.is.null,end_date.gt.${nowIso}`)
+    .limit(1);
+
+  if (!sub?.length) {
+    return err(
+      "الواجهة البرمجية تحتاج اشتراكاً نشطاً. جدّد اشتراكك من لوحة التاجر ثم أعد المحاولة.",
+      402
+    );
+  }
+
   const { data: allowed } = await admin.rpc("api_rate_hit", {
     p_key: key.id,
     p_limit: RATE_LIMIT,

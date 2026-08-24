@@ -42,3 +42,7 @@ graphify-out/
 
 # حالة تركيب ECC — مسارات مطلقة خاصة بالجهاز، تُولَّد عند التركيب.
 .claude/ecc/install-state.json
+
+# نواتج فحص المتصفّح (Playwright) — تُولَّد عند كل تشغيل
+app/test-results/
+app/playwright-report/

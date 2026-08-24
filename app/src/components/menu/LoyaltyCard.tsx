@@ -6,7 +6,7 @@
  */
 import { useEffect, useState } from "react";
 import { mFont } from "@/components/menu/chrome";
-import { getLoyaltyCustomer, joinLoyalty } from "@/lib/data";
+import { getLoyaltyCustomer, joinLoyalty, reportSilentFailure } from "@/lib/data";
 import { getJSON, setJSON } from "@/lib/storage";
 import type { LoyaltyCustomer, Restaurant } from "@/lib/types";
 
@@ -22,7 +22,11 @@ export function LoyaltyCard({ restaurant, en }: { restaurant: Restaurant; en: bo
   const [msg, setMsg] = useState("");
 
   useEffect(() => {
-    if (card) getLoyaltyCustomer(card.id).then(setCustomer).catch(() => {});
+    // بطاقة زبونٍ لا تُقرأ = أختامه تختفي من أمامه. صامتٌ له، لا لنا.
+    if (card)
+      getLoyaltyCustomer(card.id)
+        .then(setCustomer)
+        .catch((e) => reportSilentFailure("getLoyaltyCustomer", e));
   }, [card]);
 
   // الهدف يأتي من قاعدة البيانات وقد يكون سالباً أو كسرياً في صفوف قديمة/مستوردة،
