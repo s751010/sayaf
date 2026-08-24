@@ -939,6 +939,22 @@ export type OrderStatus =
   | "cancelled";
 
 /** الطلب كما يراه الزبون — بلا جوال ولا اسم ولا مرجع دفع. */
+/**
+ * تقدّم بطاقة ولاء صاحب الطلب — يأتي من `order_public_status` نفسها.
+ *
+ * ⚠️ **لا يُطلب ببطاقة يمرّرها العميل**: الدالّة تطابق جوال الطلب ببطاقة نفس
+ * المطعم (`phone_key`)، فمعرّف الطلب هو الصلاحية كما في §13. ولا يُعاد جوال
+ * ولا اسم — تقدّمٌ ورمزٌ يقرأه الكاشير من الزبون نفسه.
+ *
+ * و`null` حين لا ولاء في المطعم، أو لا بطاقة لهذا الجوال بعد.
+ */
+export type OrderLoyalty = {
+  stamps: number;
+  goal: number;
+  reward: string | null;
+  card_code: string | null;
+};
+
 export type PublicOrder = {
   code: number;
   status: OrderStatus;
@@ -953,6 +969,7 @@ export type PublicOrder = {
   address: string | null;
   maps: string | null;
   items: OrderItemLine[];
+  loyalty: OrderLoyalty | null;
 };
 
 /**

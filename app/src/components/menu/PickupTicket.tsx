@@ -9,6 +9,7 @@ import { useEffect, useState, type CSSProperties } from "react";
 import { mFont } from "@/components/menu/chrome";
 import { verifyOrder, type PublicOrder } from "@/lib/data";
 import { formatMoney } from "@/lib/utils";
+import { LoyaltyProgress } from "@/components/menu/LoyaltyProgress";
 
 /** الحالات كما يقرؤها الزبون — لا أسماء تقنية. */
 const STATUS_VIEW: Record<
@@ -216,6 +217,10 @@ export function PickupTicket({
             </li>
           ))}
         </ul>
+
+        {/* الولاء **قبل الإجمالي**: بعد المبلغ ينتهي انتباه القارئ، وهذه
+            الجملة هي التي تُرجعه غداً. */}
+        {order.loyalty && <LoyaltyProgress loyalty={order.loyalty} en={en} />}
 
         <div className="mt-3 flex items-baseline justify-between border-t pt-3" style={{ borderColor: "var(--m-border)" }}>
           <span className="text-sm font-black" style={{ color: "var(--m-text)", ...mFont }}>
