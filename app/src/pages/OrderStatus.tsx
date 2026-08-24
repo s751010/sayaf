@@ -18,6 +18,7 @@ import { Link, useParams } from "react-router-dom";
 import { getOrderStatus, type OrderStatus as Status, type PublicOrder } from "@/lib/data";
 import { formatMoney, httpUrl } from "@/lib/utils";
 import { Icon } from "@/lib/icons";
+import { LoyaltyProgress } from "@/components/menu/LoyaltyProgress";
 
 /** المراحل كما يعيشها الزبون. الإلغاء ليس مرحلة — لذلك خارج المسار. */
 const STEPS: { key: Status; label: string; icon: string }[] = [
@@ -195,6 +196,10 @@ export default function OrderStatusPage() {
             </li>
           ))}
         </ul>
+        {/* الولاء قبل الإجمالي: هذه الصفحة يفتحها الزبون مرّاتٍ وهو ينتظر
+            طلبه — وهي أطول لحظة انتباه في رحلته. */}
+        {order.loyalty && <LoyaltyProgress loyalty={order.loyalty} en={false} />}
+
         <div className="mt-3 flex items-baseline justify-between border-t border-line pt-3">
           <span className="text-sm font-black text-ink">الإجمالي</span>
           <span className="text-sm font-black tabular-nums text-ink">
