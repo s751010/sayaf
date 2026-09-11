@@ -40,7 +40,7 @@ import { WebhooksCard } from "@/components/WebhooksCard";
 import { changeSlug, updateRestaurantFields, type RestaurantSettingsPayload } from "@/lib/data";
 import { STARTER_TYPES } from "@/lib/starterMenus";
 import { cn, normalizeDigits, strOrNull } from "@/lib/utils";
-import { useDashboard } from "./Dashboard";
+import { useDashboard, FeatureGate } from "./Dashboard";
 import type { Restaurant } from "@/lib/types";
 import { Icon } from "@/lib/icons";
 import { menuUrl, slugError, urlAffixes } from "@/lib/menuUrl";
@@ -679,13 +679,26 @@ export default function Settings() {
         </CollapsibleCard>
       </div>
 
-      {/* الدفع الإلكتروني — بطاقة مستقلّة: تحفظ جدولين بضغطتها الخاصة. */}
+      {/*
+        الدفع الإلكتروني — بطاقة مستقلّة: تحفظ جدولين بضغطتها الخاصة.
+
+        ⚠️ وهي **ميزة مدفوعة**، والحارس الحقيقي في `paylink-order-create`
+        (ترفض بـ٤٠٢ بلا اشتراك نشط، قبل أن تلمس `secret_key`). هذا الجدار
+        يشرح للتاجر لماذا لا يراها بدل أن يربط بوّابته ثم يكتشف أن زبونه
+        لا يستطيع الدفع.
+      */}
       <div className="mt-5">
-        <PaymentSettingsCard
-          restaurant={restaurant}
-          userId={user.id}
-          onToggled={(on) => setRestaurant({ ...restaurant, online_payment_enabled: on })}
-        />
+        <FeatureGate
+          feature="onlinePayment"
+          title="الدفع الإلكتروني يُفتح بالاشتراك"
+          desc="زبونك يدفع داخل المنيو والمال يصل حسابك أنت بلا عمولة منّا. وطلبات واتساب تبقى مجانية دائماً."
+        >
+          <PaymentSettingsCard
+            restaurant={restaurant}
+            userId={user.id}
+            onToggled={(on) => setRestaurant({ ...restaurant, online_payment_enabled: on })}
+          />
+        </FeatureGate>
       </div>
 
       {/* واجهة API — تظهر لمن فتح له المؤسس البوّابة فقط (§14). */}
