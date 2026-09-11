@@ -31,7 +31,7 @@ permissions:
   issues: write
 
 env:
-  SITE: https://cloudsmenu.netlify.app
+  SITE: https://heroic-marzipan-b46da4.netlify.app
   SUPABASE_URL: https://wxrukupcyfypnqnotmxv.supabase.co
   SUPABASE_ANON: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind4cnVrdXBjeWZ5cG5xbm90bXh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE0NjA2OTEsImV4cCI6MjA5NzAzNjY5MX0.68unhGtpIxnTg4XsjdYHLiXM7aLuwls5Jo0tSarqR90
 

@@ -395,3 +395,62 @@ describe("مفاتيح التحصيل لها محلّل واحد", () => {
     expect(founder).toContain("clearBillingCache()");
   });
 });
+
+/* ══ ٩) قائمة الأصول المسموحة: مصدر واحد ═══════════════════════════════ */
+
+describe("قائمة أصول CORS مشتركة", () => {
+  /**
+   * ⚠️ **لماذا يستحقّ هذا فحصاً.**
+   *
+   * كانت القائمة مكتوبة بيد في **أربع** دوالّ: `founder-admin` ·
+   * `billing-admin` · `payments` · ثم `_shared/cors.ts` حين استُخرجت. ولأن
+   * نسخةً واحدة صُحّحت دون البقيّة، بقيت الثلاث على مضيفٍ
+   * (`cloudsmenu.netlify.app`) **لا يملكه المشروع** — حيٌّ ويردّ ٢٠٠، ولأحدٍ
+   * آخر — مسموحٍ له بمناداة دوالّ تُنشئ فواتير وتفعّل اشتراكات.
+   *
+   * قائمةُ **أمان** منسوخة أربع مرّات لا يحرسها تعليق. هذا الفحص يُسقط CI عند
+   * عودة أي نسخة يدوية.
+   */
+  const fn = (name: string) =>
+    readFileSync(repo(`supabase/functions/${name}/index.ts`), "utf8");
+
+  const CONSUMERS = ["founder-admin", "billing-admin", "payments", "paylink-create", "menu-scan"];
+
+  it.each(CONSUMERS)("%s يستورد القائمة ولا يعرّف واحدة", (name) => {
+    const src = fn(name);
+    expect(src).toContain('from "../_shared/cors.ts"');
+    // **تعريفاً** لا ذكراً: الشرح أعلاه يسمّي ما كان عمداً.
+    expect(src).not.toMatch(/(const|let)\s+(ALLOWED_ORIGINS|PREVIEW_RE)\s*=/);
+  });
+
+  it("المضيف الذي لا نملكه لم يعد في أي مصدر يُنشر", () => {
+    const cors = readFileSync(repo("supabase/functions/_shared/cors.ts"), "utf8");
+    const config = readFileSync(repo("app/src/lib/config.ts"), "utf8");
+
+    for (const [label, src] of [["_shared/cors.ts", cors], ["config.ts", config]] as const) {
+      // في التعليل ذكرُه مقصود؛ المحظور أن يعود **قيمةً**.
+      expect(src, label).not.toMatch(/"https:\/\/cloudsmenu\.netlify\.app"/);
+      expect(src, label).not.toMatch(/--cloudsmenu\\\.netlify\\\.app/);
+    }
+  });
+
+  it("أصلٌ مجهول لا يُعكس، والمعروف يُعكس", async () => {
+    /**
+     * الوحدة تُنشر على Deno وتقرأ `ALLOWED_ORIGINS` من بيئته عند كل نداء
+     * (ليسري نطاقٌ جديد بلا إعادة نشر). فتُعطى هنا بيئةً فارغة: المقصود فحص
+     * القائمة المكتوبة لا ما قد يُضاف من اللوحة.
+     */
+    (globalThis as { Deno?: unknown }).Deno ??= { env: { get: () => undefined } };
+    const { isAllowedOrigin } = await import("../../supabase/functions/_shared/cors.ts");
+
+    expect(isAllowedOrigin("https://heroic-marzipan-b46da4.netlify.app")).toBe(true);
+    expect(isAllowedOrigin("http://localhost:5173")).toBe(true);
+    expect(isAllowedOrigin("https://deploy-preview-12--heroic-marzipan-b46da4.netlify.app")).toBe(true);
+
+    expect(isAllowedOrigin("")).toBe(false);
+    expect(isAllowedOrigin("https://cloudsmenu.netlify.app")).toBe(false);
+    // لا يكفي أن ينتهي بالاسم: `evil.com/?x=heroic-…` أو نطاقٌ يحتويه.
+    expect(isAllowedOrigin("https://heroic-marzipan-b46da4.netlify.app.evil.com")).toBe(false);
+    expect(isAllowedOrigin("https://evil-heroic-marzipan-b46da4.netlify.app")).toBe(false);
+  });
+});

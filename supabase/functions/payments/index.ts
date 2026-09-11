@@ -55,34 +55,23 @@ import {
   UnconfiguredError,
   type ProviderId,
 } from "./providers.ts";
+import { corsHeaders } from "../_shared/cors.ts";
 
 /**
- * ⚠️ **CORS محصور بعد أن كان `*`.**
+ * ⚠️ **CORS محصور، وقائمته مشتركة لا منسوخة.**
  *
  * نقطةٌ تفعّل اشتراكات بمفتاح الخدمة لا تُعلن نفسها لكل أصل. الهوية هنا رأس
  * `Authorization` صريح لا كوكي، فالخطر ليس CSRF كلاسيكياً — لكن `*` على
- * واجهة دفع دعوةٌ مفتوحة لكل صفحة تجرّب. نفس قائمة `founder-admin`.
+ * واجهة دفع دعوةٌ مفتوحة لكل صفحة تجرّب.
+ *
+ * كانت القائمة مكتوبة بيد هنا — ونسخةٌ منها في ثلاث دوالّ أخرى. وقائمةُ أصولٍ
+ * منسوخة أربع مرّات تعني أن من يصحّح واحدة يترك الثلاث على القديم بلا أن يصرخ
+ * شيء، وهو **ما حدث فعلاً**: بقين جميعاً على مضيفٍ لا يملكه المشروع. فصارت في
+ * `_shared/cors.ts` وحدها، وحارسٌ في `parity.test.ts` يسقط عند عودة النسخة
+ * اليدوية.
  */
-const ALLOWED_ORIGINS = new Set([
-  "https://cloudsmenu.netlify.app",
-  "http://localhost:5173",
-  "http://127.0.0.1:5173",
-  ...(Deno.env.get("ALLOWED_ORIGINS") ?? "").split(",").map((o) => o.trim()).filter(Boolean),
-]);
-/** معاينات Netlify (`deploy-preview-12--cloudsmenu.netlify.app`). */
-const PREVIEW_RE = /^https:\/\/[a-z0-9-]+--cloudsmenu\.netlify\.app$/;
-const isAllowedOrigin = (o: string) => ALLOWED_ORIGINS.has(o) || PREVIEW_RE.test(o);
-
 function cors(req: Request): Record<string, string> {
-  const origin = req.headers.get("Origin") ?? "";
-  return {
-    // أصلٌ غير معروف ⇒ لا يُعكس: المتصفّح يمنع القراءة، والنداء من خادم
-    // (بلا Origin) يمرّ كما كان — الجلسة هي الحارس لا CORS.
-    ...(isAllowedOrigin(origin) ? { "Access-Control-Allow-Origin": origin } : {}),
-    Vary: "Origin",
-    "Access-Control-Allow-Headers": "authorization, content-type, apikey, x-client-info",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-  };
+  return corsHeaders(req);
 }
 
 const PROVIDERS: ProviderId[] = ["moyasar", "paylink", "paytabs", "myfatoorah"];
@@ -182,7 +171,7 @@ Deno.serve(async (req) => {
     const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
     const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const APP_BASE_URL =
-      Deno.env.get("APP_BASE_URL") ?? "https://cloudsmenu.netlify.app";
+      Deno.env.get("APP_BASE_URL") ?? "https://heroic-marzipan-b46da4.netlify.app";
 
     // هوية المستدعي من ترويسة Authorization (جلسة Supabase Auth حقيقية).
     // ⚠️ `verify_jwt: true` لا تكفي: مفتاح `anon` جواز صالح عندها، وهو منشور

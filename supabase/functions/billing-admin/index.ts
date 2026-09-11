@@ -18,32 +18,21 @@ import {
 } from "../_shared/paylink.ts";
 import { safeEqual } from "../_shared/safe-equal.ts";
 import { hasFounderSecret } from "../_shared/founder-secret.ts";
-
+import { corsHeaders } from "../_shared/cors.ts";
 /**
- * ⚠️ **CORS محصور بعد أن كان `*`.**
+ * ⚠️ **CORS محصور، وقائمته مشتركة لا منسوخة.**
  *
- * نقطةُ إدارةٍ تقرأ حالة بوّابة الدفع لا تُعلن نفسها لكل أصل. نفس قائمة
- * `founder-admin` و`payments` — والبوّابة هي الحارس لا CORS.
+ * نقطةُ إدارةٍ تقرأ حالة بوّابة الدفع لا تُعلن نفسها لكل أصل — والبوّابة هي
+ * الحارس لا CORS.
+ *
+ * كانت القائمة مكتوبة بيد هنا — ونسخةٌ منها في ثلاث دوالّ أخرى. وقائمةُ أصولٍ
+ * منسوخة أربع مرّات تعني أن من يصحّح واحدة يترك الثلاث على القديم بلا أن يصرخ
+ * شيء، وهو **ما حدث فعلاً**: بقين جميعاً على مضيفٍ لا يملكه المشروع. فصارت في
+ * `_shared/cors.ts` وحدها، وحارسٌ في `parity.test.ts` يسقط عند عودة النسخة
+ * اليدوية.
  */
-const ALLOWED_ORIGINS = new Set([
-  "https://cloudsmenu.netlify.app",
-  "http://localhost:5173",
-  "http://127.0.0.1:5173",
-  ...(Deno.env.get("ALLOWED_ORIGINS") ?? "").split(",").map((o) => o.trim()).filter(Boolean),
-]);
-/** معاينات Netlify (`deploy-preview-12--cloudsmenu.netlify.app`). */
-const PREVIEW_RE = /^https:\/\/[a-z0-9-]+--cloudsmenu\.netlify\.app$/;
-const isAllowedOrigin = (o: string) => ALLOWED_ORIGINS.has(o) || PREVIEW_RE.test(o);
-
 function cors(req: Request): Record<string, string> {
-  const origin = req.headers.get("Origin") ?? "";
-  return {
-    ...(isAllowedOrigin(origin) ? { "Access-Control-Allow-Origin": origin } : {}),
-    Vary: "Origin",
-    "Access-Control-Allow-Headers":
-      "authorization, x-client-info, apikey, content-type, x-founder-secret",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-  };
+  return corsHeaders(req, { extraHeaders: ["x-founder-secret"] });
 }
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;

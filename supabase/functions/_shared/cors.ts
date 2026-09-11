@@ -20,15 +20,27 @@
  * داخل كل دالّة هي ما يحرس فعلاً.
  */
 
-/** النطاقات الثابتة — الإنتاج والتطوير المحلّي. */
+/**
+ * النطاقات الثابتة — الإنتاج والتطوير المحلّي.
+ *
+ * ═══ ⚠️ لماذا ليس `cloudsmenu.netlify.app` ═══
+ *
+ * كان هذا هو المكتوب في كل نسخة من القائمة، و**الموقع لا يملكه المشروع**:
+ * لا وجود لمشروع بهذا الاسم في حساب Netlify (٢٥ مشروعاً، مُتحقَّق)، والمضيف
+ * مع ذلك **حيّ ويردّ ٢٠٠** — أي أنه لأحدٍ آخر. فكانت القائمة تسمح لأصلٍ
+ * أجنبي بمناداة دوالّ تُنشئ فواتير وتقرأ أكواد الخصم وتفعّل اشتراكات.
+ *
+ * ومشروع المنيو في الحساب هو `heroic-marzipan-b46da4` (مُتحقَّق من معرّفه
+ * `bdcfa5fd-…` وهو نفسه هدف `deploy.yml`).
+ */
 const STATIC_ORIGINS = [
-  "https://cloudsmenu.netlify.app",
+  "https://heroic-marzipan-b46da4.netlify.app",
   "http://localhost:5173",
   "http://127.0.0.1:5173",
 ];
 
-/** معاينات Netlify (`deploy-preview-12--cloudsmenu.netlify.app`). */
-const PREVIEW_RE = /^https:\/\/[a-z0-9-]+--cloudsmenu\.netlify\.app$/;
+/** معاينات Netlify (`deploy-preview-12--heroic-marzipan-b46da4.netlify.app`). */
+const PREVIEW_RE = /^https:\/\/[a-z0-9-]+--heroic-marzipan-b46da4\.netlify\.app$/;
 
 /**
  * ⚠️ يُقرأ عند كل نداء لا عند التحميل: ضبط `ALLOWED_ORIGINS` من لوحة Supabase
