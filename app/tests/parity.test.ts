@@ -351,3 +351,47 @@ describe("بوّابة سرّ المؤسّس مشتركة", () => {
     }
   });
 });
+
+/* ══ ٦) مفاتيح التحصيل: محلّل واحد لا نسختان ═══════════════════════════ */
+
+describe("مفاتيح التحصيل لها محلّل واحد", () => {
+  /**
+   * ⚠️ **لماذا يستحقّ هذا فحصاً.**
+   *
+   * كانت `BILLING_DEFAULTS` و`readBillingFlags` في `lib/founder.ts` نسخةً
+   * ثانيةً مكتوبةً بيد من `BILLING_FALLBACK` و`parse` في `lib/billing.ts` —
+   * نفس الحقلين ونفس القسر ونفس الافتراضي، وبلا أي فحص يربطهما.
+   *
+   * و`enforce_publishing` ليس مفتاحاً عادياً: تشغيله يُطفئ منيو **كل** تاجر
+   * بلا اشتراك نشط. ولوحة المؤسّس كانت تقرؤه من نسخة وصفحة المنيو من الأخرى،
+   * فلو تباعدتا يوماً في معنى قيمة مشوّهة لعرضت اللوحة حالةً ولعاش التجّار
+   * غيرها — بلا خطأ يُرفع ولا شاشة حمراء.
+   *
+   * هذا الفحص يسقط عند عودة النسخة الثانية، لا بعد أن يشتكي تاجر.
+   */
+  const billing = readFileSync(repo("app/src/lib/billing.ts"), "utf8");
+  const founder = readFileSync(repo("app/src/lib/founder.ts"), "utf8");
+
+  it("القسر مكتوب في billing.ts وحده", () => {
+    expect(billing).toContain("enforce_publishing: v.enforce_publishing === true");
+    // أي تكرار للقسر خارج المصدر يعني نسخةً ثانية عادت.
+    expect(founder).not.toContain("v.enforce_publishing === true");
+    expect(founder).not.toContain("enabled: v.enabled !== false");
+  });
+
+  it("founder.ts يستورد المحلّل ولا يعرّف افتراضياً ثانياً", () => {
+    expect(founder).toContain("parseBillingSettings");
+    // ⚠️ **تعريفاً** لا ذكراً: شرحُ ما كان يذكر الاسم عمداً، وحظرُ ذكره
+    // يدفع إلى حذف التعليل الذي يمنع عودة الخطأ.
+    expect(founder).not.toMatch(/(const|let|export const)\s+BILLING_DEFAULTS/);
+  });
+
+  it("تغيير المفاتيح يُبطل ذاكرة المنيو", () => {
+    /**
+     * `getBillingSettings` تخبّئ وعداً لعمر الصفحة. وبلا إبطال، مؤسّسٌ يقلب
+     * المفتاح ثم يفتح منيواً في نفس التبويب يرى الحالة القديمة.
+     */
+    expect(billing).toContain("export function clearBillingCache");
+    expect(founder).toContain("clearBillingCache()");
+  });
+});

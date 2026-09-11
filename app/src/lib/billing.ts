@@ -41,7 +41,21 @@ export const BILLING_FALLBACK: BillingSettings = {
 
 type SettingRow = { key: string; value: unknown };
 
-function parse(value: unknown): BillingSettings {
+/**
+ * **المحلّل الوحيد لمفاتيح التحصيل** — يقرؤه المنيو ولوحة المؤسّس معاً.
+ *
+ * ⚠️ كان مكتوباً مرّتين بيد: هنا، وفي `founder.ts` بـ`BILLING_DEFAULTS` و
+ * `readBillingFlags` — نفس الحقلين ونفس القسر ونفس الافتراضي، **وبلا فحص
+ * تكافؤ**. و`enforce_publishing` ليس مفتاحاً عادياً: تشغيله يُطفئ منيو كل
+ * تاجر بلا اشتراك نشط. فنسختان منه تعنيان أن المؤسّس يقرأ الحالة من واحدة
+ * والتجّار يعيشون الأخرى — ولو اختلفتا يوماً في معنى قيمة مشوّهة لعرضت
+ * اللوحة حالةً ولعاش التجّار غيرها **بلا خطأ يُرفع**.
+ *
+ * القسر مقصود في الاتجاهين: `enabled` يسقط إلى **مفتوح** (عطلٌ عندنا لا
+ * يوقف مال التاجر)، و`enforce_publishing` يسقط إلى **مطفأ** (عطلٌ عندنا لا
+ * يُطفئ منيوهات). أي أن المجهول دائماً في صالح التاجر.
+ */
+export function parseBillingSettings(value: unknown): BillingSettings {
   if (!value || typeof value !== "object") return BILLING_FALLBACK;
   const v = value as Record<string, unknown>;
   return {
@@ -60,7 +74,7 @@ export function getBillingSettings(): Promise<BillingSettings> {
   cached ??= rest<SettingRow[]>("site_settings?key=eq.billing&select=key,value", {
     anonymous: true,
   })
-    .then((rows) => parse(rows[0]?.value))
+    .then((rows) => parseBillingSettings(rows[0]?.value))
     .catch(() => BILLING_FALLBACK);
   return cached;
 }

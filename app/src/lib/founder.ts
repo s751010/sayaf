@@ -21,6 +21,11 @@
  * المنصة. وكذلك `restaurant_payment_settings.secret_key` لا يُقرأ إطلاقاً.
  */
 import { callFunction, rest } from "./api";
+import {
+  clearBillingCache,
+  parseBillingSettings,
+  type BillingSettings,
+} from "./billing";
 import { K, getItem } from "./storage";
 import type { Dish, Menu, Restaurant } from "./types";
 
@@ -567,18 +572,22 @@ export async function getBillingRows(): Promise<BillingRow[]> {
   return rest<BillingRow[]>("rpc/founder_billing", { method: "POST", body: {} });
 }
 
-export interface BillingFlags {
-  enabled: boolean;
-  enforce_publishing: boolean;
-}
-
-export const BILLING_DEFAULTS: BillingFlags = { enabled: true, enforce_publishing: false };
+/**
+ * ⚠️ **النوع والمحلّل والافتراضي من `lib/billing.ts` — لا نسخة ثانية هنا.**
+ *
+ * كانت هنا `BillingFlags` و`BILLING_DEFAULTS` و`readBillingFlags` مكتوبةً
+ * بيد بنفس الحقلين ونفس القسر ونفس الافتراضي. أي أن **لوحة المؤسّس تقرأ
+ * `enforce_publishing` من نسخة، وصفحة المنيو من الأخرى** — والمفتاح نفسه
+ * يُطفئ منيو كل تاجر بلا اشتراك. فأي تباعد بينهما يعرض للمؤسّس حالةً ويترك
+ * التجّار في غيرها بلا خطأ يُرفع، وهو أسوأ صنف من الأعطال: صامتٌ وماليّ.
+ *
+ * `BillingFlags` يبقى اسماً مُصدَّراً لأن `BillingConsole` يستعمله — لكنه
+ * الآن **اسمٌ مستعار** لا تعريفٌ ثانٍ.
+ */
+export type BillingFlags = BillingSettings;
 
 export function readBillingFlags(settings: SiteSetting[] | null): BillingFlags {
-  const row = settings?.find((s) => s.key === "billing")?.value;
-  if (!row || typeof row !== "object") return BILLING_DEFAULTS;
-  const v = row as Record<string, unknown>;
-  return { enabled: v.enabled !== false, enforce_publishing: v.enforce_publishing === true };
+  return parseBillingSettings(settings?.find((s) => s.key === "billing")?.value);
 }
 
 /**
@@ -595,4 +604,13 @@ export async function setBillingFlags(next: BillingFlags): Promise<void> {
     details: { ...next },
   });
   await setSiteSetting("billing", next);
+  /**
+   * ⚠️ **إبطال الذاكرة — عقدٌ كان موثَّقاً وغير منفَّذ.**
+   *
+   * `clearBillingCache` تقول ترويستها «تُنادى بعد أن يغيّر المؤسّس المفاتيح»،
+   * ولم تكن تُنادى من **أي** موضع في المستودع. و`getBillingSettings` تخبّئ
+   * وعداً لعمر الصفحة، فمؤسّسٌ يقلب المفتاح ثم يفتح منيواً في نفس التبويب
+   * كان يرى الحالة القديمة — ويظنّ أن التغيير لم يسرِ.
+   */
+  clearBillingCache();
 }
