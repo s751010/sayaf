@@ -1,0 +1,93 @@
+# نشر الإنتاج على Netlify.
+#
+# ═══ لماذا من GitHub لا من جلسة المساعد ═══
+#
+# بيئة المساعد تحجب Netlify على مستوى الشبكة: بوّابة الخروج تردّ 403 على
+# CONNECT لـ`api.netlify.com` و`app.netlify.com` و`netlify-mcp.netlify.app`.
+# فأداة النشر تعيد أمراً يُشغَّل محلياً ويحتاج ذلك الوصول المحجوب — أي أن
+# النشر من هناك **مستحيل تقنياً لا متعذّر إذناً**.
+#
+# ومُشغِّلات GitHub تصل Netlify، فصار النشر هنا: كل دفعة على `main` تُنشر بعد
+# أن تمرّ البوّابة كاملة.
+#
+# ═══ ما يلزمك مرّة واحدة ═══
+#
+# أضِف سرّاً باسم `NETLIFY_AUTH_TOKEN` في:
+#   Settings ← Secrets and variables ← Actions ← New repository secret
+# تولّده من: Netlify ← User settings ← Applications ← New access token
+#
+# ومعرّف الموقع ليس سرّاً (يظهر في رابط النشر) فتُرك صريحاً.
+
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  # ⚠️ يدويّ أيضاً: لإعادة نشرٍ بلا دفعة جديدة (بعد ضبط سرّ، أو للتراجع).
+  workflow_dispatch:
+
+# نشرٌ واحد في كل مرّة، ولا يُلغى في منتصفه: إلغاء نشرٍ جارٍ يترك الموقع
+# بين نسختين — عكس CI حيث الإلغاء مجّاني.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # نفس نسخة `netlify.toml` — بناءٌ على نسخة أخرى يُنشر غير ما فُحص.
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: التثبيت
+        working-directory: app
+        run: npm ci
+
+      # ⚠️ **البوّابة قبل النشر لا بعده.** `ci.yml` يفحص كل دفعة، لكن النشر
+      # لا يشترط نجاحه — فمِن غير هذه الخطوات يمكن أن تُنشر شيفرة ساقطة.
+      - name: فحص الأنواع
+        working-directory: app
+        run: npm run typecheck
+
+      - name: الاختبارات
+        working-directory: app
+        run: npm test
+
+      # ⚠️ بلا `SKIP_SITEMAP`: هذا هو البناء الذي **يُنشر**، والخريطة تُولَّد
+      # من قاعدة الإنتاج هنا لا في CI (حيث تُرمى مع مجلد العمل).
+      - name: البناء
+        working-directory: app
+        run: npm run build
+
+      # كروميوم آخر حارس: عطل `React #310` أطفأ كل منيو ومرّ من الثلاث
+      # خطوات أعلاه جميعاً، لأن لا واحدة منها تفتح متصفّحاً.
+      - name: تنزيل كروميوم
+        working-directory: app
+        run: npx playwright install --with-deps chromium
+
+      - name: فحص المتصفّح
+        working-directory: app
+        run: npm run e2e
+
+      # يُشغَّل من جذر المستودع عمداً: `netlify.toml` هناك، ومنه تُقرأ
+      # `publish = "deploy"` و`[[edge_functions]]` (حاقن وسوم المشاركة).
+      # فالنشر بـ`--dir` وحده من مجلد آخر يُسقط دالّة الحافة بصمت.
+      - name: النشر إلى الإنتاج
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: bdcfa5fd-5c01-440f-b29b-36f5b980d60c
+        run: |
+          if [ -z "$NETLIFY_AUTH_TOKEN" ]; then
+            echo "::error::سرّ NETLIFY_AUTH_TOKEN غير مضبوط — أضِفه من Settings ← Secrets ← Actions."
+            exit 1
+          fi
+          npx --yes netlify-cli@latest deploy \
+            --prod \
+            --site "$NETLIFY_SITE_ID" \
+            --message "${{ github.sha }} — ${{ github.event_name }}"
