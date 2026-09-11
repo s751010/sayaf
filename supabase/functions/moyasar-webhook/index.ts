@@ -32,6 +32,16 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { isPlanId, listPrice, planName, type Cycle } from "../_shared/plans.ts";
 import { safeEqual } from "../_shared/safe-equal.ts";
 
+/**
+ * أدنى مبلغ يُقبل كدفعة اشتراك.
+ *
+ * ليس حدّ البوّابة بل حدّنا نحن: مع الحدّ الأعلى (سعر الباقة) يصير الفحص
+ * **مدى** لا تساوياً تامّاً — فتمرّ الدفعة المخصومة ولا تمرّ دفعةُ ريالٍ
+ * تشتري باقةً بـ٩٩ أو ٥٩٩. نفس قيمة `PAYLINK_MIN_AMOUNT` عمداً حتى لا
+ * تختلف البوّابتان في معنى «مبلغ لا يُعقل».
+ */
+const MIN_AMOUNT = 5;
+
 function json(obj: unknown, status = 200) {
   return new Response(JSON.stringify(obj), {
     status,
@@ -86,9 +96,20 @@ Deno.serve(async (req) => {
       return json({ error: "metadata_invalid" }, 400);
     }
 
-    // مطابقة المبلغ المؤكد من ميسر (بالهللات) مع السعر المتوقع من المصدر الواحد.
+    /**
+     * مطابقة المبلغ المؤكد من ميسر (بالهللات) مع سقف الباقة من المصدر الواحد.
+     *
+     * ⚠️ **مدى لا تساوٍ تامّ.** كان `!== listPrice(...)` — أي أن أي دفعة بكود
+     * خصم تُرفض، فيدفع التاجر ولا يُفعَّل اشتراكه. وهو الخلل نفسه الذي تقول
+     * ترويسة هذا الملفّ إنه أُصلح، وقد بقي في السطر.
+     *
+     * والحدّ الأدنى يمنع الطرف الآخر: دفعةُ ريالٍ واحد لا تشتري باقة.
+     * نفس حارس `paylink-webhook` حرفياً.
+     */
     const amountSar = Number(payment.amount) / 100;
-    if (Math.round(amountSar) !== listPrice(planId, cycle)) {
+    const ceiling = listPrice(planId, cycle);
+    if (!Number.isFinite(amountSar) || amountSar < MIN_AMOUNT || amountSar > ceiling) {
+      console.error("amount out of range", { paymentId, amountSar, ceiling });
       return json({ error: "amount_mismatch" }, 400);
     }
 

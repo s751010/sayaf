@@ -28,8 +28,6 @@ const restaurant: Restaurant = {
   created_at: DEMO_TS,
   slug: "demo",
   slug_changed_at: null,
-  payment_gateway: null,
-  payment_key: null,
   google_review_url: "https://www.google.com/maps",
   allergens_text: "تُحضَّر أطباقنا في مطبخ يحتوي على مكسرات وجلوتين.",
   // جدول مهيكل كي يُظهر الديمو حالة «مفتوح الآن» وشاشة الساعات كاملة.

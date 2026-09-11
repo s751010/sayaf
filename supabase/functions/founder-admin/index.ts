@@ -151,7 +151,15 @@ Deno.serve(async (req) => {
   const method = String(payload.method ?? "GET").toUpperCase();
   const query = String(payload.query ?? "");
 
-  const allowedMethods = ALLOWED[table];
+  /**
+   * ⚠️ **`Object.hasOwn` لا البحث المباشر.**
+   *
+   * `ALLOWED` كائنٌ عاديّ، فـ`ALLOWED["constructor"]` يعيد `Object` — قيمةً
+   * **صادقة** تمرّ من فحص `!allowedMethods`، ثم ينفجر `.includes` بـ
+   * `TypeError` فيخرج ٥٠٠ بدل ٤٠٣. ليس تجاوزاً للقائمة البيضاء (لا جدول
+   * باسم `constructor`)، لكنّ قائمةً بيضاء تُسأل بالوراثة ليست قائمة بيضاء.
+   */
+  const allowedMethods = Object.hasOwn(ALLOWED, table) ? ALLOWED[table] : undefined;
   if (!allowedMethods) return text(req, JSON.stringify({ error: "جدول غير مسموح." }), 403);
   if (!allowedMethods.includes(method)) {
     return text(req, JSON.stringify({ error: "عملية غير مسموحة على هذا الجدول." }), 403);
