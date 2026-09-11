@@ -111,5 +111,16 @@ export function parseOrderNumber(orderNumber: string): ParsedOrder | null {
       ? "standard"
       : null;
   if (!planId) return null;
-  return { userId, planId, cycle, promoCode: parts[5] || null };
+  /**
+   * ⚠️ **الكود يُنظَّف عند الخروج لا عند الدخول فقط.**
+   *
+   * `buildOrderNumber` ينظّفه قبل الترميز، فرقم طلبٍ صنعناه نحن نظيفٌ دائماً.
+   * لكن الويبهوك يسقط إلى `merchantOrderNumber` **من جسم الطلب** حين تخلو
+   * الفاتورة من رقم — وجسم ويبهوك PayLink بلا توقيع، أي أنه مدخل مهاجم.
+   * فكود `%` كان يصل إلى `ilike` ويطابق كوداً عشوائياً فيستهلك عدّاده.
+   *
+   * التنظيف هنا يغلق ذلك عن **كل** مستهلك دفعةً واحدة بدل ترقيع كل نداء.
+   */
+  const promoCode = parts[5] ? sanitizePromo(parts[5]) : "";
+  return { userId, planId, cycle, promoCode: promoCode || null };
 }

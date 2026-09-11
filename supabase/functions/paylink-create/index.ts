@@ -21,6 +21,7 @@
  *      (نفس درس §14).
  */
 import { createClient, type SupabaseClient } from "jsr:@supabase/supabase-js@2";
+import { corsHeaders } from "../_shared/cors.ts";
 import { addInvoice, isProduction, PAYLINK_MIN_AMOUNT } from "../_shared/paylink.ts";
 import {
   buildOrderNumber,
@@ -28,21 +29,24 @@ import {
   isPlanId,
   listPrice,
   planName,
+  sanitizePromo,
 } from "../_shared/plans.ts";
 
-const CORS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+/**
+ * ⚠️ **CORS محصور بعد أن كان `*`.**
+ *
+ * هذه النقطة تُنشئ فواتير وتقرأ أكواد الخصم — بنفس مستوى ثقة `payments`
+ * و`billing-admin`، وكلتاهما على القائمة المقيّدة. القائمة في
+ * `_shared/cors.ts` مصدراً واحداً لا نسخة خامسة.
+ */
 
 /** حدّ إنشاء الفواتير لكل مستخدم في الساعة. */
 const RATE_LIMIT = 5;
 
-function json(body: unknown, status = 200): Response {
+function json(req: Request, body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...CORS, "Content-Type": "application/json" },
+    headers: { ...corsHeaders(req), "Content-Type": "application/json" },
   });
 }
 
@@ -60,7 +64,24 @@ async function resolveDiscount(
   admin: SupabaseClient,
   rawCode: string
 ): Promise<{ percent: number; code: string } | null> {
-  const code = rawCode.trim().toUpperCase();
+  /**
+   * ⚠️ **`sanitizePromo` لا `trim().toUpperCase()` — وهذا حارس مال لا تجميل.**
+   *
+   * كان الكود يصل إلى `ilike` كما كتبه التاجر، و`%` في `ILIKE` **محرف بدل**
+   * لا حرفٌ عادي. فإرسال `promo_code: "%"` يطابق **كل** صفّ، و`limit(1)` يعيد
+   * كوداً عشوائياً ⇒ خصمٌ بلا معرفة أي كود. ولو وُجد كود ١٠٠٪ هبط المبلغ إلى
+   * `PAYLINK_MIN_AMOUNT` (٥ ريالات لباقة ٩٩/٥٩٩) والويبهوك يقبله فيُفعَّل
+   * الاشتراك. والأسوأ أن الردّ يعيد `promo.code` الحقيقي، فصارت `%` ثم `L%`
+   * ثم `LA%` آلة تعداد لكل أكواد الخصم.
+   *
+   * و`sanitizePromo` هي **نفسها** التي يمرّ بها الكود عند بناء رقم الطلب
+   * (`buildOrderNumber`) ويقرؤها الويبهوك (`parseOrderNumber`) — فالنظام
+   * يفترض أصلاً أن الأكواد حروف وأرقام فقط. تطبيقها هنا **توحيدٌ لا تضييق**:
+   * كودٌ بمحرف خارجها كان مكسوراً في الويبهوك قبل هذا التغيير.
+   *
+   * و`ilike` تبقى — عدم حساسية حالة الأحرف مقصودة، وقد زال البدل.
+   */
+  const code = sanitizePromo(rawCode);
   if (!code) return null;
 
   const { data, error } = await admin
@@ -102,8 +123,8 @@ async function billingOpen(admin: SupabaseClient): Promise<boolean> {
 }
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
-  if (req.method !== "POST") return json({ error: "POST فقط." }, 405);
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders(req) });
+  if (req.method !== "POST") return json(req, { error: "POST فقط." }, 405);
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -116,26 +137,26 @@ Deno.serve(async (req) => {
   });
   const { data: userData, error: userErr } = await userClient.auth.getUser();
   const user = userData?.user;
-  if (userErr || !user) return json({ error: "جلسة غير صالحة." }, 401);
+  if (userErr || !user) return json(req, { error: "جلسة غير صالحة." }, 401);
 
   let body: Record<string, unknown>;
   try {
     body = await req.json();
   } catch {
-    return json({ error: "جسم الطلب غير صالح." }, 400);
+    return json(req, { error: "جسم الطلب غير صالح." }, 400);
   }
 
   const planId = body.plan_id;
   const cycle = body.cycle;
-  if (!isPlanId(planId)) return json({ error: "باقة غير معروفة." }, 400);
-  if (!isCycle(cycle)) return json({ error: "دورة فوترة غير معروفة." }, 400);
+  if (!isPlanId(planId)) return json(req, { error: "باقة غير معروفة." }, 400);
+  if (!isCycle(cycle)) return json(req, { error: "دورة فوترة غير معروفة." }, 400);
 
   const admin = createClient(supabaseUrl, serviceKey, {
     auth: { persistSession: false },
   });
 
   if (!(await billingOpen(admin))) {
-    return json({ error: "التحصيل متوقّف مؤقّتاً. راسلنا وسنفعّل اشتراكك يدوياً." }, 403);
+    return json(req, { error: "التحصيل متوقّف مؤقّتاً. راسلنا وسنفعّل اشتراكك يدوياً." }, 403);
   }
 
   // الحدّ **بعد** التحقّق من الجلسة: لا نستهلك حصّة مستخدم على طلب مجهول.
@@ -147,7 +168,7 @@ Deno.serve(async (req) => {
     // عطل في العدّاد لا يوقف الدفع — الحدّ حماية من الإزعاج لا حارس مال.
     console.error("billing_rate_hit:", rateErr.message);
   } else if (allowed === false) {
-    return json({ error: "محاولات كثيرة. انتظر قليلاً ثم أعد المحاولة." }, 429);
+    return json(req, { error: "محاولات كثيرة. انتظر قليلاً ثم أعد المحاولة." }, 429);
   }
 
   const base = listPrice(planId, cycle);
@@ -185,7 +206,7 @@ Deno.serve(async (req) => {
       note: promo ? `كود خصم: ${promo.code} (${promo.percent}%)` : undefined,
     });
 
-    return json({
+    return json(req, {
       url: invoice.url,
       transactionNo: invoice.transactionNo,
       amount,
@@ -197,6 +218,6 @@ Deno.serve(async (req) => {
     });
   } catch (err) {
     console.error("paylink-create:", err instanceof Error ? err.message : err);
-    return json({ error: "تعذّر إنشاء عملية الدفع. حاول مجدداً." }, 502);
+    return json(req, { error: "تعذّر إنشاء عملية الدفع. حاول مجدداً." }, 502);
   }
 });
