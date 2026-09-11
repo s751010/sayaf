@@ -16,8 +16,18 @@ import { Icon } from "@/lib/icons";
 import type { Dish } from "@/lib/types";
 
 export const mFont: CSSProperties = { fontFamily: "var(--m-font)" };
-/** خطّ العناوين — يسقط إلى خطّ النصّ لكل طابع بلا اقتران. */
-export const dFont: CSSProperties = { fontFamily: "var(--m-display, var(--m-font))" };
+
+/**
+ * خطّ العناوين — يسقط إلى خطّ النصّ لكل طابع لا يذكر `--m-display` (§18).
+ *
+ * ⚠️ **داخليّ لا مُصدَّر** (٢٠٢٦/٠٩/١١): تستعمله `SectionHeading` وأخواتها في
+ * هذا الملفّ، ولا يستورده أحد من خارجه. وتصديرُ ثابتٍ لا مستهلك خارجيّ له
+ * يُغري بنسخِه بدل استيراده — وهو ما حدث فعلاً لـ`mFont` في `DishCard`.
+ *
+ * ولا يُظنّ أن `--m-display` ميّت: `MenuHeader.tsx` يكتب نفس التعبير سطراً،
+ * و`MenuPage.tsx` يحمّل الخطّ بـ`loadThemeFont(theme.vars["--m-display"])`.
+ */
+const dFont: CSSProperties = { fontFamily: "var(--m-display, var(--m-font))" };
 
 
 export function Chip({ children, onClick, href }: { children: ReactNode; onClick?: () => void; href?: string }) {
