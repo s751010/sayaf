@@ -39,7 +39,14 @@ export interface Restaurant {
   category_order: string | null;
   /** زينة موسمية اختيارية: ramadan | national | founding (انظر lib/seasons). */
   season: string | null;
-  /** موجود في الجدول (NOT NULL) لكن لا تكتبه الواجهة بعد. */
+  /**
+   * مفتاح إظهار زرّ «قيّمنا على قوقل».
+   *
+   * ⚠️ التعليق السابق هنا قال «لا تكتبه الواجهة بعد» — وهو **قديم**: الإعدادات
+   * تكتبه فعلاً (`Settings.tsx`)، وهو في `PUBLIC_RESTAURANT_COLS` وممنوح
+   * لـ`anon`. و`null` يعني «لم يُلمس قطّ» فيُقرأ `!== false` حتى يبقى الزرّ
+   * ظاهراً لمن اعتاده.
+   */
   reviews_enabled: boolean | null;
   /**
    * هل تظهر سلة الطلب والدفع للزبون؟ يُكتب من بطاقة «الدفع الإلكتروني» في
