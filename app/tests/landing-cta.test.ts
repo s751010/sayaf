@@ -32,7 +32,7 @@ const read = (rel: string) =>
 const SURFACES: [string, string][] = [
   ["Landing.tsx", "../src/pages/Landing.tsx"],
   ["site.tsx", "../src/components/site.tsx"],
-  ["ScanDemo.tsx", "../src/components/landing/ScanDemo.tsx"],
+  ["HeroCalculator.tsx", "../src/components/landing/HeroCalculator.tsx"],
 ];
 
 /** ⚠️ ألفاظ عاشت في الصفحة فعلاً ثم تقاعدت — لا قائمة متخيَّلة. */
@@ -97,10 +97,15 @@ describe("الأقسام المحذوفة لا تعود بلا قرار", () => 
    * باقية — سطراً في المزايا أو في قائمة الباقة، لا شاشةً.
    *
    * والإغراء الطبيعي لأي مساهم لاحق أن «يُعيد ما نقص». فليُعده بقرار.
+   *
+   * ✅ **وأُعيدت الخطوات الثلاث بقرار (٢٠٢٦/١٠/١٦)**: طلب المالك صفحةً «تُفهم
+   * فكرتها كاملة» بعد مقارنتها بمنافسٍ يقولها في شاشة، ولم يكن فيها بعد حذف
+   * `ScanDemo` ما يقول **كيف** يصير المنيو جاهزاً. فعادت ثلاثة أسطر في قسم
+   * قصير — لا شاشة رسوم كالتي حُذفت. القرار مكتوبٌ فوق `STEPS` في الصفحة.
    */
   it("لا `ThemeStage` ولا `CardShowcase` في الهبوط", () => {
     const code = codeOf(read("../src/pages/Landing.tsx"));
-    for (const gone of ["ThemeStage", "CardShowcase", "const STATS", "const STEPS"]) {
+    for (const gone of ["ThemeStage", "CardShowcase", "const STATS"]) {
       expect(code, `عاد المحذوف: ${gone}`).not.toContain(gone);
     }
   });

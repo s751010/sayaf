@@ -1,6 +1,6 @@
 /** مكوّنات الموقع العام: الشعار، الشريط العلوي، التذييل. */
 import { useEffect, useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { getSiteSetting, reportSilentFailure } from "@/lib/data";
 import { SITE_NAME } from "@/lib/config";
@@ -77,18 +77,29 @@ export function PreviewMenuButton({
   );
 }
 
+/**
+ * خمسة روابط بترتيب أسئلة الزائر: كيف؟ ماذا؟ بكم؟ أرني. ثم المدونة.
+ * «من نحن» و«المساعدة» في التذييل — لا يبحث عنهما زائرٌ لم يفهم المنتج بعد.
+ */
 const NAV_LINKS = [
-  { to: "/demo", label: "منيو تجريبي" },
+  { to: "/#how", label: "كيف يعمل" },
   { to: "/#features", label: "المزايا" },
   { to: "/#pricing", label: "الأسعار" },
-  { to: "/about", label: "من نحن" },
-  { to: "/help", label: "المساعدة" },
+  { to: "/demo", label: "منيو تجريبي" },
   { to: "/blog", label: "المدونة" },
 ];
 
 export function Navbar() {
   const { user } = useAuth();
   const [scrolled, setScrolled] = useState(false);
+  /**
+   * قائمة الجوال. ⚠️ كانت الترويسة على الجوال بلا أي رابط، و«دخول» مخفيّ تحت
+   * ٦٤٠px — فتاجرٌ يفتح الموقع من جواله ليدخل لوحته لا يجد الباب إلا في آخر
+   * التذييل.
+   */
+  const [open, setOpen] = useState(false);
+  const location = useLocation();
+  useEffect(() => setOpen(false), [location.pathname, location.hash]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -142,6 +153,24 @@ export function Navbar() {
         </div>
         <div className="flex items-center gap-2">
           <ThemeToggle />
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            aria-expanded={open}
+            aria-controls="mobile-nav"
+            aria-label={open ? "أغلق القائمة" : "القائمة"}
+            className="press inline-flex h-11 w-11 items-center justify-center rounded-full border border-line text-ink md:hidden"
+          >
+            {/* ⚠️ لا `Icon name="bars"`: تلك **أعمدة رسم بياني** لا ثلاثة خطوط —
+                فكان زرّ القائمة يبدو زرّ تحليلات. */}
+            {open ? (
+              <Icon name="close" size={18} />
+            ) : (
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                <path d="M4 7h16M4 12h16M4 17h16" />
+              </svg>
+            )}
+          </button>
           {user ? (
             <Link
               to="/dashboard"
@@ -164,6 +193,32 @@ export function Navbar() {
           )}
         </div>
       </nav>
+      {open && (
+        <div id="mobile-nav" className="modal-panel border-t border-line bg-page/95 backdrop-blur-lg md:hidden">
+          <ul className="mx-auto grid max-w-6xl gap-1 px-5 py-3">
+            {NAV_LINKS.map((l) => (
+              <li key={l.to}>
+                {l.to.startsWith("/#") ? (
+                  <a href={l.to} onClick={() => setOpen(false)} className="flex min-h-12 items-center rounded-[10px] px-3 text-base font-bold text-ink hover:bg-panel2">
+                    {l.label}
+                  </a>
+                ) : (
+                  <Link to={l.to} className="flex min-h-12 items-center rounded-[10px] px-3 text-base font-bold text-ink hover:bg-panel2">
+                    {l.label}
+                  </Link>
+                )}
+              </li>
+            ))}
+            {!user && (
+              <li className="mt-1 border-t border-line pt-2">
+                <Link to="/login" className="flex min-h-12 items-center rounded-[10px] px-3 text-base font-bold text-dim hover:bg-panel2">
+                  دخول التجّار
+                </Link>
+              </li>
+            )}
+          </ul>
+        </div>
+      )}
     </header>
   );
 }
@@ -191,7 +246,7 @@ export function Footer() {
           <Logo />
           <p className="mt-3 max-w-xs text-sm leading-relaxed text-dim">
             {s?.about ??
-              "منصة سعودية تحوّل منيو مطعمك إلى تجربة رقمية فاخرة عبر رمز QR — بلا تطبيقات وبلا تعقيد."}
+              "منيو رقمي ومطبوع للمطاعم والمقاهي السعودية — سعراته محسوبة من الوصفة، وهويته من مطعمك."}
           </p>
         </div>
         <div>

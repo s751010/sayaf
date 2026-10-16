@@ -22,6 +22,7 @@ import {
   withIngredient,
 } from "@/lib/recipe";
 import { ALLERGENS } from "@/lib/allergens";
+import { RECIPE_EXAMPLES } from "@/lib/recipeExamples";
 
 describe("التطبيع", () => {
   it("الأرقام العربية والفاصلة العشرية العربية", () => {
@@ -229,6 +230,12 @@ describe("مطابقة لا تُسقط مسبّب حساسية", () => {
     expect(matchIngredient("جوز هند مبشور")?.id).toBe("coconut-desiccated");
   });
 
+  it("«مخلل خيار» مخللٌ بصوديومه لا خيارٌ طازج", () => {
+    const ing = matchIngredient("مخلل خيار 20 غ");
+    expect(ing?.id).toBe("pickles");
+    expect(ing?.per100.sodium).toBeGreaterThan(500);
+  });
+
   it("«دجاج مقلي» مقليٌّ لا نيء، و«صلصة طماطم» ليست كاتشب", () => {
     expect(matchIngredient("دجاج مقلي 150 غ")?.id).toBe("chicken-fried");
     expect(matchIngredient("صلصة طماطم")?.id).toBe("tomato-sauce");
@@ -261,5 +268,20 @@ describe("ما يُحفظ", () => {
   it("المشروب يُعرف من اسمه أو تصنيفه", () => {
     expect(isDrinkText("مشروبات ساخنة لاتيه")).toBe(true);
     expect(isDrinkText("الأطباق الرئيسية برجر")).toBe(false);
+  });
+});
+
+describe("أمثلة البطل تُفهم كاملة", () => {
+  it.each(RECIPE_EXAMPLES.map((e) => [e.name, e.text] as const))("%s", (_name, text) => {
+    const lines = parseRecipe(text);
+    const r = computeNutrition(lines);
+    expect(r.unresolved, "سطرٌ لم يُفهم في مثالٍ يراه كل زائر").toEqual([]);
+    expect(readyToApply(lines, r)).toBe(true);
+  });
+
+  it("الشاورما تُظهر تنبيه الصوديوم، واللاتيه كافيينه", () => {
+    const [latte, shawarma] = RECIPE_EXAMPLES.map((e) => nutritionFromText(e.text));
+    expect(latte.caffeine).toBeGreaterThan(100);
+    expect(shawarma.highSodium).toBe(true);
   });
 });

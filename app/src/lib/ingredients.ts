@@ -202,7 +202,9 @@ export const INGREDIENTS: readonly Ingredient[] = [
   ing("produce", "spinach", ["سبانخ"], "Spinach", [23, 0.4, 0.1, 0.4, 79, 0]),
   ing("produce", "corn", ["ذرة"], "Sweet corn", [86, 1.4, 0.3, 6.3, 15, 0], [], { units: { cup: 145 } }),
   ing("produce", "olives", ["زيتون"], "Olives, canned", [145, 15.3, 2, 0.5, 1556, 0], [], { units: { piece: 4 } }),
-  ing("produce", "pickles", ["مخلل", "مخللات", "خيار مخلل"], "Pickles", [11, 0.2, 0, 1.3, 808, 0]),
+  // ⚠️ «مخلل خيار» (الترتيب الشائع) لم يكن مرادفاً: «مخلل» و«خيار» بطولٍ واحد
+  // فسبق الخيارُ الطازج — صوديوم ٢ ملغم بدل ٨٠٨، فيُخفى تنبيه الصوديوم بصمت.
+  ing("produce", "pickles", ["مخلل خيار", "مخلل", "مخللات", "خيار مخلل"], "Pickles", [11, 0.2, 0, 1.3, 808, 0]),
   ing("produce", "avocado", ["أفوكادو", "افوكادو"], "Avocado", [160, 14.7, 2.1, 0.7, 7, 0], [], { units: { piece: 150 } }),
   ing("produce", "banana", ["موز"], "Banana", [89, 0.3, 0.1, 12.2, 1, 0], [], { units: { piece: 118 } }),
   ing("produce", "strawberry", ["فراولة", "فراوله"], "Strawberries", [32, 0.3, 0, 4.9, 1, 0], [], { units: { piece: 12, cup: 152 } }),

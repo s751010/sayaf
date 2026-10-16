@@ -423,7 +423,7 @@ grant select (fat_g, sat_fat_g, sugar_g) on public.dishes to anon;
 cd app && npm run typecheck     # صفر أخطاء
 npm test                        # صفر فشل
 npm run build                   # يحدّث deploy/ — النشر يقرأ منه
-npm run e2e                     # ٢٢ حالة في متصفّح حقيقي — منها شاشات اللوحة والطباعة
+npm run e2e                     # ٢٤ حالة في متصفّح حقيقي — منها حاسبة البطل وشاشات اللوحة والطباعة
 ```
 
 ⚠️ **وافتح ما غيّرته في متصفّح قبل الدفع**:

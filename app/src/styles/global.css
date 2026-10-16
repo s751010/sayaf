@@ -680,37 +680,6 @@ body {
   }
 }
 
-/**
- * شرائح الثقة في البطل — تدخل متعاقبة ثم تتنفّس.
- *
- * التنفّس بطيء ومداه بكسلان: أكثر من ذلك يصير قفزاً يسحب العين عن زرّ البدء
- * الذي يعلوه مباشرة. والتعاقب من `--t` (ترتيب الشريحة).
- */
-@media (prefers-reduced-motion: no-preference) {
-  .trust-chip {
-    animation:
-      chip-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both,
-      chip-breathe 4.5s ease-in-out infinite;
-    animation-delay: calc(300ms + var(--t, 0) * 120ms), calc(1.2s + var(--t, 0) * 400ms);
-  }
-}
-
-@keyframes chip-in {
-  from {
-    opacity: 0;
-    transform: translateY(10px) scale(0.96);
-  }
-}
-@keyframes chip-breathe {
-  0%,
-  100% {
-    transform: none;
-  }
-  50% {
-    transform: translateY(-2px);
-  }
-}
-
 /* ══ هاتف البطل: منتج يُستعمَل أمام الزائر ══════════════════════════════
  * ⚠️ **الحالة الافتراضية هنا هي الحالة المستقرّة** (شاشة السلة، بلا إصبع).
  * أي: بلا جافاسكربت إطلاقاً — أو مع تقليل الحركة، أو لو فشل استيراد القطعة —
@@ -1125,46 +1094,15 @@ body {
 }
 
 /* ══ شريط الطوابع ════════════════════════════════════════════════════════
- * المستوى مائل قليلاً في العمق فيُقرأ الشريط سطحاً يقف عليه الاختيار لا صفّاً
- * مسطّحاً. والميل ٦ درجات لا أكثر: النصّ العربي على سطح مائل يفقد حدّته سريعاً.
- *
- * ⚠️ الميل على الغلاف **لا على العنصر المتمرِّر نفسه**: تحويلُ حاوية تمرير
- * يُنشئ سياق طبقة يربك موضع `scrollIntoView` على بعض المتصفّحات.
- */
-.theme-plane {
-  perspective: 900px;
-}
-
+ * يتلاشى عند طرفيه فيُقرأ «هناك المزيد» بلا سهم، وبلا شريط تمرير ظاهر.
+ * (كان مائلاً ٦° في العمق بشرائح تتقدّم نحو الناظر — أُزيل الميل في صفحة
+ * الهبوط الهادئة ٢٠٢٦/١٠: سطحٌ مستوٍ يُقرأ أسرع.) */
 .theme-rail {
-  transform: rotateX(6deg);
-  transform-origin: top center;
   scrollbar-width: none;
-  /* الشريط يتلاشى عند طرفيه فيُقرأ «هناك المزيد» بلا سهم ولا تدرّج مرسوم. */
   mask-image: linear-gradient(to left, transparent, #000 5%, #000 95%, transparent);
 }
 .theme-rail::-webkit-scrollbar {
   display: none;
-}
-
-/** الشريحة المختارة تتقدّم نحو الناظر — دليل الاختيار في العمق لا في اللون وحده. */
-.theme-chip {
-  transform-style: preserve-3d;
-  transition:
-    transform 240ms cubic-bezier(0.22, 1, 0.36, 1),
-    background-color 240ms,
-    border-color 240ms;
-}
-.theme-chip[data-on="1"] {
-  transform: translateZ(18px);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .theme-rail {
-    transform: none;
-  }
-  .theme-chip[data-on="1"] {
-    transform: none;
-  }
 }
 
 /* ══ شريط الدعوة اللاصق (الجوال) ═════════════════════════════════════════
@@ -1258,23 +1196,6 @@ body {
   }
   .scan-dot {
     animation: none;
-  }
-}
-
-/* ورقة المنيو في عرض الهبوط: ميلٌ خفيف يوحي بصورة جوال لا بمستند.
-   يستقيم أثناء المسح كي يقرأ الزائر ما يُمسح. */
-.scan-paper {
-  transform: rotate(-1.2deg);
-  transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-.scan-paper-still {
-  transform: rotate(-1.2deg) scale(0.995);
-}
-@media (prefers-reduced-motion: reduce) {
-  .scan-paper,
-  .scan-paper-still {
-    transform: none;
-    transition: none;
   }
 }
 
