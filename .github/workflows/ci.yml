@@ -16,22 +16,38 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+# أقلّ صلاحية تكفي: الفحص يقرأ المستودع ولا يكتب فيه شيئاً.
+permissions:
+  contents: read
+
 jobs:
   check:
     runs-on: ubuntu-latest
+    # سقفٌ صريح: المعتاد دقيقة ونصف، وفحصٌ عالق يستهلك ٣٦٠ دقيقة بلا سقف.
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: app
 
     steps:
-      - uses: actions/checkout@v4
+      # ⚠️ الإجراءات مثبّتة بالـSHA لا بالوسم: الوسم `v4` يمكن أن يُنقل إلى شيفرة
+      # أخرى بلا علمنا، والـSHA لا يتغيّر. القيمة هي ما يشير إليه `v4` يوم التثبيت
+      # (١٦ أكتوبر ٢٠٢٦)، فلا تغيير في السلوك. نمطٌ مأخوذ من
+      # practical-tutorials/project-based-learning.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           # نفس نسخة `netlify.toml` — فحصٌ على نسخة أخرى يفحص بناءً غير الذي يُنشَر.
           node-version: "22"
           cache: npm
           cache-dependency-path: app/package-lock.json
+
+      # أوّلاً لأنه الأسرع (ثانية واحدة، بايثون بلا تبعيات): نسخة القائمة لم
+      # تُحرَّر بيد، وفحص المنبع يمرّ عليها، وكل رابط تقترحه المهارة موجودٌ فيها.
+      - name: فحص مهارة project-based-learning
+        working-directory: .
+        run: python3 .claude/skills/project-based-learning/scripts/selftest.py
 
       - run: npm ci
 

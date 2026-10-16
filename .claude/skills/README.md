@@ -5,6 +5,17 @@
 مثبَّتة بالأمر `graphify claude install --project` من `@sentropic/graphify`.
 لا تُحرَّر يدوياً — تُحدَّث بإعادة تنفيذ الأمر بعد ترقية الحزمة عامّياً.
 
+## project-based-learning
+
+المصدر: <https://github.com/practical-tutorials/project-based-learning> — رخصة
+**MIT**، مثبَّتة على commit مسجَّل في `upstream.json` مع SHA-256 لكل ملفّ منقول.
+هي في الأصل **قائمة** (٤٥٧ درساً تطبيقياً في ٢٢ لغة) لا مهارة؛ فالقائمة نُسخت
+كاملةً حرفياً إلى `references/`، وكُتب فوقها `SKILL.md` (متى تُستعمل وكيف يُختار
+منها، وجدول دروس يشرح ما يفعله هذا المستودع).
+
+**لا تُحرَّر النسخة يدوياً**: `scripts/selftest.py` يسقط عند أي تعديل، ويشغّله CI
+على كل دفعة. وللترقية: الخطوات في آخر `SKILL.md`.
+
 ## ui-ux-pro-max وأخواتها (٦ مهارات)
 
 `banner-design` · `brand` · `design` · `design-system` · `slides` · `ui-styling` ·

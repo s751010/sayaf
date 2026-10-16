@@ -1,0 +1,19 @@
+{
+  "repo": "https://github.com/practical-tutorials/project-based-learning",
+  "commit": "4a680a837c99a3b2037f55f455bf9626fd134655",
+  "commit_date": "2026-10-12",
+  "license": "MIT",
+  "files": {
+    "references/README.md": "540e81c1f5062f0ed2b5b318593a6de7bc8cff6d240b825ce045c68183da1512",
+    "references/CONTRIBUTING.md": "58583ccbd331ec527f9b8188ec56cb72210f7f5d26cb3ea7dd72bb78051831ba",
+    "LICENSE.md": "3c891295a02423c09619c6ab628f1172fb1448fbcc7158550d374fc7108245c5",
+    "scripts/check_readme.py": "8cb05e2e29ac7856d7c11cc0f63ab7bfb834d7770e23747ebe6ad2cfd65b9fb1",
+    "scripts/linkcheck-domains.txt": "4c932e79b6a911c7dc115f5a0e1e4515dfb450d929ce51d0bc0d119108395a96",
+    "scripts/lint-allow-duplicates.txt": "75398511202c88d6d599b7ff2c317d0683b23ceec45ca157327f93f516547d83"
+  },
+  "lint_stats": {
+    "entries": 457,
+    "urls": 458,
+    "sections": 23
+  }
+}
