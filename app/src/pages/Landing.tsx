@@ -1,37 +1,32 @@
 /**
- * صفحة الهبوط — واجهة المنصة التسويقية.
+ * صفحة الهبوط — **فكرةٌ واحدة تُفهم في خمس ثوانٍ**.
  *
- * الحركة هنا مبنيّة على `lib/reveal.ts` (مراقب تقاطع + حرّاس تقليل الحركة) لا
- * على مكتبة حركة: الحزمة الرئيسية تخدم **صفحة المنيو** التي تُفتح من كود QR على
- * بيانات جوال، فكل كيلوبايت يُضاف لتسويقنا يدفعه زبون التاجر.
+ * ═══ البنية (٢٠٢٦/١٠/١٦) ═══
+ *
+ * سبعة أقسام، كلٌّ منها جملةٌ واحدة:
+ *   ١. البطل: **جرّبها الآن** — الحاسبة نفسها، بلا تسجيل.
+ *   ٢. كيف يعمل: ثلاث خطوات.
+ *   ٣. بهوية مطعمك: الطوابع.
+ *   ٤. وفوقها: ستّ مزايا بسطرٍ لكلٍّ.
+ *   ٥. السعر.  ٦. الأسئلة.  ٧. الدعوة الأخيرة.
+ *
+ * ⚠️ كانت تسعة أقسام (عرض قراءة الصورة · منيو حيّ · كلفة الانتقال · ستّ بطاقات
+ * بفقرات · ثماني أسئلة…). كلٌّ منها صحيح، ومجموعها صفحةٌ يمرّ عليها الزائر
+ * ولا يخرج بجملة. والمقارنة التي حسمت القرار: منافسٌ مجاني يقول فكرته في شاشة
+ * — «ارفع صورة منيوك» — وزرّاً واحداً. فصار البطل عندنا **فعلاً** لا وصفاً:
+ * يكتب الزائر وصفةً ويرى أرقامها قبل أن يُسأل عن بريده.
+ *
+ * الحركة: `lib/reveal.ts` للأقسام، و`motion` في البطل الكسول وحده — الحزمة
+ * الرئيسية تخدم **صفحة المنيو** التي تُفتح من كود QR على بيانات جوال.
  */
-import { Suspense, lazy, useEffect, useRef, useState, type CSSProperties } from "react";
+import { Suspense, lazy, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { Navbar, Footer } from "@/components/site";
-import { Badge, Card } from "@/components/ui";
+import { Card } from "@/components/ui";
 import { Reveal } from "@/components/landing/Reveal";
-import { LiveDemo } from "@/components/landing/LiveDemo";
-import { SwitchCost } from "@/components/landing/SwitchCost";
-import { ScanDemo } from "@/components/landing/ScanDemo";
 import { PhonePreview } from "@/components/landing/PhonePreview";
-/**
- * مشهد البطل كسولٌ عمداً: يحمل مكتبة `motion` ومحرّك الوصفة (~٤٥ك مضغوطة)،
- * والعنوان والزرّان لا يحتاجان أيّاً منهما ليُرسما. فيظهر النصّ فوراً ويصل
- * المشهد بعده، ومكانه محجوز بارتفاعه (`SCENE_MIN_H`) فلا تقفز الصفحة.
- */
-const ComplianceScene = lazy(() =>
-  import("@/components/landing/ComplianceScene").then((m) => ({ default: m.ComplianceScene }))
-);
-const SCENE_MIN_H = "min-h-[520px] sm:min-h-[430px]";
 import { PricingCards, daysLabel, useTrialDays } from "@/components/landing/PricingCards";
-import {
-  CURRENCY,
-  CURRENCY_CODE,
-  PLAN,
-  PLANS,
-  effectiveMonthly,
-  type BillingCycle,
-} from "@/lib/plans";
+import { CURRENCY, CURRENCY_CODE, PLAN, PLANS, effectiveMonthly, type BillingCycle } from "@/lib/plans";
 import { prefersReducedMotion } from "@/lib/reveal";
 import { cn, formatPrice } from "@/lib/utils";
 import { Icon, type IconName } from "@/lib/icons";
@@ -39,39 +34,36 @@ import { ALL_THEMES, getTheme } from "@/lib/themes";
 import { CTA_PRIMARY, CTA_SECONDARY, PRINT_DPI, THEME_COUNT } from "@/lib/facts";
 import { absoluteUrl, useJsonLd, useSeo } from "@/lib/seo";
 
+/**
+ * البطل كسولٌ عمداً: يحمل `motion` ومحرّك الوصفة وجدول المكوّنات، والعنوان
+ * والزرّان لا يحتاجون شيئاً منها ليُرسموا. فيظهر النصّ فوراً، ومكان الحاسبة
+ * محجوزٌ بارتفاعها (`CALC_MIN_H`، مقيسٌ على ٣٩٠ و١٤٤٠) فلا تقفز الصفحة.
+ */
+const HeroCalculator = lazy(() =>
+  import("@/components/landing/HeroCalculator").then((m) => ({ default: m.HeroCalculator }))
+);
+const CALC_MIN_H = "min-h-[850px] md:min-h-[480px]";
+
 /* ── شريط الطوابع ───────────────────────────────────────────────────── */
 
 /**
- * الطوابع التي يقلّبها العرض التلقائي — **خمسة لا كلّها**.
- *
- * تقليب الـ١٩ تلقائياً بمعدّل ٢٫٦ ثانية = خمسون ثانية عرضٍ لا يحتملها زائر.
- * والخمسة مختارة كي يتبدّل في كل خطوة **محورٌ بنيوي** لا لون: سدو بترويسة
- * شريطية ⇒ أقواس رواشين ⇒ بلا زخرفة بتخطيط عرض ⇒ قائمة بخطّ رقعة وحدّ مذهّب
- * ⇒ الافتراضي الذي يراه من لم يختر.
+ * الطوابع التي يقلّبها العرض التلقائي — **خمسة لا كلّها**: في كل خطوة يتبدّل
+ * **محورٌ بنيوي** لا لون (سدو ⇒ رواشين ⇒ بلا زخرفة ⇒ رقعة ⇒ الافتراضي).
  */
 const REEL = ["najdi", "hijazi", "modern", "luxe", "dark-gold"];
 const DEFAULT_ID = "dark-gold";
 
 /**
- * شريط اختيار الطابع.
- *
- * الشريحة تحمل **ثلاث نقاط** (أرضية · تمييز · نصّ) لا مربّع لون واحد: الطابع
- * ليس لوناً — وهي الجملة التي تبيع المنتج، فلا يجوز أن ينقضها عنصر التحكّم
- * نفسه بأن يعرضه لوناً.
+ * شريط اختيار الطابع — الشريحة **ثلاث نقاط** (أرضية · تمييز · نصّ) لا مربّع
+ * لون: الطابع ليس لوناً، فلا ينقض عنصرُ التحكّم الجملةَ التي تبيع المنتج.
  */
 function ThemeRail({ value, onChange }: { value: string; onChange: (id: string) => void }) {
   const rail = useRef<HTMLDivElement>(null);
   const first = useRef(true);
 
   /**
-   * ⚠️ **يُمرَّر الشريط وحده — لا `scrollIntoView`.**
-   *
-   * تلك تحرّك **كل سلف قابل للتمرير** حتى نافذة المستند، والشريط أسفل الطيّة
-   * على الجوال، فكانت **تقفز بالصفحة كلّها** ويهبط الزائر في منتصف البطل بلا
-   * أن يلمس شيئاً. وحارس «لا تمرّر عند أوّل تركيب» **لا يكفي**: `StrictMode`
-   * يستدعي الأثر مرّتين في التطوير فيسقط الحارس عند الثانية — وحارسٌ يعتمد على
-   * عدد مرّات الاستدعاء ليس حارساً. أمّا `scrollBy` على الحاوية فلا يملك الوصول
-   * إلى سلفٍ أصلاً.
+   * ⚠️ **يُمرَّر الشريط وحده — لا `scrollIntoView`**: تلك تحرّك كل سلفٍ قابل
+   * للتمرير حتى المستند، فكانت تقفز بالصفحة كلّها على الجوال.
    */
   useEffect(() => {
     const el = rail.current;
@@ -87,12 +79,9 @@ function ThemeRail({ value, onChange }: { value: string; onChange: (id: string) 
   }, [value]);
 
   return (
-    // ⚠️ `min-w-0` ليست زينة: حاوية تمرير أفقي داخل شبكة تساهم بعرض **محتواها
-    // الأقصى** في تحجيم العمود ما لم يُصفَّر حدّها الأدنى. وشرائح الطوابع كلّها =
-    // ٢٠٣١px، فكان عمود البطل يتمدّد إليها ويُدفع النصّ والأزرار والجهاز خارج
-    // الشاشة على الجوال — صفحة بطلٍ **فارغة تماماً**، بلا خطأ ولا تمرير أفقي
-    // لأن الفائض مقصوص. رُصد باللقطة على ٣٩٠px.
-    <div className="theme-plane mt-6 min-w-0">
+    // ⚠️ `min-w-0`: حاوية تمريرٍ أفقي داخل شبكة تساهم بعرض محتواها الأقصى
+    // (٢٠٣١px) ما لم يُصفَّر حدّها الأدنى — فكان العمود يتمدّد خارج الشاشة.
+    <div className="mt-6 min-w-0">
       <div
         ref={rail}
         role="tablist"
@@ -111,13 +100,8 @@ function ThemeRail({ value, onChange }: { value: string; onChange: (id: string) 
               onClick={() => onChange(t.id)}
               title={t.tagline}
               className={cn(
-                // ⚠️ ٤٨px لا ٤٤: الشريط مائل ٦° في العمق، و**مساحة اللمس هي
-                // المسقط** لا الارتفاع المُعلَن — فـ٤٤ تصير ٤٣٫٨ وتنزل تحت
-                // الحدّ. رُصد بالقياس على ٣٩٠px لا بالحساب.
-                "theme-chip flex min-h-12 shrink-0 snap-center items-center gap-2 rounded-xl border px-3 py-2 text-xs font-bold transition-colors",
-                on
-                  ? "border-line-gold bg-gold/12 text-ink"
-                  : "border-line bg-panel/60 text-dim hover:text-ink"
+                "press flex min-h-12 shrink-0 snap-center items-center gap-2 rounded-full border px-3.5 py-2 text-xs font-bold transition-colors",
+                on ? "border-ink bg-ink text-page" : "border-line bg-panel text-dim hover:text-ink"
               )}
             >
               <span aria-hidden="true" className="flex">
@@ -138,35 +122,9 @@ function ThemeRail({ value, onChange }: { value: string; onChange: (id: string) 
   );
 }
 
-/* ── حركة ───────────────────────────────────────────────────────────── */
-
 /**
- * غلاف الكشف عند التمرير.
- *
- * `delay` بالمللي ثانية لتتابع الأبناء: ظهور ثمانِ بطاقات دفعةً واحدة يبدو
- * وميضاً، وظهورها بفارق ٦٠ مللي يبدو ترتيباً مقصوداً.
- */
-/* استُخرج إلى `components/landing/Reveal.tsx` حين احتاجته أقسام في ملفّات
-   أخرى — نسخة واحدة كي لا يظهر قسمٌ بإيقاع وقسمٌ بآخر. */
-
-/** رقم يعدّ عند ظهوره — الأرقام الثابتة لا تُقرأ، والمتحرّكة تُلاحَظ. */
-/**
- * ⚠️ كانت الثالثة «متوافق مع SFDA» — ادّعاءٌ سابقٌ لأوانه: المنتج يعرض أرقاماً
- * يكتبها التاجر ولا يحسبها، ولا حقول للدهون والسكر. صار كل سطرٍ هنا شيئاً
- * يفعله المنتج حرفياً.
- */
-const TRUST: { icon: IconName; label: string }[] = [
-  { icon: "flame", label: "سعرات من الوصفة" },
-  { icon: "printer", label: "منيو مطبوع A4" },
-  { icon: "money", label: "بلا عمولة على الطلبات" },
-];
-
-/**
- * عنوان يتجمّع كلمةً كلمة.
- *
- * بالكلمة لا بالحرف: التقسيم الحرفي يكسر وصل الحروف العربية فتخرج الكلمة
- * مفكّكة، ويُنشئ عنصراً لكل محرف بلا مقابل. و`aria-label` يحمل النصّ كاملاً
- * كي يقرأه قارئ الشاشة جملةً واحدة لا كلمات متناثرة.
+ * عنوان يتجمّع كلمةً كلمة — بالكلمة لا بالحرف (التقسيم الحرفي يكسر وصل
+ * الحروف العربية)، و`aria-label` يحمل الجملة كاملة لقارئ الشاشة.
  */
 function Words({ text, className }: { text: string; className?: string }) {
   const words = text.split(" ");
@@ -175,63 +133,57 @@ function Words({ text, className }: { text: string; className?: string }) {
       {words.map((w, i) => (
         <span key={`${w}-${i}`} className="word" style={{ "--w": i } as CSSProperties} aria-hidden="true">
           {w}
-          {i < words.length - 1 ? " " : ""}
+          {i < words.length - 1 ? " " : ""}
         </span>
       ))}
     </span>
   );
 }
 
-/* ── الأقسام ───────────────────────────────────────────────────────── */
+/* ── المحتوى ───────────────────────────────────────────────────────── */
+
 /**
- * ⚠️ **ستّ بطاقات لا ثمانٍ — والترتيب هو الرسالة.**
+ * ⚠️ **الخطوات الثلاث عادت بقرار (٢٠٢٦/١٠/١٦)** — وكانت محذوفة بقرارٍ مكتوب
+ * في `landing-cta.test.ts` لأنها أخذت شاشةً كاملة بقيمة ضئيلة.
  *
- * كانت ثمانياً تفتتحها «منيو QR فوري»، وهي **تعريف الصنف** الذي يقوله كل
- * منافس — أي أن أوّل ما يقرؤه التاجر ليس سبباً للاختيار. وصدارتها الآن لما
- * هو **إلزامي** (SFDA) ولما **يُعيد الزبون** (الولاء).
- *
- * وحُذف منها ما يقوله البطل أصلاً (المنيو الفوري) وما هو تفصيل تشغيلي تحمله
- * قائمة الباقة (ساعات العمل · ثنائي اللغة · التحديث اللحظي). وابتلعت بدلها
- * قسمين كاملين حُذفا: بطاقة الكاشير، ومسرح الطوابع.
+ * ما تغيّر: لم يكن في الصفحة بعدها ما يقول **كيف** يصير المنيو جاهزاً، فكان
+ * الزائر يخمّن. والآن ثلاثة أسطر في قسمٍ واحد قصير — لا شاشة رسوم.
+ * وكل خطوة شيءٌ يفعله المنتج اليوم: قراءة الصورة (`MenuScan`)، والحاسبة،
+ * والنشر بالكود والورقة وملف التوصيل.
  */
-const FEATURES = [
-  { emoji: "🧮", title: "حاسبة الوصفة", desc: "تكتب المكوّنات والكميات كما تقولها، فتظهر السعرات والدهون والسكر والصوديوم والكافيين ومسبّبات الحساسية — من قيم مرجعية عامّة، وتراجعها قبل الحفظ." },
-  { emoji: "🖨️", title: "منيو مطبوع بالأرقام نفسها", desc: "ورقة A4 بطابعك: السعرات ودقائق المشي بجانب كل صنف، والكافيين وتنبيه الصوديوم والحساسية، وعبارة الاحتياج اليومي — وملف CSV لتطبيقات التوصيل." },
-  { emoji: "✅", title: "شاشة الامتثال", desc: "نسبة جاهزية منيوك في رقم واحد، وكل صنف مرتّب بما ينقصه: بلا أرقام، أو بلا صوديوم، أو مشروب بلا كافيين." },
-  { emoji: "🪧", title: `بطاقة كاشير بهويتك — ${PRINT_DPI} DPI`, desc: "لا تفتح كانفا ولا تبحث عن مصمّم: نجهّزها من بيانات مطعمك بشعارك داخل الكود، وتنزّلها ملفّاً يقبله أي مطبعة." },
-  { emoji: "🎨", title: `${THEME_COUNT} طابعاً + لون علامتك`, desc: "كل طابع شخصية كاملة — زخرفة وترويسة وخطّ وتخطيط، بينها طوابع تراثية سعودية. أو اختر لون مشروعك ونبني منه طابعاً متناسقاً." },
-  { emoji: "💳", title: "دفع إلكتروني — إلى حسابك أنت", desc: "تربط بوّابتك الخاصّة، فيدفع زبونك وهو على الطاولة ويصلك المال مباشرة. لا نمرّ بالمال ولا نأخذ منه شيئاً." },
+const STEPS: { icon: IconName; title: string; desc: string }[] = [
+  { icon: "image", title: "صوّر منيوك", desc: "نقرأ الأقسام والأصناف والأسعار من الصورة، وتراجعها قبل الحفظ." },
+  { icon: "flame", title: "اكتب وصفات أصنافك", desc: "سطرٌ لكل مكوّن، ونحسب السعرات والكافيين والصوديوم والحساسية." },
+  { icon: "qr", title: "انشر في كل مكان", desc: "كود QR للطاولات، وورقة A4 للطباعة، وملف لتطبيقات التوصيل — بالأرقام نفسها." },
 ];
 
+/**
+ * ستّ مزايا بسطرٍ لكلٍّ — الحساب والمطبوع قيلا في البطل والخطوات، فهنا ما
+ * **فوقهما**. والفقرات الطويلة صارت أسطراً: الزائر يمسح العناوين ولا يقرأ.
+ */
+const FEATURES: { icon: IconName; title: string; desc: string }[] = [
+  { icon: "money", title: "طلبات ودفع من الطاولة", desc: "يدفع زبونك ويصلك المال مباشرة — بلا عمولة." },
+  { icon: "qr", title: "كود لكل طاولة", desc: "ويظهر رقم الطاولة مع الطلب تلقائياً." },
+  { icon: "card", title: `بطاقة كاشير — ${PRINT_DPI} DPI`, desc: "بشعارك وكودك، ملفٌّ تقبله أي مطبعة." },
+  { icon: "heart", title: "بطاقة ولاء", desc: "زبونك يجمع أختامه بلا تطبيق." },
+  { icon: "pulse", title: "تحليلات", desc: "أكثر الأطباق مشاهدةً، وساعات الذروة." },
+  { icon: "edit", title: "تعديل فوري", desc: "سعرٌ تغيّر أو صنفٌ نفد — يظهر للزبون في لحظته." },
+];
+
+/** خمسة أسئلة: ما يمنع الاشتراك فعلاً، لا كل ما يمكن أن يُسأل. */
 const FAQS = [
   { q: "من أين تأتي الأرقام الغذائية؟", a: "نحسبها من وصفتك: كل مكوّن بوزنه، من قيم مرجعية عامّة (USDA FoodData Central) لكل ١٠٠ غرام، ثم نقسمها على عدد الحصص. والمكوّن الذي لا مرجع مباشر له (كالقهوة السعودية) نعلّمه «تقديري» أمامك." },
-  { q: "هل تغني عن أخصائي التغذية أو المختبر؟", a: "تختصر عليك الحساب، لكن المسؤولية النظامية تبقى على المنشأة. ننصح بمراجعة الأرقام مع أخصائي تغذية قبل الطباعة — وتعطيه وصفاتك وأرقامها جاهزة بدل أن يبدأ من الصفر." },
-  { q: "هل يحتاج الزبون تحميل تطبيق؟", a: "أبداً. يمسح كود QR بكاميرا جواله ويفتح المنيو في المتصفح مباشرة — يعمل على كل الأجهزة." },
-  { q: "هل أقدر أعدّل الأسعار بنفسي؟", a: "نعم، من لوحة تحكم عربية بالكامل. أي تعديل يظهر للزبائن لحظياً." },
-  { q: "كيف تُحسب الطاولات؟", a: "تولّد كود QR خاصاً لكل طاولة (طاولة ١، طاولة ٢…) ويظهر رقم الطاولة تلقائياً عند فتح المنيو." },
-  { q: "ما طرق الدفع المتاحة للاشتراك؟", a: "مدى، البطاقات الائتمانية وApple Pay عبر بوّابة PayLink السعودية. تُحوَّل إلى صفحة الدفع الآمنة، وبيانات بطاقتك لا تمرّ بنا ولا نحتفظ بها." },
-  { q: "هل بياناتي آمنة؟", a: "بياناتك محفوظة في قواعد بيانات سحابية مشفّرة مع صلاحيات وصول صارمة، ونسخ احتياطي مستمر." },
-  { q: "هل هناك باقات متعددة؟", a: `لا — باقة واحدة بـ${PLAN.monthly} ر.س شهرياً تفتح كل شيء بلا حدود: قوائم وأصناف غير محدودة، طلبات واتساب، ثنائي اللغة، بطاقة ولاء، تحليلات، وبطاقة كاشير للطباعة. أو ${PLAN.yearly} ر.س سنوياً — أي ما يعادل ${effectiveMonthly(PLAN, "yearly")} ر.س في الشهر.` },
+  { q: "هل تغني عن أخصائي التغذية؟", a: "تختصر عليك الحساب، لكن المسؤولية النظامية تبقى على المنشأة. ننصح بمراجعة الأرقام مع أخصائي تغذية قبل الطباعة — وتعطيه وصفاتك وأرقامها جاهزة بدل أن يبدأ من الصفر." },
+  { q: "هل يحتاج الزبون تحميل تطبيق؟", a: "لا. يمسح كود QR بكاميرا جواله ويفتح المنيو في المتصفح مباشرة." },
+  { q: "عندي منيو على منصة أخرى — هل أبدأ من الصفر؟", a: "لا. صوّر منيوك الحالي ونقرأ أصنافه وأسعاره، أو الصقها نصّاً أو ملف Excel. وتقدر تحسب الأرقام هنا وتستعملها في أي منيو آخر." },
+  { q: "كم السعر؟", a: `باقة واحدة بـ${PLAN.monthly} ر.س شهرياً تفتح كل شيء، أو ${PLAN.yearly} ر.س سنوياً — ما يعادل ${effectiveMonthly(PLAN, "yearly")} ر.س في الشهر. الدفع بمدى أو البطاقة أو Apple Pay عبر PayLink، وتلغي متى شئت.` },
 ];
-
-/**
- * مدّة التجربة كما تفرضها القاعدة لا كما يظنّها العميل.
- *
- * القيمة الحقيقية في `site_settings.billing.trial_days`، ويقرأها التريجر
- * نفسه. فتغييرها من لوحة المؤسّس يغيّر ما يُمنح **وما يُعرض** معاً — ولا
- * يبقى رقمٌ في الواجهة يَعِد بما لا تعطيه القاعدة.
- * `TRIAL_DAYS` هو رسمة أولى فقط حتى تصل الإعدادات.
- */
-/* ── شريط الدعوة اللاصق ─────────────────────────────────────────────── */
 
 /**
  * هل غادر هذا القسم الشاشة إلى الأعلى؟ حارس ظهور الشريط اللاصق.
  *
- * ⚠️ **يُراقَب القسم كاملاً لا مرساة رفيعة عند نهايته.** المرساة بارتفاع بكسل
- * تنتقل من «تحت الشاشة» إلى «فوقها» بلا أن تتقاطع معها قطّ حين يقفز التمرير
- * (رابط داخلي، أو نقرة على شريط التمرير، أو دفعة سريعة) — فلا تُبلَّغ أي نقلةِ
- * حالة ويبقى الشريط غائباً. رُصد فعلاً: نداءٌ واحد يتيم عند التركيب ثم صمت.
- * والقسم الطويل متقاطعٌ عند التحميل يقيناً، فأي خروج بعده يُبلَّغ حتماً.
+ * ⚠️ يُراقَب القسم كاملاً لا مرساة رفيعة: المرساة بكسلٌ واحد تقفز فوق الشاشة
+ * بلا تقاطع حين يقفز التمرير، فلا يُبلَّغ شيء ويبقى الشريط غائباً.
  */
 function usePassed<T extends HTMLElement>() {
   const ref = useRef<T>(null);
@@ -251,15 +203,24 @@ function usePassed<T extends HTMLElement>() {
   return { ref, passed };
 }
 
+/** رأس قسم موحّد — عنوانٌ وسطرٌ واحد، بالإيقاع نفسه في كل الصفحة. */
+function SectionHead({ title, sub }: { title: ReactNode; sub?: string }) {
+  return (
+    <Reveal className="mx-auto mb-10 max-w-2xl text-center">
+      <span aria-hidden="true" className="mx-auto mb-4 block h-1.5 w-12 bg-[linear-gradient(to_left,var(--c-rule)_70%,var(--c-sadu)_70%)]" />
+      <h2 className="font-display text-3xl font-bold leading-[1.3] text-ink sm:text-4xl">{title}</h2>
+      {sub && <p className="mt-3 text-lg leading-relaxed text-dim">{sub}</p>}
+    </Reveal>
+  );
+}
+
 export default function Landing() {
   const [cycle, setCycle] = useState<BillingCycle>("monthly");
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   /**
-   * الطابع المعروض في البطل — وهو نفسه الذي تلبسه الدعوة الأخيرة.
-   *
-   * `picked` تعني «اختار الزائر بيده»: عندها يتوقّف التقليب التلقائي **نهائياً**
-   * ولا يعود. عرضٌ يستأنف نفسه بعد أن يتدخّل المستخدم يُقرأ عصياناً لا حياة.
+   * الطابع المعروض في قسم الهوية. `picked` = اختار الزائر بيده، فيتوقّف
+   * التقليب التلقائي **نهائياً**.
    */
   const [themeId, setThemeId] = useState(DEFAULT_ID);
   const [picked, setPicked] = useState(false);
@@ -269,20 +230,14 @@ export default function Landing() {
 
   useSeo({
     title: "سعرات المنيو محسوبة من الوصفة",
-    /* `clampDescription` يقصّ عند ١٦٠ محرفاً — وهذا تحته، ويقود بالوعد الجديد
-       (الحساب) لا بما صار سلعة (منيو QR). */
-    description:
-      `اكتب وصفة الصنف ونحسب السعرات والكافيين والصوديوم والحساسية، وننشرها على منيو QR ومنيو مطبوع بـ${THEME_COUNT} طابعاً.`,
+    description: `اكتب وصفة الصنف ونحسب السعرات والكافيين والصوديوم والحساسية، وننشرها على منيو QR ومنيو مطبوع بـ${THEME_COUNT} طابعاً.`,
     path: "/",
     image: "/og.png",
   });
 
   /**
-   * ⚠️ **الأسئلة تُبثّ من `FAQS` نفسها التي تُعرَض** لا من نسخة مكتوبة بيد.
-   *
-   * مخطّط `FAQPage` يخالف نصّ الصفحة يُعدّ محتوىً مخفياً في إرشادات قوقل، وقد
-   * يُسقِط النتيجة الغنيّة كلها. والمصدر الواحد يجعل ذلك مستحيلاً بالبناء:
-   * أي سؤال يُعدَّل في الصفحة يتغيّر في المخطّط في اللحظة نفسها.
+   * ⚠️ الأسئلة تُبثّ من `FAQS` نفسها التي تُعرَض: مخطّط `FAQPage` يخالف نصّ
+   * الصفحة محتوىً مخفيٌّ في إرشادات قوقل، وقد يُسقط النتيجة الغنيّة كلها.
    */
   useJsonLd("landing", {
     "@context": "https://schema.org",
@@ -300,8 +255,7 @@ export default function Landing() {
           "@type": "Offer",
           price: PLANS[0]?.monthly ?? 99,
           priceCurrency: CURRENCY_CODE,
-          // بلا تقييمات مُختلَقة: `aggregateRating` بلا مراجعات حقيقية مخالفة
-          // صريحة لإرشادات قوقل، وعقوبتها إسقاط النتيجة الغنيّة لا تحسينها.
+          // بلا تقييمات مُختلَقة: `aggregateRating` بلا مراجعات حقيقية مخالفة صريحة.
         },
       },
       {
@@ -315,17 +269,9 @@ export default function Landing() {
     ],
   });
 
-  /**
-   * دورة واحدة ثم سكون — **بعد أن يستقرّ مشهد الاستعمال**.
-   *
-   * `lib/phoneDemo.ts` يمثّل ستّ ثوانٍ ونصفاً (إصبع، تمرير، لوح، سلّة). لو بدأ
-   * تقليب الطوابع فوقه لتصادم عرضان على جهاز واحد: يتبدّل الجلد والإصبع في
-   * منتصف ضغطة، فلا يُقرأ أيّهما. فالترتيب: **يُستعمَل الجهاز، ثم يبدّل جلده.**
-   */
+  /** دورة واحدة على الطوابع ثم سكون — وتتوقّف نهائياً عند أوّل اختيار. */
   useEffect(() => {
     if (picked || prefersReducedMotion()) return;
-    // يبدأ من ‎−1 كي تكون أوّل نقلة هي `REEL[0]`: الحالة الابتدائية هي الطابع
-    // الافتراضي (ما يراه تاجرٌ لم يختر)، والدورة تمرّ ثم **تعود إليه** وتقف.
     let i = -1;
     let tick = 0;
     const start = window.setTimeout(() => {
@@ -351,111 +297,92 @@ export default function Landing() {
 
   return (
     <div className="flex min-h-dvh flex-col">
-      {/* شريط تقدّم القراءة — مربوط بتمرير الجذر، بلا مستمع تمرير. */}
       <span aria-hidden="true" className="scroll-rail" />
 
       <Navbar />
 
-      {/* البطل */}
+      {/* ١. البطل — الحاسبة نفسها، بلا تسجيل. */}
       <section ref={hero.ref} className="glow-bg relative overflow-hidden">
-        {/* طبقة زخرفية وحدها تنجرف مع التمرير. الباراlaكس على القسم نفسه كان
-            سيجرّ العنوان والأزرار معه — وإزاحة النصّ تُتعب القراءة. */}
-        <span
-          aria-hidden="true"
-          className="par-fast pointer-events-none absolute -top-24 inset-x-0 -z-10 mx-auto h-[36rem] w-[36rem] max-w-full rounded-full opacity-[.07] blur-3xl"
-          style={{ background: "radial-gradient(circle, var(--c-gold), transparent 65%)" }}
-        />
-        <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 pb-20 pt-14 lg:grid-cols-2 lg:pt-20">
-          <div className="anim-fade-up text-center lg:text-right">
-            <Badge className="mb-5">🇸🇦 للمطاعم والمقاهي السعودية</Badge>
-            {/* ⚠️ **العنوان يقود بالميزة لا بتعريف الفئة.**
-                كان «زبونك يمسح الكود… والطلب يصلك على واتساب» — وهي جملة
-                صادقة، لكن **كل منافس يقولها**: هي تعريف الصنف لا سببُ اختيارنا.
-                فكان البطل يفتتح بما يشترك فيه الجميع، ويترك ما لا يقلّده أحدٌ
-                الأسبوع القادم إلى القسم التالي.
+        <div className="mx-auto max-w-6xl px-5 pb-16 pt-12 text-center sm:pt-16">
+          <p className="anim-fade-up mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-line bg-panel/70 px-3.5 py-1.5 text-xs font-semibold text-dim">
+            <span className="h-1.5 w-1.5 rounded-full bg-sadu" aria-hidden="true" />
+            للمطاعم والمقاهي السعودية
+          </p>
+          <h1 className="font-display text-[2.6rem] font-bold leading-[1.2] text-ink sm:text-6xl">
+            <Words text="سعراتك محسوبة،" />
+            <br />
+            <Words text="لا مكتوبة." className="text-gold-grad" />
+          </h1>
+          <p className="anim-fade-up mx-auto mt-5 max-w-[40ch] text-lg leading-[1.8] text-dim">
+            اكتب وصفة الصنف كما تقولها، ونحسب الأرقام التي تطلبها هيئة الغذاء — جرّبها هنا قبل أن
+            تسجّل.
+          </p>
 
-                وقراءة المنيو من صورة هي جواب **الاعتراض الأوّل** لكل صاحب مطعم
-                («ما عندي وقت أدخل ستّين صنفاً») — وهو بالضبط ما يمنع الاشتراك.
-                فصارت هي الوعد، وبقي الطلب على واتساب في الجملة المساندة. */}
-            {/* ⚠️ **الوعد تغيّر (٢٠٢٦/١٠): من «منيو جميل» إلى «أرقام صحيحة».**
-                المنيو الجميل صار سلعة تُباع بثمانية ريالات، وقراءته من صورة
-                مجانية في أدوات كثيرة. أمّا السعرات والكافيين والحساسية على كل
-                منيو فإلزامٌ من هيئة الغذاء، وحسابها هو ما يدفع عليه المطعم.
-                والجمال لم يُحذف: صار القسم الثاني «والجمال هديّة». */}
-            <h1 className="font-display text-4xl font-black leading-[1.25] text-ink sm:text-[3.4rem]">
-              <Words text="سعراتك محسوبة،" />
-              <br />
-              <Words text="لا مكتوبة." className="text-gold-grad" />
-            </h1>
-            <p className="mx-auto mt-5 max-w-[46ch] text-lg leading-[1.85] text-dim lg:mx-0">
-              اكتب وصفة الصنف كما تقولها، ونحسب
-              <span className="font-bold text-ink"> السعرات والكافيين والصوديوم ومسبّبات الحساسية</span>،
-              ثم ننشرها على منيو الطاولة والمنيو المطبوع — بهوية سعودية تليق بمطعمك.
-            </p>
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
-              <Link
-                to="/login?mode=signup"
-                className="rounded-xl bg-gold px-6 py-3 font-bold text-on-gold shadow-[0_8px_30px_-8px_var(--c-glow)] transition-transform hover:bg-gold2 active:scale-[.98]"
-              >
-                {CTA_PRIMARY}
-              </Link>
-              {/* ⚠️ الزرّ الثاني يتبع الطابع الذي يقلّبه الزائر في السكّة —
-                  فيفتح ما يراه لا عيّنة عامّة. وكان هنا رابطٌ ثالث منفصل
-                  («افتح هذا الطابع منيواً كاملاً») يؤدّي نفس الفعل بلفظ ثالث. */}
-              <Link
-                to={`/demo?theme=${theme.id}`}
-                className="rounded-xl border border-line-gold px-6 py-3 font-bold text-ink hover:bg-gold/10"
-              >
-                👀 {CTA_SECONDARY}
-              </Link>
-            </div>
-            {/* المجانيّ هو التجربة وحدها — تحت الزرّ لا على وجهه.
-                و`text-dim` لا `text-faint`: هذا السطر يحمل الوعد الذي يجعل
-                الزائر يضغط، وأضعف تدرّج (3.76:1) دون حدّ AA. */}
-            <p className="mt-3 text-xs text-dim">
-              {trialDaysLabel} مجاناً — بلا بطاقة بنكية.
-            </p>
-            {/* شرائح الثقة الثلاث — تدخل متعاقبة ثم تتنفّس، فتُقرأ إشاراتٍ
-                حيّة لا سطر نصّ رمادي. الرمز يرث لون الشريحة عبر
-                `currentColor`، بخلاف الإيموجي الذي كان يفرض لونه. */}
-            <ul className="mt-8 flex flex-wrap items-center justify-center gap-2 lg:justify-start">
-              {TRUST.map((t, i) => (
-                <li
-                  key={t.label}
-                  className="trust-chip inline-flex min-h-9 items-center gap-1.5 rounded-full border border-line bg-panel/60 px-3 py-1.5 text-xs font-bold text-dim"
-                  style={{ "--t": i } as CSSProperties}
-                >
-                  <Icon name={t.icon} size={14} className="text-gold" />
-                  {t.label}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className={cn("min-w-0", SCENE_MIN_H)}>
-            <Suspense fallback={<div className={cn("skeleton mx-auto max-w-[560px]", SCENE_MIN_H)} />}>
-              <ComplianceScene />
+          <div className={cn("mt-10 min-w-0", CALC_MIN_H)}>
+            <Suspense fallback={<div className={cn("skeleton mx-auto max-w-4xl rounded-[20px]", CALC_MIN_H)} />}>
+              <HeroCalculator />
             </Suspense>
           </div>
+
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+            <Link
+              to="/login?mode=signup"
+              className="press inline-flex min-h-12 items-center rounded-[12px] bg-gold px-7 font-bold text-on-gold shadow-[0_10px_30px_-10px_var(--c-glow)] hover:bg-gold2"
+            >
+              {CTA_PRIMARY}
+            </Link>
+            <Link
+              to="/demo"
+              className="press inline-flex min-h-12 items-center rounded-[12px] border border-line bg-panel px-6 font-bold text-ink hover:border-ink/35"
+            >
+              {CTA_SECONDARY}
+            </Link>
+          </div>
+          {/* المجانيّ هو التجربة وحدها — تحت الزرّ لا على وجهه (`landing-cta.test.ts`). */}
+          <p className="mt-3 text-sm text-dim">{trialDaysLabel} مجاناً — بلا بطاقة بنكية.</p>
         </div>
       </section>
 
-      {/* «والجمال هديّة» — كان البطل نفسه، وصار القسم الثاني: الطوابع لم تعد
-          سبب الشراء (كل منافس عنده قوالب)، لكنها ما يجعل المقهى المختصّ يختار
-          منيواً بهوية على أداة امتثال جافّة. */}
-      <section className="border-y border-line bg-panel/50">
-        <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 py-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+      {/* ٢. كيف يعمل — ثلاث خطوات. */}
+      <section id="how" className="scroll-mt-20 border-y border-line bg-panel/60">
+        <div className="mx-auto max-w-6xl px-5 py-20">
+          <SectionHead title="ثلاث خطوات ومنيوك جاهز" sub="من صورة منيوك الحالي إلى منيو بأرقامه — في جلسة واحدة." />
+          <ol className="mx-auto grid max-w-2xl gap-0">
+            {STEPS.map((s, i) => (
+              <Reveal key={s.title} delay={i * 90}>
+                <li className="grid grid-cols-[3.25rem_minmax(0,1fr)] gap-5">
+                  <div className="flex flex-col items-center">
+                    <span className="relative flex h-13 w-13 items-center justify-center rounded-full bg-ink text-page shadow-[0_10px_24px_-14px_rgba(0,0,0,0.6)]">
+                      <Icon name={s.icon} size={22} />
+                      <span className="tabular absolute -top-1 -start-1 flex h-5 w-5 items-center justify-center rounded-full bg-sadu text-[11px] font-bold text-white">
+                        {i + 1}
+                      </span>
+                    </span>
+                    {i < STEPS.length - 1 && <span aria-hidden="true" className="my-2 w-px flex-1 bg-line" />}
+                  </div>
+                  <div className={cn("pt-2", i < STEPS.length - 1 && "pb-10")}>
+                    <h3 className="text-xl font-bold text-ink">{s.title}</h3>
+                    <p className="mt-1.5 text-base leading-relaxed text-dim">{s.desc}</p>
+                  </div>
+                </li>
+              </Reveal>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      {/* ٣. بهوية مطعمك — الطوابع. */}
+      <section className="mx-auto w-full max-w-6xl px-5 py-20">
+        <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
           <Reveal className="text-center lg:text-right">
-            <div className="sadu-band mx-auto mb-6 w-40 lg:mx-0" aria-hidden="true" />
-            <h2 className="font-display text-3xl font-black leading-[1.3] text-ink sm:text-4xl">
-              والجمال هديّة.
-            </h2>
-            <p className="mx-auto mt-4 max-w-[44ch] text-lg leading-[1.85] text-dim lg:mx-0">
-              {THEME_COUNT} طابعاً بهوية محلية — نجدي بنسيج السدو، وحجازي بأقواس الرواشين، وعسيري
-              بأشرطة القطّ — أو لون علامتك. الأرقام نفسها تلبس طابعك على الطاولة وعلى الورق.
+            <div className="sadu-band mx-auto mb-6 w-32 lg:mx-0" aria-hidden="true" />
+            <h2 className="font-display text-3xl font-bold leading-[1.3] text-ink sm:text-4xl">بهوية مطعمك</h2>
+            <p className="mx-auto mt-4 max-w-[40ch] text-lg leading-[1.8] text-dim lg:mx-0">
+              {THEME_COUNT} طابعاً بهوية محلية — نجدي بنسيج السدو، وحجازي بأقواس الرواشين — أو لون علامتك.
+              والأرقام نفسها تلبس طابعك على الطاولة وعلى الورق.
             </p>
-            <p className="mt-4 text-sm text-faint">
-              <b className="text-dim">{theme.name}</b> — {theme.tagline}
+            <p className="mt-4 text-sm text-dim">
+              <b className="text-ink">{theme.name}</b> — {theme.tagline}
             </p>
           </Reveal>
           <Reveal delay={90} className="min-w-0">
@@ -465,74 +392,50 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* «جرّبه الآن» — الدليل الوحيد المتاح.
-          لا شهادات ولا شعارات ولا عدّاد مستخدمين: لا يوجد عميل واحد بعد،
-          وكل حساب في القاعدة يخصّ المالك. فالمنتج نفسه هو البرهان. */}
-      <ScanDemo />
-
-      <LiveDemo theme={theme} />
-
-      {/* ⚠️ **الاعتراض قبل السعر ومباشرةً بعد البرهان.**
-          كان بعد مسرح الطوابع وشريط الأرقام — أي أن الزائر يقرأ عن الزخرفة
-          ثم يُسأل عن كلفة الانتقال. والترتيب الآن: أرِه أنه يعمل (`ScanDemo`)،
-          دعه يلمسه (`LiveDemo`)، ثم أزِل ما يمنعه (`SwitchCost`)، ثم قل الثمن.
-
-          وحُذف من هنا: مسرح الطوابع (خمس شاشات عن الزخرفة — والسكّة في البطل
-          تحمل الطوابع كلّها حيّةً)، وشريط الأرقام، وقسم الخطوات الثلاث (صار
-          `ScanDemo` هو الخطوات مرئيّةً)، وقسم بطاقة الكاشير. أرقامها كلّها
-          باقية في قائمة الباقة — سطراً لا شاشة. */}
-      <SwitchCost />
-
-      {/* المزايا */}
-      <section id="features" className="mx-auto w-full max-w-6xl scroll-mt-20 px-5 py-16">
-        <Reveal className="mb-10 text-center">
-          <h2 className="font-display text-3xl font-black text-ink">
-            كل ما يحتاجه مطعمك… <span className="text-gold">في مكان واحد</span>
-          </h2>
-          <p className="mt-2 text-dim">منصة متكاملة، وليست مجرد منيو.</p>
-        </Reveal>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {FEATURES.map((f, i) => (
-            // التتابع بمضاعفات الصف لا بالفهرس: ستّ بطاقات × ٧٠ = انتظارٌ لآخرها
-            // والزائر يكون قد مرّ عليها.
-            <Reveal key={f.title} delay={(i % 3) * 70} className="h-full">
-              <Card className="lift h-full">
-                <span className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-gold/12 text-2xl">
-                  {f.emoji}
-                </span>
-                <h3 className="font-display font-extrabold text-ink">{f.title}</h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-dim">{f.desc}</p>
-              </Card>
-            </Reveal>
-          ))}
+      {/* ٤. وفوقها — المزايا. */}
+      <section id="features" className="scroll-mt-20 border-y border-line bg-panel/60">
+        <div className="mx-auto max-w-6xl px-5 py-20">
+          <SectionHead title="وفوقها كل ما يحتاجه مطعمك" />
+          <div className="grid gap-x-8 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
+            {FEATURES.map((f, i) => (
+              <Reveal key={f.title} delay={(i % 3) * 70}>
+                <div className="flex items-start gap-4">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[12px] border border-line bg-panel text-ink">
+                    <Icon name={f.icon} size={20} />
+                  </span>
+                  <div className="min-w-0">
+                    <h3 className="font-bold text-ink">{f.title}</h3>
+                    <p className="mt-1 text-sm leading-relaxed text-dim">{f.desc}</p>
+                  </div>
+                </div>
+              </Reveal>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* الأسعار */}
-      <section id="pricing" className="mx-auto w-full max-w-6xl scroll-mt-20 px-5 py-16">
-        <Reveal className="mb-8 text-center">
-          <h2 className="font-display text-3xl font-black text-ink">
-            أسعار <span className="text-gold">واضحة وعادلة</span>
-          </h2>
-          <p className="mt-2 text-dim">بدون رسوم خفية — ألغِ في أي وقت.</p>
-        </Reveal>
+      {/* ٥. السعر — يلي المزايا ويسبق الأسئلة (`landing-cta.test.ts`). */}
+      <section id="pricing" className="mx-auto w-full max-w-6xl scroll-mt-20 px-5 py-20">
+        <SectionHead title="سعرٌ واحد، كل شيء داخله" sub="بدون رسوم خفية — ألغِ في أي وقت." />
         <div className="mb-8 flex justify-center">
-          <div className="inline-flex rounded-xl border border-line bg-panel p-1">
+          <div className="inline-flex rounded-[12px] border border-line bg-panel p-1">
             {(["monthly", "yearly"] as const).map((c) => (
               <button
                 key={c}
                 onClick={() => setCycle(c)}
                 className={cn(
-                  "flex min-h-11 items-center gap-2 rounded-lg px-5 py-2 text-sm font-bold transition-colors",
-                  cycle === c ? "bg-gold text-on-gold" : "text-dim hover:text-ink"
+                  "press flex min-h-11 items-center gap-2 rounded-[9px] px-5 py-2 text-sm font-bold transition-colors",
+                  cycle === c ? "bg-ink text-page" : "text-dim hover:text-ink"
                 )}
               >
                 {c === "monthly" ? "شهري" : "سنوي"}
                 {c === "yearly" && (
-                  <span className={cn(
-                    "rounded-full px-2 py-0.5 text-[11px]",
-                    cycle === "yearly" ? "bg-on-gold/15 text-on-gold" : "bg-good/15 text-good"
-                  )}>
+                  <span
+                    className={cn(
+                      "rounded-full px-2 py-0.5 text-[11px]",
+                      cycle === "yearly" ? "bg-page/15 text-page" : "bg-good/15 text-good"
+                    )}
+                  >
                     وفّر {PLAN.monthly * 12 - PLAN.yearly} ر.س
                   </span>
                 )}
@@ -543,88 +446,77 @@ export default function Landing() {
         <PricingCards cycle={cycle} selectLabel={CTA_PRIMARY} />
       </section>
 
-      {/* الأسئلة الشائعة */}
+      {/* ٦. الأسئلة الشائعة */}
       <section className="mx-auto w-full max-w-3xl px-5 pb-20">
-        <Reveal>
-          <h2 className="mb-8 text-center font-display text-3xl font-black text-ink">
-            أسئلة <span className="text-gold">شائعة</span>
-          </h2>
-        </Reveal>
+        <SectionHead title="الأسئلة الشائعة" />
         <div className="flex flex-col gap-3">
           {FAQS.map((f, i) => (
-            <Card key={f.q} className="cursor-pointer p-0">
+            <Card key={f.q} className="p-0">
               <button
-                className="flex w-full items-center justify-between gap-4 p-5 text-right"
+                className="flex min-h-14 w-full items-center justify-between gap-4 p-5 text-right"
                 onClick={() => setOpenFaq(openFaq === i ? null : i)}
                 aria-expanded={openFaq === i}
               >
                 <span className="font-bold text-ink">{f.q}</span>
-                <span className={cn("text-gold transition-transform", openFaq === i && "rotate-45")}>＋</span>
+                <span
+                  aria-hidden="true"
+                  className={cn("text-xl leading-none text-gold transition-transform", openFaq === i && "rotate-45")}
+                >
+                  ＋
+                </span>
               </button>
-              {openFaq === i && (
-                <p className="anim-fade-up px-5 pb-5 text-sm leading-relaxed text-dim">{f.a}</p>
-              )}
+              {openFaq === i && <p className="anim-fade-up px-5 pb-5 text-[15px] leading-[1.8] text-dim">{f.a}</p>}
             </Card>
           ))}
         </div>
       </section>
 
-      {/* دعوة أخيرة — تلبس الطابع الذي اختاره الزائر فعلاً أعلى الصفحة، فيرى
-          منيوه هو لا عيّنة عامّة. وهذا ما يجعل الزرّ خطوةً تالية لا إعلاناً. */}
-      <section className="glow-bg border-t border-line">
-        <div className="mx-auto grid max-w-5xl items-center gap-10 px-5 py-16 lg:grid-cols-[1fr_auto]">
-          <Reveal className="text-center lg:text-right">
-            <h2 className="font-display text-3xl font-black leading-[1.25] text-ink">
-              منيوك بطابع <span className="text-gold-grad">{theme.name}</span> — جاهز الآن
-            </h2>
-            <p className="mt-3 max-w-md leading-relaxed text-dim lg:mx-0">
-              أنشئ حسابك، أضف أطباقك، ونزّل بطاقتك. تبديل الطابع لاحقاً ضغطةٌ واحدة —
-              وكل ما تراه هنا داخل الباقة بلا إضافات.
+      {/* ٧. الدعوة الأخيرة — شريطٌ بالحبر، جملةٌ وزرّ. */}
+      <section className="bg-ink text-page">
+        <div className="mx-auto max-w-3xl px-5 py-20 text-center">
+          <Reveal>
+            <div className="sadu-band mx-auto mb-7 w-32 opacity-90" aria-hidden="true" />
+            <h2 className="font-display text-3xl font-bold leading-[1.3] sm:text-4xl">منيوك بأرقامه الصحيحة — جاهز اليوم</h2>
+            <p className="mx-auto mt-4 max-w-[42ch] text-lg leading-relaxed opacity-80">
+              صوّر منيوك، اكتب وصفاتك، وانشر الكود والورقة في جلسة واحدة.
             </p>
-            <div className="mt-7 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <Link
                 to="/login?mode=signup"
-                className="inline-flex min-h-11 items-center rounded-xl bg-gold px-8 py-3.5 font-bold text-on-gold shadow-[0_8px_30px_-8px_var(--c-glow)] transition-transform hover:bg-gold2 active:scale-[.98]"
+                className="press inline-flex min-h-12 items-center rounded-[12px] bg-gold px-8 font-bold text-on-gold hover:bg-gold2"
               >
                 {CTA_PRIMARY}
               </Link>
               <Link
-                to={`/demo?theme=${theme.id}`}
-                className="inline-flex min-h-11 items-center rounded-xl border border-line-gold px-6 py-3 font-bold text-ink hover:bg-gold/10"
+                to="/demo"
+                className="press inline-flex min-h-12 items-center rounded-[12px] border border-page/30 px-6 font-bold hover:bg-page/10"
               >
-                👀 {CTA_SECONDARY}
+                {CTA_SECONDARY}
               </Link>
             </div>
-            <p className="mt-4 text-xs text-faint">
-              {formatPrice(PLANS[0]?.monthly ?? 99)} {CURRENCY} شهرياً · بلا رسوم خفية · ألغِ متى شئت
+            <p className="mt-4 text-sm opacity-70">
+              {trialDaysLabel} مجاناً · ثم {formatPrice(PLANS[0]?.monthly ?? 99)} {CURRENCY} شهرياً · ألغِ متى شئت
             </p>
-          </Reveal>
-          <Reveal delay={120} className="hidden lg:block">
-            <PhonePreview theme={theme} width="w-[220px]" />
           </Reveal>
         </div>
       </section>
 
       <Footer />
 
-      {/* شريط الدعوة اللاصق — على الجوال وحده: هناك تغادر أزرار البطل الشاشة
-          بعد شاشة واحدة، وعلى الحاسوب تبقى الترويسة ظاهرة أصلاً. */}
-      <div
-        className={cn("cta-dock lg:hidden", hero.passed && "is-up")}
-        aria-hidden={!hero.passed}
-      >
+      {/* شريط الدعوة اللاصق — على الجوال وحده، بعد أن يغادر البطل الشاشة. */}
+      <div className={cn("cta-dock lg:hidden", hero.passed && "is-up")} aria-hidden={!hero.passed}>
         <div className="flex items-center gap-2 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
           <Link
             to="/login?mode=signup"
             tabIndex={hero.passed ? undefined : -1}
-            className="flex min-h-12 flex-1 items-center justify-center rounded-xl bg-gold px-4 font-bold text-on-gold active:scale-[.98]"
+            className="flex min-h-12 flex-1 items-center justify-center rounded-[12px] bg-gold px-4 font-bold text-on-gold active:scale-[.98]"
           >
             {CTA_PRIMARY}
           </Link>
           <Link
-            to={`/demo?theme=${theme.id}`}
+            to="/demo"
             tabIndex={hero.passed ? undefined : -1}
-            className="flex min-h-12 items-center justify-center rounded-xl border border-line-gold px-4 font-bold text-ink"
+            className="flex min-h-12 items-center justify-center rounded-[12px] border border-line bg-panel px-4 font-bold text-ink"
           >
             {CTA_SECONDARY}
           </Link>

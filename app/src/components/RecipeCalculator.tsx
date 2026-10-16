@@ -21,11 +21,12 @@ import {
   type NutritionResult,
   type RecipeLine,
 } from "@/lib/recipe";
+import { RECIPE_EXAMPLES } from "@/lib/recipeExamples";
 import { getItem, K, setItem } from "@/lib/storage";
 import { Icon } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 
-const EXAMPLE = "شوتين إسبريسو\nحليب كامل الدسم 200 مل\nسيرب كراميل ملعقة كبيرة";
+const EXAMPLE = RECIPE_EXAMPLES[0]?.text ?? "";
 
 /** مفتاح الوصفة المحفوظة على الجهاز — بنمط `cm2_loyalty_<id>` القائم. */
 const recipeKey = (dishId: string) => `${K.RECIPE}_${dishId}`;
