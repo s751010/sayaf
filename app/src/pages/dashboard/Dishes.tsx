@@ -28,6 +28,7 @@ import { ImageUploader } from "@/components/ImageUploader";
 import { OptionsEditor } from "@/components/OptionsEditor";
 import { AllergenPicker } from "@/components/AllergenPicker";
 import { RecipeCalculator } from "@/components/RecipeCalculator";
+import { isDrinkText, nutritionPatch } from "@/lib/recipe";
 import { track } from "@/lib/track";
 import {
   countDishes,
@@ -950,10 +951,17 @@ export default function Dishes() {
                 dishName={form.name.trim() || undefined}
                 applyLabel="املأ الحقول بهذه الأرقام"
                 onApply={(r) => {
-                  set("calories", String(r.kcal));
-                  set("sodium_mg", String(r.sodium));
-                  set("caffeine_mg", String(r.caffeine));
-                  set("allergens", r.allergens);
+                  // يُضاف إلى ما في الفورم ولا يمحوه — `nutritionPatch` في lib/recipe.
+                  const current = form.caffeine_mg.trim() === "" ? null : Number(form.caffeine_mg);
+                  const p = nutritionPatch(
+                    r,
+                    { caffeine_mg: Number.isFinite(current) ? current : null, allergens: form.allergens },
+                    isDrinkText(`${form.category} ${form.name}`),
+                  );
+                  set("calories", String(p.calories));
+                  set("sodium_mg", String(p.sodium_mg));
+                  set("caffeine_mg", p.caffeine_mg === null ? "" : String(p.caffeine_mg));
+                  set("allergens", p.allergens);
                   setCalcOpen(false);
                 }}
               />

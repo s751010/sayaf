@@ -14,6 +14,7 @@
  * ⚠️ لا شبكة ولا قاعدة هنا: الدوالّ تعمل في المتصفّح وفي الاختبارات سواءً.
  */
 import { INGREDIENTS, ingredientById, type AllergenId, type Ingredient, type UnitGrams } from "@/lib/ingredients";
+import { customAllergens, knownAllergenIds } from "@/lib/allergens";
 import { burnMinutes, isHighSodium } from "@/lib/nutrition";
 
 export type Unit = "g" | "kg" | "ml" | "l" | "cup" | "tbsp" | "tsp" | "piece" | "shot" | "slice" | "clove" | "pinch";
@@ -79,10 +80,14 @@ export function normalizeArabic(s: string): string {
 /**
  * ألفاظ الوحدات → الوحدة ومُضاعِفها الضمني («شوتين» = ٢ شوت).
  * ⚠️ الأطول أوّلاً: «ملعقة كبيرة» قبل «ملعقة»، وإلا التُقطت الكلمة الأقصر.
+ * وكانت «ملعقتين صغيرتين» و«ملعقتين شاي» تُلتقطان «ملعقتين» (طعام) فيصير
+ * السكر ثلاثة أضعافه — والثانية تترك «شاي» مكوّناً فيضيع السكر خلفه.
  */
 const UNIT_WORDS: [string, Unit, number][] = [
   ["ملاعق كبيره", "tbsp", 1], ["ملعقتين كبار", "tbsp", 2], ["ملعقتين كبيره", "tbsp", 2], ["ملعقه كبيره", "tbsp", 1], ["ملعقه طعام", "tbsp", 1],
-  ["ملاعق صغيره", "tsp", 1], ["ملعقتين صغار", "tsp", 2], ["ملعقتين صغيره", "tsp", 2], ["ملعقه صغيره", "tsp", 1], ["ملعقه شاي", "tsp", 1],
+  ["ملاعق صغيره", "tsp", 1], ["ملعقتين صغيرتين", "tsp", 2], ["ملعقتين صغيرتان", "tsp", 2], ["ملعقتين صغار", "tsp", 2], ["ملعقتين صغيره", "tsp", 2],
+  ["ملعقتين شاي", "tsp", 2], ["ملاعق شاي", "tsp", 1], ["ملعقه صغيره", "tsp", 1], ["ملعقه شاي", "tsp", 1],
+  ["ملعقتين كبيرتين", "tbsp", 2], ["ملعقتين طعام", "tbsp", 2],
   ["ملعقتين", "tbsp", 2], ["ملعقه", "tbsp", 1], ["ملاعق", "tbsp", 1],
   ["tbsp", "tbsp", 1], ["tsp", "tsp", 1],
   ["كيلوغرام", "kg", 1], ["كيلوجرام", "kg", 1], ["كيلو", "kg", 1], ["كجم", "kg", 1], ["kg", "kg", 1],
@@ -157,15 +162,37 @@ export function matchIngredient(text: string): Ingredient | null {
 
 /* ── تحليل السطر ─────────────────────────────────────────────────── */
 
-/** يقسم الوصفة إلى أسطر: سطر جديد · فاصلة عربية أو لاتينية · فاصلة منقوطة · «+». */
+/**
+ * يقسم الوصفة إلى أسطر: سطر جديد · فاصلة عربية أو لاتينية · فاصلة منقوطة · «+».
+ *
+ * ⚠️ إلّا فاصلةً **بين رقمين**: «حليب 1,5 كوب» فاصلةٌ عشرية (هكذا يكتبها كثيرون)،
+ * وكانت تُقسَم سطرين فيُحسب «حليب 1» غراماً واحداً ويضيع «5 كوب».
+ */
 export function splitRecipe(text: string): string[] {
   return normalizeDigits(text)
+    .replace(/(\d)[,،](\d)/g, "$1.$2")
     .split(/[\n،,;؛+]+/)
     .map((s) => s.trim())
     .filter(Boolean);
 }
 
 export function parseLine(raw: string): RecipeLine {
+  return parseWith(raw);
+}
+
+/**
+ * يعيد قراءة السطر بمكوّنٍ اختاره التاجر بيده.
+ *
+ * ⚠️ لا يكفي تبديل المعرّف: «3 كتكوت» بلا وحدة قُرئت **غرامات** لأن المكوّن
+ * مجهول، فاختيار «بيضة» بعدها كان يعطي ٣ غ لا ١٥٠. القراءة تُعاد كاملة بالمكوّن
+ * الجديد فتُحسم الوحدة به.
+ */
+export function withIngredient(line: RecipeLine, ingredientId: string): RecipeLine {
+  const ing = ingredientById(ingredientId);
+  return ing ? parseWith(line.raw, ing) : line;
+}
+
+function parseWith(raw: string, pick?: Ingredient): RecipeLine {
   let t = normalizeArabic(normalizeDigits(raw));
 
   // الوحدة أوّلاً (قد تحمل عدداً ضمنياً: «شوتين»).
@@ -182,12 +209,30 @@ export function parseLine(raw: string): RecipeLine {
     }
   }
 
-  // ثم العدد: رقمٌ صريح، أو كسرٌ «1/2»، أو كلمة.
+  // «ونصف» بعد الوحدة أو العدد: «كوب ونصف» = ١٫٥ لا ٠٫٥. تُنزع **قبل** كلمات
+  // العدد، وإلا التقطت «نصف» (مع واوها الاختيارية) فصار الكوب نصفاً.
+  let half = 0;
+  const andHalf = /(^|\s)و(?:نصف|نص)(?=$|\s)/;
+  if (andHalf.test(t)) {
+    half = 0.5;
+    t = t.replace(andHalf, " ");
+  }
+
+  // ثم العدد: كسرٌ مختلط «1 1/2» · كسرٌ «1/2» · عددٌ وكسرٌ عشري «1 0.5» (من «1½»
+  // بعد التطبيع) · رقمٌ صريح · أو كلمة.
   let qty: number | null = null;
+  const mixed = t.match(/(\d+)\s+(\d+)\s*\/\s*(\d+)/);
   const frac = t.match(/(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)/);
-  if (frac) {
+  const plusPart = t.match(/(\d+(?:\.\d+)?)\s+(0\.\d+)/);
+  if (mixed) {
+    qty = Number(mixed[1]) + Number(mixed[2]) / Number(mixed[3]);
+    t = t.replace(mixed[0], " ");
+  } else if (frac) {
     qty = Number(frac[1]) / Number(frac[2]);
     t = t.replace(frac[0], " ");
+  } else if (plusPart) {
+    qty = Number(plusPart[1]) + Number(plusPart[2]);
+    t = t.replace(plusPart[0], " ");
   } else {
     const num = t.match(/\d+(?:\.\d+)?/);
     if (num) {
@@ -204,8 +249,8 @@ export function parseLine(raw: string): RecipeLine {
     }
   }
 
-  const ingredient = matchIngredient(t);
-  const finalQty = (qty ?? 1) * implied;
+  const ingredient = pick ?? matchIngredient(t);
+  const finalQty = (qty ?? 1) * implied + half;
   /**
    * عددٌ بلا وحدة: «بيض 2» حبّتان، و«طماطم 100» مئة غرام لا مئة حبّة.
    * فالعدد الصغير لمكوّنٍ له وزن حبّة = حبّات، وما سواه = غرامات.
@@ -284,6 +329,53 @@ export function computeNutrition(lines: RecipeLine[], servings = 1): NutritionRe
     unresolved,
     servingGrams: round(grams / s),
   };
+}
+
+/**
+ * هل تُحفظ هذه الأرقام؟ **فقط إن فُهمت الوصفة كلّها.**
+ *
+ * ⚠️ كان الشرط «سطرٌ واحد مفهوم على الأقل»، فوصفةٌ نصفها مجهول تُحفظ بنصف
+ * سعراتها — رقمٌ أقلّ من الحقيقة على منيو يقرؤه مفتّش، بلا أي تنبيه بعد الحفظ.
+ */
+export function readyToApply(lines: RecipeLine[], result: NutritionResult): boolean {
+  return lines.length > 0 && result.unresolved.length === 0;
+}
+
+const DRINK = /قهو|مشروب|شاي|كافي|لاتيه|اسبريسو|إسبريسو|coffee|drink|tea|latte|espresso/i;
+
+/** مشروبٌ من اسمه أو تصنيفه — حيث يُلزَم بالكافيين ولو كان صفراً. */
+export function isDrinkText(text: string): boolean {
+  return DRINK.test(text);
+}
+
+export type NutritionPatch = {
+  calories: number;
+  sodium_mg: number;
+  caffeine_mg: number | null;
+  allergens: string[];
+};
+
+/**
+ * من نتيجة الحاسبة إلى ما يُكتب للطبق — **بلا محو ما ضبطه التاجر بيده.**
+ *
+ * - **الحساسية تُضاف ولا تستبدل**: سمسمٌ أعلنه التاجر يدوياً، أو مسبّبٌ من سطرٍ
+ *   خارج الوصفة، لا يُمحى بحساب. حذف مسبّبٍ قرارٌ بيد التاجر لا أثرٌ جانبي.
+ *   والأسماء العربية القديمة تُوحَّد إلى معرّفاتها في الطريق.
+ * - **لا «كافيين ٠» لطعام**: كان يُكتب صفراً لكل طبق، والمنيو يعرض ما ليس
+ *   `null` — فظهر «☕ كافيين ٠ ملغم» على برجر. يُكتب ما زاد على الصفر، أو
+ *   الصفر لمشروبٍ (شاي أعشاب بلا كافيين معلومةٌ تُعلَن)، وإلا يبقى ما كان.
+ */
+export function nutritionPatch(
+  result: NutritionResult,
+  current: { caffeine_mg: number | null; allergens: string[] | null },
+  drink: boolean,
+): NutritionPatch {
+  const caffeine = result.caffeine > 0 ? result.caffeine : drink ? 0 : current.caffeine_mg;
+  const allergens = [
+    ...new Set<string>([...knownAllergenIds(current.allergens), ...result.allergens]),
+    ...customAllergens(current.allergens),
+  ];
+  return { calories: result.kcal, sodium_mg: result.sodium, caffeine_mg: caffeine, allergens };
 }
 
 /** اختصار: نصّ الوصفة ← قيم الحصة. */

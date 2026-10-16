@@ -16,6 +16,13 @@
  * «زبدة» بلا وصف = **مملّحة**، و«حليب» = **كامل الدسم**: تقدير الصوديوم
  * والسعرات بالزيادة يُطلق تنبيهاً لا داعي له، وتقديرهما بالنقصان يُخفي تنبيهاً
  * واجباً. الأوّل خطأ يُصحَّح، والثاني مخالفة.
+ *
+ * ⚠️ **و«نيء أم مطبوخ» ليس غموضاً من هذا النوع.** الوصفة تُوزن نيئة في المطبخ،
+ * فـ«دجاج 200 غ» قيمُه نيئة — وهذا ما تفعله طريقة USDA نفسها في حساب الوصفات.
+ * والمطبوخ له مرادفه الصريح («دجاج مشوي» · «دجاج مقلي»). أمّا حين يكون
+ * المكوّن **غير** ما يطابقه اسمه، فالمرادف الأطول يُضاف ولا يُترك للقصير:
+ * «فول سوداني» كان يطابق «فول» فيسقط مسبّب حساسيته، و«جوز هند» كان يطابق
+ * «جوز» (عين جمل) فيُعلَن مسبّباً غير موجود.
  */
 
 /** معرّفات `lib/allergens.ts` — المخزَّنة في `dishes.allergens`. */
@@ -162,6 +169,7 @@ export const INGREDIENTS: readonly Ingredient[] = [
   // ── لحوم وبقوليات ──────────────────────────────────────────────
   ing("protein", "chicken-breast", ["صدر دجاج نيء", "صدر دجاج", "دجاج"], "Chicken breast, raw", [120, 2.6, 0.6, 0, 45, 0], []),
   ing("protein", "chicken-breast-cooked", ["صدر دجاج مشوي", "دجاج مشوي", "شاورما دجاج"], "Chicken breast, roasted", [165, 3.6, 1, 0, 74, 0], []),
+  ing("protein", "chicken-fried", ["دجاج مقلي", "دجاج مقرمش", "بروستد", "دجاج بروستد", "تشكن ستربس"], "Chicken breast with skin, fried, batter", [260, 13.2, 3.5, 0, 275, 0], ["gluten", "eggs", "milk"], { estimate: true }),
   ing("protein", "chicken-whole-roasted", ["دجاج بالجلد", "دجاج مندي", "دجاج كامل"], "Chicken with skin, roasted", [239, 13.6, 3.8, 0, 82, 0], []),
   ing("protein", "lamb", ["لحم غنم نيء", "لحم غنم", "لحم ضأن", "لحم حاشي", "لحم"], "Lamb, raw", [282, 23.4, 10.2, 0, 59, 0], []),
   ing("protein", "lamb-cooked", ["لحم غنم مطبوخ", "لحم مطبوخ", "لحم مندي"], "Lamb, cooked", [294, 20.9, 8.8, 0, 72, 0], []),
@@ -205,6 +213,9 @@ export const INGREDIENTS: readonly Ingredient[] = [
   // ── مكسرات وبذور ──────────────────────────────────────────────
   ing("nuts", "pistachio", ["فستق حلبي", "فستق", "بستاشيو"], "Pistachios", [560, 45.3, 5.9, 7.7, 1, 0], ["nuts"], { units: { tbsp: 8 } }),
   ing("nuts", "almonds", ["لوز"], "Almonds", [579, 49.9, 3.8, 4.4, 1, 0], ["nuts"], { units: { tbsp: 9 } }),
+  ing("nuts", "peanuts", ["فول سوداني", "فستق سوداني", "فول سوداني محمص"], "Peanuts", [567, 49.2, 6.3, 4.7, 18, 0], ["peanuts"], { units: { tbsp: 9 } }),
+  // جوز الهند **ليس** من المكسّرات في قائمة الهيئة (Codex) — فلا مسبّب هنا.
+  ing("nuts", "coconut-desiccated", ["جوز هند", "جوز الهند", "جوز هند مبشور", "هند مبشور"], "Coconut, desiccated, unsweetened", [660, 64.5, 57.2, 7.4, 37, 0], [], { units: { tbsp: 5 } }),
   ing("nuts", "walnuts", ["جوز", "عين جمل"], "Walnuts", [654, 65.2, 6.1, 2.6, 2, 0], ["nuts"], { units: { tbsp: 7.5 } }),
   ing("nuts", "cashews", ["كاجو"], "Cashews", [553, 43.9, 7.8, 5.9, 12, 0], ["nuts"], { units: { tbsp: 9 } }),
   ing("nuts", "peanut-butter", ["زبدة فول سوداني", "زبدة الفول السوداني", "بينت بتر"], "Peanut butter", [588, 50, 10.3, 9.2, 459, 0], ["peanuts"], { units: { tbsp: 16 } }),
@@ -217,7 +228,8 @@ export const INGREDIENTS: readonly Ingredient[] = [
   ing("fats", "mayonnaise", ["مايونيز", "مايونيزة"], "Mayonnaise", [680, 75, 11.7, 0.6, 635, 0], ["eggs"], { units: { tbsp: 14 } }),
   ing("fats", "toum", ["ثومية", "صوص ثوم", "صلصة ثوم"], "Toum (garlic sauce)", [690, 75, 6, 1, 800, 0], [], { estimate: true, units: { tbsp: 14 } }),
   ing("fats", "tahini-sauce", ["صلصة طحينة", "طحينة متبلة", "صوص طحينة"], "Tahini sauce", [280, 25, 3.5, 1, 400, 0], ["sesame"], { estimate: true, units: { tbsp: 15 } }),
-  ing("fats", "ketchup", ["كاتشب", "كاتشاب", "صلصة طماطم"], "Ketchup", [101, 0.1, 0, 21.3, 907, 0], [], { units: { tbsp: 17 } }),
+  ing("fats", "tomato-sauce", ["صلصة طماطم", "صوص طماطم"], "Tomato sauce, canned", [24, 0.3, 0, 3.6, 474, 0], [], { estimate: true, density: 1.03, units: { tbsp: 15 } }),
+  ing("fats", "ketchup", ["كاتشب", "كاتشاب"], "Ketchup", [101, 0.1, 0, 21.3, 907, 0], [], { units: { tbsp: 17 } }),
   ing("fats", "mustard", ["خردل", "مستردة", "ماسترد"], "Yellow mustard", [60, 3.3, 0.2, 0.9, 1104, 0], ["mustard"], { units: { tbsp: 15, tsp: 5 } }),
   ing("fats", "soy-sauce", ["صويا صوص", "صلصة الصويا", "صوص صويا"], "Soy sauce", [53, 0.6, 0.1, 0.4, 5493, 0], ["soy", "gluten"], { units: { tbsp: 16, tsp: 5.3 } }),
 

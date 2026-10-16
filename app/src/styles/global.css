@@ -1433,28 +1433,40 @@ body {
  * أدوات المعاينة) يُخفى، وكل ورقة A4 تبدأ صفحةً جديدة.
  */
 @media print {
-  @page {
-    size: A4;
-    margin: 0;
-  }
-  body {
+  /* ⚠️ **محصورٌ في صفحة المنيو المطبوع** (`:has(.print-root)`). كانت القاعدة
+     عامّة: `body *` مخفيّ في **كل** مسار، و`.print-root` لا يوجد إلا هنا —
+     فطباعة المنيو أو الشروط أو المدونة (Ctrl+P · حفظ PDF) تخرج صفحةً بيضاء.
+     و`@page` (A4 بلا هامش) **ليس هنا**: يُركّبه `PrintMenu.tsx` بنفسه ويرحل
+     معه — لا يُحصر `@page` بمحدِّد، والصفحة المسمّاة لا تسري على عنصرٍ مطلق. */
+  body:has(.print-root) {
     background: #fff !important;
   }
-  body * {
+  body:has(.print-root) * {
     visibility: hidden;
   }
-  .print-root,
-  .print-root * {
+  /* ⚠️ بنفس البادئة لا `.print-root` وحدها: `:has(.print-root)` يحمل وزن فئة،
+     فقاعدة الإخفاء (0,1,1) كانت تغلب `.print-root *` (0,1,0) — فخرجت الورقة
+     نفسها بيضاء. هنا (0,2,1). */
+  body:has(.print-root) .print-root,
+  body:has(.print-root) .print-root * {
     visibility: visible;
   }
   .print-root {
     position: absolute;
     inset: 0 0 auto 0;
+    padding: 0 !important;
   }
+  /* ⚠️ `296mm` لا `297mm`: الورقة على الشاشة 1123px وA4 بالضبط 1122.5px — نصف
+     بكسل يكفي ليُدفع الذيل (عبارة الاحتياج ومسبّبات الحساسية وQR) إلى صفحة
+     ثانية وحده. والقائمة الأطول من صفحة تتمدّد وتنقسم طبيعياً. */
   .print-sheet {
     box-shadow: none !important;
     margin: 0 !important;
+    min-height: 296mm !important;
     break-after: page;
+  }
+  .print-sheet:last-child {
+    break-after: auto;
   }
   .no-print {
     display: none !important;

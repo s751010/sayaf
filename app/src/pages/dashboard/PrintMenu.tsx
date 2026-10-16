@@ -12,7 +12,7 @@
  * الصوديوم المرتفع، ومسبّبات الحساسية، وعبارة الاحتياج اليومي. كل ذلك هنا من
  * نفس أعمدة القاعدة التي يقرؤها المنيو الرقمي — رقمٌ واحد في كل مكان.
  */
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button, Card, EmptyState, Select, Skeleton, Switch } from "@/components/ui";
 import { DAILY_KCAL } from "@/components/NutritionLabel";
@@ -21,7 +21,7 @@ import { PrintTabs } from "./Tabs";
 import { getMyDishes } from "@/lib/data";
 import { getTheme, qrSafeColor } from "@/lib/themes";
 import { loadThemeFont } from "@/lib/fonts";
-import { categoriesOf, parseCategoryOrder, sortCategories } from "@/lib/categories";
+import { groupByCategory, parseCategoryOrder } from "@/lib/categories";
 import { displayAllergens } from "@/lib/allergens";
 import { menuUrl } from "@/lib/menuUrl";
 import { qrDataUrl } from "@/lib/qr";
@@ -40,11 +40,18 @@ export default function PrintMenu() {
   const [columns, setColumns] = useState<1 | 2>(2);
   const [showDesc, setShowDesc] = useState(true);
   const [qr, setQr] = useState<string | null>(null);
+  /** فشل التحميل ليس «لا أطباق» (القاعدة «ج») — ولا تُطبع ورقةٌ ناقصة. */
+  const [failed, setFailed] = useState(false);
+
+  const load = useCallback(() => {
+    setFailed(false);
+    getMyDishes(restaurant.id).then(setDishes).catch(() => setFailed(true));
+  }, [restaurant.id]);
 
   useEffect(() => {
     document.title = "المنيو المطبوع — كلاود منيو";
-    getMyDishes(restaurant.id).then(setDishes).catch(() => setDishes([]));
-  }, [restaurant.id]);
+    load();
+  }, [load]);
 
   const menu = useMemo(() => {
     if (!menus?.length) return null;
@@ -81,10 +88,7 @@ export default function PrintMenu() {
   const sections = useMemo(() => {
     if (!dishes || !menu) return null;
     const mine = dishes.filter((d) => d.menu_id === menu.id && d.available !== false);
-    const order = sortCategories(categoriesOf(mine), parseCategoryOrder(restaurant.category_order));
-    const named = order.map((c) => ({ name: c, items: mine.filter((d) => d.category?.trim() === c) }));
-    const loose = mine.filter((d) => !d.category?.trim());
-    return loose.length ? [...named, { name: "أطباق", items: loose }] : named;
+    return groupByCategory(mine, parseCategoryOrder(restaurant.category_order), "أطباق");
   }, [dishes, menu, restaurant.category_order]);
 
   const usedAllergens = useMemo(() => {
@@ -191,12 +195,22 @@ export default function PrintMenu() {
         )}
       </div>
 
-      {sections === null ? (
+      {failed ? (
+        <EmptyState
+          icon="warn"
+          title="تعذّر تحميل الأطباق"
+          desc="تحقّق من الاتصال ثم أعد المحاولة."
+          action={<Button onClick={load}>أعد المحاولة</Button>}
+        />
+      ) : sections === null ? (
         <Skeleton className="h-[60vh]" />
       ) : sections.length === 0 ? (
         <EmptyState icon="doc" title="لا أطباق في هذه القائمة" desc="أضف أطباقاً ثم عُد لطباعتها." />
       ) : (
         <div className="print-root overflow-x-auto pb-6">
+          {/* ورقة A4 بلا هامش — **ما دامت هذه الصفحة مركّبة فقط**؛ في global.css
+              كانت تفرض نفسها على طباعة كل صفحة أخرى. */}
+          <style>{"@media print { @page { size: A4; margin: 0; } }"}</style>
           <article
             className="print-sheet relative mx-auto bg-white shadow-[0_2px_4px_rgba(0,0,0,0.06),0_24px_60px_-24px_rgba(0,0,0,0.35)]"
             style={{ width: "210mm", minHeight: "297mm", padding: "14mm 14mm 12mm", color: INK, fontFamily: bodyFont }}

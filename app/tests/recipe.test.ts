@@ -13,8 +13,13 @@ import {
   normalizeArabic,
   normalizeDigits,
   nutritionFromText,
+  isDrinkText,
+  nutritionPatch,
   parseLine,
   parseRecipe,
+  readyToApply,
+  splitRecipe,
+  withIngredient,
 } from "@/lib/recipe";
 import { ALLERGENS } from "@/lib/allergens";
 
@@ -154,5 +159,107 @@ describe("سلامة القاعدة المرجعية", () => {
     for (const ing of INGREDIENTS) {
       expect(ing.per100.kcal + 1, ing.id).toBeGreaterThanOrEqual(ing.per100.fat * 9 * 0.95);
     }
+  });
+});
+
+/**
+ * ═══ حالات وجدتها مراجعة ٢٠٢٦/١٠/١٦ ═══
+ *
+ * كلٌّ منها كان يضع على الملصق رقماً خاطئاً **بصمت** — بلا سطرٍ «لم يُفهم»
+ * ينبّه التاجر. والصمت هو العطل: سطرٌ مجهول يُصحَّح، ورقمٌ خاطئ يُطبع.
+ */
+describe("الوحدات المركّبة والكسور", () => {
+  it("«ملعقتين صغيرتين» ملعقتا شاي لا ملعقتا طعام", () => {
+    const l = parseLine("سكر ملعقتين صغيرتين");
+    expect([l.ingredientId, l.unit, l.qty, l.grams]).toEqual(["sugar", "tsp", 2, 8.4]);
+  });
+
+  it("«ملعقتين شاي» وحدةٌ لا مكوّن — السكر لا يضيع خلف الشاي", () => {
+    const l = parseLine("سكر ملعقتين شاي");
+    expect([l.ingredientId, l.unit, l.qty, l.grams]).toEqual(["sugar", "tsp", 2, 8.4]);
+  });
+
+  it.each(["حليب كوب ونصف", "كوب ونص حليب"])("«%s» = ١٫٥ كوب", (raw) => {
+    const l = parseLine(raw);
+    expect([l.ingredientId, l.unit, l.qty, l.grams]).toEqual(["milk-whole", "cup", 1.5, 366]);
+  });
+
+  it("«ملعقة ونصف» = ١٫٥ ملعقة", () => {
+    expect(parseLine("سكر ملعقة ونصف").qty).toBe(1.5);
+  });
+
+  it.each([
+    ["1½ كوب حليب", 1.5],
+    ["حليب 2 ½ كوب", 2.5],
+    ["حليب 1 1/2 كوب", 1.5],
+  ])("الكسر المختلط «%s»", (raw, qty) => {
+    expect(parseLine(raw).qty).toBe(qty);
+  });
+
+  it("فاصلةٌ بين رقمين فاصلةٌ عشرية لا فاصل أسطر", () => {
+    expect(splitRecipe("حليب 1,5 كوب")).toEqual(["حليب 1.5 كوب"]);
+    expect(parseLine(splitRecipe("حليب 1,5 كوب")[0]).grams).toBe(366);
+    // وبعدها مسافة ⇒ فاصل أسطر كما كان.
+    expect(splitRecipe("بيض 2, سكر 10")).toEqual(["بيض 2", "سكر 10"]);
+  });
+});
+
+describe("اختيار المكوّن يدوياً يعيد قراءة الكمية", () => {
+  it("عددٌ صغير بلا وحدة يصير حبّات حين يُختار مكوّنٌ له وزن حبّة", () => {
+    const line = parseLine("3 كتكوت");
+    expect(line.ingredientId).toBeNull();
+    const picked = withIngredient(line, "egg");
+    expect([picked.unit, picked.grams]).toEqual(["piece", 150]);
+  });
+
+  it("والعدد الكبير يبقى غرامات، والوحدة الصريحة تبقى كما كُتبت", () => {
+    expect(withIngredient(parseLine("150 كتكوت"), "egg").grams).toBe(150);
+    expect(withIngredient(parseLine("2 كوب كتكوت"), "milk-whole").grams).toBe(488);
+  });
+});
+
+describe("مطابقة لا تُسقط مسبّب حساسية", () => {
+  it("«فول سوداني» فول سوداني — بمسبّب حساسيته", () => {
+    const ing = matchIngredient("فول سوداني 30 غ");
+    expect(ing?.id).toBe("peanuts");
+    expect(ing?.allergens).toContain("peanuts");
+  });
+
+  it("«جوز هند» ليس عين جمل", () => {
+    expect(matchIngredient("جوز هند مبشور")?.id).toBe("coconut-desiccated");
+  });
+
+  it("«دجاج مقلي» مقليٌّ لا نيء، و«صلصة طماطم» ليست كاتشب", () => {
+    expect(matchIngredient("دجاج مقلي 150 غ")?.id).toBe("chicken-fried");
+    expect(matchIngredient("صلصة طماطم")?.id).toBe("tomato-sauce");
+  });
+});
+
+describe("ما يُحفظ", () => {
+  it("لا تطبيق وفي الوصفة سطرٌ لم يُفهم", () => {
+    const lines = parseRecipe("حليب 200 مل\nشيء غريب 5 كوب");
+    expect(readyToApply(lines, computeNutrition(lines))).toBe(false);
+    const ok = parseRecipe("حليب 200 مل");
+    expect(readyToApply(ok, computeNutrition(ok))).toBe(true);
+    expect(readyToApply([], computeNutrition([]))).toBe(false);
+  });
+
+  it("الحساسية تُضاف إلى ما ضبطه التاجر ولا تمحوه", () => {
+    const r = nutritionFromText("حليب 200 مل");
+    const patch = nutritionPatch(r, { caffeine_mg: null, allergens: ["sesame", "جلوتين", "خردل بري"] }, false);
+    expect(patch.allergens.sort()).toEqual(["gluten", "milk", "sesame", "خردل بري"].sort());
+  });
+
+  it("لا كافيين «٠» يُكتب لطعام — ويُكتب لمشروب", () => {
+    const burger = nutritionFromText("خبز برجر 1");
+    expect(nutritionPatch(burger, { caffeine_mg: null, allergens: [] }, false).caffeine_mg).toBeNull();
+    expect(nutritionPatch(burger, { caffeine_mg: null, allergens: [] }, true).caffeine_mg).toBe(0);
+    const latte = nutritionFromText("شوتين إسبريسو");
+    expect(nutritionPatch(latte, { caffeine_mg: null, allergens: [] }, false).caffeine_mg).toBe(latte.caffeine);
+  });
+
+  it("المشروب يُعرف من اسمه أو تصنيفه", () => {
+    expect(isDrinkText("مشروبات ساخنة لاتيه")).toBe(true);
+    expect(isDrinkText("الأطباق الرئيسية برجر")).toBe(false);
   });
 });

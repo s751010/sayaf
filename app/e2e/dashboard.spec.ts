@@ -135,3 +135,23 @@ test("المنيو المطبوع يُقلع بورقته وكوده", async ({ 
   await page.waitForTimeout(1000);
   expect(crashes, crashes.join("\n")).toEqual([]);
 });
+
+test("الطباعة: الورقة وحدها ظاهرة — وصفحةٌ أخرى لا تخرج بيضاء", async ({ page }) => {
+  /**
+   * عطلان لا يُريان على الشاشة إطلاقاً:
+   * - قاعدة الطباعة كانت عامّة (`body * { visibility: hidden }`) فتخرج طباعة
+   *   أي صفحة غير هذه **بيضاء** — المنيو والشروط والمدونة.
+   * - ولمّا حُصرت بـ`:has(.print-root)` صار وزنها أعلى من قاعدة الإظهار فخرجت
+   *   **الورقة نفسها** بيضاء. فيُفحص الاتّجاهان معاً.
+   */
+  await signedIn(page);
+  await page.goto("/dashboard/print");
+  await expect(page.getByText("مقهى الفحص").first()).toBeVisible();
+
+  await page.emulateMedia({ media: "print" });
+  await expect(page.locator(".print-sheet").getByText("مقهى الفحص").first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: "المنيو المطبوع" })).toBeHidden();
+
+  await page.goto("/demo");
+  await expect(page.getByText("مطعم الديوان", { exact: false }).first()).toBeVisible();
+});

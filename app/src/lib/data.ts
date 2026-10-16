@@ -1286,7 +1286,8 @@ export async function updateDish(id: string, payload: DishPayload & { menu_id: s
 export type DishNutritionPatch = {
   calories: number;
   sodium_mg: number;
-  caffeine_mg: number;
+  /** `null` لطعامٍ بلا كافيين — لا «٠» يظهر للزبون على برجر (`nutritionPatch`). */
+  caffeine_mg: number | null;
   allergens: string[];
 };
 

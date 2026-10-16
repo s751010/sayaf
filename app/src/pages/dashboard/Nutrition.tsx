@@ -19,17 +19,16 @@ import { displayAllergens } from "@/lib/allergens";
 import { Icon } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 import type { Dish } from "@/lib/types";
-import type { NutritionResult } from "@/lib/recipe";
+import { isDrinkText, nutritionPatch, type NutritionResult } from "@/lib/recipe";
 
 type Status = "done" | "caffeine" | "sodium" | "empty";
 
-const DRINK = /قهو|مشروب|شاي|كافي|لاتيه|اسبريسو|إسبريسو|coffee|drink|tea|latte|espresso/i;
+const drinkOf = (d: Pick<Dish, "category" | "name">) => isDrinkText(`${d.category ?? ""} ${d.name}`);
 
 export function dishStatus(d: Pick<Dish, "calories" | "sodium_mg" | "caffeine_mg" | "category" | "name">): Status {
   if (d.calories === null) return "empty";
   if (!isSfdaCompliant(d.calories, d.sodium_mg)) return "sodium";
-  const drinkish = DRINK.test(`${d.category ?? ""} ${d.name}`);
-  if (drinkish && d.caffeine_mg === null) return "caffeine";
+  if (drinkOf(d) && d.caffeine_mg === null) return "caffeine";
   return "done";
 }
 
@@ -48,15 +47,20 @@ export default function Nutrition() {
   const [editing, setEditing] = useState<Dish | null>(null);
   const [saving, setSaving] = useState(false);
   const [filter, setFilter] = useState<Status | "all">("all");
+  /**
+   * فشل التحميل حالةٌ ثالثة لا `[]`: «لا أطباق بعد» لتاجرٍ له أربعون طبقاً
+   * وانقطع اتصاله تقول له شيئاً كاذباً (القاعدة «ج»).
+   */
+  const [failed, setFailed] = useState(false);
 
   const load = useCallback(async () => {
+    setFailed(false);
     try {
       setDishes(await getMyDishes(restaurant.id));
     } catch {
-      setDishes([]);
-      toast("تعذّر تحميل الأطباق — حاول مجدداً", "err");
+      setFailed(true);
     }
-  }, [restaurant.id, toast]);
+  }, [restaurant.id]);
 
   useEffect(() => {
     void load();
@@ -82,12 +86,7 @@ export default function Nutrition() {
     if (!editing) return;
     setSaving(true);
     try {
-      await updateDishNutrition(editing.id, {
-        calories: r.kcal,
-        sodium_mg: r.sodium,
-        caffeine_mg: r.caffeine,
-        allergens: r.allergens,
-      });
+      await updateDishNutrition(editing.id, nutritionPatch(r, editing, drinkOf(editing)));
       toast(`حُفظت أرقام «${editing.name}»`);
       setEditing(null);
       await load();
@@ -111,7 +110,7 @@ export default function Nutrition() {
 
       {/* الرأس: نسبة الجاهزية — رقمٌ واحد كبير وشريطٌ مقسوم بحالاته. */}
       {rows === null ? (
-        <Skeleton className="h-36" />
+        failed ? null : <Skeleton className="h-36" />
       ) : total > 0 ? (
         <Card className="grid gap-4 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center sm:gap-8">
           <div>
@@ -157,7 +156,14 @@ export default function Nutrition() {
         </Card>
       ) : null}
 
-      {shown === null ? (
+      {failed ? (
+        <EmptyState
+          icon="warn"
+          title="تعذّر تحميل الأطباق"
+          desc="تحقّق من الاتصال ثم أعد المحاولة — لم يتغيّر شيء في أطباقك."
+          action={<Button onClick={() => void load()}>أعد المحاولة</Button>}
+        />
+      ) : shown === null ? (
         <div className="grid gap-2">
           {[0, 1, 2].map((i) => (
             <Skeleton key={i} className="h-20" />

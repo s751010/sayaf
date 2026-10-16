@@ -15,8 +15,9 @@ import { GROUP_LABEL, INGREDIENTS, ingredientById, type IngredientGroup } from "
 import {
   computeNutrition,
   parseRecipe,
-  unitToGrams,
+  readyToApply,
   UNIT_LABEL,
+  withIngredient,
   type NutritionResult,
   type RecipeLine,
 } from "@/lib/recipe";
@@ -28,6 +29,26 @@ const EXAMPLE = "شوتين إسبريسو\nحليب كامل الدسم 200 م�
 
 /** مفتاح الوصفة المحفوظة على الجهاز — بنمط `cm2_loyalty_<id>` القائم. */
 const recipeKey = (dishId: string) => `${K.RECIPE}_${dishId}`;
+
+type Saved = { text: string; servings: string };
+
+/**
+ * الوصفة **وعدد حصصها** معاً.
+ *
+ * ⚠️ كان النصّ يُحفظ وحده: وصفة ٤ حصص تُفتح لاحقاً بحصّة واحدة فتعرض أربعة
+ * أضعاف أرقامها، وضغطةٌ واحدة تحفظها. والصيغة القديمة (نصٌّ خام) تُقرأ كما هي.
+ */
+function loadSaved(dishId: string | undefined): Saved {
+  const raw = dishId ? getItem(recipeKey(dishId)) : null;
+  if (!raw) return { text: "", servings: "1" };
+  try {
+    const v = JSON.parse(raw) as Partial<Saved>;
+    if (v && typeof v.text === "string") return { text: v.text, servings: String(v.servings ?? "1") };
+  } catch {
+    /* نصٌّ خام من الصيغة الأولى */
+  }
+  return { text: raw, servings: "1" };
+}
 
 const GROUPS = Object.keys(GROUP_LABEL) as IngredientGroup[];
 
@@ -44,27 +65,25 @@ export function RecipeCalculator({
   applyLabel?: string;
   busy?: boolean;
 }) {
-  const [text, setText] = useState(() => (dishId ? getItem(recipeKey(dishId)) : null) ?? "");
-  const [servings, setServings] = useState("1");
+  const [saved] = useState(() => loadSaved(dishId));
+  const [text, setText] = useState(saved.text);
+  const [servings, setServings] = useState(saved.servings);
   /** اختيار التاجر لسطرٍ لم يُفهم: رقم السطر ← معرّف المكوّن. */
   const [picks, setPicks] = useState<Record<number, string>>({});
 
   const lines: RecipeLine[] = useMemo(() => {
     return parseRecipe(text).map((line, i) => {
       const picked = picks[i];
-      if (!picked || line.ingredientId) return line;
-      const ing = ingredientById(picked);
-      const grams = ing ? unitToGrams(ing, line.qty, line.unit) : null;
-      return { ...line, ingredientId: picked, grams: grams === null ? null : Math.round(grams * 10) / 10 };
+      return !picked || line.ingredientId ? line : withIngredient(line, picked);
     });
   }, [text, picks]);
 
   const n = Math.max(1, Math.round(Number(servings) || 1));
   const result = useMemo(() => computeNutrition(lines, n), [lines, n]);
-  const usable = lines.length > 0 && result.unresolved.length < lines.length;
+  const usable = readyToApply(lines, result);
 
   const apply = () => {
-    if (dishId) setItem(recipeKey(dishId), text);
+    if (dishId) setItem(recipeKey(dishId), JSON.stringify({ text, servings: String(n) } satisfies Saved));
     onApply(result);
   };
 
@@ -160,7 +179,8 @@ export function RecipeCalculator({
         {result.unresolved.length > 0 && (
           <p className="flex items-start gap-2 rounded-[10px] bg-bad/8 px-3 py-2 text-xs text-bad">
             <Icon name="warn" size={15} className="mt-0.5 shrink-0" />
-            {result.unresolved.length} سطر خارج الحساب حتى تختار مكوّنه أو تكتب وزنه.
+            {result.unresolved.length} سطر خارج الحساب — اختر مكوّنه أو اكتب وزنه أو احذفه. لا يُحفظ
+            طبقٌ بنصف وصفته: الرقم الأقلّ من الحقيقة أسوأ من لا رقم.
           </p>
         )}
         <p className="text-[11px] leading-relaxed text-dim">
