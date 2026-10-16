@@ -15,10 +15,29 @@ import { CashierCard } from "@/components/CashierCard";
 import { getLoyaltyCustomers, redeemLoyalty, setupLoyalty, stampLoyalty } from "@/lib/data";
 import { normalizeDigits } from "@/lib/utils";
 import type { LoyaltyCustomer } from "@/lib/types";
-import { useDashboard } from "./Dashboard";
+import { useDashboard, FeatureGate } from "./Dashboard";
 import { InsightTabs } from "./Tabs";
 
+/**
+ * ⚠️ **الجدار في مكوّن غلاف لا داخل المكوّن نفسه.**
+ *
+ * لو كان الشرط داخل `LoyaltyInner` لوجب أن يسبق خطّافاته — أو لَقُفزت خطّافات
+ * بين رسمة وأخرى، وهو ما يحرسه `hook-order.test.ts`. والغلاف يجعل الأمر
+ * طبيعياً: إمّا يُركَّب الابن بخطّافاته كاملةً، أو لا يُركَّب أصلاً.
+ */
 export default function Loyalty() {
+  return (
+    <FeatureGate
+      feature="loyalty"
+      title="بطاقة الولاء تُفتح بالاشتراك"
+      desc="زبونك يجمع أختامه بلا تطبيق، والكاشير يختم برمز لا بحسابك. فعّل اشتراكك ليعود زبونك."
+    >
+      <LoyaltyInner />
+    </FeatureGate>
+  );
+}
+
+function LoyaltyInner() {
   const { restaurant, setRestaurant } = useDashboard();
   const toast = useToast();
   const [customers, setCustomers] = useState<LoyaltyCustomer[] | null>(null);

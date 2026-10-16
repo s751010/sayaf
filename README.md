@@ -44,14 +44,24 @@ npm run build        # tsc --noEmit && vite build  →  ../deploy
   publish = "deploy"
 ```
 
+**النشر المعتمد آلي:** كل دفعة على `main` تمرّ `.github/workflows/deploy.yml` —
+فحص أنواع ثم اختبارات ثم بناء ثم كروميوم، **ثم** نشر إلى الإنتاج. يلزمه سرّ
+`NETLIFY_AUTH_TOKEN` مرّة واحدة في Settings ← Secrets and variables ← Actions.
+
+> ⚠️ الموقع هو مشروع **`heroic-marzipan-b46da4`** في حساب Netlify. و
+> `cloudsmenu.netlify.app` — الذي كان مكتوباً هنا وفي الشيفرة — **ليس ملكاً
+> للمشروع**: لا وجود له في الحساب، ويردّ ٢٠٠ لأنه لأحدٍ آخر.
+
 **نشر يدوي (drag-and-drop):** ابنِ محلياً ثم اسحب مجلد **`deploy/`** بالكامل إلى
 لوحة Netlify. ملفات `_headers` و `_redirects` تُطبَّق تلقائياً.
+⚠️ والسحب **لا يقرأ `netlify.toml`** — فتسقط دالّة الحافة `menu-meta` معه،
+وتخرج روابط المنيو المشاركة بلا وسوم.
 
-تحقق بعد النشر أن هذه الروابط تعمل (ليست 404):
-- `https://cloudsmenu.netlify.app/robots.txt`
-- `https://cloudsmenu.netlify.app/manifest.webmanifest`
-- `https://cloudsmenu.netlify.app/demo` (منيو تجريبي حي)
-- `https://cloudsmenu.netlify.app/<any-slug>` (يجب أن يفتح التطبيق لا 404)
+تحقق بعد النشر أن هذه الروابط تعمل (ليست 404) — وهي نفسها ما تفحصه النبضة:
+- `https://heroic-marzipan-b46da4.netlify.app/robots.txt`
+- `https://heroic-marzipan-b46da4.netlify.app/manifest.webmanifest`
+- `https://heroic-marzipan-b46da4.netlify.app/demo` (منيو تجريبي حي)
+- `https://heroic-marzipan-b46da4.netlify.app/<any-slug>` (يجب أن يفتح التطبيق لا 404)
 
 ## ملاحظات production
 

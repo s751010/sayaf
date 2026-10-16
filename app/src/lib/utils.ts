@@ -103,11 +103,3 @@ export function whatsappUrl(raw: string, text?: string): string {
   const q = text ? `?text=${encodeURIComponent(text)}` : "";
   return `https://wa.me/${digits}${q}`;
 }
-
-/** نص مفصول بفواصل (عربية أو إنجليزية) → مصفوفة نظيفة. */
-export function csvToArray(v: string | null | undefined): string[] {
-  return String(v ?? "")
-    .split(/[,،]/)
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0);
-}

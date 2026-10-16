@@ -19,9 +19,6 @@ import { ALL_THEMES } from "@/lib/themes";
 /** عدد الطوابع الكاملة — محسوب، فلا يتقادم. */
 export const THEME_COUNT = ALL_THEMES.length;
 
-/** تخطيطات بطاقة الكاشير — `CARD_LAYOUTS` في `lib/cards.ts`. */
-export const CARD_LAYOUT_COUNT = 4;
-
 /** قياسات بطاقة الكاشير — `CARD_SIZES` في `lib/cards.ts`. */
 export const CARD_SIZE_COUNT = 6;
 

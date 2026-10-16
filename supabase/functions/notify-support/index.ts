@@ -59,7 +59,7 @@ function template(t: Ticket): string {
       <p style="margin:0 0 6px"><b>البريد:</b> ${or(t.email)}</p>
       <p style="margin:0 0 6px"><b>الموضوع:</b> ${or(t.subject)}</p>
       <div style="background:#f7f7f7;border-radius:8px;padding:14px;margin-top:12px;line-height:1.8;color:#333;white-space:pre-wrap">${escapeHtml(t.message ?? "")}</div>
-      <a href="https://cloudsmenu.netlify.app/founder/comms" style="display:inline-block;margin-top:18px;background:#D4A843;color:#14110A;text-decoration:none;padding:10px 22px;border-radius:8px;font-weight:bold">افتح لوحة المؤسّس للرد</a>
+      <a href="https://heroic-marzipan-b46da4.netlify.app/founder/comms" style="display:inline-block;margin-top:18px;background:#D4A843;color:#14110A;text-decoration:none;padding:10px 22px;border-radius:8px;font-weight:bold">افتح لوحة المؤسّس للرد</a>
     </div>
   </div>`;
 }

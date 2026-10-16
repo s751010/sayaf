@@ -16,7 +16,7 @@ import { getMyAnalytics, getMyDishes } from "@/lib/data";
 import { buildInsights } from "@/lib/insights";
 import { cn, formatPrice } from "@/lib/utils";
 import type { AnalyticsRow, Dish } from "@/lib/types";
-import { useDashboard } from "./Dashboard";
+import { useDashboard, FeatureGate } from "./Dashboard";
 import { InsightTabs } from "./Tabs";
 import { Icon, DishGlyph } from "@/lib/icons";
 import { menuUrl } from "@/lib/menuUrl";
@@ -133,7 +133,26 @@ function Delta({ now, prev }: { now: number; prev: number }) {
   );
 }
 
+/**
+ * ⚠️ **الجدار في مكوّن غلاف لا داخل المكوّن نفسه.**
+ *
+ * لو كان الشرط داخل `AnalyticsInner` لوجب أن يسبق خطّافاته — أو لَقُفزت خطّافات
+ * بين رسمة وأخرى، وهو ما يحرسه `hook-order.test.ts`. والغلاف يجعل الأمر
+ * طبيعياً: إمّا يُركَّب الابن بخطّافاته كاملةً، أو لا يُركَّب أصلاً.
+ */
 export default function Analytics() {
+  return (
+    <FeatureGate
+      feature="analytics"
+      title="التحليلات تُفتح بالاشتراك"
+      desc="اعرف أعلى أطباقك وساعات ذروتك وأكثر الطاولات طلباً — وقرارات المنيو تُبنى عليها. فعّل اشتراكك لتراها."
+    >
+      <AnalyticsInner />
+    </FeatureGate>
+  );
+}
+
+function AnalyticsInner() {
   const { user, restaurant } = useDashboard();
   const [rows, setRows] = useState<AnalyticsRow[] | null>(null);
   const [dishes, setDishes] = useState<Dish[] | null>(null);

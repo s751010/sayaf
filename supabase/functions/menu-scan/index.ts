@@ -25,6 +25,8 @@
  *
  * جلسة تاجر صالحة · ملكية المطعم · حدّ معدّل · حدّ حجم · صيغ صور فقط.
  */
+import { corsHeaders } from "../_shared/cors.ts";
+
 const URL_ = Deno.env.get("SUPABASE_URL")!;
 const SERVICE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ANON = Deno.env.get("SUPABASE_ANON_KEY")!;
@@ -35,15 +37,17 @@ const MODEL = Deno.env.get("MENU_SCAN_MODEL") ?? "gemini-3.5-flash-lite";
 const MAX_B64 = 6_000_000;
 const OK_MIME = ["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"];
 
-const cors = {
-  "access-control-allow-origin": "*",
-  "access-control-allow-headers": "authorization, content-type, apikey",
-  "access-control-allow-methods": "POST, OPTIONS",
-};
-const json = (body: unknown, status = 200) =>
+/**
+ * ⚠️ **CORS محصور بعد أن كان `*`.**
+ *
+ * هذه نقطة جلسة تاجر تُنفق على نموذج مدفوع — فهي بنفس مستوى ثقة `payments`
+ * و`billing-admin`، وكلتاهما على القائمة المقيّدة. القائمة في `_shared/cors.ts`
+ * مصدراً واحداً لا نسخة خامسة.
+ */
+const json = (req: Request, body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
     status,
-    headers: { ...cors, "content-type": "application/json" },
+    headers: { ...corsHeaders(req), "content-type": "application/json" },
   });
 
 /**
@@ -63,26 +67,26 @@ const PROMPT = `أنت تقرأ صورة منيو مطعم سعودي.
 - تجاهل الترويسة والعنوان والهاتف وملاحظة الضريبة وأوقات العمل.`;
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
-  if (req.method !== "POST") return json({ error: "method" }, 405);
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders(req) });
+  if (req.method !== "POST") return json(req, { error: "method" }, 405);
 
   // ── جلسة التاجر ────────────────────────────────────────────────────
   const auth = req.headers.get("authorization") ?? "";
   const token = auth.replace(/^Bearer\s+/i, "");
-  if (!token || token === ANON) return json({ error: "unauthorized" }, 401);
+  if (!token || token === ANON) return json(req, { error: "unauthorized" }, 401);
 
   const who = await fetch(`${URL_}/auth/v1/user`, {
     headers: { apikey: ANON, authorization: `Bearer ${token}` },
   });
-  if (!who.ok) return json({ error: "unauthorized" }, 401);
+  if (!who.ok) return json(req, { error: "unauthorized" }, 401);
   const user = await who.json();
   const uid: string | undefined = user?.id;
-  if (!uid) return json({ error: "unauthorized" }, 401);
+  if (!uid) return json(req, { error: "unauthorized" }, 401);
 
   // ⚠️ **بعد التحقّق من الجلسة لا قبله**: كانت تُجيب غير المصرَّح له بأن
   // الميزة «غير مفعّلة» — إفصاحٌ عن حال الإعداد لمن لا يملك حساباً.
   if (!GEMINI) {
-    return json({ error: "not_configured", message: "الميزة غير مفعّلة بعد." }, 503);
+    return json(req, { error: "not_configured", message: "الميزة غير مفعّلة بعد." }, 503);
   }
 
   // ── المدخلات ───────────────────────────────────────────────────────
@@ -90,15 +94,35 @@ Deno.serve(async (req) => {
   try {
     body = await req.json();
   } catch {
-    return json({ error: "bad_json" }, 400);
+    return json(req, { error: "bad_json" }, 400);
   }
   const { restaurant_id, image, mime } = body;
-  if (!restaurant_id || !image) return json({ error: "missing" }, 400);
+  if (!restaurant_id || !image) return json(req, { error: "missing" }, 400);
+
+  /**
+   * ⚠️ **شكل المعرّف يُفحص قبل أي استعلام — وهذا حارس فاتورة لا تنميق.**
+   *
+   * كان `restaurant_id` يُحقن خاماً في `?id=eq.${…}` أدناه، و`&` فيه يفتح
+   * معاملاً جديداً في PostgREST. فـ`"<معرّف مطعمك>&limit=1"` يمرّ فحص الملكية
+   * (الصفّ لك فعلاً)، ثم يصل **النصّ الملوَّث نفسه** إلى `abuse_hit` في معامل
+   * من نوع `uuid` ⇒ ٤٠٠ ⇒ ومع السقوط المفتوح أدناه **لا حدّ إطلاقاً** ⇒
+   * نداءات Gemini بلا سقف على فاتورة المالك، وهو بالضبط ما وُجد حدّ ٢٠/ساعة
+   * لمنعه.
+   *
+   * نفس حارس `paylink-order-create` حرفياً — ولنفس السبب.
+   */
+  if (
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      String(restaurant_id),
+    )
+  ) {
+    return json(req, { error: "forbidden" }, 403);
+  }
   if (image.length > MAX_B64) {
-    return json({ error: "too_large", message: "الصورة كبيرة — صوّرها بجودة أقل." }, 413);
+    return json(req, { error: "too_large", message: "الصورة كبيرة — صوّرها بجودة أقل." }, 413);
   }
   if (mime && !OK_MIME.includes(mime)) {
-    return json({ error: "bad_type", message: "ارفع صورة (JPG أو PNG)." }, 415);
+    return json(req, { error: "bad_type", message: "ارفع صورة (JPG أو PNG)." }, 415);
   }
 
   // ── الملكية: التاجر يقرأ منيو مطعمه هو ─────────────────────────────
@@ -107,7 +131,7 @@ Deno.serve(async (req) => {
     { headers: { apikey: SERVICE, authorization: `Bearer ${SERVICE}` } },
   ).then((r) => r.json());
   if (!Array.isArray(own) || own[0]?.user_id !== uid) {
-    return json({ error: "forbidden" }, 403);
+    return json(req, { error: "forbidden" }, 403);
   }
 
   // ── حدّ المعدّل: نداء النموذج يكلّف، فلا يُترك مفتوحاً ──────────────
@@ -125,9 +149,22 @@ Deno.serve(async (req) => {
       p_minutes: 60,
     }),
   });
-  if (hit.ok && (await hit.json()) === false) {
-    return json(
-      { error: "rate_limited", message: "جرّبت كثيراً خلال ساعة. انتظر قليلاً." },
+  /**
+   * ⚠️ **فشل العدّاد رفضٌ لا سماح.**
+   *
+   * كان الشرط `hit.ok && …` — أي أن أي فشل في العدّاد (٤٠٠ من معرّف مشوّه،
+   * أو عطل عابر) يعني **لا حدّ**. وخلف هذه النقطة نموذج مدفوع يُحاسَب عليه
+   * المالك، فالإغلاق عند الشكّ أرخص من الفتح عنده — وهو ما تفعله
+   * `paylink-order-create` عمداً لنفس السبب.
+   */
+  if (!hit.ok) {
+    console.error("abuse_hit:", hit.status, await hit.text().catch(() => ""));
+    return json(req, { error: "rate_unavailable", message: "تعذّر التحقّق الآن. حاول بعد قليل." },
+      503,
+    );
+  }
+  if ((await hit.json()) === false) {
+    return json(req, { error: "rate_limited", message: "جرّبت كثيراً خلال ساعة. انتظر قليلاً." },
       429,
     );
   }
@@ -157,8 +194,7 @@ Deno.serve(async (req) => {
     if (!r.ok) {
       // ٥٠٣/٤٢٩ ازدحامٌ عابر — نقولها كما هي بدل «فشل» مبهم.
       const busy = r.status === 503 || r.status === 429;
-      return json(
-        {
+      return json(req, {
           error: busy ? "busy" : "model_error",
           message: busy
             ? "الخدمة مزدحمة الآن. أعد المحاولة بعد لحظات."
@@ -169,7 +205,7 @@ Deno.serve(async (req) => {
     }
     raw = j?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
   } catch {
-    return json({ error: "model_unreachable", message: "تعذّر الوصول للخدمة." }, 502);
+    return json(req, { error: "model_unreachable", message: "تعذّر الوصول للخدمة." }, 502);
   }
 
   // ── التنظيف: النموذج قد يغلّف JSON بنصّ أو بسياج ─────────────────
@@ -206,5 +242,5 @@ Deno.serve(async (req) => {
     .filter((x) => x.name)
     .slice(0, 300); // سقفٌ يمنع ردّاً ضخماً من نموذج شارد
 
-  return json({ items: clean, model: MODEL, count: clean.length });
+  return json(req, { items: clean, model: MODEL, count: clean.length });
 });

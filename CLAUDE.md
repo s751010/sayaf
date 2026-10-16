@@ -73,9 +73,12 @@ app/src/
     Demo.tsx            منيو تجريبي حي /demo (بيانات محلية، بدون شبكة)
     Login.tsx  ResetPassword.tsx  Stamp.tsx (وضع الكاشير العام)
     Blog.tsx  BlogPost.tsx  Help.tsx  ApiDocs.tsx  NotFound.tsx
-    dashboard/          Dashboard(shell) Overview Dishes Menus Design Cards Qr
+    About.tsx           «من نحن» — قصّة المنتج (فيها `OWNER_STORY_TODO`)
+    Legal.tsx           الخصوصية والشروط (فيها `IDENTITY_TODO` — انظر LAUNCH.md)
+    dashboard/          Dashboard(shell) Overview Dishes Menus Orders Design Cards Qr
                         Analytics Loyalty Billing Settings Tabs
     founder/            Founder(shell+بوابة) Overview Merchants MerchantDetail
+                        BillingConsole (وحدة الاستلام، §21)
                         Money Comms Health
   components/
     ui.tsx              نظام التصميم: Button Card Badge Field Input Modal Toast…
@@ -87,11 +90,16 @@ app/src/
     menu/chrome.tsx      قِطَع المنيو الصغيرة: Chip · MenuSheet · SectionHeading · mFont
     menu/DishModal.tsx   نافذة الطبق — **نقطة اختيار الإضافات الوحيدة**
     menu/LoyaltyCard.tsx بطاقة الولاء داخل المنيو (تُحفظ محلياً)
+    menu/LoyaltyProgress.tsx شريط تقدّم الأختام
+    menu/DishArtwork.tsx رسمٌ مشتقّ من اسم الطبق حين لا صورة (FNV-1a)
     menu/Cart.tsx        السلّة نفسها: useCart · CartBar · AddToCartButton (§13)
     menu/CartReview.tsx  شاشة المراجعة والدفع (§13)
     menu/PickupTicket.tsx تذكرة الاستلام بعد الدفع (§13)
     landing/PhonePreview.tsx معاينة الهاتف الحيّة في صفحة الهبوط
     landing/PricingCards.tsx بطاقات الأسعار — أرقامها من lib/plans لا من نصّ
+    landing/LiveDemo.tsx · ScanDemo.tsx · SwitchCost.tsx · Reveal.tsx أقسام الهبوط
+    MenuScan.tsx        قراءة المنيو من صورة (تنادي دالّة `menu-scan`)
+    TrialBar.tsx        شريط أيام التجربة المتبقّية
     ImageUploader.tsx   رفع صورة واحدة (يستورد الضغط من lib/image)
     BulkImages.tsx      رفع صور متعدد + ربط كل صورة بطبقها
     DishImport.tsx      استيراد أصناف (لصق نص أو CSV) + جدول مراجعة
@@ -133,6 +141,13 @@ app/src/
     apiKeys.ts          توليد مفاتيح API في المتصفح + هاشها (§14)
     menuUrl.ts          واجهة مُنمَّطة لـshared/menu-url.mjs — **كل رابط منيو منها**
     menuText.ts         نصوص المنيو بلغة الزبون — **مصدر واحد** لاسم الطبق ووصفه
+    billing.ts          مفاتيح التحصيل + بدء الاشتراك — **المحلّل الوحيد** لها
+    cards.ts            رسم بطاقات الكاشير (§17) — حزمة مستقلّة، لا تُستورد في الهبوط
+    qr.ts               توليد كود QR (مشترك بين الاستوديو وصفحة الأكواد)
+    facts.ts            أرقام المنتج المعروضة (طوابع · قياسات · DPI)
+    nav.ts              عناصر قائمة اللوحة
+    seo.ts · ogImage.ts وسوم الصفحات وصورة المشاركة
+    track.ts · phoneDemo.ts · reveal.ts · password.ts أدوات مساعدة
 ```
 
 اللغة: عربية RTL. الخطوط ذاتية الاستضافة عبر `@fontsource` (لا Google Fonts).
@@ -177,12 +192,19 @@ Project ref: `wxrukupcyfypnqnotmxv` (اسمه «claudmenu» · سنغافورة)
 > و**`client_errors`** جديد: انهيارات الواجهة يرسلها `ErrorBoundary`. إدراج
 > `anon` فقط، والقراءة للمؤسّس، والتوقيع يحسبه التريجر لا العميل.
 
-**Edge Functions المنشورة فعلياً** (مؤكَّدة من لوحة Supabase؛ `ai-proxy`
-موجودة لكن لم تُعد الواجهة تستدعيها بعد حذف المستشار الذكي):
+**Edge Functions الحيّة** (مؤكَّدة من المشروع لا من الذاكرة):
 `founder-admin` · `moyasar-webhook` · `notify-support` ·
-`dynamic-task` · `payments` · `paylink-create` · `paylink-webhook` ·
+`payments` · `paylink-create` · `paylink-webhook` ·
 `paylink-order-create` · `order-verify` (§13) · `api` (§14) ·
 `webhook-dispatch` (§16) · `billing-admin` · `menu-scan` (قراءة المنيو من صورة).
+
+> ⚠️ **صُحّح ٢٠٢٦/٠٩/١١**: كان هذا السطر يعدّ `dynamic-task` بين الحيّة ويقول
+> إن `ai-proxy` «موجودة ولم تُعد الواجهة تستدعيها» — بينما الفقرة بعده بأربعة
+> أسطر تعدّهما **مُقبَرتين**. والقياس الحيّ يحسمها: الاثنتان منشورتان وتردّان
+> **٤١٠**، أي مُقبَرتان فعلاً. فالوصف الأوّل كان الخطأ.
+>
+> ولا تُقرأ «منشورة» على أنها «حيّة»: دالّةٌ مقبورة تبقى منشورة حتى يحذفها
+> المالك من اللوحة.
 
 > ⚠️ **`verify_jwt: true` لا تعني «مستخدم مسجَّل».** تعني «أي JWT موقَّع بمفتاح
 > المشروع» — و**مفتاح `anon` منها**، وهو منشور في حزمة جافاسكربت التي ينزّلها
@@ -195,8 +217,12 @@ Project ref: `wxrukupcyfypnqnotmxv` (اسمه «claudmenu» · سنغافورة)
 
 > **ستّ دوالّ مُقبَرة** تردّ 410 ولا تفعل شيئاً: `ai-proxy` · `dynamic-task` ·
 > `OpenAI` · `openai-proxy` · `generate-article` · `migrate-images`. مصادرها
-> في `supabase/functions/_archive/` وشواهدها في `_tombstones/`، والسبب في
-> `_archive/README.md`. ✅ للمالك حذفها نهائياً من اللوحة.
+> الأصلية في `supabase/functions/_archive/` وشواهدها في `_tombstones/`،
+> والسبب في `_archive/README.md`. ✅ للمالك حذفها نهائياً من اللوحة.
+>
+> ⚠️ وكانت `_tombstones/` تحمل **أربعاً** لا ستّاً: `ai-proxy` و`dynamic-task`
+> منشورتان حيّتان وتردّان ٤١٠، **بلا مصدر في المستودع**. فإعادة نشر من الكود
+> كانت تسقطهما بصمت. أُضيفت شاهدتاهما (٢٠٢٦/٠٩/١١).
 
 > `founder-admin` **موجود ونشط**. (توثيق قديم في `web/MIGRATION.md` كان يقول
 > غير ذلك — كان خطأً، والمجلد حُذف.)

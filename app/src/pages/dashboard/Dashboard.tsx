@@ -577,6 +577,49 @@ export default function Dashboard() {
 }
 
 /* بوابة ترقية مشتركة للميزات المدفوعة */
+/** مفاتيح `PlanLimits` المنطقية — ما يُفتح بالاشتراك لا ما يُعدّ. */
+type FeatureKey = {
+  [K in keyof Entitlements]: Entitlements[K] extends boolean ? K : never;
+}[keyof Entitlements];
+
+/**
+ * جدار ميزة مدفوعة — **يستبدل المحتوى لا يُذيَّل به**.
+ *
+ * ═══ لماذا وُجد ═══
+ *
+ * `FREE_LIMITS` كان يعلن أن الولاء والكاشير والتحليلات والبطاقات والدفع
+ * الإلكتروني مغلقة لغير المشترك، و**صفر مكوّن يقرأ تلك الأعلام**. فتاجرٌ
+ * انتهى اشتراكه يحتفظ بكل شيء عدا الـ`api` — أي أن الاشتراك لا يبيع شيئاً
+ * قابلاً للحجب.
+ *
+ * ═══ ⚠️ وهذا **ليس** الحارس ═══
+ *
+ * جدارٌ في الواجهة يمنع العرض لا الوصول: من يفتح أدوات المطوّر يتجاوزه. الحارس
+ * الحقيقي في الخادم — `paylink-order-create` ترفض بـ٤٠٢ بلا اشتراك، تماماً
+ * كما تفعل `api`. وما لم يُحرس خادمياً بعد موثَّق في `LAUNCH.md`.
+ *
+ * ═══ قاعدة (ج) ═══
+ *
+ * `ent.loading` **قبل** كل شيء: بدونها يرى المشترك وميض جدار ترقية في كل
+ * تحميل — وهو نفس درس «لا تعرض جدار ترقية قبل أن تُحسم الصلاحيات».
+ */
+export function FeatureGate({
+  feature,
+  title,
+  desc,
+  children,
+}: {
+  feature: FeatureKey;
+  title: string;
+  desc: string;
+  children: React.ReactNode;
+}) {
+  const { ent } = useDashboard();
+  if (ent.loading) return null;
+  if (ent[feature]) return <>{children}</>;
+  return <UpgradeGate title={title} desc={desc} />;
+}
+
 export function UpgradeGate({ title, desc }: { title: string; desc: string }) {
   return (
     <Card className="mt-6 flex flex-col items-center gap-3 border-gold/30 bg-gold/[.04] py-10 text-center">

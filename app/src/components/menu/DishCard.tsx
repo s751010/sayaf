@@ -18,8 +18,8 @@ import type { Dish } from "@/lib/types";
 import { cn, formatPrice } from "@/lib/utils";
 import { Icon } from "@/lib/icons";
 import { DishArtwork } from "./DishArtwork";
-
-const mFont: CSSProperties = { fontFamily: "var(--m-font)" };
+// ⚠️ يُستورد لا يُكتب: كان معرَّفاً هنا نسخةً ثانية من ثابت `chrome.tsx` نفسه.
+import { mFont } from "./chrome";
 
 /** نصف قطر صورة الطبق حسب شكل الطابع. */
 function imageRadius(shape: ImageShape): string {

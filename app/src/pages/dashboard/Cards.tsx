@@ -30,12 +30,31 @@ import {
 import { splitThemeId } from "@/lib/themes";
 import { getMyMenus } from "@/lib/data";
 import { cn } from "@/lib/utils";
-import { useDashboard } from "./Dashboard";
+import { useDashboard, FeatureGate } from "./Dashboard";
 import { PrintTabs } from "./Tabs";
 import { Icon } from "@/lib/icons";
 import { menuUrl } from "@/lib/menuUrl";
 
+/**
+ * ⚠️ **الجدار في مكوّن غلاف لا داخل المكوّن نفسه.**
+ *
+ * لو كان الشرط داخل `CardsInner` لوجب أن يسبق خطّافاته — أو لَقُفزت خطّافات
+ * بين رسمة وأخرى، وهو ما يحرسه `hook-order.test.ts`. والغلاف يجعل الأمر
+ * طبيعياً: إمّا يُركَّب الابن بخطّافاته كاملةً، أو لا يُركَّب أصلاً.
+ */
 export default function Cards() {
+  return (
+    <FeatureGate
+      feature="cards"
+      title="استوديو البطاقات يُفتح بالاشتراك"
+      desc="بطاقات كاشير بهوية مطعمك جاهزة للطباعة بدقّة 300 DPI — بلا مصمّم وبلا Canva. فعّل اشتراكك لتصمّمها."
+    >
+      <CardsInner />
+    </FeatureGate>
+  );
+}
+
+function CardsInner() {
   const { restaurant } = useDashboard();
   const toast = useToast();
   const previewRef = useRef<HTMLCanvasElement>(null);
