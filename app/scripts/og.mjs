@@ -33,28 +33,36 @@ function fontData(rel) {
   return `data:font/woff2;base64,${readFileSync(p).toString("base64")}`;
 }
 
-const cairo = fontData("@fontsource-variable/cairo/files/cairo-arabic-wght-normal.woff2");
-const reem = fontData("@fontsource/reem-kufi/files/reem-kufi-arabic-700-normal.woff2");
-if (!cairo || !reem) {
+/**
+ * خطّا المنصّة نفسهما (`main.tsx`): **المراعي** للعنوان و**طجوال** للنصّ.
+ * كانت الصورة بريم كوفي والقاهرة — فلمّا تبدّل خطّ المنصّة (٢٠٢٦/١٠) صارت
+ * بطاقة المشاركة آخر مكانٍ يحمل الخطّ القديم، وهي أوّل ما يراه من يُرسَل إليه الرابط.
+ */
+const almarai = fontData("@fontsource/almarai/files/almarai-arabic-800-normal.woff2");
+const tajawal500 = fontData("@fontsource/tajawal/files/tajawal-arabic-500-normal.woff2");
+const tajawal700 = fontData("@fontsource/tajawal/files/tajawal-arabic-700-normal.woff2");
+// ⚠️ **والأرقام في المجموعة اللاتينية لا العربية**: أوّل توليد رسم «182» بخطّ
+// احتياطي ذي زوائد لأن ملفّ `arabic` وحده لا يحمل 0-9.
+const almaraiLatin = fontData("@fontsource/almarai/files/almarai-latin-800-normal.woff2");
+const tajawalLatin500 = fontData("@fontsource/tajawal/files/tajawal-latin-500-normal.woff2");
+const tajawalLatin700 = fontData("@fontsource/tajawal/files/tajawal-latin-700-normal.woff2");
+if (![almarai, tajawal500, tajawal700, almaraiLatin, tajawalLatin500, tajawalLatin700].every(Boolean)) {
   console.error("✗ تعذّر تحميل الخطوط — الصورة كانت ستُرسم بخطّ احتياطي. أُوقف.");
   process.exit(1);
 }
 
 /**
- * ⚠️ **اللوحة النهارية — مطابقة للوضع الأساس في `styles/global.css`.**
+ * ⚠️ **رموز «ملصقٌ وسدو» — مطابقة للوضع الأساس في `styles/global.css`.**
  *
- * كانت البطاقة داكنة لأن المنتج كان داكناً. فلمّا صار الأبيض أساساً صارت
- * بطاقةٌ سوداء في واتساب وعداً بشيء غير الذي يُفتح.
- *
- * والقيم الشفّافة تحتها **تُشتقّ من اللونين** لا تُكتب أرقاماً: كانت مكتوبة
- * بيد بقنوات الذهب والحبر القديمين، فلو بُدّل `GOLD` وحده لبقيت الحدود
- * والخلفيات على الذهب السابق بلا أن يظهر خطأ.
+ * كانت البطاقة بذهب الهوية السابقة وورقها، وتَعِد بـ«تجربة رقمية فاخرة» —
+ * وعدُ المنتج قبل إعادة التموضع. فمن فتح الرابط وجد صفحةً غير التي وُعد بها.
+ * والوعد الآن وعد الهبوط حرفياً: الملصق المحسوب من الوصفة.
  */
-const GOLD = "#a8821f";
-const GOLD2 = "#8a6a15";
-const PAGE = "#faf6ee";
-const INK = "#241d12";
-const DIM = "#746a58";
+const PAGE = "#f3f1ec";
+const INK = "#15130f";
+const DIM = "#5a5346";
+const GOLD = "#785d16";
+const SADU = "#9b2318";
 
 /** `#rrggbb` → `r,g,b` — لبناء `rgba()` من نفس المصدر. */
 const rgb = (hex) =>
@@ -62,75 +70,95 @@ const rgb = (hex) =>
 const GOLD_RGB = rgb(GOLD);
 const INK_RGB = rgb(INK);
 
+/** شريط السدو — على هيئة `.sadu-band` في الموقع مكبّرةً: مثلّثات بين خيطين. */
+const sadu = `background:
+  linear-gradient(135deg, ${SADU} 25%, transparent 25%) 0 3px / 20px 10px repeat-x,
+  linear-gradient(225deg, ${SADU} 25%, transparent 25%) 0 3px / 20px 10px repeat-x,
+  linear-gradient(to bottom, ${INK} 0 3px, transparent 3px 13px, ${INK} 13px);`;
+
 /**
- * زخرفة الجيري — **مطابقة لما في `lib/patterns.ts`** لا رسم جديد.
- * أُبقيت شفّافة جداً: الزخرفة خلفية لا موضوع.
+ * الملصق بأرقام مثال البطل (لاتيه كراميل · `lib/recipeExamples.ts`) كما يحسبها
+ * المحرّك — لا أرقامٌ تزيينية: من يفتح الرابط ويجرّب المثال يجد الرقم نفسه.
  */
-const girih = `<svg xmlns='http://www.w3.org/2000/svg' width='90' height='90' viewBox='0 0 90 90'>
-  <g fill='none' stroke='${GOLD}' stroke-width='1.1' opacity='0.5'>
-    <path d='M45 8 L61 24 L45 40 L29 24 Z'/>
-    <path d='M45 50 L61 66 L45 82 L29 66 Z'/>
-    <path d='M0 24 L16 40 L0 56'/><path d='M90 24 L74 40 L90 56'/>
-    <path d='M29 24 L16 40 L29 66'/><path d='M61 24 L74 40 L61 66'/>
-  </g></svg>`;
+const label = [
+  ["الدهون", "6.9 غ"],
+  ["السكريات", "22.9 غ"],
+  ["الصوديوم", "98 ملغم"],
+  ["الكافيين", "127 ملغم"],
+  ["دقائق مشي لحرقها", "46"],
+];
 
 const html = `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8">
 <style>
-  @font-face { font-family: "Cairo"; src: url("${cairo}") format("woff2"); font-weight: 100 900; }
-  @font-face { font-family: "Reem"; src: url("${reem}") format("woff2"); font-weight: 700; }
+  @font-face { font-family: "Almarai"; src: url("${almarai}") format("woff2"); font-weight: 800; }
+  @font-face { font-family: "Tajawal"; src: url("${tajawal500}") format("woff2"); font-weight: 500; }
+  @font-face { font-family: "Tajawal"; src: url("${tajawal700}") format("woff2"); font-weight: 700; }
+  @font-face { font-family: "AlmaraiL"; src: url("${almaraiLatin}") format("woff2"); font-weight: 800; }
+  @font-face { font-family: "TajawalL"; src: url("${tajawalLatin500}") format("woff2"); font-weight: 500; }
+  @font-face { font-family: "TajawalL"; src: url("${tajawalLatin700}") format("woff2"); font-weight: 700; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   /* القصّ على الجذر لا على body وحده. أوّل توليد خرج مقصوصاً: صفّ الشرائح
      تجاوز عرض ١٢٠٠ فاتّسع المستند، وفي RTL يمتدّ الفائض يساراً ويبدأ العرض
      من الحافة اليمنى — فانزاحت الصورة ١٩٠px وقُصّ نصفها. العلاج عند المصدر:
      منع الفائض بالالتفاف وسقف العرض، لا إزاحة معاكسة تداري الأثر. */
   html { width: 1200px; height: 630px; overflow: hidden; }
-  body { width: 1200px; height: 630px; background: ${PAGE}; font-family: "Cairo", sans-serif;
-         position: relative; overflow: hidden; }
-  .pattern { position: absolute; inset: 0;
-    background-image: url("data:image/svg+xml;utf8,${encodeURIComponent(girih)}");
-    /* ⚠️ 0.055 كانت تكفي ذهباً على أسود؛ على ورقٍ فاتح تختفي الزخرفة تماماً. */
-    background-size: 90px 90px; opacity: 0.1; }
-  .glow { position: absolute; width: 900px; height: 900px; border-radius: 50%;
-    /* توهّجٌ على أسود يصير بقعةً على أبيض — فيُخفَّف حتى يبقى دفئاً لا لطخة. */
-    background: radial-gradient(circle, rgba(${GOLD_RGB},0.1), transparent 62%);
-    top: -420px; left: -180px; }
-  .edge { position: absolute; inset: 0; border: 10px solid transparent;
-    border-image: linear-gradient(135deg, ${GOLD}, rgba(${GOLD_RGB},0.16) 45%, ${GOLD}) 1; }
-  .wrap { position: relative; height: 100%; display: flex; flex-direction: column;
-    justify-content: center; padding: 0 84px; }
-  .kicker { display: inline-flex; align-items: center; gap: 12px; align-self: flex-start;
-    border: 1px solid rgba(${GOLD_RGB},0.34); border-radius: 999px;
-    padding: 11px 24px; color: ${GOLD}; font-size: 25px; font-weight: 700;
-    background: rgba(${GOLD_RGB},0.09); }
-  h1 { font-family: "Reem", serif; font-size: 92px; line-height: 1.22; color: ${INK};
-    margin-top: 34px; font-weight: 700; }
-  h1 .g { background: linear-gradient(120deg, ${GOLD2}, ${GOLD} 55%, ${GOLD2});
-    -webkit-background-clip: text; background-clip: text; color: transparent; }
-  p { font-size: 31px; color: ${DIM}; margin-top: 26px; line-height: 1.6; max-width: 900px; }
-  .feet { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 42px; max-width: 1032px; }
-  .chip { border: 1px solid rgba(${INK_RGB},0.16); border-radius: 14px;
-    padding: 13px 24px; color: ${INK}; font-size: 24px; font-weight: 700;
-    background: rgba(${INK_RGB},0.05); }
-  .brand { position: absolute; bottom: 46px; left: 84px; display: flex; align-items: center;
-    gap: 14px; color: ${GOLD}; font-size: 30px; font-weight: 900; direction: rtl; }
-  .dot { width: 15px; height: 15px; border-radius: 50%; background: ${GOLD}; }
+  body { width: 1200px; height: 630px; background: ${PAGE}; color: ${INK};
+    font-family: "Tajawal", "TajawalL", sans-serif; position: relative; overflow: hidden;
+    background-image: radial-gradient(760px 380px at 92% -12%, rgba(${GOLD_RGB},0.14), transparent 60%); }
+  .wrap { position: relative; height: 100%; display: grid; grid-template-columns: 1fr 400px;
+    gap: 64px; align-items: center; padding: 0 76px; }
+  .text { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+  .kicker { align-self: flex-start; display: inline-flex; align-items: center; gap: 12px;
+    border: 1px solid rgba(${INK_RGB},0.14); background: #fff; border-radius: 999px;
+    padding: 10px 22px; font-size: 23px; font-weight: 700; }
+  .kicker i { width: 10px; height: 10px; border-radius: 50%; background: ${SADU}; display: block; }
+  h1 { font-family: "Almarai", "AlmaraiL", sans-serif; font-weight: 800; font-size: 66px; line-height: 1.3; letter-spacing: -0.5px; }
+  h1 em { font-style: normal; color: ${GOLD}; }
+  p { font-size: 26px; font-weight: 500; color: ${DIM}; line-height: 1.6; }
+  .band { width: 240px; height: 16px; ${sadu} }
+  .foot { display: flex; align-items: center; gap: 22px; margin-top: 6px; }
+  .brand { display: flex; align-items: center; gap: 10px;
+    font-family: "Almarai", "AlmaraiL"; font-weight: 800; font-size: 28px; }
+  .brand b { color: ${GOLD}; }
+  .label { background: #fff; border: 3px solid ${INK}; border-radius: 12px; padding: 22px 24px;
+    box-shadow: 0 34px 80px -44px rgba(0,0,0,0.6); }
+  .label h3 { font-family: "Almarai", "AlmaraiL"; font-weight: 800; font-size: 32px; }
+  .label small { font-size: 17px; font-weight: 500; color: ${DIM}; }
+  .thick { height: 12px; background: ${INK}; margin: 12px 0; }
+  .mid { height: 5px; background: ${INK}; margin: 10px 0 4px; }
+  .big { display: flex; justify-content: space-between; align-items: baseline; }
+  .big span { font-size: 25px; font-weight: 700; }
+  .big strong { font-family: "Almarai", "AlmaraiL"; font-weight: 800; font-size: 66px; line-height: 1; }
+  .row { display: flex; justify-content: space-between; align-items: baseline; padding: 9px 0;
+    border-bottom: 1px solid rgba(${INK_RGB},0.15); font-size: 21px; font-weight: 500; }
+  .row:last-child { border-bottom: 0; }
+  .row b { font-weight: 700; }
 </style></head><body>
-  <div class="pattern"></div><div class="glow"></div><div class="edge"></div>
   <div class="wrap">
-    <span class="kicker">🇸🇦 صُنع للمطاعم السعودية</span>
-    <h1>منيو مطعمك<br><span class="g">تجربة رقمية فاخرة</span></h1>
-    <p>كود QR واحد يفتح لزبائنك منيو أنيقاً بـ21 طابعاً — بلا تطبيقات وبلا تعقيد.</p>
-    <div class="feet">
-      <span class="chip">21 طابعاً</span>
-      <span class="chip">بطاقة ولاء</span>
-      <span class="chip">إحصائيات مباشرة</span>
-      <span class="chip">٣٠٠ DPI للطباعة</span>
+    <div class="text">
+      <span class="kicker"><i></i>للمطاعم والمقاهي السعودية</span>
+      <h1>سعراتك محسوبة،<br><em>لا مكتوبة.</em></h1>
+      <p>اكتب الوصفة — نحسب السعرات والكافيين والحساسية، وننشرها على منيو QR ومطبوع <span style="white-space: nowrap">في 21 طابعاً.</span></p>
+      <div class="foot">
+        <div class="brand">
+          <svg width="40" height="40" viewBox="0 0 48 48" aria-hidden="true"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f0c96a"/><stop offset="1" stop-color="#c99a2e"/></linearGradient></defs><path d="M13 30a7 7 0 0 1 .6-13.97A10 10 0 0 1 33 14a8 8 0 0 1 2 15.75V30H13Z" fill="url(#g)"/><rect x="16" y="33" width="16" height="2.6" rx="1.3" fill="url(#g)" opacity=".85"/><rect x="19" y="38" width="10" height="2.6" rx="1.3" fill="url(#g)" opacity=".55"/></svg>
+          كلاود <b>منيو</b>
+        </div>
+        <div class="band"></div>
+      </div>
+    </div>
+    <div class="label">
+      <h3>القيم الغذائية</h3><small>لاتيه كراميل · لكل حصّة (286 غ)</small>
+      <div class="thick"></div>
+      <div class="big"><span>السعرات الحرارية</span><strong>182</strong></div>
+      <div class="mid"></div>
+      ${label.map(([k, v]) => `<div class="row"><span>${k}</span><b>${v}</b></div>`).join("")}
     </div>
   </div>
-  <div class="brand"><span class="dot"></span>كلاود منيو</div>
 </body></html>`;
 
-const browser = await chromium.launch();
+// `PW_CHROMIUM_PATH` كما في `playwright.config.ts`: مخرجٌ للحاويات بلا تنزيل.
+const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM_PATH || undefined });
 const page = await browser.newPage({ viewport: { width: 1200, height: 630 } });
 await page.setContent(html, { waitUntil: "load" });
 // ⚠️ بلا هذا تُرسم العربية بخطّ احتياطي بصمت — نفس عطل §18 في `renderCard`.

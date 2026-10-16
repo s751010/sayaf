@@ -103,6 +103,18 @@ const urls = [...STATIC];
 let merchants = 0;
 let posts = 0;
 
+/**
+ * المقالات الثابتة (`src/content/articles.json`) — تُشحن مع الموقع، فتُدرَج
+ * **قبل** سؤال القاعدة ولا تسقط بسقوطه. انظر `src/lib/articles.ts`.
+ */
+const ARTICLES = JSON.parse(readFileSync(join(here, "../src/content/articles.json"), "utf8"));
+const articleSlugs = new Set();
+for (const a of ARTICLES) {
+  urls.push({ loc: `/blog/${encodeURIComponent(a.slug)}`, priority: "0.7", changefreq: "monthly", lastmod: a.date });
+  articleSlugs.add(a.slug);
+  posts++;
+}
+
 try {
   // القوائم المفعّلة وحدها، ومنها نعرف أي المطاعم لها ما يُعرض.
   const [restaurants, menus, dishes] = await Promise.all([
@@ -135,7 +147,7 @@ try {
 
   const published = await rest("blog_posts?select=slug,created_at&published=is.true");
   for (const p of published) {
-    if (!p.slug) continue;
+    if (!p.slug || articleSlugs.has(p.slug)) continue;
     urls.push({
       loc: `/blog/${encodeURIComponent(p.slug)}`,
       priority: "0.6",

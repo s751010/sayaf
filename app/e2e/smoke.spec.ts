@@ -1,5 +1,5 @@
 /**
- * فحص الإقلاع — خمس صفحات في متصفّح حقيقي.
+ * فحص الإقلاع — ستّ صفحات في متصفّح حقيقي.
  *
  * ═══ ما يفحصه، وما لا يفحصه ═══
  *
@@ -34,6 +34,10 @@ const PAGES = [
   { path: "/login", anchor: "البريد الإلكتروني", role: "text", label: "الدخول" },
   { path: "/restaurants", anchor: "دليل المطاعم", role: "heading", label: "الدليل" },
   { path: "/help", anchor: "المساعدة والتواصل", role: "heading", label: "المساعدة" },
+  // مقالٌ ثابت: نصّه يُحمَّل كسولاً (`import.meta.glob`) ويمرّ على المنقّي في
+  // متصفّح حقيقي — بلا شبكة. والمرساة عنوانٌ **داخل النصّ** لا عنوان المقال:
+  // عنوان المقال من `articles.json` يظهر ولو سقط تحميل النصّ.
+  { path: "/blog/saudi-menu-requirements", anchor: "الخلاصة في جدول", role: "heading", label: "مقال ثابت" },
 ] as const;
 
 for (const p of PAGES) {
