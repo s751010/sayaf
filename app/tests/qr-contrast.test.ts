@@ -6,7 +6,7 @@
  * عطل لا يظهر في أي فحص بصري، لأن الكود يبدو سليماً تماماً.
  */
 import { describe, expect, it } from "vitest";
-import { qrSafeColor } from "../src/lib/themes";
+import { ALL_THEMES, qrSafeColor } from "../src/lib/themes";
 
 /** نسبة تباين WCAG — مكرّرة هنا عمداً كي يفحص الاختبار النتيجة لا التنفيذ. */
 function contrast(a: string, b: string): number {
@@ -48,4 +48,20 @@ describe("qrSafeColor", () => {
     expect(qrSafeColor("ليس لوناً")).toBe("#141210");
     expect(qrSafeColor("#fff")).toBe("#141210");
   });
+});
+
+/**
+ * عناوين المنيو المطبوع — `PrintMenu.tsx` يمرّر تمييز الطابع على `qrSafeColor`.
+ *
+ * ⚠️ الطوابع صُمّمت لشاشة، وكثيرٌ منها داكن الأرضية فتمييزه فاتح: ذهب
+ * `dark-gold` على الورق الأبيض ≈2:1، فيطبع التاجر منيوه وعناوين أقسامه
+ * باهتة لا تُقرأ من مسافة الطاولة. والفحص يمرّ على **كل** طابع لا على عيّنة.
+ */
+describe("تمييز كل طابع يُقرأ على الورق", () => {
+  it.each(ALL_THEMES.map((t) => [t.id, t.vars["--m-accent"]] as const))(
+    "%s",
+    (_id, accent) => {
+      expect(contrast(qrSafeColor(accent ?? ""), "#ffffff")).toBeGreaterThanOrEqual(4.5);
+    },
+  );
 });

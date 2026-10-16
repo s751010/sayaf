@@ -756,7 +756,7 @@ export default function Dishes() {
         <div className="mt-5 flex flex-col gap-6">
           {groups.map((g) => (
             <section key={g.name}>
-              <h2 className="mb-2 flex items-center gap-2 font-display text-sm font-extrabold text-dim">
+              <h2 className="mb-2 flex items-center gap-2 text-sm font-bold text-dim">
                 {g.name}
                 <span className="font-normal text-faint">· {g.dishes.length}</span>
               </h2>
@@ -981,10 +981,10 @@ export default function Dishes() {
               )}
               {computed.highSodium && <Badge variant="red">🧂 صوديوم مرتفع</Badge>}
               {computed.sfdaCompliant ? (
-                <Badge variant="green">✅ متوافق مع SFDA</Badge>
+                <Badge variant="green">✅ اكتملت أرقام الهيئة</Badge>
               ) : (
                 <span className="text-xs text-faint">
-                  أضف السعرات والصوديوم ليظهر شعار توافق SFDA للزبون.
+                  أضف السعرات والصوديوم ليرى الزبون أن القيم مُعلنة.
                 </span>
               )}
             </div>

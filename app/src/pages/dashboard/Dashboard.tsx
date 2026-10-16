@@ -381,8 +381,10 @@ function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode
       <div className="flex min-w-0 flex-1 flex-col">
         {/* علوي (جوال) */}
         <header className="sticky top-0 z-30 border-b border-line bg-page/85 backdrop-blur-lg lg:hidden">
-          <div className="flex h-14 items-center justify-between px-4">
-            <Link to="/"><Logo /></Link>
+          <div className="flex h-14 items-center justify-between gap-2 px-4">
+            {/* الشعار بلا اسم على الجوال: الاسم بخطّ العرض الجديد أعرض، فكان
+                يُطوى سطرين ويطوي الشارة معه على ٣٩٠px. والسحابة وحدها تكفي رابطاً. */}
+            <Link to="/" aria-label="كلاود منيو — الرئيسية" className="shrink-0"><Logo compact /></Link>
             <div className="flex items-center gap-2">
               {/* ⚠️ لازمة لا تجميل: الشريط الجانبي مخفيّ على الجوال، وقد خرج
                   «الاشتراك» من القائمة — فبدون هذه الشارة لا يبقى للجوال أي

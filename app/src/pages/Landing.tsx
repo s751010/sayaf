@@ -5,7 +5,7 @@
  * على مكتبة حركة: الحزمة الرئيسية تخدم **صفحة المنيو** التي تُفتح من كود QR على
  * بيانات جوال، فكل كيلوبايت يُضاف لتسويقنا يدفعه زبون التاجر.
  */
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { Suspense, lazy, useEffect, useRef, useState, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
 import { Navbar, Footer } from "@/components/site";
 import { Badge, Card } from "@/components/ui";
@@ -14,6 +14,15 @@ import { LiveDemo } from "@/components/landing/LiveDemo";
 import { SwitchCost } from "@/components/landing/SwitchCost";
 import { ScanDemo } from "@/components/landing/ScanDemo";
 import { PhonePreview } from "@/components/landing/PhonePreview";
+/**
+ * مشهد البطل كسولٌ عمداً: يحمل مكتبة `motion` ومحرّك الوصفة (~٤٥ك مضغوطة)،
+ * والعنوان والزرّان لا يحتاجان أيّاً منهما ليُرسما. فيظهر النصّ فوراً ويصل
+ * المشهد بعده، ومكانه محجوز بارتفاعه (`SCENE_MIN_H`) فلا تقفز الصفحة.
+ */
+const ComplianceScene = lazy(() =>
+  import("@/components/landing/ComplianceScene").then((m) => ({ default: m.ComplianceScene }))
+);
+const SCENE_MIN_H = "min-h-[520px] sm:min-h-[430px]";
 import { PricingCards, daysLabel, useTrialDays } from "@/components/landing/PricingCards";
 import {
   CURRENCY,
@@ -141,10 +150,15 @@ function ThemeRail({ value, onChange }: { value: string; onChange: (id: string) 
    أخرى — نسخة واحدة كي لا يظهر قسمٌ بإيقاع وقسمٌ بآخر. */
 
 /** رقم يعدّ عند ظهوره — الأرقام الثابتة لا تُقرأ، والمتحرّكة تُلاحَظ. */
+/**
+ * ⚠️ كانت الثالثة «متوافق مع SFDA» — ادّعاءٌ سابقٌ لأوانه: المنتج يعرض أرقاماً
+ * يكتبها التاجر ولا يحسبها، ولا حقول للدهون والسكر. صار كل سطرٍ هنا شيئاً
+ * يفعله المنتج حرفياً.
+ */
 const TRUST: { icon: IconName; label: string }[] = [
-  { icon: "sparkle", label: "تجهيز في دقائق" },
+  { icon: "flame", label: "سعرات من الوصفة" },
+  { icon: "printer", label: "منيو مطبوع A4" },
   { icon: "money", label: "بلا عمولة على الطلبات" },
-  { icon: "shield", label: "متوافق مع SFDA" },
 ];
 
 /**
@@ -181,15 +195,17 @@ function Words({ text, className }: { text: string; className?: string }) {
  * قسمين كاملين حُذفا: بطاقة الكاشير، ومسرح الطوابع.
  */
 const FEATURES = [
-  { emoji: "🍎", title: "معلومات غذائية وSFDA", desc: "سعرات وصوديوم وكافيين ومسبّبات حساسية لكل طبق — التزامٌ مطلوب من هيئة الغذاء والدواء، جاهزٌ في المنيو لا مشروع تعمله لاحقاً." },
-  { emoji: "💛", title: "بطاقة ولاء رقمية", desc: "زبونك يجمع أختامه داخل المنيو نفسه ويعود — بلا بطاقة ورقية تضيع وبلا تطبيق يحمّله." },
-  { emoji: "📊", title: "إحصائيات مباشرة", desc: "أكثر الأطباق مشاهدةً وساعات الذروة يوماً بيوم — تقرّر بالأرقام لا بالتخمين." },
+  { emoji: "🧮", title: "حاسبة الوصفة", desc: "تكتب المكوّنات والكميات كما تقولها، فتظهر السعرات والدهون والسكر والصوديوم والكافيين ومسبّبات الحساسية — من قيم مرجعية عامّة، وتراجعها قبل الحفظ." },
+  { emoji: "🖨️", title: "منيو مطبوع بالأرقام نفسها", desc: "ورقة A4 بطابعك: السعرات ودقائق المشي بجانب كل صنف، والكافيين وتنبيه الصوديوم والحساسية، وعبارة الاحتياج اليومي — وملف CSV لتطبيقات التوصيل." },
+  { emoji: "✅", title: "شاشة الامتثال", desc: "نسبة جاهزية منيوك في رقم واحد، وكل صنف مرتّب بما ينقصه: بلا أرقام، أو بلا صوديوم، أو مشروب بلا كافيين." },
   { emoji: "🪧", title: `بطاقة كاشير بهويتك — ${PRINT_DPI} DPI`, desc: "لا تفتح كانفا ولا تبحث عن مصمّم: نجهّزها من بيانات مطعمك بشعارك داخل الكود، وتنزّلها ملفّاً يقبله أي مطبعة." },
   { emoji: "🎨", title: `${THEME_COUNT} طابعاً + لون علامتك`, desc: "كل طابع شخصية كاملة — زخرفة وترويسة وخطّ وتخطيط، بينها طوابع تراثية سعودية. أو اختر لون مشروعك ونبني منه طابعاً متناسقاً." },
   { emoji: "💳", title: "دفع إلكتروني — إلى حسابك أنت", desc: "تربط بوّابتك الخاصّة، فيدفع زبونك وهو على الطاولة ويصلك المال مباشرة. لا نمرّ بالمال ولا نأخذ منه شيئاً." },
 ];
 
 const FAQS = [
+  { q: "من أين تأتي الأرقام الغذائية؟", a: "نحسبها من وصفتك: كل مكوّن بوزنه، من قيم مرجعية عامّة (USDA FoodData Central) لكل ١٠٠ غرام، ثم نقسمها على عدد الحصص. والمكوّن الذي لا مرجع مباشر له (كالقهوة السعودية) نعلّمه «تقديري» أمامك." },
+  { q: "هل تغني عن أخصائي التغذية أو المختبر؟", a: "تختصر عليك الحساب، لكن المسؤولية النظامية تبقى على المنشأة. ننصح بمراجعة الأرقام مع أخصائي تغذية قبل الطباعة — وتعطيه وصفاتك وأرقامها جاهزة بدل أن يبدأ من الصفر." },
   { q: "هل يحتاج الزبون تحميل تطبيق؟", a: "أبداً. يمسح كود QR بكاميرا جواله ويفتح المنيو في المتصفح مباشرة — يعمل على كل الأجهزة." },
   { q: "هل أقدر أعدّل الأسعار بنفسي؟", a: "نعم، من لوحة تحكم عربية بالكامل. أي تعديل يظهر للزبائن لحظياً." },
   { q: "كيف تُحسب الطاولات؟", a: "تولّد كود QR خاصاً لكل طاولة (طاولة ١، طاولة ٢…) ويظهر رقم الطاولة تلقائياً عند فتح المنيو." },
@@ -252,12 +268,11 @@ export default function Landing() {
   const trialDaysLabel = daysLabel(useTrialDays());
 
   useSeo({
-    title: "منيو رقمي QR لمطعمك",
-    /* `clampDescription` يقصّ عند ١٦٠ محرفاً، والوصف السابق كان ~١٦٥ فيُبتر
-       عند «٣٠٠ DPI». وهذا أقصر، ويقود بالمجاني وبطلبات واتساب — وهما ما
-       يعمل اليوم — لا بالسعر ولا بميزة غير مُفعَّلة. */
+    title: "سعرات المنيو محسوبة من الوصفة",
+    /* `clampDescription` يقصّ عند ١٦٠ محرفاً — وهذا تحته، ويقود بالوعد الجديد
+       (الحساب) لا بما صار سلعة (منيو QR). */
     description:
-      `منيو QR لمطعمك بـ${THEME_COUNT} طابعاً: طلبات واتساب بلا عمولة، دفع إلكتروني، عربي وإنجليزي، بلا تطبيق يحمّله زبونك.`,
+      `اكتب وصفة الصنف ونحسب السعرات والكافيين والصوديوم والحساسية، وننشرها على منيو QR ومنيو مطبوع بـ${THEME_COUNT} طابعاً.`,
     path: "/",
     image: "/og.png",
   });
@@ -280,7 +295,7 @@ export default function Landing() {
         url: absoluteUrl("/"),
         inLanguage: "ar",
         description:
-          "منصّة منيو رقمي QR للمطاعم السعودية: طوابع فاخرة، إحصائيات، بطاقة ولاء، وبطاقة كاشير جاهزة للطباعة.",
+          "منيو رقمي ومطبوع للمطاعم والمقاهي السعودية: حاسبة سعرات وكافيين وصوديوم ومسبّبات حساسية من الوصفة، وطوابع بهوية سعودية.",
         offers: {
           "@type": "Offer",
           price: PLANS[0]?.monthly ?? 99,
@@ -352,7 +367,7 @@ export default function Landing() {
         />
         <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 pb-20 pt-14 lg:grid-cols-2 lg:pt-20">
           <div className="anim-fade-up text-center lg:text-right">
-            <Badge className="mb-5">🇸🇦 صُنع للمطاعم السعودية</Badge>
+            <Badge className="mb-5">🇸🇦 للمطاعم والمقاهي السعودية</Badge>
             {/* ⚠️ **العنوان يقود بالميزة لا بتعريف الفئة.**
                 كان «زبونك يمسح الكود… والطلب يصلك على واتساب» — وهي جملة
                 صادقة، لكن **كل منافس يقولها**: هي تعريف الصنف لا سببُ اختيارنا.
@@ -362,16 +377,20 @@ export default function Landing() {
                 وقراءة المنيو من صورة هي جواب **الاعتراض الأوّل** لكل صاحب مطعم
                 («ما عندي وقت أدخل ستّين صنفاً») — وهو بالضبط ما يمنع الاشتراك.
                 فصارت هي الوعد، وبقي الطلب على واتساب في الجملة المساندة. */}
-            <h1 className="font-display text-4xl font-black leading-[1.2] text-ink sm:text-5xl">
-              <Words text="صوّر منيوك المطبوع…" />
+            {/* ⚠️ **الوعد تغيّر (٢٠٢٦/١٠): من «منيو جميل» إلى «أرقام صحيحة».**
+                المنيو الجميل صار سلعة تُباع بثمانية ريالات، وقراءته من صورة
+                مجانية في أدوات كثيرة. أمّا السعرات والكافيين والحساسية على كل
+                منيو فإلزامٌ من هيئة الغذاء، وحسابها هو ما يدفع عليه المطعم.
+                والجمال لم يُحذف: صار القسم الثاني «والجمال هديّة». */}
+            <h1 className="font-display text-4xl font-black leading-[1.25] text-ink sm:text-[3.4rem]">
+              <Words text="سعراتك محسوبة،" />
               <br />
-              <Words text="ويرجع لك منيو QR" className="text-gold-grad" />
+              <Words text="لا مكتوبة." className="text-gold-grad" />
             </h1>
             <p className="mx-auto mt-5 max-w-[46ch] text-lg leading-[1.85] text-dim lg:mx-0">
-              صورة واحدة — نقرأ الأصناف والأسعار ونرتّبها في تصنيفاتها،
-              <span className="font-bold text-ink"> وتراجعها قبل أن تُحفظ</span>. ثم
-              يمسح زبونك الكود فيصلك طلبه على واتساب بلا عمولة، أو يدفعه في المنيو
-              نفسه ببوّابتك أنت.
+              اكتب وصفة الصنف كما تقولها، ونحسب
+              <span className="font-bold text-ink"> السعرات والكافيين والصوديوم ومسبّبات الحساسية</span>،
+              ثم ننشرها على منيو الطاولة والمنيو المطبوع — بهوية سعودية تليق بمطعمك.
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
               <Link
@@ -413,15 +432,36 @@ export default function Landing() {
             </ul>
           </div>
 
-          <div className="min-w-0">
-            <PhonePreview theme={theme} animate />
-            <ThemeRail value={themeId} onChange={pick} />
-            {/* سطر الطابع الحيّ — اسمه وسطره التعريفيّان يأتيان من `themes.ts`
-                نفسها التي يقرأها التاجر في لوحته، فلا وصف تسويقي ثانٍ ينحرف. */}
-            <p className="mt-2 text-center text-xs text-faint">
+          <div className={cn("min-w-0", SCENE_MIN_H)}>
+            <Suspense fallback={<div className={cn("skeleton mx-auto max-w-[560px]", SCENE_MIN_H)} />}>
+              <ComplianceScene />
+            </Suspense>
+          </div>
+        </div>
+      </section>
+
+      {/* «والجمال هديّة» — كان البطل نفسه، وصار القسم الثاني: الطوابع لم تعد
+          سبب الشراء (كل منافس عنده قوالب)، لكنها ما يجعل المقهى المختصّ يختار
+          منيواً بهوية على أداة امتثال جافّة. */}
+      <section className="border-y border-line bg-panel/50">
+        <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 py-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+          <Reveal className="text-center lg:text-right">
+            <div className="sadu-band mx-auto mb-6 w-40 lg:mx-0" aria-hidden="true" />
+            <h2 className="font-display text-3xl font-black leading-[1.3] text-ink sm:text-4xl">
+              والجمال هديّة.
+            </h2>
+            <p className="mx-auto mt-4 max-w-[44ch] text-lg leading-[1.85] text-dim lg:mx-0">
+              {THEME_COUNT} طابعاً بهوية محلية — نجدي بنسيج السدو، وحجازي بأقواس الرواشين، وعسيري
+              بأشرطة القطّ — أو لون علامتك. الأرقام نفسها تلبس طابعك على الطاولة وعلى الورق.
+            </p>
+            <p className="mt-4 text-sm text-faint">
               <b className="text-dim">{theme.name}</b> — {theme.tagline}
             </p>
-          </div>
+          </Reveal>
+          <Reveal delay={90} className="min-w-0">
+            <PhonePreview theme={theme} animate />
+            <ThemeRail value={themeId} onChange={pick} />
+          </Reveal>
         </div>
       </section>
 

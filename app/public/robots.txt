@@ -10,4 +10,4 @@ Disallow: /reset-password
 # وضع الكاشير: عامّ بالتصميم (الرمز بوّابته، §8) ولا معنى لظهوره في البحث.
 Disallow: /stamp
 
-Sitemap: https://cloudsmenu.netlify.app/sitemap.xml
+Sitemap: https://heroic-marzipan-b46da4.netlify.app/sitemap.xml

@@ -132,7 +132,7 @@ export const INGREDIENTS: readonly Ingredient[] = [
   ing("sweet", "brown-sugar", ["سكر بني"], "Brown sugar", [380, 0, 0, 97, 28, 0], [], { units: { tsp: 4.6, tbsp: 13.8, cup: 220 } }),
   ing("sweet", "honey", ["عسل"], "Honey", [304, 0, 0, 82.1, 4, 0], [], { density: 1.42, units: { tbsp: 21, tsp: 7 } }),
   ing("sweet", "date-syrup", ["دبس التمر", "دبس تمر", "دبس"], "Date syrup", [290, 0, 0, 70, 10, 0], [], { estimate: true, density: 1.35, units: { tbsp: 20 } }),
-  ing("sweet", "flavor-syrup", ["شراب فانيلا", "سيرب فانيلا", "سيرب", "شراب نكهة", "سيرب كراميل", "شراب كراميل", "سيرب بندق"], "Flavored coffee syrup", [253, 0, 0, 62, 3, 0], [], { density: 1.32, units: { tbsp: 20, shot: 30 } }),
+  ing("sweet", "flavor-syrup", ["شراب نكهة", "سيرب نكهة", "سيرب", "شراب فانيلا", "سيرب فانيلا", "سيرب كراميل", "شراب كراميل", "سيرب بندق"], "Flavored coffee syrup", [253, 0, 0, 62, 3, 0], [], { density: 1.32, units: { tbsp: 20, shot: 30 } }),
   ing("sweet", "simple-syrup", ["شيرة", "قطر", "شراب سكر"], "Simple syrup (1:1)", [194, 0, 0, 50, 1, 0], [], { density: 1.23, units: { tbsp: 18 } }),
   ing("sweet", "caramel-sauce", ["صوص كراميل", "صلصة كراميل", "كراميل"], "Caramel sauce", [321, 2, 1.3, 60, 300, 0], ["milk"], { estimate: true, density: 1.3, units: { tbsp: 20 } }),
   ing("sweet", "chocolate-sauce", ["صوص شوكولاتة", "صلصة شوكولاتة", "صوص شوكلت"], "Chocolate syrup", [279, 1.1, 0.6, 49.9, 72, 6], [], { density: 1.3, units: { tbsp: 19 } }),

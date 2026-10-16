@@ -19,7 +19,7 @@ import { DAILY_KCAL } from "@/components/NutritionLabel";
 import { useDashboard } from "./Dashboard";
 import { PrintTabs } from "./Tabs";
 import { getMyDishes } from "@/lib/data";
-import { getTheme } from "@/lib/themes";
+import { getTheme, qrSafeColor } from "@/lib/themes";
 import { loadThemeFont } from "@/lib/fonts";
 import { categoriesOf, parseCategoryOrder, sortCategories } from "@/lib/categories";
 import { displayAllergens } from "@/lib/allergens";
@@ -52,7 +52,12 @@ export default function PrintMenu() {
   }, [menus, menuId]);
 
   const theme = getTheme(menu?.theme);
+  // اللون الخام للزخرفة، والمُغمَّق للنصّ: عنوانٌ بذهبٍ مصمَّم لأرضيةٍ داكنة
+  // (`dark-gold` ≈2:1 على الأبيض) يكاد يختفي على الورق. و`qrSafeColor` يغمّقه
+  // في عائلته نفسها حتى ٧:١ — أشدّ من حاجة النصّ، لكنه يُبقي `themes.ts` بلا
+  // سطرٍ جديد (ثابت §18: الفرق عليه صفر).
   const accent = theme.vars["--m-accent"] ?? INK;
+  const accentText = qrSafeColor(accent);
   const bodyFont = theme.vars["--m-font"];
   const displayFont = theme.vars["--m-display"] ?? bodyFont;
 
@@ -88,6 +93,37 @@ export default function PrintMenu() {
     return displayAllergens([...all], false);
   }, [sections]);
 
+  /**
+   * ملف CSV لتطبيقات التوصيل — الإلزام يشملها، ولكل تطبيق نموذج رفع مختلف.
+   * فالملف أعمدة واضحة يُنسخ منها، لا نموذجُ تطبيقٍ بعينه يتقادم. وBOM في
+   * أوّله كي يفتحه Excel بالعربية لا برموز مكسورة.
+   */
+  const downloadCsv = () => {
+    const head = ["الاسم", "Name", "التصنيف", "السعر", "السعرات", "دقائق المشي", "الصوديوم (ملغم)", "صوديوم مرتفع", "الكافيين (ملغم)", "مسبّبات الحساسية"];
+    const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const rows = (sections ?? []).flatMap((s) =>
+      s.items.map((d) => [
+        d.name,
+        d.name_en ?? "",
+        s.name,
+        d.price ?? "",
+        d.calories ?? "",
+        burnMinutes(d.calories) ?? "",
+        d.sodium_mg ?? "",
+        isHighSodium(d.sodium_mg) ? "نعم" : "",
+        d.caffeine_mg ?? "",
+        displayAllergens(d.allergens, false).map((a) => a.label).join("، "),
+      ])
+    );
+    const csv = "﻿" + [head, ...rows].map((r) => r.map(esc).join(",")).join("\r\n");
+    const href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = href;
+    a.download = `${restaurant.slug || "menu"}-nutrition.csv`;
+    a.click();
+    window.setTimeout(() => URL.revokeObjectURL(href), 1000);
+  };
+
   const missing = useMemo(
     () => (sections ?? []).flatMap((s) => s.items).filter((d) => d.calories === null).length,
     [sections]
@@ -101,9 +137,14 @@ export default function PrintMenu() {
             <h1 className="font-display text-2xl font-black text-ink">المنيو المطبوع</h1>
             <p className="mt-1 text-sm text-dim">ورقة A4 بأرقام الهيئة نفسها التي في منيوك الرقمي — اطبعها أو احفظها PDF.</p>
           </div>
-          <Button onClick={() => window.print()} disabled={!sections?.length}>
-            <Icon name="printer" size={16} /> اطبع أو احفظ PDF
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" onClick={downloadCsv} disabled={!sections?.length}>
+              <Icon name="download" size={16} /> ملف لتطبيقات التوصيل (CSV)
+            </Button>
+            <Button onClick={() => window.print()} disabled={!sections?.length}>
+              <Icon name="printer" size={16} /> اطبع أو احفظ PDF
+            </Button>
+          </div>
         </div>
         <PrintTabs />
 
@@ -202,7 +243,7 @@ export default function PrintMenu() {
                       paddingBottom: "1.2mm",
                       marginBottom: "2.5mm",
                       breakAfter: "avoid",
-                      color: accent,
+                      color: accentText,
                     }}
                   >
                     {s.name}

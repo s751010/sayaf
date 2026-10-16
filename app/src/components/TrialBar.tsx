@@ -56,7 +56,7 @@ export function TrialBar({ ent }: { ent: Entitlements }) {
         className={cn("shrink-0", urgent ? "text-bad" : "text-gold")}
       />
       <div className="min-w-0 flex-1">
-        <p className="font-display text-sm font-black text-ink">{title}</p>
+        <p className="text-sm font-bold text-ink">{title}</p>
         <p className="mt-0.5 text-xs leading-relaxed text-dim">
           {days <= 0
             ? "اشترك ليعود منيوك متاحاً لزبائنك — أطباقك وصورك وبياناتك محفوظة كما هي."

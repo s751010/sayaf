@@ -1358,11 +1358,15 @@ body {
  * المكشوفة هي الافتراض، والحركة لمن يقبلها وحده.
  */
 @media (prefers-reduced-motion: no-preference) {
+  /* ⚠️ `backwards` لا `both`: عنصرٌ تبقى عليه حركة `transform` بعد انتهائها
+     يصير «حاوية» لكل `position: fixed` تحته — فكانت النوافذ (Modal) تُحبس
+     داخل عمود المحتوى بدل أن تغطّي الشاشة. `backwards` يطبّق البداية قبل
+     التشغيل ولا يُبقي شيئاً بعده. */
   .page-enter {
-    animation: page-enter var(--dur-3) var(--ease-out) both;
+    animation: page-enter var(--dur-3) var(--ease-out) backwards;
   }
   .stagger > * {
-    animation: page-enter var(--dur-3) var(--ease-out) both;
+    animation: page-enter var(--dur-3) var(--ease-out) backwards;
     animation-delay: calc(var(--i, 0) * 60ms);
   }
   .modal-backdrop {
