@@ -27,6 +27,8 @@ import { BulkImages } from "@/components/BulkImages";
 import { ImageUploader } from "@/components/ImageUploader";
 import { OptionsEditor } from "@/components/OptionsEditor";
 import { AllergenPicker } from "@/components/AllergenPicker";
+import { RecipeCalculator } from "@/components/RecipeCalculator";
+import { isDrinkText, nutritionPatch } from "@/lib/recipe";
 import { track } from "@/lib/track";
 import {
   countDishes,
@@ -320,6 +322,8 @@ export default function Dishes() {
   const [form, setForm] = useState<DishForm>({ ...EMPTY_FORM, menu_id: "" });
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  /** حاسبة الوصفة داخل الفورم — مضمَّنة لا نافذة فوق نافذة (Escape كان سيغلق الاثنتين). */
+  const [calcOpen, setCalcOpen] = useState(false);
 
   useEffect(() => {
     document.title = "الأطباق — كلاود منيو";
@@ -753,7 +757,7 @@ export default function Dishes() {
         <div className="mt-5 flex flex-col gap-6">
           {groups.map((g) => (
             <section key={g.name}>
-              <h2 className="mb-2 flex items-center gap-2 font-display text-sm font-extrabold text-dim">
+              <h2 className="mb-2 flex items-center gap-2 text-sm font-bold text-dim">
                 {g.name}
                 <span className="font-normal text-faint">· {g.dishes.length}</span>
               </h2>
@@ -933,9 +937,36 @@ export default function Dishes() {
             </summary>
 
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <p className="sm:col-span-2 -mb-1 text-xs font-black text-faint">
-            المعلومات الغذائية (SFDA)
-          </p>
+          <div className="sm:col-span-2 -mb-1 flex flex-wrap items-center justify-between gap-2">
+            <p className="text-xs font-black text-faint">المعلومات الغذائية (هيئة الغذاء)</p>
+            <Button type="button" variant="outline" size="sm" onClick={() => setCalcOpen((v) => !v)}>
+              <Icon name="flame" size={14} />
+              {calcOpen ? "أخفِ الحاسبة" : "احسب من الوصفة"}
+            </Button>
+          </div>
+          {calcOpen && (
+            <div className="sm:col-span-2 rounded-[12px] border border-line bg-panel p-3">
+              <RecipeCalculator
+                dishId={editing && editing !== "new" ? editing.id : undefined}
+                dishName={form.name.trim() || undefined}
+                applyLabel="املأ الحقول بهذه الأرقام"
+                onApply={(r) => {
+                  // يُضاف إلى ما في الفورم ولا يمحوه — `nutritionPatch` في lib/recipe.
+                  const current = form.caffeine_mg.trim() === "" ? null : Number(form.caffeine_mg);
+                  const p = nutritionPatch(
+                    r,
+                    { caffeine_mg: Number.isFinite(current) ? current : null, allergens: form.allergens },
+                    isDrinkText(`${form.category} ${form.name}`),
+                  );
+                  set("calories", String(p.calories));
+                  set("sodium_mg", String(p.sodium_mg));
+                  set("caffeine_mg", p.caffeine_mg === null ? "" : String(p.caffeine_mg));
+                  set("allergens", p.allergens);
+                  setCalcOpen(false);
+                }}
+              />
+            </div>
+          )}
           <Field label="سعرات حرارية">
             <Input type="number" inputMode="numeric" min="0" dir="ltr" value={form.calories} onChange={(e) => set("calories", e.target.value)} />
           </Field>
@@ -958,10 +989,10 @@ export default function Dishes() {
               )}
               {computed.highSodium && <Badge variant="red">🧂 صوديوم مرتفع</Badge>}
               {computed.sfdaCompliant ? (
-                <Badge variant="green">✅ متوافق مع SFDA</Badge>
+                <Badge variant="green">✅ اكتملت أرقام الهيئة</Badge>
               ) : (
                 <span className="text-xs text-faint">
-                  أضف السعرات والصوديوم ليظهر شعار توافق SFDA للزبون.
+                  أضف السعرات والصوديوم ليرى الزبون أن القيم مُعلنة.
                 </span>
               )}
             </div>

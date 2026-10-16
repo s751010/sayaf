@@ -1273,6 +1273,38 @@ export async function updateDish(id: string, payload: DishPayload & { menu_id: s
   });
 }
 
+/**
+ * أرقام الهيئة من حاسبة الوصفة — أربعة أعمدة قائمة لا غير.
+ *
+ * خارج `DishPayload` بنفس سابقة `updateDishPrice`: الحاسبة تعمل من شاشة
+ * «الامتثال» على طبقٍ لم يُفتح فورمه، وتمرير الـpayload كاملاً كان سيوجب
+ * تحميل كل حقول الطبق ثم إعادتها فيدهس ما لم يُحمَّل.
+ *
+ * ⚠️ لا `burn_minutes` ولا `is_high_sodium` ولا `sfda_compliant`: أعمدة
+ * محسوبة تشتقّها القاعدة من هذه (القاعدة «د»)، وإرسالها يُسقط الطلب كاملاً.
+ */
+export type DishNutritionPatch = {
+  calories: number;
+  sodium_mg: number;
+  /** `null` لطعامٍ بلا كافيين — لا «٠» يظهر للزبون على برجر (`nutritionPatch`). */
+  caffeine_mg: number | null;
+  allergens: string[];
+};
+
+export async function updateDishNutrition(id: string, patch: DishNutritionPatch): Promise<void> {
+  const body: DishNutritionPatch = {
+    calories: patch.calories,
+    sodium_mg: patch.sodium_mg,
+    caffeine_mg: patch.caffeine_mg,
+    allergens: patch.allergens,
+  };
+  await rest(`dishes?id=eq.${id}`, {
+    method: "PATCH",
+    headers: { Prefer: "return=minimal" },
+    body,
+  });
+}
+
 export async function deleteDish(id: string): Promise<void> {
   await rest(`dishes?id=eq.${id}`, { method: "DELETE", headers: { Prefer: "return=minimal" } });
 }

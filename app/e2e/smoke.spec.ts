@@ -18,21 +18,8 @@
  * يعني أن شجرة المنيو كاملةً (ترويسة · بطاقات · نافذة الطبق · سلّة) تُركَّب
  * سليمة — وهي الشجرة نفسها التي يفتحها زبون التاجر من كود QR.
  */
-import { expect, test, type ConsoleMessage, type Page } from "@playwright/test";
-
-/** أخطاء يسبّبها انقطاع الشبكة لا الشيفرة — تُسجَّل ولا تُسقِط. */
-const NETWORK_NOISE = /Failed to load resource|net::ERR_|ERR_CONNECTION|fetch/i;
-
-function watch(page: Page): { crashes: string[] } {
-  const crashes: string[] = [];
-  page.on("pageerror", (e) => crashes.push(`pageerror: ${e.message}`));
-  page.on("console", (m: ConsoleMessage) => {
-    if (m.type() !== "error") return;
-    const text = m.text();
-    if (!NETWORK_NOISE.test(text)) crashes.push(`console: ${text}`);
-  });
-  return { crashes };
-}
+import { expect, test } from "@playwright/test";
+import { watch } from "./watch";
 
 /**
  * ⚠️ **المرساة تُقرأ من محتوى الصفحة لا من شريط التنقّل.**

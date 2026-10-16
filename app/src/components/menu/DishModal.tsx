@@ -221,7 +221,9 @@ export function DishModal({
               style={{ color: "var(--m-muted)" }}
             >
               <Icon name="check" size={13} />
-              {en ? "SFDA-compliant nutrition info" : "معلومات غذائية متوافقة مع هيئة الغذاء والدواء"}
+              {/* ⚠️ «مُعلنة» لا «متوافقة مع الهيئة»: اكتمال السعرات والصوديوم شرطٌ
+                  من شروطها لا شهادةٌ منها، والمسؤولية النظامية على المنشأة. */}
+              {en ? "Nutrition declared by the restaurant" : "القيم الغذائية مُعلنة من المطعم"}
             </p>
           )}
 

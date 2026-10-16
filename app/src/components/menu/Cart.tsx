@@ -277,7 +277,9 @@ export function PickupBanner({
 }) {
   return (
     <div
-      className="mx-auto mt-4 flex max-w-md flex-wrap items-center justify-center gap-x-3 gap-y-1 px-4 py-2.5 text-xs font-bold"
+      // `w-[calc(100%-2rem)]`: بـ`max-w-md` وحده كان الشريط يلامس حافّتَي الجوال
+      // (أضيق من 448px) فتنقطع زواياه المستديرة على الشاشة.
+      className="mx-auto mt-4 flex w-[calc(100%-2rem)] max-w-md flex-wrap items-center justify-center gap-x-3 gap-y-1 px-4 py-2.5 text-xs font-bold"
       style={{
         background: open ? "var(--m-surface)" : "var(--m-bg-2)",
         border: `1px solid ${open ? "var(--m-accent)" : "var(--m-border)"}`,

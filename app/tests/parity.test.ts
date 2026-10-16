@@ -434,6 +434,15 @@ describe("قائمة أصول CORS مشتركة", () => {
     }
   });
 
+  it("ولا فيما يقرؤه قوقل أوّلاً: `index.html` و`robots.txt` و`sitemap.xml`", () => {
+    // ⚠️ الفحص أعلاه حرس الشيفرة وحدها، فبقيت هذه الثلاثة على المضيف الغريب
+    // حتى ٢٠٢٦/١٠ — `canonical` و`og:url` وخريطة الموقع كلّها تعطي رصيد
+    // البحث لموقع ليس لنا.
+    for (const file of ["app/index.html", "app/public/robots.txt", "app/public/sitemap.xml"]) {
+      expect(readFileSync(repo(file), "utf8"), file).not.toContain("cloudsmenu.netlify.app");
+    }
+  });
+
   it("أصلٌ مجهول لا يُعكس، والمعروف يُعكس", async () => {
     /**
      * الوحدة تُنشر على Deno وتقرأ `ALLOWED_ORIGINS` من بيئته عند كل نداء

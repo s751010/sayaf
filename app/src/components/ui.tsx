@@ -40,9 +40,12 @@ export function Button({
   variant?: ButtonVariant;
   size?: ButtonSize;
 }) {
+  // «ملصقٌ وسدو»: الذهب فعلٌ، والحدّ حبرٌ رفيع، والضغط انكماشٌ قصير (`.press`،
+  // يُطفأ لمن طلب تقليل الحركة). ولا `transition-all`: كانت تحرّك كل خاصية
+  // تتغيّر، ومنها العرض حين يتبدّل نصّ الزرّ إلى «جارٍ…».
   const styles: Record<ButtonVariant, string> = {
-    gold: "bg-gold text-on-gold hover:bg-gold2 shadow-[0_4px_18px_-4px_var(--c-glow)]",
-    outline: "border border-line-gold text-ink hover:bg-gold/10",
+    gold: "bg-gold text-on-gold hover:bg-gold2 shadow-[0_1px_0_rgba(0,0,0,0.08),0_10px_24px_-14px_var(--c-gold)]",
+    outline: "border border-line bg-panel text-ink hover:border-ink/35 hover:bg-panel2",
     ghost: "text-dim hover:text-ink hover:bg-ink/5",
     danger: "border border-bad/40 text-bad hover:bg-bad/10",
   };
@@ -53,8 +56,8 @@ export function Button({
   return (
     <button
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-xl font-bold transition-all",
-        "disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]",
+        "press inline-flex items-center justify-center gap-2 rounded-[10px] font-semibold",
+        "disabled:pointer-events-none disabled:opacity-50",
         sizes[size],
         styles[variant],
         className
@@ -121,7 +124,7 @@ export function Card({
   return (
     <div
       className={cn(
-        "rounded-2xl border border-line bg-panel p-5 shadow-[0_1px_0_rgba(255,255,255,0.03)_inset]",
+        "rounded-[14px] border border-line bg-panel p-5",
         className
       )}
     >
@@ -151,7 +154,7 @@ export function Badge({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-bold",
+        "inline-flex items-center gap-1 whitespace-nowrap rounded-full border px-2.5 py-0.5 text-xs font-semibold",
         styles[variant],
         className
       )}
@@ -164,7 +167,7 @@ export function Badge({
 /* ── حقول النماذج ──────────────────────────────────────────────────── */
 /** `min-h-11` = ٤٤px — الحقل هدف لمس كالزرّ تماماً، وكان ٤٠. */
 export const fieldClass =
-  "w-full min-h-11 rounded-xl border border-line bg-panel2 px-3.5 py-2.5 text-sm text-ink placeholder:text-faint transition-colors focus:border-gold/50 focus:bg-panel";
+  "w-full min-h-11 rounded-[10px] border border-line bg-panel2/60 px-3.5 py-2.5 text-sm text-ink placeholder:text-faint transition-colors focus:border-ink/40 focus:bg-panel";
 
 export function Field({
   label,
@@ -349,12 +352,15 @@ export function Modal({
   title,
   children,
   wide,
+  xl,
 }: {
   open: boolean;
   onClose: () => void;
   title?: string;
   children: ReactNode;
   wide?: boolean;
+  /** أعرض من `wide` — لشاشة بعمودين (حاسبة الوصفة). */
+  xl?: boolean;
 }) {
   useEffect(() => {
     if (!open) return;
@@ -370,7 +376,7 @@ export function Modal({
   if (!open) return null;
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 backdrop-blur-sm sm:items-center sm:p-6"
+      className="modal-backdrop fixed inset-0 z-50 flex items-end justify-center bg-black/55 p-0 backdrop-blur-[3px] sm:items-center sm:p-6"
       onClick={onClose}
     >
       <div
@@ -378,8 +384,8 @@ export function Modal({
         aria-modal="true"
         onClick={(e) => e.stopPropagation()}
         className={cn(
-          "anim-fade-up max-h-[92dvh] w-full overflow-y-auto rounded-t-3xl border border-line bg-panel p-5 sm:rounded-3xl",
-          wide ? "sm:max-w-2xl" : "sm:max-w-md"
+          "modal-panel max-h-[92dvh] w-full overflow-y-auto rounded-t-[20px] border border-line bg-panel p-5 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.45)] sm:rounded-[18px]",
+          xl ? "sm:max-w-5xl" : wide ? "sm:max-w-2xl" : "sm:max-w-md"
         )}
       >
         <div className="mb-4 flex items-center justify-between gap-4">

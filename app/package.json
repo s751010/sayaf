@@ -19,6 +19,7 @@
     "@fontsource/almarai": "^5.3.0",
     "@fontsource/amiri": "^5.2.5",
     "@fontsource/aref-ruqaa": "^5.3.0",
+    "@fontsource/ibm-plex-sans-arabic": "^5.3.0",
     "@fontsource/noto-kufi-arabic": "^5.3.0",
     "@fontsource/reem-kufi": "^5.2.5",
     "@fontsource/tajawal": "^5.2.5",
@@ -26,7 +27,7 @@
     "qrcode": "^1.5.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^6.30.6"
+    "react-router-dom": "^7.18.4"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",

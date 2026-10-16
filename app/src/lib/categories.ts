@@ -228,6 +228,39 @@ export function categoriesOf(dishes: Dish[]): string[] {
   return [...seen.values()];
 }
 
+/**
+ * الأطباق مقسومةً أقساماً مرتّبة — **كل طبقٍ في قسمٍ واحد بالضبط.**
+ *
+ * الأقسام تُدمج بـ`categoryKey` كما يفعل `categoriesOf`، والأطباق تُفرز **بالمفتاح
+ * نفسه**. ⚠️ كان المنيو المطبوع يدمج بالمفتاح ويفرز بالاسم الخام، فيختفي طبق
+ * «المشروبات» حين يكون القسم المدموج «مشروبات» — من الورقة ومن ملف التوصيل.
+ * وما بلا قسم يذهب إلى `looseName` في الآخر.
+ */
+export function groupByCategory<T extends { category: string | null }>(
+  items: T[],
+  order: string[],
+  looseName: string
+): { name: string; items: T[] }[] {
+  const byKey = new Map<string, { name: string; items: T[] }>();
+  const loose: T[] = [];
+  for (const d of items) {
+    const c = d.category?.trim();
+    if (!c) {
+      loose.push(d);
+      continue;
+    }
+    const k = categoryKey(c);
+    const group = byKey.get(k);
+    if (group) group.items.push(d);
+    else byKey.set(k, { name: c, items: [d] });
+  }
+  const groups = [...byKey.values()];
+  const named = sortCategories(groups.map((g) => g.name), order).map(
+    (name) => groups.find((g) => g.name === name)!
+  );
+  return loose.length ? [...named, { name: looseName, items: loose }] : named;
+}
+
 /** `restaurants.category_order` → مصفوفة أسماء. أي تلف في القيمة = بلا ترتيب. */
 export function parseCategoryOrder(raw: string | null | undefined): string[] {
   if (!raw?.trim()) return [];

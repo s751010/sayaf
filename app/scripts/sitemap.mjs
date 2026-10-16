@@ -93,7 +93,8 @@ const STATIC = [
   { loc: "/restaurants", priority: "0.8", changefreq: "weekly" },
   { loc: "/about", priority: "0.7", changefreq: "monthly" },
   { loc: "/help", priority: "0.7", changefreq: "monthly" },
-  { loc: "/docs/api", priority: "0.5", changefreq: "monthly" },
+  // `/docs/api` خرج من الخريطة (٢٠٢٦/١٠): الواجهة مجمّدة ولا تُفتح إلا بقرار
+  // المؤسّس لتاجر بعينه — فلا معنى لدعوة محرّكات البحث إلى بابٍ مغلق.
   { loc: "/privacy", priority: "0.3", changefreq: "yearly" },
   { loc: "/terms", priority: "0.3", changefreq: "yearly" },
 ];

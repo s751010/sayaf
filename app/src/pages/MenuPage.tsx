@@ -731,6 +731,10 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
           backgroundSize: PATTERN_SIZE[pagePattern],
           backgroundAttachment: "fixed",
           color: "var(--m-text)",
+          // ⚠️ المنيو مثبَّت على خطّه قبل إعادة تصميم المنصّة: كان يرث خطّ
+          // `body`، و`body` صار خطّ المنصّة. فبلا هذا السطر كان كل نصٍّ لا
+          // يحمل `--m-font` في ٢١ طابعاً سيتغيّر شكله بصمت (§18).
+          fontFamily: "var(--font-tajawal)",
         } as CSSProperties
       }
     >

@@ -627,7 +627,7 @@ export default function Settings() {
 
         {/* بكسلات التتبّع — اختيارية ومطفأة تماماً بلا معرّف (§15). */}
         <CollapsibleCard
-          title="📊 التتبّع والإعلانات"
+          title="📊 متقدّم · التتبّع والإعلانات"
           subtitle="اربط منيوك بمنصّات إعلاناتك لتقيس من أين يأتي زبائنك"
         >
           <div className="flex flex-col gap-4">

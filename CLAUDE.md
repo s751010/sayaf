@@ -20,6 +20,7 @@
 | `docs/design.md` | §17 بطاقات الكاشير · §18 الطوابع · §20 التصنيفات والأيقونات · §22 اللاندنق |
 | `docs/security.md` | §8 وضع الكاشير · §9 التجربة المجانية · §24 التصلّب الأمني |
 | `docs/rounds.md` | §19 لوحة التاجر · §23 جاهزية الإطلاق · §25 الحمولة والمدونة |
+| `docs/compliance.md` | §26 الحاسبة والامتثال والمطبوع · §27 لغة التصميم «ملصقٌ وسدو» |
 | `LAUNCH.md` | ما يبقى على المالك — بكل بند: لماذا · كيف · كيف تتأكّد |
 
 ---
@@ -77,6 +78,7 @@ app/src/
     Legal.tsx           الخصوصية والشروط (فيها `IDENTITY_TODO` — انظر LAUNCH.md)
     dashboard/          Dashboard(shell) Overview Dishes Menus Orders Design Cards Qr
                         Analytics Loyalty Billing Settings Tabs
+                        Nutrition (الامتثال، §26) · PrintMenu (المنيو المطبوع A4 + CSV، §26)
     founder/            Founder(shell+بوابة) Overview Merchants MerchantDetail
                         BillingConsole (وحدة الاستلام، §21)
                         Money Comms Health
@@ -95,6 +97,7 @@ app/src/
     menu/Cart.tsx        السلّة نفسها: useCart · CartBar · AddToCartButton (§13)
     menu/CartReview.tsx  شاشة المراجعة والدفع (§13)
     menu/PickupTicket.tsx تذكرة الاستلام بعد الدفع (§13)
+    landing/ComplianceScene.tsx بطل الهبوط: وصفة ← ملصق ← كل مكان (lazy، §27)
     landing/PhonePreview.tsx معاينة الهاتف الحيّة في صفحة الهبوط
     landing/PricingCards.tsx بطاقات الأسعار — أرقامها من lib/plans لا من نصّ
     landing/LiveDemo.tsx · ScanDemo.tsx · SwitchCost.tsx · Reveal.tsx أقسام الهبوط
@@ -119,12 +122,16 @@ app/src/
     ApiKeysCard.tsx     مفاتيح API للتاجر — السرّ يُعرض مرة واحدة (§14)
     WebhooksCard.tsx    وجهات الويبهوك + سجل التسليم (§16)
     ErrorBoundary.tsx   يمنع الشاشة البيضاء
+    NutritionLabel.tsx  ملصق القيم الغذائية بنمط الهيئة — الأرقام تقفز حين تتغيّر (§26)
+    RecipeCalculator.tsx حاسبة الوصفة: نصّ ← ما فهمناه ← ملصق حيّ (§26)
   lib/
     api.ts              rest() restCount() uploadImage() founderAdmin() ApiError
     data.ts             كل الاستعلامات + whitelists الكتابة
     session.ts auth.tsx GoTrue بدون SDK + سياق React (+ استعادة كلمة المرور)
     config.ts plans.ts entitlements.ts themes.ts types.ts utils.ts
     allergens.ts hours.ts nutrition.ts options.ts
+    ingredients.ts      ١٢٩ مكوّناً بقيم USDA لكل ١٠٠غ — جدول الحاسبة (§26)
+    recipe.ts           محلّل الوصفة + الحساب — دوالّ خالصة بلا شبكة (§26)
     patterns.ts         زخارف SVG (سدو، مشربية، جيري CC0، نخيل، أهلّة، قطّ عسيري، نجمة)
     fonts.ts            تحميل خطوط الطوابع عند الطلب (§18)
     icons.tsx           ٦٩ أيقونة مرسومة يدوياً — مسارات واحدة للـDOM وللـcanvas (§20)
@@ -151,6 +158,10 @@ app/src/
 ```
 
 اللغة: عربية RTL. الخطوط ذاتية الاستضافة عبر `@fontsource` (لا Google Fonts).
+**المنصّة** بـIBM Plex Sans Arabic نصّاً وReem Kufi عرضاً (لا دون `text-base`)،
+و**المنيو مثبَّت على Tajawal** في جذر `MenuPage` كي لا يرث خطّ المنصّة (§27).
+والحركة كلّها داخل `prefers-reduced-motion: no-preference`، و`motion` في
+`components/landing/` وحدها (`bundle-isolation.test.ts`).
 الثيم: رموز دلالية في `styles/global.css`. **الفاتح هو الأساس** — يعيش على
 `:root`، و`data-theme="dark"` هو الاستثناء المخزَّن في `cm2_theme`. (كان
 العكس حتى ٢٠٢٦/٠٨/٢٢.) وقيم اللوحة الفاتحة **محلولة بتباين فعلي** لا مُقدَّرة،
@@ -366,6 +377,7 @@ cd app && npm run typecheck
 | `dishes.available` | `toggleDishAvailability` | مفتاح سريع في القائمة |
 | `dishes.price` | `updateDishPrice` | يُعدَّل من صفّ القائمة مباشرة |
 | `restaurants.online_payment_enabled` | `updateOnlinePayment` | يُحفظ من بطاقة «الدفع الإلكتروني» مع بيانات البوابة |
+| `dishes.calories` · `sodium_mg` · `caffeine_mg` · `allergens` | `updateDishNutrition` | تُكتب من الحاسبة في شاشة الامتثال بلا فورم الطبق — **وهي في `DishPayload` أيضاً**: هذه الدالّة لا تُخرجها منه، بل تكتب الأربعة وحدها (§26) |
 
 ---
 
@@ -381,6 +393,7 @@ cd app && npm run typecheck
 | `cm_table` | sessionStorage | رقم الطاولة من `?table=` |
 | `cm_staff` | sessionStorage | رمز الكاشير + slug مطعمه (لا يبقى على جهاز مشترك) |
 | `cm2_loyalty_<id>` | localStorage | بطاقة ولاء الزبون محلياً |
+| `cm2_recipe_<id>` | localStorage | نصّ وصفة الطبق في الحاسبة — **على هذا الجهاز وحده** (§26) |
 
 ---
 
@@ -390,7 +403,9 @@ cd app && npm run typecheck
 2. `cd app && npm run typecheck` — صفر أخطاء.
 3. `npm test` — صفر فشل. (فحوص التكافؤ تسقط عند أي تباعد بين نسختين مكتوبتين
    بيد، ولها تاريخ أعطال حقيقي.)
-3ب. `npm run e2e` — ١٤ حالة في كروميوم (حاسوباً وجوالاً). **هذه وحدها تفتح
+3ب. `npm run e2e` — ٢٢ حالة في كروميوم (حاسوباً وجوالاً): الصفحات العامّة،
+   و**شاشات اللوحة** (الامتثال · الحاسبة · المطبوع · **والطباعة نفسها**) بجلسة
+   مزروعة وشبكة مُحاكاة — `e2e/dashboard.spec.ts`. **هذه وحدها تفتح
    متصفّحاً**: الثلاث خطوات فوقها كلّها على دوالّ خالصة، وعطل `React #310`
    الذي أطفأ كل منيو مرّ منها جميعاً.
 4. إن أضفت حقلاً: طبّق القاعدة (أ) كاملة. وإن كان يراه الزبون: القاعدة (و)
