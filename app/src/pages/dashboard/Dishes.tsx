@@ -27,6 +27,7 @@ import { BulkImages } from "@/components/BulkImages";
 import { ImageUploader } from "@/components/ImageUploader";
 import { OptionsEditor } from "@/components/OptionsEditor";
 import { AllergenPicker } from "@/components/AllergenPicker";
+import { RecipeCalculator } from "@/components/RecipeCalculator";
 import { track } from "@/lib/track";
 import {
   countDishes,
@@ -320,6 +321,8 @@ export default function Dishes() {
   const [form, setForm] = useState<DishForm>({ ...EMPTY_FORM, menu_id: "" });
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  /** حاسبة الوصفة داخل الفورم — مضمَّنة لا نافذة فوق نافذة (Escape كان سيغلق الاثنتين). */
+  const [calcOpen, setCalcOpen] = useState(false);
 
   useEffect(() => {
     document.title = "الأطباق — كلاود منيو";
@@ -933,9 +936,29 @@ export default function Dishes() {
             </summary>
 
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <p className="sm:col-span-2 -mb-1 text-xs font-black text-faint">
-            المعلومات الغذائية (SFDA)
-          </p>
+          <div className="sm:col-span-2 -mb-1 flex flex-wrap items-center justify-between gap-2">
+            <p className="text-xs font-black text-faint">المعلومات الغذائية (هيئة الغذاء)</p>
+            <Button type="button" variant="outline" size="sm" onClick={() => setCalcOpen((v) => !v)}>
+              <Icon name="flame" size={14} />
+              {calcOpen ? "أخفِ الحاسبة" : "احسب من الوصفة"}
+            </Button>
+          </div>
+          {calcOpen && (
+            <div className="sm:col-span-2 rounded-[12px] border border-line bg-panel p-3">
+              <RecipeCalculator
+                dishId={editing && editing !== "new" ? editing.id : undefined}
+                dishName={form.name.trim() || undefined}
+                applyLabel="املأ الحقول بهذه الأرقام"
+                onApply={(r) => {
+                  set("calories", String(r.kcal));
+                  set("sodium_mg", String(r.sodium));
+                  set("caffeine_mg", String(r.caffeine));
+                  set("allergens", r.allergens);
+                  setCalcOpen(false);
+                }}
+              />
+            </div>
+          )}
           <Field label="سعرات حرارية">
             <Input type="number" inputMode="numeric" min="0" dir="ltr" value={form.calories} onChange={(e) => set("calories", e.target.value)} />
           </Field>

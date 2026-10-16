@@ -31,6 +31,9 @@ export type NavItem = {
 export const DASHBOARD_NAV: readonly NavItem[] = [
   { to: "/dashboard", label: "الرئيسية", icon: "home", end: true },
   { to: "/dashboard/dishes", label: "منيوي", icon: "plate" },
+  // ثاني عنصر عمداً: هو سبب الاشتراك منذ إعادة التموضع (٢٠٢٦/١٠) — حساب
+  // أرقام الهيئة من الوصفة. والسابع على الجوال يفيض فيمرّر (`ScrollRow`).
+  { to: "/dashboard/nutrition", label: "الامتثال", icon: "flame" },
   { to: "/dashboard/design", label: "التصميم", icon: "palette" },
   { to: "/dashboard/cards", label: "الطباعة", icon: "printer" },
   { to: "/dashboard/analytics", label: "التحليلات", icon: "bars" },

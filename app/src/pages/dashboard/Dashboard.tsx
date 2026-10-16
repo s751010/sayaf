@@ -13,6 +13,7 @@ import {
   Navigate,
   Route,
   Routes,
+  useLocation,
   useNavigate,
   useSearchParams,
 } from "react-router-dom";
@@ -67,6 +68,8 @@ import Analytics from "./Analytics";
 import Loyalty from "./Loyalty";
 import Settings from "./Settings";
 import Billing from "./Billing";
+import Nutrition from "./Nutrition";
+import PrintMenu from "./PrintMenu";
 import { Icon } from "@/lib/icons";
 
 /* ── السياق المشترك ───────────────────────────────────────────────── */
@@ -316,9 +319,10 @@ function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode
             // — أي تمريراً أفقياً لعنصر أو عنصرين، وهو ما كانت تداريه ضمادة
             // التدرّج على الحافة.
             compact
-              ? "flex shrink-0 flex-col items-center gap-0.5 rounded-xl px-2 py-2 text-[9px] font-bold"
-              : "flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-bold transition-colors",
-            isActive ? "bg-gold/12 text-gold" : "text-dim hover:bg-ink/5 hover:text-ink"
+              ? "press flex shrink-0 flex-col items-center gap-0.5 rounded-[10px] px-2 py-2 text-[9px] font-semibold"
+              : "press flex items-center gap-3 rounded-[10px] px-3.5 py-2.5 text-sm font-semibold",
+            // النشط حبرٌ مقلوب — كصفّ «السعرات» في الملصق: أسود يحمل الأهمّ.
+            isActive ? "bg-ink text-page" : "text-dim hover:bg-ink/5 hover:text-ink"
           )
         }
       >
@@ -344,8 +348,9 @@ function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode
       )}
       <div className="flex min-h-dvh">
       {/* جانبي (شاشات واسعة) */}
-      <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col border-l border-line bg-panel px-3 py-5 lg:flex">
-        <Link to="/" className="mb-6 px-2"><Logo /></Link>
+      <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-l border-line bg-panel px-3 py-5 lg:flex">
+        <Link to="/" className="mb-4 px-2"><Logo /></Link>
+        <div className="sadu-band mx-2 mb-5" aria-hidden="true" />
         <nav className="flex flex-1 flex-col gap-1">{links(false)}</nav>
         <PreviewMenuButton slug={ctx.restaurant.slug} className="mt-3 justify-center" />
         <div className="mt-4 border-t border-line pt-4">
@@ -415,7 +420,7 @@ function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode
           </ScrollRow>
         </header>
 
-        <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-7 sm:px-6">
+        <main className="dash-main mx-auto w-full max-w-4xl flex-1 px-4 py-7 sm:px-6">
           {/* إعلانات المؤسس — تصل التاجر هنا بلا بريد ولا واتساب.
               `ent.loading` تُستثنى: لا نصنّف الجمهور قبل أن تُحسم حالة الاشتراك.
               وفي وضع الانتحال لا تُعرض: إعلاناتك موجّهة للتجّار لا لك. */}
@@ -441,6 +446,8 @@ function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode
 export default function Dashboard() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  // ⚠️ فوق كل عودة مبكّرة — عطل React #310 أطفأ كل منيو من خطّاف تحتها.
+  const location = useLocation();
   const [params] = useSearchParams();
   const [restaurant, setRestaurant] = useState<Restaurant | null | undefined>(undefined);
   const [menus, setMenus] = useState<Menu[] | null>(null);
@@ -557,20 +564,26 @@ export default function Dashboard() {
         {/* المسارات كلها تبقى كما هي وإن خرج بعضها من القائمة: التجّار يحفظون
             روابط، والتوصيات والإعلانات ترسل إلى `/dashboard/menus` و`/loyalty`
             و`/billing`. الدمج في القائمة لا يعني كسر عنوان. */}
-        <Routes>
-          <Route index element={<Overview />} />
-          <Route path="menus" element={<Menus />} />
-          <Route path="dishes" element={<Dishes />} />
-          <Route path="orders" element={<Orders />} />
-          <Route path="design" element={<Design />} />
-          <Route path="cards" element={<Cards />} />
-          <Route path="qr" element={<Qr />} />
-          <Route path="analytics" element={<Analytics />} />
-          <Route path="loyalty" element={<Loyalty />} />
-          <Route path="billing" element={<Billing />} />
-          <Route path="settings" element={<Settings />} />
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
-        </Routes>
+        {/* المفتاح هو المسار: تبديل الشاشة يعيد تركيب الغلاف فتجري حركة
+            الدخول (`.page-enter`) — ولمن طلب تقليل الحركة تظهر ثابتة. */}
+        <div key={location.pathname} className="page-enter">
+          <Routes>
+            <Route index element={<Overview />} />
+            <Route path="menus" element={<Menus />} />
+            <Route path="dishes" element={<Dishes />} />
+            <Route path="nutrition" element={<Nutrition />} />
+            <Route path="orders" element={<Orders />} />
+            <Route path="design" element={<Design />} />
+            <Route path="cards" element={<Cards />} />
+            <Route path="qr" element={<Qr />} />
+            <Route path="print" element={<PrintMenu />} />
+            <Route path="analytics" element={<Analytics />} />
+            <Route path="loyalty" element={<Loyalty />} />
+            <Route path="billing" element={<Billing />} />
+            <Route path="settings" element={<Settings />} />
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          </Routes>
+        </div>
       </Shell>
     </Ctx.Provider>
   );

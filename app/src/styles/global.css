@@ -13,6 +13,28 @@
   --font-noto-kufi: "Noto Kufi Arabic", "Segoe UI", system-ui, sans-serif;
   --font-almarai: "Almarai", "Segoe UI", system-ui, sans-serif;
   --font-ruqaa: "Aref Ruqaa", "Amiri", "Times New Roman", serif;
+  /* خطّ المنصّة (الهبوط واللوحة) — لا المنيو، فالمنيو مثبَّت على طجوال. */
+  --font-plex: "IBM Plex Sans Arabic", "Segoe UI", system-ui, sans-serif;
+
+  /**
+   * ═══ «ملصقٌ وسدو» — لغة المنصّة منذ ٢٠٢٦/١٠ ═══
+   *
+   * المنتج صار يَعِد بأرقامٍ صحيحة على المنيو، فاستعار شكله من **ملصق القيم
+   * الغذائية**: حبرٌ أسود، قواعد سميكة، أرقام جدولية، صناديق مؤطّرة. ونسجه
+   * بخيطٍ واحد من **السدو النجدي** (`--c-sadu`، أحمر الصوف) يمنعه أن يصير
+   * أداةً جافّة بلا هوية.
+   *
+   * ⚠️ والذهب باقٍ لونَ الفعل: علامةٌ قائمة، و٣٤ زرّاً تقوم عليه، وتباينه
+   * محلول. الجديد هو الحياد البارد (حجرٌ لا قشدة) والحبر والسدو والحركة.
+   *
+   * القيم محسوبة لا مقدَّرة: كل لون نصّ فوق AA (4.5) على الورق واللوح واللوح
+   * الثاني **ورقعته المصبوغة من نفسه** — إلا `--c-faint` بالقرار القديم نفسه.
+   */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-io: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-1: 140ms;
+  --dur-2: 260ms;
+  --dur-3: 520ms;
 
   /**
    * الوضع النهاري — **الأساس**. ورقٌ دافئ + ذهب مكتوم.
@@ -26,14 +48,18 @@
    * التي يختارها التاجر (§18)، لا بهذه. `dark-gold` يبقى شكل المنتج لمن لم
    * يختر — و١٨ مطعماً عليه، وقيمه ثابت محروس ببصمة في `invariants.test.ts`.
    */
-  --c-page: #faf6ee;
+  --c-page: #f3f1ec;
   --c-panel: #ffffff;
-  --c-panel2: #f2ecdf;
-  --c-ink: #241d12;
-  --c-dim: #746a58;
-  --c-faint: #887d67;
-  --c-line: rgba(36, 29, 18, 0.1);
-  --c-line-gold: rgba(120, 93, 22, 0.3);
+  --c-panel2: #efede7;
+  --c-ink: #15130f;
+  --c-dim: #5a5346;
+  --c-faint: #827a6b;
+  --c-line: rgba(21, 19, 15, 0.11);
+  --c-line-gold: rgba(120, 93, 22, 0.32);
+  /* أحمر الصوف في السدو — زخرفةٌ وتمييز، لا حالة خطأ (تلك `--c-bad`). */
+  --c-sadu: #9b2318;
+  /* قاعدة الملصق: الخطّ الأسود السميك فوق الأقسام والأرقام. */
+  --c-rule: #15130f;
   /**
    * ⚠️ **الذهب هنا أغمق من ذهب الداكن — وهذا شرط لا ذوق.**
    *
@@ -61,21 +87,23 @@
   --c-gold2: #5f4a10;
   --c-on-gold: #fffbf2;
   --c-good: #0a6e42;
-  --c-bad: #b6261c;
-  --c-glow: rgba(184, 144, 47, 0.12);
+  --c-bad: #b3261e;
+  --c-glow: rgba(120, 93, 22, 0.14);
   /* لون علامات الرسوم البيانية — مُدقَّق (dataviz validator) على سطح اللوحة */
   --c-chart: #785d16;
 }
 
 /* الوضع الداكن — اختيارٌ يُحفظ في `cm2_theme`. أسود دافئ + ذهبي. */
 [data-theme="dark"] {
-  --c-page: #0e0c09;
-  --c-panel: #16130f;
-  --c-panel2: #1e1a14;
-  --c-ink: #f5efe3;
-  --c-dim: #a99f8c;
-  --c-faint: #746c5d;
-  --c-line: rgba(245, 239, 227, 0.09);
+  --c-page: #0e0d0b;
+  --c-panel: #171512;
+  --c-panel2: #201d18;
+  --c-ink: #f2efe8;
+  --c-dim: #a9a294;
+  --c-faint: #776f61;
+  --c-line: rgba(242, 239, 232, 0.1);
+  --c-sadu: #d9685c;
+  --c-rule: #f2efe8;
   --c-line-gold: rgba(212, 168, 67, 0.22);
   --c-gold: #d4a843;
   --c-gold2: #f0c96a;
@@ -101,9 +129,11 @@
   --color-on-gold: var(--c-on-gold);
   --color-good: var(--c-good);
   --color-bad: var(--c-bad);
+  --color-sadu: var(--c-sadu);
+  --color-rule: var(--c-rule);
 
-  --font-display: var(--font-cairo);
-  --font-body: var(--font-tajawal);
+  --font-display: var(--font-reem);
+  --font-body: var(--font-plex);
 }
 
 /* ── الأساس ────────────────────────────────────────────────────────── */
@@ -1245,5 +1275,184 @@ body {
   .scan-paper-still {
     transform: none;
     transition: none;
+  }
+}
+
+/* ══ «ملصقٌ وسدو» — مفردات المنصّة (الهبوط واللوحة، لا المنيو) ══════════ */
+
+/* الأرقام جدولية حيث تتراصف: لوحات الأرقام والملصق والأسعار. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/**
+ * توقيع الملصق على كل عنوان صفحة في اللوحة: قاعدةٌ سوداء قصيرة وسميكة فوقه،
+ * وطرفٌ من أحمر السدو. قاعدةٌ واحدة هنا بدل تعديل اثنتي عشرة صفحة — كلها
+ * تكتب `<h1 class="font-display …">` نفسها.
+ */
+.dash-main h1.font-display {
+  position: relative;
+  padding-top: 14px;
+  letter-spacing: -0.005em;
+}
+.dash-main h1.font-display::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0;
+  width: 44px;
+  height: 5px;
+  border-radius: 1px;
+  background: linear-gradient(
+    to left,
+    var(--c-rule) 0 70%,
+    transparent 70% 76%,
+    var(--c-sadu) 76%
+  );
+}
+
+/* شريط السدو — مثلّثاتٌ متقابلة بين خيطَي حبر، كحافة البيت في النسيج. */
+.sadu-band {
+  height: 14px;
+  background:
+    linear-gradient(135deg, var(--c-sadu) 25%, transparent 25%) 0 3px / 14px 8px repeat-x,
+    linear-gradient(225deg, var(--c-sadu) 25%, transparent 25%) 0 3px / 14px 8px repeat-x,
+    linear-gradient(to bottom, var(--c-rule) 0 2px, transparent 2px 12px, var(--c-rule) 12px 14px);
+}
+
+/* ── ملصق القيم الغذائية ─────────────────────────────────────────── */
+.nlabel {
+  border: 2px solid var(--c-rule);
+  border-radius: 6px;
+  background: var(--c-panel);
+  color: var(--c-ink);
+  padding: 10px 12px 12px;
+  font-variant-numeric: tabular-nums;
+}
+.nlabel-rule {
+  height: 7px;
+  background: var(--c-rule);
+  margin-block: 6px;
+}
+.nlabel-hair {
+  height: 1px;
+  background: var(--c-rule);
+  opacity: 0.55;
+}
+.nlabel-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding-block: 4px;
+  border-bottom: 1px solid color-mix(in srgb, var(--c-rule) 22%, transparent);
+}
+.nlabel-row:last-child {
+  border-bottom: 0;
+}
+
+/* ── الحركة ─────────────────────────────────────────────────────── */
+/**
+ * دخول الصفحة: ارتفاعٌ قصير وظهور. يُطلَق بتغيير `key` عند كل مسار، فيشعر
+ * التاجر أن الشاشة **تبدّلت** لا أن المحتوى قفز. ومثل `.reveal`: الحالة
+ * المكشوفة هي الافتراض، والحركة لمن يقبلها وحده.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .page-enter {
+    animation: page-enter var(--dur-3) var(--ease-out) both;
+  }
+  .stagger > * {
+    animation: page-enter var(--dur-3) var(--ease-out) both;
+    animation-delay: calc(var(--i, 0) * 60ms);
+  }
+  .modal-backdrop {
+    animation: fade-in var(--dur-2) var(--ease-out) both;
+  }
+  .modal-panel {
+    animation: modal-in var(--dur-3) var(--ease-out) both;
+  }
+  .press {
+    transition: transform var(--dur-1) var(--ease-out), background-color var(--dur-2) var(--ease-out),
+      box-shadow var(--dur-2) var(--ease-out), color var(--dur-2) var(--ease-out);
+  }
+  .press:active {
+    transform: scale(0.975);
+  }
+  .bar-grow {
+    transform-origin: right;
+    animation: bar-grow var(--dur-3) var(--ease-out) both;
+  }
+  [dir="ltr"] .bar-grow {
+    transform-origin: left;
+  }
+  .num-flip {
+    animation: num-flip var(--dur-2) var(--ease-out) both;
+  }
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.985);
+  }
+}
+@keyframes bar-grow {
+  from {
+    transform: scaleX(0);
+  }
+}
+@keyframes num-flip {
+  from {
+    opacity: 0.2;
+    transform: translateY(35%);
+  }
+}
+
+/* ── الطباعة ────────────────────────────────────────────────────── */
+/**
+ * صفحة «المنيو المطبوع» تطبع ورقها وحده: كل ما عداه (الشريط، الترويسة،
+ * أدوات المعاينة) يُخفى، وكل ورقة A4 تبدأ صفحةً جديدة.
+ */
+@media print {
+  @page {
+    size: A4;
+    margin: 0;
+  }
+  body {
+    background: #fff !important;
+  }
+  body * {
+    visibility: hidden;
+  }
+  .print-root,
+  .print-root * {
+    visibility: visible;
+  }
+  .print-root {
+    position: absolute;
+    inset: 0 0 auto 0;
+  }
+  .print-sheet {
+    box-shadow: none !important;
+    margin: 0 !important;
+    break-after: page;
+  }
+  .no-print {
+    display: none !important;
   }
 }

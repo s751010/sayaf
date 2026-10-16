@@ -78,15 +78,21 @@ const LIGHT = tokensOf(":root");
 const DARK = tokensOf('[data-theme="dark"]');
 
 describe("الأساس فاتح والداكن استثناء", () => {
+  /**
+   * ⚠️ الانقلاب يعيد المنتج كلّه إلى الداكن بسطر واحد.
+   *
+   * كان الفحص يثبّت القيم حرفياً (`#faf6ee`)، فأسقطته إعادة التصميم المقصودة
+   * (٢٠٢٦/١٠ «ملصقٌ وسدو»: حجرٌ بدل القشدة) وهو لم يُكتب لها. فصار يفحص ما
+   * يحرسه فعلاً — **اتّجاه** الأساس: ورقٌ فاتح وحبرٌ داكن — لا رقماً بعينه.
+   */
   it("`:root` يحمل الورق الفاتح لا الأسود", () => {
-    // ⚠️ الانقلاب يعيد المنتج كلّه إلى الداكن بسطر واحد.
-    expect(LIGHT["--c-page"]).toBe("#faf6ee");
-    expect(LIGHT["--c-ink"]).toBe("#241d12");
+    expect(luminance(rgb(LIGHT["--c-page"]))).toBeGreaterThan(0.8);
+    expect(luminance(rgb(LIGHT["--c-ink"]))).toBeLessThan(0.02);
   });
 
   it("`[data-theme=\"dark\"]` هو الذي يحمل الأسود", () => {
-    expect(DARK["--c-page"]).toBe("#0e0c09");
-    expect(DARK["--c-ink"]).toBe("#f5efe3");
+    expect(luminance(rgb(DARK["--c-page"]))).toBeLessThan(0.02);
+    expect(luminance(rgb(DARK["--c-ink"]))).toBeGreaterThan(0.8);
   });
 
   it("لا رمز في الفاتح إلا وله نظير في الداكن", () => {

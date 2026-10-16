@@ -49,6 +49,7 @@ export function PrintTabs() {
   return (
     <Tabs
       tabs={[
+        { to: "/dashboard/print", label: "المنيو المطبوع", icon: "doc" },
         { to: "/dashboard/cards", label: "بطاقات الكاشير", icon: "card" },
         { to: "/dashboard/qr", label: "أكواد QR", icon: "qr" },
       ]}
