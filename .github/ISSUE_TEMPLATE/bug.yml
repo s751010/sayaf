@@ -1,0 +1,46 @@
+name: 🐞 عطل
+description: شيءٌ لا يعمل عند تاجر أو زبون أو في لوحة المؤسّس
+title: "[عطل]: "
+labels: ["bug"]
+body:
+  - type: dropdown
+    id: surface
+    attributes:
+      label: أين ظهر؟
+      options:
+        - منيو الزبون (/:slug)
+        - لوحة التاجر (/dashboard)
+        - لوحة المؤسّس (/founder)
+        - الدفع أو الاشتراك
+        - صفحة الهبوط أو الصفحات العامّة
+        - غير ذلك
+    validations:
+      required: true
+  - type: input
+    id: url
+    attributes:
+      label: الرابط
+      description: رابط الصفحة التي ظهر فيها العطل (مثل رابط المنيو).
+      placeholder: https://heroic-marzipan-b46da4.netlify.app/demo
+  - type: textarea
+    id: what
+    attributes:
+      label: ماذا حدث، وماذا كان متوقّعاً؟
+      description: الخطوات بالترتيب، وما ظهر على الشاشة (لقطة إن أمكن).
+    validations:
+      required: true
+  - type: dropdown
+    id: device
+    attributes:
+      label: الجهاز
+      options:
+        - جوال
+        - حاسوب
+        - الاثنان
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: الخصوصية
+      options:
+        - label: لم ألصق في البلاغ رقم جوال زبون ولا بريداً ولا كلمة مرور ولا سرّاً.
+          required: true

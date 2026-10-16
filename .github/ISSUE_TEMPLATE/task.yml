@@ -1,0 +1,29 @@
+name: 🛠️ مهمّة
+description: عملٌ واحد محدّد — كل جلسة مع Claude تبدأ من مهمّة وتنتهي بطلب دمج
+title: "[مهمّة]: "
+labels: ["task"]
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: المطلوب
+      description: جملة أو جملتان. ما الذي يجب أن يكون صحيحاً حين تنتهي المهمّة؟
+    validations:
+      required: true
+  - type: textarea
+    id: done
+    attributes:
+      label: كيف نعرف أنها انتهت
+      description: ما يُفحص بعد الدمج — صفحةٌ تُفتح، رقمٌ في اللوحة، اختبارٌ يمرّ.
+    validations:
+      required: true
+  - type: dropdown
+    id: outside
+    attributes:
+      label: هل تلمس شيئاً خارج المستودع؟
+      options:
+        - لا — شيفرة فقط
+        - نعم — Supabase (هجرة أو دالّة أو إعداد)
+        - نعم — Netlify أو GitHub
+    validations:
+      required: true
