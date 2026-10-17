@@ -105,7 +105,9 @@ let posts = 0;
 
 /**
  * المقالات الثابتة (`src/content/articles.json`) — تُشحن مع الموقع، فتُدرَج
- * **قبل** سؤال القاعدة ولا تسقط بسقوطه. انظر `src/lib/articles.ts`.
+ * **قبل** سؤال القاعدة. ⚠️ لكن سقوط السؤال يُبقي الخريطة الاحتياطية كما هي
+ * (لا يُكتب شيء) — فالمقالات مُدرَجة فيها بيدٍ أيضاً، و`articles.test.ts`
+ * يُسقط الفحص إن غاب منها مقال. انظر `src/lib/articles.ts`.
  */
 const ARTICLES = JSON.parse(readFileSync(join(here, "../src/content/articles.json"), "utf8"));
 const articleSlugs = new Set();

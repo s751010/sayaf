@@ -105,10 +105,16 @@ export default function BlogPostPage() {
 
   useEffect(() => {
     setPost(undefined);
-    // الثابت من ملفّه بلا شبكة؛ وغيره من القاعدة.
-    (isStaticSlug(slug) ? loadStaticPost(slug) : getPostBySlug(slug))
-      .then(setPost)
-      .catch(() => setPost(null));
+    // ⚠️ **مقال القاعدة يغلب الثابت بالـslug نفسه** — كما في `mergePosts`.
+    // كان الثابت يُحمَّل وحده هنا، فإن نشر المالك نسخةً مصحَّحة من لوحته رأى
+    // القارئ عنوانها في القائمة ونصّها القديم في المقال. والثابت احتياطٌ حين
+    // لا صفّ أو تسقط الشبكة، فلا يصير المقال «غير موجود» بلا اتصال.
+    const load = isStaticSlug(slug)
+      ? Promise.all([getPostBySlug(slug).catch(() => null), loadStaticPost(slug)]).then(
+          ([db, local]) => db ?? local
+        )
+      : getPostBySlug(slug);
+    load.then(setPost).catch(() => setPost(null));
   }, [slug]);
 
   /**
