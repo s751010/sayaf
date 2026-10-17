@@ -7,15 +7,13 @@ import "@fontsource-variable/cairo";
 import "@fontsource/tajawal/400.css";
 import "@fontsource/tajawal/500.css";
 import "@fontsource/tajawal/700.css";
-// خطّا **المنصّة** (الهبوط واللوحة): IBM Plex Sans Arabic للنصّ والأرقام
-// الجدولية، وريم كوفي للعناوين. هذه تصريحات `@font-face` فقط: الملفّ لا يُنزَّل
-// إلا حين يُرسم به نصّ — فزائر المنيو لا يدفع بايتاً منها.
-import "@fontsource/ibm-plex-sans-arabic/400.css";
-import "@fontsource/ibm-plex-sans-arabic/500.css";
-import "@fontsource/ibm-plex-sans-arabic/600.css";
-import "@fontsource/ibm-plex-sans-arabic/700.css";
-import "@fontsource/reem-kufi/500.css";
-import "@fontsource/reem-kufi/700.css";
+// خطّا **المنصّة** (الهبوط واللوحة): **المراعي** للعناوين و**طجوال** للنصّ.
+// ⚠️ كانا IBM Plex وريم كوفي (٢٠٢٦/١٠) فقال المالك: «غير معروف ولا مقبول عند
+// الناس». والمراعي خطٌّ سعودي يعرفه كل من في السوق، وطجوال أشيع خطّ ويب عربي
+// في المملكة — ومحمَّل أصلاً للمنيو، فلا يُنزَّل للمنصّة بايتٌ جديد للنصّ.
+// تصريحات `@font-face` فقط: الملفّ لا يُنزَّل إلا حين يُرسم به نصّ.
+import "@fontsource/almarai/700.css";
+import "@fontsource/almarai/800.css";
 import "./styles/global.css";
 import App from "./App";
 import { applyStoredTheme } from "./components/ui";

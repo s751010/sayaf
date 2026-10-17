@@ -113,7 +113,7 @@ export async function renderOgImage(input: OgInput): Promise<Blob> {
   let size = 92;
   const name = (input.name || "منيو").trim();
   do {
-    ctx.font = `800 ${size}px Tajawal, 'IBM Plex Sans Arabic', system-ui, sans-serif`;
+    ctx.font = `800 ${size}px Tajawal, system-ui, sans-serif`;
     size -= 4;
   } while (ctx.measureText(name).width > OG_WIDTH - 200 && size > 42);
   ctx.fillStyle = "#f5efe3";
@@ -121,13 +121,13 @@ export async function renderOgImage(input: OgInput): Promise<Blob> {
 
   // ── النوع ──
   if (input.type?.trim()) {
-    ctx.font = "500 40px 'IBM Plex Sans Arabic', Tajawal, system-ui, sans-serif";
+    ctx.font = "500 40px Tajawal, system-ui, sans-serif";
     ctx.fillStyle = rgba(accent, 0.95);
     ctx.fillText(input.type.trim(), right, input.logo?.trim() ? 404 : 364);
   }
 
   // ── الدعوة ──
-  ctx.font = "600 34px 'IBM Plex Sans Arabic', Tajawal, system-ui, sans-serif";
+  ctx.font = "500 34px Tajawal, system-ui, sans-serif";
   ctx.fillStyle = "rgba(245,239,227,0.62)";
   ctx.fillText("تصفّح المنيو واطلب", right, OG_HEIGHT - 118);
 

@@ -4,6 +4,7 @@ import { Link, useParams } from "react-router-dom";
 import { Navbar, Footer } from "@/components/site";
 import { Badge, EmptyState, Skeleton } from "@/components/ui";
 import { getPostBySlug } from "@/lib/data";
+import { isStaticSlug, loadStaticPost, readingMinutes } from "@/lib/articles";
 import { ORGANIZATION, absoluteUrl, useJsonLd, useSeo } from "@/lib/seo";
 import { formatDate } from "@/lib/utils";
 import type { BlogPost } from "@/lib/types";
@@ -104,9 +105,16 @@ export default function BlogPostPage() {
 
   useEffect(() => {
     setPost(undefined);
-    getPostBySlug(slug)
-      .then(setPost)
-      .catch(() => setPost(null));
+    // ⚠️ **مقال القاعدة يغلب الثابت بالـslug نفسه** — كما في `mergePosts`.
+    // كان الثابت يُحمَّل وحده هنا، فإن نشر المالك نسخةً مصحَّحة من لوحته رأى
+    // القارئ عنوانها في القائمة ونصّها القديم في المقال. والثابت احتياطٌ حين
+    // لا صفّ أو تسقط الشبكة، فلا يصير المقال «غير موجود» بلا اتصال.
+    const load = isStaticSlug(slug)
+      ? Promise.all([getPostBySlug(slug).catch(() => null), loadStaticPost(slug)]).then(
+          ([db, local]) => db ?? local
+        )
+      : getPostBySlug(slug);
+    load.then(setPost).catch(() => setPost(null));
   }, [slug]);
 
   /**
@@ -121,6 +129,7 @@ export default function BlogPostPage() {
           description: postExcerpt(post) || undefined,
           path: `/blog/${slug}`,
           type: "article",
+          image: post.cover_image ?? undefined,
         }
       : null
   );
@@ -176,21 +185,30 @@ export default function BlogPostPage() {
             <Link to="/blog" className="text-sm font-bold text-dim hover:text-gold">
               → المدونة
             </Link>
-            <h1 className="mt-4 font-display text-3xl font-black leading-snug text-ink">
+            <h1 className="mt-5 font-display text-[2rem] font-bold leading-[1.35] text-ink sm:text-4xl">
               {postTitle(post)}
             </h1>
-            <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-faint">
-              {post.author && <span>✍️ {post.author}</span>}
+            {postExcerpt(post) && <p className="mt-4 text-lg leading-[1.8] text-dim">{postExcerpt(post)}</p>}
+            <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-dim">
+              {post.author && <span className="font-semibold text-ink">{post.author}</span>}
+              <span aria-hidden="true">·</span>
               <span>{formatDate(post.published_at ?? post.created_at)}</span>
+              {readingMinutes(post) && (
+                <>
+                  <span aria-hidden="true">·</span>
+                  <span>{readingMinutes(post)} دقائق قراءة</span>
+                </>
+              )}
               {post.category && <Badge variant="neutral">{post.category}</Badge>}
             </div>
             {post.cover_image && (
               <img
                 src={post.cover_image}
                 alt=""
-                loading="lazy"
+                width={1200}
+                height={630}
                 decoding="async"
-                className="mt-6 w-full rounded-2xl border border-line object-cover"
+                className="mt-8 aspect-[1200/630] w-full rounded-[16px] border border-line object-cover"
               />
             )}
             {/* المحتوى يأتي من لوحة المؤسس (الكتابة في blog_posts مقصورة على

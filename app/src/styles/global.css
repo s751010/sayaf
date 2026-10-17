@@ -13,8 +13,6 @@
   --font-noto-kufi: "Noto Kufi Arabic", "Segoe UI", system-ui, sans-serif;
   --font-almarai: "Almarai", "Segoe UI", system-ui, sans-serif;
   --font-ruqaa: "Aref Ruqaa", "Amiri", "Times New Roman", serif;
-  /* خطّ المنصّة (الهبوط واللوحة) — لا المنيو، فالمنيو مثبَّت على طجوال. */
-  --font-plex: "IBM Plex Sans Arabic", "Segoe UI", system-ui, sans-serif;
 
   /**
    * ═══ «ملصقٌ وسدو» — لغة المنصّة منذ ٢٠٢٦/١٠ ═══
@@ -132,8 +130,8 @@
   --color-sadu: var(--c-sadu);
   --color-rule: var(--c-rule);
 
-  --font-display: var(--font-reem);
-  --font-body: var(--font-plex);
+  --font-display: var(--font-almarai);
+  --font-body: var(--font-tajawal);
 }
 
 /* ── الأساس ────────────────────────────────────────────────────────── */
@@ -267,34 +265,118 @@ body {
     radial-gradient(40rem 22rem at 10% 110%, var(--c-glow), transparent 65%);
 }
 
-/* محتوى المقالات (يأتي من قاعدة البيانات كنص/HTML بسيط) */
+/* محتوى المقالات — من القاعدة أو من `content/articles/` (الوسوم نفسها التي
+   تسمح بها `sanitizeHtml`). سطرٌ بطول قراءة مريح، وفقرات بتنفّس واضح. */
 .prose-ar {
-  line-height: 1.9;
-  font-size: 1.05rem;
+  line-height: 1.95;
+  font-size: 1.075rem;
 }
 .prose-ar h2,
 .prose-ar h3 {
   font-family: var(--font-display);
   font-weight: 800;
-  margin: 1.6em 0 0.6em;
+  line-height: 1.4;
+  color: var(--c-ink);
+}
+.prose-ar h2 {
+  font-size: 1.55rem;
+  margin: 2.2em 0 0.7em;
+  padding-top: 0.9em;
+  border-top: 1px solid var(--c-line);
+}
+.prose-ar h3 {
+  font-size: 1.2rem;
+  margin: 1.6em 0 0.5em;
 }
 .prose-ar p {
   margin: 0.9em 0;
 }
+.prose-ar strong {
+  color: var(--c-ink);
+}
 .prose-ar a {
   color: var(--c-gold);
   text-decoration: underline;
+  text-underline-offset: 3px;
 }
 .prose-ar img {
   max-width: 100%;
+  height: auto;
   border-radius: 0.9rem;
   margin: 1.2em 0;
+}
+.prose-ar figure {
+  margin: 1.8em 0;
+}
+.prose-ar figure img {
+  margin: 0;
+  width: 100%;
+  border: 1px solid var(--c-line);
+}
+.prose-ar figcaption {
+  margin-top: 0.6em;
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: var(--c-dim);
+  text-align: center;
 }
 .prose-ar ul,
 .prose-ar ol {
   padding-inline-start: 1.4em;
   margin: 0.9em 0;
+}
+.prose-ar ul {
   list-style: disc;
+}
+.prose-ar ol {
+  list-style: decimal;
+}
+.prose-ar li {
+  margin: 0.35em 0;
+}
+.prose-ar li::marker {
+  color: var(--c-gold);
+}
+/* ملاحظة بارزة: حدٌّ بلون السدو على جانب البداية — للتنبيه والخلاصة. */
+.prose-ar blockquote {
+  margin: 1.6em 0;
+  padding: 0.9em 1.1em;
+  border-inline-start: 4px solid var(--c-sadu);
+  border-radius: 0.6rem;
+  background: var(--c-panel2);
+  color: var(--c-ink);
+}
+.prose-ar blockquote p {
+  margin: 0.4em 0;
+}
+.prose-ar table {
+  width: 100%;
+  margin: 1.4em 0;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+}
+.prose-ar th,
+.prose-ar td {
+  padding: 0.55em 0.7em;
+  border-bottom: 1px solid var(--c-line);
+  text-align: start;
+  vertical-align: top;
+}
+.prose-ar thead th {
+  border-bottom: 2px solid var(--c-rule);
+  font-weight: 700;
+  color: var(--c-ink);
+}
+.prose-ar tfoot td {
+  border-top: 2px solid var(--c-rule);
+  border-bottom: 0;
+  font-weight: 700;
+  color: var(--c-ink);
+}
+/* الجدول الأعرض من الشاشة يمرَّر وحده لا الصفحة. */
+.prose-ar div:has(> table) {
+  overflow-x: auto;
 }
 
 @media (prefers-reduced-motion: reduce) {

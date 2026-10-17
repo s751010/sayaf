@@ -19,7 +19,7 @@
  * الحركة: `lib/reveal.ts` للأقسام، و`motion` في البطل الكسول وحده — الحزمة
  * الرئيسية تخدم **صفحة المنيو** التي تُفتح من كود QR على بيانات جوال.
  */
-import { Suspense, lazy, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { Fragment, Suspense, lazy, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { Navbar, Footer } from "@/components/site";
 import { Card } from "@/components/ui";
@@ -130,11 +130,16 @@ function Words({ text, className }: { text: string; className?: string }) {
   const words = text.split(" ");
   return (
     <span className={cn("word-in", className)} aria-label={text}>
+      {/* ⚠️ **المسافة خارج الكلمة لا داخلها**: الكلمة `inline-block` (لتتحرّك)،
+          والمسافة في آخر صندوقٍ كهذا تُطوى — فخرج العنوان بالمراعي
+          «سعراتكمحسوبة» كلمةً واحدة. */}
       {words.map((w, i) => (
-        <span key={`${w}-${i}`} className="word" style={{ "--w": i } as CSSProperties} aria-hidden="true">
-          {w}
+        <Fragment key={`${w}-${i}`}>
+          <span className="word" style={{ "--w": i } as CSSProperties} aria-hidden="true">
+            {w}
+          </span>
           {i < words.length - 1 ? " " : ""}
-        </span>
+        </Fragment>
       ))}
     </span>
   );

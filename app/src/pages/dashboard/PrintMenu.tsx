@@ -15,7 +15,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button, Card, EmptyState, Select, Skeleton, Switch } from "@/components/ui";
-import { DAILY_KCAL } from "@/components/NutritionLabel";
+import { DAILY_CAFFEINE_MAX_MG, DAILY_KCAL } from "@/components/NutritionLabel";
 import { useDashboard } from "./Dashboard";
 import { PrintTabs } from "./Tabs";
 import { getMyDishes } from "@/lib/data";
@@ -90,6 +90,11 @@ export default function PrintMenu() {
     const mine = dishes.filter((d) => d.menu_id === menu.id && d.available !== false);
     return groupByCategory(mine, parseCategoryOrder(restaurant.category_order), "أطباق");
   }, [dishes, menu, restaurant.category_order]);
+
+  const hasCaffeine = useMemo(
+    () => (sections ?? []).some((s) => s.items.some((d) => (d.caffeine_mg ?? 0) > 0)),
+    [sections]
+  );
 
   const usedAllergens = useMemo(() => {
     const all = new Set<string>();
@@ -312,6 +317,13 @@ export default function PrintMenu() {
                 <p style={{ color: INK, fontWeight: 700 }}>
                   يحتاج البالغ في المتوسّط إلى {DAILY_KCAL.toLocaleString("ar-SA-u-nu-latn")} سعرة حرارية يومياً.
                 </p>
+                {/* ⚠️ لائحة الكافيين (يوليو ٢٠٢٥) تطلب العبارة مع الكمية — كانت الورقة
+                    تطبع كافيين القهوة بلا العبارة. تظهر متى وُجد صنفٌ بكافيين. */}
+                {hasCaffeine && (
+                  <p style={{ color: INK, fontWeight: 700 }}>
+                    الحدّ الأعلى اليومي من الكافيين للبالغ {DAILY_CAFFEINE_MAX_MG} ملغم.
+                  </p>
+                )}
                 {usedAllergens.length > 0 && (
                   <p>مسبّبات الحساسية: {usedAllergens.map((a) => `${a.emoji} ${a.label}`).join(" · ")}</p>
                 )}

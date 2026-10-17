@@ -26,6 +26,12 @@ export type LabelValues = {
 /** متوسّط الاحتياج اليومي للبالغ — العبارة المرجعية أسفل القوائم. */
 export const DAILY_KCAL = 2000;
 
+/**
+ * الحدّ الأعلى اليومي للكافيين للبالغ — عبارةٌ تطلبها لائحة الهيئة (نافذة منذ
+ * يوليو ٢٠٢٥) **مع** كمية الكافيين في كل منيو فيه مشروبٌ بكافيين.
+ */
+export const DAILY_CAFFEINE_MAX_MG = 400;
+
 function Num({ value, unit }: { value: number | null | undefined; unit?: string }) {
   if (value === null || value === undefined) return <span className="text-faint">—</span>;
   return (
@@ -120,6 +126,7 @@ export function NutritionLabel({
       <div className="nlabel-hair mt-2.5" />
       <p className="mt-2 text-[11px] leading-relaxed text-dim">
         يحتاج البالغ في المتوسّط إلى {DAILY_KCAL.toLocaleString("ar-SA-u-nu-latn")} سعرة حرارية يومياً.
+        {(values.caffeine ?? 0) > 0 && ` والحدّ الأعلى اليومي من الكافيين للبالغ ${DAILY_CAFFEINE_MAX_MG} ملغم.`}
       </p>
     </div>
   );

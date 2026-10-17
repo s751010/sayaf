@@ -74,6 +74,7 @@ app/src/
     Demo.tsx            منيو تجريبي حي /demo (بيانات محلية، بدون شبكة)
     Login.tsx  ResetPassword.tsx  Stamp.tsx (وضع الكاشير العام)
     Blog.tsx  BlogPost.tsx  Help.tsx  ApiDocs.tsx  NotFound.tsx
+                        (المدونة: الثابتة من `content/` + مسوّدات `blog_posts` معاً)
     About.tsx           «من نحن» — قصّة المنتج (فيها `OWNER_STORY_TODO`)
     Legal.tsx           الخصوصية والشروط (فيها `IDENTITY_TODO` — انظر LAUNCH.md)
     dashboard/          Dashboard(shell) Overview Dishes Menus Orders Design Cards Qr
@@ -155,12 +156,21 @@ app/src/
     facts.ts            أرقام المنتج المعروضة (طوابع · قياسات · DPI)
     nav.ts              عناصر قائمة اللوحة
     seo.ts · ogImage.ts وسوم الصفحات وصورة المشاركة
+    articles.ts         مقالات المدونة الثابتة: بياناتها، وتحميل النصّ كسولاً، ودمجها بمقالات القاعدة
     track.ts · phoneDemo.ts · reveal.ts · password.ts أدوات مساعدة
+  content/
+    articles.json       بيانات المقالات (slug · عنوان · ملخّص · تاريخ) — يقرؤها `sitemap.mjs` أيضاً
+    articles/<slug>.html نصّ كل مقال — يمرّ على `sanitizeHtml`، وصوره في `public/blog/<slug>/`
 ```
 
+> **المقال الثابت ثلاثة ملفّات يجمعها الـslug**: سطرٌ في `articles.json`، ونصٌّ
+> في `articles/`، وغلاف `public/blog/<slug>/cover.webp`. `articles.test.ts`
+> يحرس تطابقها، وأن كل صورة ورابطٍ داخلي موجود، وأن المنقّي لا يُسقط وسماً.
+
 اللغة: عربية RTL. الخطوط ذاتية الاستضافة عبر `@fontsource` (لا Google Fonts).
-**المنصّة** بـIBM Plex Sans Arabic نصّاً وReem Kufi عرضاً (لا دون `text-base`)،
-و**المنيو مثبَّت على Tajawal** في جذر `MenuPage` كي لا يرث خطّ المنصّة (§27).
+**المنصّة** بـ**Almarai** (المراعي) عرضاً و**Tajawal** نصّاً — خطّان يعرفهما
+القارئ السعودي (كانا IBM Plex وReem Kufi حتى ٢٠٢٦/١٠/١٦؛ §27). و**المنيو
+مثبَّت على Tajawal** في جذر `MenuPage` كي لا يرث خطّ المنصّة إن تبدّل ثانيةً.
 والحركة كلّها داخل `prefers-reduced-motion: no-preference`، و`motion` في
 `components/landing/` وحدها (`bundle-isolation.test.ts`).
 الثيم: رموز دلالية في `styles/global.css`. **الفاتح هو الأساس** — يعيش على
@@ -404,7 +414,7 @@ cd app && npm run typecheck
 2. `cd app && npm run typecheck` — صفر أخطاء.
 3. `npm test` — صفر فشل. (فحوص التكافؤ تسقط عند أي تباعد بين نسختين مكتوبتين
    بيد، ولها تاريخ أعطال حقيقي.)
-3ب. `npm run e2e` — ٢٤ حالة في كروميوم (حاسوباً وجوالاً): الصفحات العامّة،
+3ب. `npm run e2e` — ٢٦ حالة في كروميوم (حاسوباً وجوالاً): الصفحات العامّة،
    و**حاسبة البطل** للزائر بلا تسجيل (`e2e/landing.spec.ts`)، و**شاشات اللوحة**
    (الامتثال · الحاسبة · المطبوع · **والطباعة نفسها**) بجلسة مزروعة وشبكة
    مُحاكاة — `e2e/dashboard.spec.ts`. **هذه وحدها تفتح
