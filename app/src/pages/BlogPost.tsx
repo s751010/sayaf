@@ -1,10 +1,11 @@
 /** صفحة مقال واحد. */
-import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useEffect, useState, type MouseEvent } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { Navbar, Footer } from "@/components/site";
 import { Badge, EmptyState, Skeleton } from "@/components/ui";
 import { getPostBySlug } from "@/lib/data";
-import { isStaticSlug, loadStaticPost, readingMinutes } from "@/lib/articles";
+import { isStaticSlug, loadStaticPost, readingLabel, readingMinutes, relatedPosts } from "@/lib/articles";
+import { CTA_PRIMARY } from "@/lib/facts";
 import { ORGANIZATION, absoluteUrl, useJsonLd, useSeo } from "@/lib/seo";
 import { formatDate } from "@/lib/utils";
 import type { BlogPost } from "@/lib/types";
@@ -102,9 +103,15 @@ export function sanitizeHtml(html: string): string {
 export default function BlogPostPage() {
   const { slug = "" } = useParams();
   const [post, setPost] = useState<BlogPost | null | undefined>(undefined);
+  const navigate = useNavigate();
+  const related = relatedPosts(slug);
 
   useEffect(() => {
     setPost(undefined);
+    // لا استعادة تمرير في الراوتر: من «اقرأ أيضاً» أسفل مقال كان القارئ يصل
+    // إلى أسفل المقال التالي. و`instant` لأن `scroll-behavior: smooth` عامّ،
+    // فكان الانتقال يُرى تمريراً طويلاً من آخر الصفحة إلى أوّلها.
+    window.scrollTo({ top: 0, behavior: "instant" });
     // ⚠️ **مقال القاعدة يغلب الثابت بالـslug نفسه** — كما في `mergePosts`.
     // كان الثابت يُحمَّل وحده هنا، فإن نشر المالك نسخةً مصحَّحة من لوحته رأى
     // القارئ عنوانها في القائمة ونصّها القديم في المقال. والثابت احتياطٌ حين
@@ -149,6 +156,20 @@ export default function BlogPostPage() {
         }
       : null
   );
+
+  /**
+   * روابط النصّ الداخلية (`/blog/…` · `/`) تنتقل داخل التطبيق: النصّ HTML
+   * منقّى لا مكوّنات `Link`، فكان كل رابط بين مقالين يعيد تحميل الموقع كلّه.
+   * والنقر المعدَّل (تبويب جديد) والروابط الخارجية تبقى للمتصفّح.
+   */
+  const onBodyClick = (e: MouseEvent<HTMLDivElement>) => {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    const a = (e.target as HTMLElement).closest("a");
+    const href = a?.getAttribute("href");
+    if (!a || !href || a.target === "_blank" || !href.startsWith("/") || href.startsWith("//")) return;
+    e.preventDefault();
+    navigate(href);
+  };
 
   const content = post ? post.content_ar || post.content || "" : "";
   // وسم مغلق فعلي، لا مجرد وجود < و > في نص عربي عادي (مثل «< ٥ دقائق»).
@@ -196,7 +217,7 @@ export default function BlogPostPage() {
               {readingMinutes(post) && (
                 <>
                   <span aria-hidden="true">·</span>
-                  <span>{readingMinutes(post)} دقائق قراءة</span>
+                  <span>{readingLabel(readingMinutes(post)!)}</span>
                 </>
               )}
               {post.category && <Badge variant="neutral">{post.category}</Badge>}
@@ -217,12 +238,54 @@ export default function BlogPostPage() {
             {looksLikeHtml ? (
               <div
                 className="prose-ar mt-6 text-ink"
+                onClick={onBodyClick}
                 dangerouslySetInnerHTML={{ __html: sanitizeHtml(content) }}
               />
             ) : (
               <div className="prose-ar mt-6 whitespace-pre-wrap text-ink">{content}</div>
             )}
+
+            <aside className="mt-14 rounded-[16px] border border-line bg-panel2/60 p-6 text-center">
+              <p className="font-display text-xl font-bold text-ink">احسب أرقام منيوك من وصفاتك</p>
+              <p className="mx-auto mt-2 max-w-md text-[15px] leading-relaxed text-dim">
+                السعرات والكافيين والحساسية — على منيو QR ومنيو مطبوع وملف لتطبيقات التوصيل.
+              </p>
+              <Link
+                to="/login?mode=signup"
+                className="press mt-5 inline-flex min-h-12 items-center rounded-[12px] bg-gold px-7 font-bold text-on-gold hover:bg-gold2"
+              >
+                {CTA_PRIMARY}
+              </Link>
+            </aside>
           </article>
+        )}
+
+        {post && related.length > 0 && (
+          <section aria-labelledby="related" className="mt-14 border-t border-line pt-10">
+            <h2 id="related" className="font-display text-2xl font-bold text-ink">اقرأ أيضاً</h2>
+            <div className="mt-6 grid gap-5 sm:grid-cols-3">
+              {related.map((r) => (
+                <Link
+                  key={r.id}
+                  to={`/blog/${r.slug}`}
+                  className="group overflow-hidden rounded-[14px] border border-line bg-panel transition-colors hover:border-ink/30"
+                >
+                  <img
+                    src={r.cover_image ?? ""}
+                    alt=""
+                    width={1200}
+                    height={630}
+                    loading="lazy"
+                    decoding="async"
+                    className="aspect-[1200/630] w-full border-b border-line object-cover"
+                  />
+                  <p className="p-4 font-display text-[15px] font-bold leading-snug text-ink group-hover:text-gold">
+                    {postTitle(r)}
+                  </p>
+                </Link>
+              ))}
+            </div>
+          </section>
         )}
       </main>
       <Footer />

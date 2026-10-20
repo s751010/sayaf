@@ -82,6 +82,33 @@ export function mergePosts(db: BlogPost[]): BlogPost[] {
   return all.sort((a, b) => (b.published_at ?? b.created_at).localeCompare(a.published_at ?? a.created_at));
 }
 
+/** التصنيفات بترتيب أوّل ظهورها في القائمة المعطاة — لشرائح التصفية. */
+export function categoriesOf(posts: BlogPost[]): string[] {
+  return [...new Set(posts.map((p) => p.category).filter((c): c is string => !!c))];
+}
+
+/**
+ * «اقرأ أيضاً» تحت المقال: من التصنيف نفسه أوّلاً، ثم البقية بترتيبها في
+ * `articles.json` (الأحدث أعلاه).
+ *
+ * من الثابتة وحدها: هي التي يُعرف غلافها ونصّها بلا شبكة، وروابطها مضمونة
+ * الوجود (`articles.test.ts`) — فلا تقود القارئ إلى «المقال غير موجود».
+ */
+export function relatedPosts(slug: string, limit = 3): BlogPost[] {
+  const self = STATIC_POSTS.find((p) => p.slug === slug);
+  const others = STATIC_POSTS.filter((p) => p.slug !== slug);
+  const same = others.filter((p) => self && p.category === self.category);
+  const rest = others.filter((p) => !same.includes(p));
+  return [...same, ...rest].slice(0, limit);
+}
+
+/** «٥ دقائق قراءة» بعدد صحيح لغةً: دقيقة · دقيقتان · ٣–١٠ دقائق · ١١+ دقيقة. */
+export function readingLabel(n: number): string {
+  if (n === 1) return "دقيقة قراءة";
+  if (n === 2) return "دقيقتا قراءة";
+  return n <= 10 ? `${n} دقائق قراءة` : `${n} دقيقة قراءة`;
+}
+
 /** دقائق القراءة: المكتوبة للثابت، وتقديرٌ من طول النصّ (١٨٠ كلمة/دقيقة) لغيره. */
 export function readingMinutes(p: BlogPost): number | null {
   const fixed = (p as { minutes?: unknown }).minutes;
