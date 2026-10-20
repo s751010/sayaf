@@ -22,6 +22,29 @@ export type Insight = {
 /** الحد الذي دونه لا معنى للنِسب — عيّنة صغيرة تنتج نصائح عشوائية. */
 const MIN_VIEWS = 20;
 
+/**
+ * لغة الزبون الفعلية: **من فتح الأطباق لا من مشاهدة المنيو.**
+ *
+ * ═══ العطل ═══
+ *
+ * كانت «لغة العرض» تُعدّ من صفوف مشاهدة المنيو — وتلك تُسجَّل عند التحميل،
+ * **قبل** أن يلمس الزبون مبدّل اللغة، فلغتها `ar` دائماً. فكانت البطاقة تقول
+ * «English: 0» لكل مطعم، وتوصية الإنجليزية لا تظهر أبداً.
+ *
+ * وفتح الطبق يُسجَّل بلغة الشاشة لحظتها — هي اللغة التي قرأ بها فعلاً. ولا
+ * يتغيّر شيء في القاعدة: الحقل نفسه، من الصفوف التي كانت تحمله صحيحاً أصلاً.
+ */
+export function languageSplit(rows: AnalyticsRow[], inRange?: Set<string>): { ar: number; en: number } {
+  let ar = 0;
+  let en = 0;
+  for (const r of rows) {
+    if (!r.dish_id || (inRange && (!r.date || !inRange.has(r.date)))) continue;
+    if (r.lang === "en") en += r.views ?? 0;
+    else ar += r.views ?? 0;
+  }
+  return { ar, en };
+}
+
 export function buildInsights(
   dishes: Dish[],
   rows: AnalyticsRow[],
@@ -114,19 +137,28 @@ export function buildInsights(
       severity: "info",
       icon: "heart",
       text: "بطاقة الولاء مطفأة — فعّلها ليعود الزبون مرة أخرى بدل أن يجرّب غيرك.",
-      action: { label: "فعّل الولاء", to: "/dashboard/settings" },
+      // الولاء في صفحته (`Loyalty.tsx`) لا في الإعدادات — كان الزرّ يقود إلى
+      // صفحة لا مفتاح ولاء فيها.
+      action: { label: "فعّل الولاء", to: "/dashboard/loyalty" },
     });
   }
 
-  /* ٧) الإنجليزية مطفأة رغم أن زبائن يقلبون إليها. */
-  const enViews = menuRows.reduce((s, r) => s + (r.lang === "en" ? (r.views ?? 0) : 0), 0);
-  if (enViews > 0 && !restaurant.english_enabled) {
+  /*
+   * ٧) زبائن يقرؤون بالإنجليزية وأصنافٌ بلا اسم إنجليزي.
+   *
+   * ⚠️ كانت «الإنجليزية مطفأة رغم أن زبائن يقلبون إليها» — وهذا **مستحيل**:
+   * المبدّل لا يظهر للزبون إلا حين تكون مفعّلة. فالتوصية الممكنة هي التالية:
+   * من يقرأ بالإنجليزية يرى الصنف غير المترجَم باسمه العربي.
+   */
+  const enOpens = languageSplit(dishRows).en;
+  const untranslated = ranked.filter((d) => (hits.get(d.id) ?? 0) > 0 && !d.name_en?.trim());
+  if (restaurant.english_enabled && enOpens > 0 && untranslated.length) {
     out.push({
-      id: "english-off",
+      id: "english-gaps",
       severity: "info",
       icon: "link",
-      text: `${enViews} مشاهدة بالإنجليزية ومبدّل اللغة مطفأ — فعّله وأضف الأسماء الإنجليزية.`,
-      action: { label: "فعّل الإنجليزية", to: "/dashboard/settings" },
+      text: `${enOpens} فتحاً بالإنجليزية، و${untranslated.length} من الأصناف المفتوحة بلا اسم إنجليزي — ابدأ بـ«${untranslated[0].name}».`,
+      action: { label: "أكمل الترجمة", to: "/dashboard/dishes" },
     });
   }
 
@@ -137,8 +169,10 @@ export function buildInsights(
       id: "sfda",
       severity: "info",
       icon: "salad",
-      text: `${incomplete.length} طبقاً بلا سعرات أو صوديوم — إكمالها يعرض شارة التوافق مع هيئة الغذاء والدواء للزبون.`,
-      action: { label: "أكمل البيانات", to: "/dashboard/dishes" },
+      // ما يراه الزبون فعلاً «القيم الغذائية مُعلنة من المطعم» (`DishModal`) —
+      // لا «شارة توافق مع الهيئة»: لا شارة رسمية، والوعد بها كان كاذباً.
+      text: `${incomplete.length} طبقاً بلا سعرات أو صوديوم — والهيئة تطلب السعرات بجانب كل صنف. احسبها من الوصفة.`,
+      action: { label: "أكمل الأرقام", to: "/dashboard/nutrition" },
     });
   }
 

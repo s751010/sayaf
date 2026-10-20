@@ -3,7 +3,8 @@
  *
  * كان الحقل مربّع نصّ يُطلب فيه من صاحب المطعم كتابة JSON بيده
  * (`[{"name":"جبن إضافي","price":5}]`) — وهذا ليس شيئاً يُطلب من تاجر.
- * هنا صفوف: اسم + سعر اختياري، والتسلسل إلى JSON يحدث خلف الكواليس.
+ * هنا صفوف: اسم + سعر اختياري + سعرات اختيارية، والتسلسل إلى JSON يحدث خلف
+ * الكواليس. والسعرات لأن الهيئة تطلبها للإضافات منفصلة: «جبن إضافي · 80 سعرة».
  */
 import { useState } from "react";
 import { parseOptions, serializeOptions, type DishOption } from "@/lib/options";
@@ -44,7 +45,7 @@ export function OptionsEditor({
 
       {rows.length === 0 && (
         <p className="text-xs text-faint">
-          لا توجد إضافات. مثال: «جبن إضافي +5 ر.س» أو «حجم كبير +10 ر.س».
+          لا توجد إضافات. مثال: «جبن إضافي +5 ر.س · 80 سعرة» أو «شوت إضافي +4 ر.س».
         </p>
       )}
 
@@ -80,6 +81,25 @@ export function OptionsEditor({
                     j === i
                       ? { ...r, price: n !== undefined && Number.isFinite(n) ? n : undefined }
                       : r
+                  )
+                );
+              }}
+            />
+            <Input
+              type="number"
+              inputMode="numeric"
+              min="0"
+              step="1"
+              dir="ltr"
+              value={row.kcal ?? ""}
+              placeholder="سعرة"
+              className="w-20 text-center"
+              aria-label="سعرات الإضافة (اختياري)"
+              onChange={(e) => {
+                const n = e.target.value === "" ? undefined : Math.round(Number(e.target.value));
+                push(
+                  rows.map((r, j) =>
+                    j === i ? { ...r, kcal: n !== undefined && Number.isFinite(n) && n > 0 ? n : undefined } : r
                   )
                 );
               }}

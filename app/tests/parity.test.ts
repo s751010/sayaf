@@ -19,6 +19,8 @@ import { describe, expect, it } from "vitest";
 import { parseOptions } from "@/lib/options";
 import { PLANS, CURRENCY_CODE } from "@/lib/plans";
 import { parseDishOptions } from "../../supabase/functions/_shared/options";
+import { orderTotals as appTotals, VAT_RATE as APP_VAT } from "@/lib/vat";
+import { orderTotals as edgeTotals, VAT_RATE as EDGE_VAT } from "../../supabase/functions/_shared/vat";
 
 const repo = (p: string) => fileURLToPath(new URL(`../../${p}`, import.meta.url));
 
@@ -82,6 +84,24 @@ describe("تكافؤ parseOptions ⟷ parseDishOptions", () => {
   });
 });
 
+/* ══ ١ب) ضريبة الطلب: السلّة ⟷ paylink-order-create ════════════════════ */
+
+/**
+ * ما يُعرض في السلّة هو ما يُحصَّل — أو يرى الزبون ١١٥ ثم تطلب منه صفحة الدفع
+ * ١٠٠ (أو العكس). والعطل الذي أوجدها: الخادم كان لا يضيف الضريبة أصلاً.
+ */
+describe("تكافؤ orderTotals: lib/vat ⟷ _shared/vat", () => {
+  it("النسبة واحدة", () => expect(APP_VAT).toBe(EDGE_VAT));
+  it.each([0, 5, 18, 82, 99.5, 123.45, 1000, 0.01])("مجموع %s", (n) => {
+    expect(appTotals(n, true)).toEqual(edgeTotals(n, true));
+    expect(appTotals(n, false)).toEqual(edgeTotals(n, false));
+  });
+  it("غير الشاملة تُضاف إليها ١٥٪ — والشاملة لا يتغيّر إجماليها", () => {
+    expect(appTotals(100, false)).toEqual({ subtotal: 100, vat: 15, total: 115 });
+    expect(appTotals(115, true)).toEqual({ subtotal: 115, vat: 15, total: 115 });
+  });
+});
+
 /* ══ ٢) الباقات: الواجهة ⟷ _shared/plans.ts ═══════════════════════════ */
 
 describe("تكافؤ plans.ts ⟷ _shared/plans.ts", () => {
@@ -132,6 +152,32 @@ describe("تكافؤ plans.ts ⟷ _shared/plans.ts", () => {
     walk(dir);
     expect(offenders, `سعر مكتوب بيد خارج _shared/plans.ts:\n${offenders.join("\n")}`)
       .toEqual([]);
+  });
+
+  /**
+   * ونظيره في الواجهة: «99 ر.س» مكتوبةً في نصّ صفحة. وُجدت في موضعين
+   * (`Dishes.tsx` · `Help.tsx`) يوم كان السعر قد تغيّر مرّة من قبل — والفحص
+   * أعلاه لا يقرأ إلا دوالّ الحافة. فأي سعر باقةٍ يليه «ر.س» أو «ريال» في
+   * `app/src` خارج `lib/plans.ts` يُسقط CI.
+   */
+  it("لا صفحة تكتب سعر الباقة برقم", () => {
+    const dir = repo("app/src");
+    const prices = [...new Set(PLANS.flatMap((p) => [p.monthly, p.yearly]))];
+    const re = new RegExp(`\\b(${prices.join("|")})\\s*(ر\\.س|ريال|SAR)`);
+    const offenders: string[] = [];
+    const walk = (p: string) => {
+      for (const e of readdirSync(p, { withFileTypes: true })) {
+        const full = `${p}/${e.name}`;
+        if (e.isDirectory()) walk(full);
+        else if (/\.(tsx?|json)$/.test(e.name) && !full.endsWith("lib/plans.ts")) {
+          readFileSync(full, "utf8").split("\n").forEach((line, i) => {
+            if (re.test(line)) offenders.push(`${full.split("/app/src/")[1]}:${i + 1}`);
+          });
+        }
+      }
+    };
+    walk(dir);
+    expect(offenders, `سعر الباقة مكتوب بيد خارج lib/plans.ts:\n${offenders.join("\n")}`).toEqual([]);
   });
 
   it("الخادم لا يسعّر باقة لا تبيعها الواجهة", () => {

@@ -9,6 +9,8 @@ import { Link, useSearchParams } from "react-router-dom";
 import { useEffect } from "react";
 import MenuPage, { type MenuData } from "./MenuPage";
 import type { Dish, Menu, Restaurant } from "@/lib/types";
+import { CTA_PRIMARY } from "@/lib/facts";
+import { burnMinutes, isHighSodium, isSfdaCompliant } from "@/lib/nutrition";
 
 const DEMO_TS = "2026-01-01T00:00:00.000Z";
 const RESTAURANT_ID = "demo-restaurant";
@@ -94,7 +96,14 @@ const menus: Menu[] = [
   },
 ];
 
-/** يبني طبقاً كاملاً بأقل تكرار — البقية افتراضات معقولة. */
+/**
+ * يبني طبقاً كاملاً بأقل تكرار — البقية افتراضات معقولة.
+ *
+ * ⚠️ **الأعمدة المحسوبة تُحسب هنا بصيغ القاعدة نفسها** (`lib/nutrition.ts`) لا
+ * تُكتب بيد: كانت مكتوبة، فستيك بـ620 سعرة يقول «95 دقيقة مشي» والصيغة 155، وقهوة
+ * بلا صوديوم موسومة «مكتملة البيانات» — أي أن المنيو التجريبي كان يخالف قاعدة
+ * المنتج الذي يعرضه.
+ */
 function dish(
   id: string,
   name: string,
@@ -125,12 +134,12 @@ function dish(
     calories: null,
     sodium_mg: null,
     caffeine_mg: null,
-    burn_minutes: null,
-    is_high_sodium: null,
     allergens: null,
-    sfda_compliant: null,
     options: null,
     ...extra,
+    burn_minutes: burnMinutes(extra.calories ?? null),
+    is_high_sodium: extra.sodium_mg == null ? null : isHighSodium(extra.sodium_mg),
+    sfda_compliant: isSfdaCompliant(extra.calories ?? null, extra.sodium_mg ?? null),
   };
 }
 
@@ -141,9 +150,7 @@ const dishes: Dish[] = [
     featured: true,
     calories: 620,
     sodium_mg: 780,
-    burn_minutes: 95,
     allergens: ["حليب"],
-    sfda_compliant: true,
     options: JSON.stringify([
       { name: "إضافة كمأة", price: 25 },
       { name: "صوص الفلفل الأسود", price: 8 },
@@ -155,7 +162,6 @@ const dishes: Dish[] = [
     featured: true,
     calories: 540,
     sodium_mg: 920,
-    burn_minutes: 82,
     allergens: ["قشريات", "سمسم", "جلوتين"],
     options: JSON.stringify([{ name: "حار إضافي", price: 0 }, { name: "صوص جانبي", price: 6 }]),
   }),
@@ -169,7 +175,6 @@ const dishes: Dish[] = [
     featured: true,
     calories: 880,
     sodium_mg: 1150,
-    burn_minutes: 132,
     allergens: ["مكسرات"],
     options: JSON.stringify([
       { name: "نصف وجبة", price: 0 },
@@ -180,7 +185,6 @@ const dishes: Dish[] = [
     description: "دجاج مدخّن في التنور مع أرز المندي وصلصة الدقوس.",
     calories: 720,
     sodium_mg: 980,
-    burn_minutes: 108,
   }),
   dish("d6", "شكشوكة الصباح", "Morning Shakshuka", "الإفطار", 38, "🍳", {
     description: "بيض في صلصة الطماطم والفلفل، مع خبز التنور.",
@@ -193,10 +197,9 @@ const dishes: Dish[] = [
     allergens: ["حليب", "مكسرات", "جلوتين"],
   }),
   dish("d8", "قهوة سعودية بالهيل", "Saudi Coffee", "المشروبات", 18, "☕", {
-    description: "قهوة عربية محمّصة فاتحة بالهيل والزعفران، تُقدَّم مع التمر.",
+    description: "قهوة سعودية شقراء بالهيل والزعفران، تُقدَّم مع التمر.",
     calories: 15,
     caffeine_mg: 95,
-    sfda_compliant: true,
   }),
   dish("d9", "ليمون ونعناع", "Mint Lemonade", "المشروبات", 24, "🍹", {
     description: "عصير ليمون طازج مع النعناع والثلج المجروش.",
@@ -253,7 +256,7 @@ export default function Demo() {
             to="/login?mode=signup"
             className="inline-flex min-h-11 items-center text-xs font-black text-gold hover:underline"
           >
-            أنشئ منيوك مجاناً →
+            {CTA_PRIMARY} →
           </Link>
         </div>
       )}

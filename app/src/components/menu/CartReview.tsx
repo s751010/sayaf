@@ -14,6 +14,7 @@ import { mFont } from "@/components/menu/chrome";
 import { DishArtwork } from "@/components/menu/DishArtwork";
 import { createOrder } from "@/lib/data";
 import { parseOptions } from "@/lib/options";
+import { orderTotals } from "@/lib/vat";
 import { K, setJSON } from "@/lib/storage";
 import { dishName } from "@/lib/menuText";
 import { formatMoney, formatPrice, whatsappUrl } from "@/lib/utils";
@@ -39,12 +40,14 @@ function orderText(args: {
   restaurantName: string;
   rows: { dish?: Dish; labels: string[]; line: CartLine; total: number }[];
   total: number;
+  /** ضريبةٌ تُضاف فوق الأسعار غير الشاملة — `0` حين تكون شاملة. */
+  vatAdded: number;
   table: string | null;
   name: string;
   mobile: string;
   en: boolean;
 }): string {
-  const { restaurantName, rows, total, table, name, mobile, en } = args;
+  const { restaurantName, rows, total, vatAdded, table, name, mobile, en } = args;
   const L: string[] = [];
   L.push(en ? `New order · ${restaurantName}` : `طلب جديد · ${restaurantName}`);
   if (table) L.push(en ? `Table: ${table}` : `الطاولة: ${table}`);
@@ -57,6 +60,7 @@ function orderText(args: {
     );
   }
   L.push("");
+  if (vatAdded > 0) L.push(en ? `VAT 15%: ${formatPrice(vatAdded)} SAR` : `ضريبة القيمة المضافة 15%: ${formatPrice(vatAdded)} ر.س`);
   L.push(
     en
       ? `Estimated total: ${formatPrice(total)} SAR`
@@ -119,11 +123,22 @@ export function CartReview({
     };
   });
   const total = rows.reduce((sum, r) => sum + r.total, 0);
+  // الأسعار غير الشاملة تُضاف إليها الضريبة هنا وفي الخادم بالصيغة نفسها
+  // (`lib/vat.ts` ⟷ `_shared/vat.ts`) — فما يراه الزبون هو ما يُحصَّل.
+  const totals = orderTotals(total, vatIncluded);
+  const vatAdded = vatIncluded ? 0 : totals.vat;
   const count = rows.reduce((sum, r) => sum + r.line.qty, 0);
   // طبق حُذف أو نفد بعد وضعه في السلة — الدالة سترفض الطلب كله، فنمنع الضغط.
   const missing = rows.some((r) => !r.dish);
   const belowMin = minOrder > 0 && total < minOrder;
   const blocked = missing || belowMin || !acceptingOrders;
+  /**
+   * طلبٌ على الطاولة: كودها ممسوح (`?table=`) والطلب يُرسَل على واتساب.
+   * ⚠️ كانت الترويسة «استلام من الفرع» دائماً — فالزبون الجالس يقرأ «استلام»
+   * فوق «طاولة 7». والدفع الإلكتروني وحده استلامٌ بطبيعته (`paylink-order-create`
+   * لا يعرف التوصيل إلى طاولة)، فيبقى على «استلام».
+   */
+  const dineIn = !!table && !payOn;
 
   async function pay() {
     setBusy(true);
@@ -196,18 +211,24 @@ export function CartReview({
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg"
           style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}
         >
-          🛍️
+          {dineIn ? "🍽️" : "🛍️"}
         </span>
         <span className="min-w-0 flex-1">
           <span className="block text-sm font-black" style={{ color: "var(--m-text)", ...mFont }}>
-            {en ? "Pickup from branch" : "استلام من الفرع"}
+            {dineIn
+              ? en
+                ? `Order for table ${table}`
+                : `طلب للطاولة ${table}`
+              : en
+                ? "Pickup from branch"
+                : "استلام من الفرع"}
           </span>
           <span className="block truncate text-xs" style={{ color: "var(--m-muted)" }}>
             {restaurantName}
             {prepMinutes ? (en ? ` · ready in ~${prepMinutes} min` : ` · يجهز خلال ~${prepMinutes} دقيقة`) : ""}
           </span>
         </span>
-        {table && (
+        {table && !dineIn && (
           <span
             className="shrink-0 rounded-full px-2.5 py-1 text-[11px] font-black"
             style={{ background: "var(--m-bg-2)", color: "var(--m-muted)" }}
@@ -362,12 +383,16 @@ export function CartReview({
           لماذا بدل أن يأمر. */}
       <div className="border px-3.5 py-3" style={card}>
         <p className="text-sm font-black" style={{ color: "var(--m-text)", ...mFont }}>
-          {en ? "Who's picking up?" : "من سيستلم الطلب؟"}
+          {dineIn ? (en ? "Who's ordering?" : "باسم من الطلب؟") : en ? "Who's picking up?" : "من سيستلم الطلب؟"}
         </p>
         <p className="mt-0.5 text-[11px]" style={{ color: "var(--m-muted)" }}>
-          {en
-            ? "So the cashier can call your name if needed."
-            : "ليناديك الكاشير، ويتصل بك إن طال الانتظار."}
+          {dineIn
+            ? en
+              ? "So the staff can confirm your order."
+              : "ليؤكّد لك المطعم طلبك."
+            : en
+              ? "So the cashier can call your name if needed."
+              : "ليناديك الكاشير، ويتصل بك إن طال الانتظار."}
         </p>
         <div className="mt-2.5 grid gap-2 sm:grid-cols-2">
           <input
@@ -401,13 +426,21 @@ export function CartReview({
             {formatMoney(total, en)}
           </span>
         </div>
+        {vatAdded > 0 && (
+          <div className="mt-1 flex items-center justify-between text-sm" style={{ color: "var(--m-muted)" }}>
+            <span>{en ? "VAT (15%)" : "ضريبة القيمة المضافة ١٥٪"}</span>
+            <span dir="ltr" className="tabular-nums">
+              {formatMoney(vatAdded, en)}
+            </span>
+          </div>
+        )}
         <div
           className="mt-2 flex items-center justify-between border-t pt-2 text-base font-black"
           style={{ borderColor: "var(--m-border)", color: "var(--m-text)", ...mFont }}
         >
           <span>{en ? "Total" : "الإجمالي"}</span>
           <span dir="ltr" className="tabular-nums" style={{ color: "var(--m-accent)" }}>
-            {formatPrice(total)} {en ? "SAR" : "ر.س"}
+            {formatPrice(totals.total)} {en ? "SAR" : "ر.س"}
           </span>
         </div>
         <p className="mt-1 text-[11px]" style={{ color: "var(--m-muted)" }}>
@@ -416,8 +449,8 @@ export function CartReview({
               ? "VAT (15%) included"
               : "شامل ضريبة القيمة المضافة ١٥٪"
             : en
-              ? "VAT (15%) not included"
-              : "غير شامل ضريبة القيمة المضافة ١٥٪"}
+              ? "Prices exclude VAT — added above"
+              : "الأسعار غير شاملة — أُضيفت الضريبة أعلاه"}
         </p>
       </div>
 
@@ -486,7 +519,7 @@ export function CartReview({
                 : "ادفع واطلب للاستلام"}
           </span>
           <span dir="ltr" className="tabular-nums">
-            {formatPrice(total)} {en ? "SAR" : "ر.س"}
+            {formatPrice(totals.total)} {en ? "SAR" : "ر.س"}
           </span>
         </button>
       )}
@@ -498,7 +531,7 @@ export function CartReview({
               ? "#"
               : whatsappUrl(
                   whatsapp,
-                  orderText({ restaurantName, rows, total, table, name, mobile, en })
+                  orderText({ restaurantName, rows, total: totals.total, vatAdded, table, name, mobile, en })
                 )
           }
           target="_blank"

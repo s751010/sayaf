@@ -218,7 +218,8 @@ export default function Stamp() {
 
         {results !== null && results.length === 0 && !error && (
           <p className="mt-5 rounded-xl border border-dashed border-line px-4 py-6 text-center text-sm text-faint">
-            لا يوجد زبون بهذا البحث. اطلب منه رمز بطاقته من صفحة المنيو.
+            لا يوجد زبون بهذا البحث. اطلب منه «رمز بطاقتك» الظاهر تحت بطاقة الولاء في المنيو،
+            أو ابحث بآخر أرقام جواله.
           </p>
         )}
 

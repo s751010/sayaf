@@ -135,6 +135,21 @@ export function LoyaltyCard({ restaurant, en }: { restaurant: Restaurant; en: bo
           <p className="mt-2 text-center text-xs" style={{ color: "var(--m-muted)" }}>
             {en ? "Card holder:" : "صاحب البطاقة:"} {card.name}
           </p>
+          {/* رمز البطاقة: صفحة الكاشير تقول «اطلب منه رمز بطاقته من صفحة المنيو»
+              — وكانت البطاقة هنا لا تعرضه، فالرمز موجودٌ في القاعدة ولا يراه
+              صاحبه. وهو أسرع للكاشير من البحث بالاسم بين متشابهين. */}
+          {customer?.card_code && (
+            <p className="mt-2 text-center text-xs" style={{ color: "var(--m-muted)" }}>
+              {en ? "Card code:" : "رمز بطاقتك:"}{" "}
+              <span
+                dir="ltr"
+                className="rounded-md border px-2 py-0.5 font-mono text-sm font-black tracking-widest"
+                style={{ borderColor: "var(--m-border)", color: "var(--m-text)" }}
+              >
+                {customer.card_code}
+              </span>
+            </p>
+          )}
         </div>
       )}
     </section>
