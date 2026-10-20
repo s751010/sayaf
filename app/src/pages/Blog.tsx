@@ -1,12 +1,12 @@
 /** قائمة مقالات المدونة — الثابتة (`lib/articles.ts`) ومنشورات blog_posts معاً. */
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Navbar, Footer } from "@/components/site";
 import { Badge, EmptyState, Skeleton } from "@/components/ui";
 import { getPublishedPosts } from "@/lib/data";
 import { useSeo } from "@/lib/seo";
-import { mergePosts, readingMinutes } from "@/lib/articles";
-import { formatDate } from "@/lib/utils";
+import { categoriesOf, mergePosts, readingLabel, readingMinutes } from "@/lib/articles";
+import { cn, formatDate } from "@/lib/utils";
 import type { BlogPost } from "@/lib/types";
 
 export function postTitle(p: BlogPost): string {
@@ -21,7 +21,13 @@ export default function Blog() {
   /** مقالات القاعدة: `null` = تُحمَّل (القاعدة «ج»). والثابتة متاحة فوراً. */
   const [posts, setPosts] = useState<BlogPost[] | null>(null);
   const [failed, setFailed] = useState(false);
-  const shown = mergePosts(posts ?? []);
+  const all = mergePosts(posts ?? []);
+  const categories = categoriesOf(all);
+  // التصفية في الرابط (`?c=`) لا في الحالة: «مقالات المقاهي» رابطٌ يُرسَل.
+  const [params, setParams] = useSearchParams();
+  const active = categories.includes(params.get("c") ?? "") ? params.get("c") : null;
+  const shown = active ? all.filter((p) => p.category === active) : all;
+  const choose = (c: string | null) => setParams(c ? { c } : {}, { replace: true });
 
   useSeo({
     title: "المدونة",
@@ -47,6 +53,27 @@ export default function Blog() {
             أدلّة عملية لأصحاب المطاعم والمقاهي: ما يطلبه المنيو، وكيف تحسب أرقامه.
           </p>
         </header>
+
+        {categories.length > 1 && (
+          <nav aria-label="تصنيفات المقالات" className="mb-8 flex flex-wrap justify-center gap-2">
+            {[null, ...categories].map((c) => (
+              <button
+                key={c ?? "all"}
+                type="button"
+                onClick={() => choose(c)}
+                aria-pressed={active === c}
+                className={cn(
+                  "press min-h-10 rounded-full border px-4 text-sm font-bold transition-colors",
+                  active === c
+                    ? "border-ink bg-ink text-page"
+                    : "border-line bg-panel text-dim hover:border-ink/30 hover:text-ink"
+                )}
+              >
+                {c ?? "الكل"}
+              </button>
+            ))}
+          </nav>
+        )}
 
         {/* المقالات الثابتة تُعرض فوراً، ومقالات القاعدة تنضمّ حين تصل. والفشل
             لا يُخفي ما عندنا — يُذكر فقط إن لم يبقَ شيء يُعرض. */}
@@ -76,7 +103,7 @@ export default function Blog() {
                   <div className="p-5">
                     <div className="mb-2 flex items-center gap-2 text-xs text-dim">
                       {p.category && <Badge variant="neutral">{p.category}</Badge>}
-                      {minutes && <span>{minutes} دقائق قراءة</span>}
+                      {minutes && <span>{readingLabel(minutes)}</span>}
                     </div>
                     <h2 className="font-display text-xl font-bold leading-snug text-ink group-hover:text-gold">
                       {postTitle(p)}

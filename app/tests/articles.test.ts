@@ -17,6 +17,7 @@ import { describe, expect, it } from "vitest";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import META from "@/content/articles.json";
+import { THEME_COUNT } from "@/lib/facts";
 import { sanitizeHtml } from "@/pages/BlogPost";
 
 const path = (rel: string) => fileURLToPath(new URL(rel, import.meta.url));
@@ -64,6 +65,19 @@ describe("الملفّات", () => {
     }
   });
 
+  it("لا صورة في `public/blog` بلا مقال يعرضها", () => {
+    // صورةٌ لا يشير إليها نصّ ولا هي غلاف = حمولةٌ تُنشر ولا يراها أحد.
+    for (const s of slugs) {
+      const used = new Set([...parse(body(s)).querySelectorAll("img")].map((i) => i.getAttribute("src")));
+      used.add(`/blog/${s}/cover.webp`);
+      for (const f of readdirSync(path(`../public/blog/${s}`))) {
+        expect(used, `${s}/${f}`).toContain(`/blog/${s}/${f}`);
+      }
+    }
+    const dirs = readdirSync(path("../public/blog"));
+    expect(dirs.sort()).toEqual([...slugs].sort());
+  });
+
   it("كل رابط داخلي إلى مقال يشير إلى مقال موجود", () => {
     for (const s of slugs) {
       for (const a of parse(body(s)).querySelectorAll('a[href^="/blog/"]')) {
@@ -76,6 +90,19 @@ describe("الملفّات", () => {
   it("خريطة الموقع الاحتياطية تعرف كل مقال", () => {
     const xml = readFileSync(path("../public/sitemap.xml"), "utf8");
     for (const s of slugs) expect(xml, s).toContain(`/blog/${s}</loc>`);
+  });
+});
+
+describe("أرقام المنتج في النثر", () => {
+  /**
+   * المقال نثرٌ لا يقرؤه `tsc`: «21 طابعاً» مكتوبةٌ بيد كما كانت «١٢ طابعاً» في
+   * الهبوط يوم صارت تسعة عشر (`facts-copy.test.ts`). فيُقرأ الرقم ويُقارن بالمصدر.
+   */
+  it("كل ذكرٍ لعدد الطوابع يطابق `THEME_COUNT`", () => {
+    const texts = [JSON.stringify(META), ...slugs.map(body)];
+    for (const t of texts) {
+      for (const m of t.matchAll(/(\d{1,3})\s*طابع/g)) expect(Number(m[1])).toBe(THEME_COUNT);
+    }
   });
 });
 
