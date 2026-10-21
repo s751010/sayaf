@@ -140,7 +140,7 @@ export default function Design() {
         <p className="mt-1 text-sm text-dim">
           كل طابع تصميم كامل — زخرفة وترويسة وتخطيط أطباق وخطّ، لا لوناً فقط.
         </p>
-        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
           {DESIGN_THEMES.map((t) => {
             const on = activeBase === t.id;
             const id = themeIdOf(t.id, useBrand ? brandHex : null, activeLayout);

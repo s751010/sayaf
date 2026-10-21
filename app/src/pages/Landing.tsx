@@ -307,9 +307,9 @@ export default function Landing() {
             title={`${THEMES_LABEL} — لكلّ نوع مطعم واحد`}
             sub="كلٌّ منها تصميمٌ كامل يلبس شعارك ولون علامتك. اضغط أيّها لتراه على منيوك أعلاه."
           />
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {ALL_THEMES.map((t, i) => (
-              <Reveal key={t.id} delay={(i % 4) * 70}>
+              <Reveal key={t.id} delay={(i % 3) * 70}>
                 <button
                   type="button"
                   onClick={() => tryTheme(t.id)}

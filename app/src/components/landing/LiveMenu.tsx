@@ -126,7 +126,7 @@ export function BrandControls({ brand, onChange }: { brand: Brand; onChange: (b:
       </div>
 
       <p className="mt-4 text-xs font-bold text-dim">الطابع</p>
-      <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-4" role="radiogroup" aria-label="طابع المنيو">
+      <div className="mt-2 grid grid-cols-3 gap-2" role="radiogroup" aria-label="طابع المنيو">
         {ALL_THEMES.map((t) => {
           const on = brand.theme === t.id;
           return (

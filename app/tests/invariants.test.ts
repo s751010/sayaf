@@ -54,13 +54,14 @@ describe("ثابت §18 — ألوان الطوابع", () => {
     // بقيمه حرفياً، والمحذوف يُردّ إلى أقرب باقٍ بلونه (الفحص التالي).
     // ثم اليوم نفسه: **٦ ⇒ ٨** — خمسة طوابع بنيتها جديدة (فاتورة · نيون ·
     // سبّورة · مجلّة · روشان) مكان ثلاثة كانت ألواناً. `dark-gold` بقيمه حرفياً.
-    expect(fingerprint()).toBe("7e9382b4");
+    // ثم **٨ ⇒ ٩**: السبّورة صارت «لوحة حروف»، وجاء «ملصقات» لمحلّ الشاي.
+    expect(fingerprint()).toBe("54082e2b");
   });
 
   it("عدد الطوابع كما تعلنه الصفحات", () => {
     // `lib/facts.ts` يشتقّه من هنا، لكن الرقم يظهر للزائر — فلو نقص طابع
     // بحذف غير مقصود لتغيّر ما تَعِد به الصفحة بلا أن يلاحظ أحد.
-    expect(ALL_THEMES.length).toBe(8);
+    expect(ALL_THEMES.length).toBe(9);
   });
 
   /**
@@ -84,6 +85,14 @@ describe("ثابت §18 — ألوان الطوابع", () => {
     const t = getTheme(old);
     expect(splitThemeId(t.id).base).toBe(base);
     expect(t.vars["--m-accent"]).toBe(accent);
+  });
+
+  it("السبّورة ⇒ لوحة حروف، ولون التاجر عليها يبقى", () => {
+    expect(themeBaseOf("chalk")).toBe("letterboard");
+    const t = getTheme("chalk:#1d4ed8:grid");
+    expect(splitThemeId(t.id).base).toBe("letterboard");
+    expect(t.vars["--m-accent"]).toBe("#1d4ed8");
+    expect(t.design.layout).toBe("grid");
   });
 
   it("لون التاجر يغلب لون الطابع المحذوف، وشكل العرض يبقى", () => {
@@ -129,7 +138,8 @@ describe("ثابت §18 — ألوان الطوابع", () => {
   it.each([
     ["modern", "#e0a526"],
     ["modern", "#f2d16b"],
-    ["chalk", "#c8102e"],
+    ["letterboard", "#c8102e"],
+    ["sticker", "#ffd400"],
     ["neon", "#1d4ed8"],
     ["dark-gold", "#111113"],
     ["receipt", "#ffd400"],
@@ -205,7 +215,8 @@ describe("خامات الطوابع — البنية والـCSS معاً", () =
   });
 
   it("الترويسة الخاصّة لا تأتي بلا خامتها", () => {
-    // ‏`paper` بلا `m-skin-receipt` ترويسةُ فاتورة بلا ورقة تحتها.
+    // ‏`paper` بلا `m-skin-receipt` ترويسةُ فاتورة بلا ورقة تحتها، و`letterboard`
+    // بلا خامتها حروفٌ بيضاء على لا لبّاد.
     const store = new Set(["arch", "band", "frame", "soft"]);
     for (const t of ALL_THEMES) {
       expect(store.has(t.design.header), t.id).toBe(t.design.skin === "store");

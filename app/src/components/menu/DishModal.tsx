@@ -65,7 +65,7 @@ export function DishModal({
         role="dialog"
         aria-modal="true"
         onClick={(e) => e.stopPropagation()}
-        className="anim-fade-up relative max-h-[92dvh] w-full max-w-lg overflow-y-auto border"
+        className="m-sheet anim-fade-up relative max-h-[92dvh] w-full max-w-lg overflow-y-auto border"
         style={{
           background: "var(--m-bg-2)",
           borderColor: "var(--m-border)",
