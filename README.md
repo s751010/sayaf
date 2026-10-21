@@ -44,12 +44,15 @@ npm run build        # tsc --noEmit && vite build  →  ../deploy
   publish = "deploy"
 ```
 
-**النشر المعتمد آلي:** كل دفعة على `main` تمرّ `.github/workflows/deploy.yml` —
-فحص أنواع ثم اختبارات ثم بناء ثم كروميوم، **ثم** نشر إلى الإنتاج. يلزمه سرّ
-`NETLIFY_AUTH_TOKEN` مرّة واحدة في Settings ← Secrets and variables ← Actions.
+**النشر آلي من Netlify نفسه:** الموقع **`neon-frangollo-2c189e`** مربوطٌ
+بالمستودع، فكل دمجٍ في `main` يُبنى ويُنشر — والبناء يشغّل الاختبارات أوّلاً
+(`netlify.toml`)، فسقوطها يُبقي النشر السابق. وCI يفحص كل طلب دمج قبل ذلك
+(أنواع · اختبارات · كروميوم · بناء).
 
-> ⚠️ الموقع هو مشروع **`heroic-marzipan-b46da4`** في حساب Netlify. و
-> `cloudsmenu.netlify.app` — الذي كان مكتوباً هنا وفي الشيفرة — **ليس ملكاً
+> ⚠️ **`neon-frangollo-2c189e` هو الموقع** (`SITE_URL` في `config.ts`). و
+> `heroic-marzipan-b46da4` موقعٌ قديم على نسخة ٢٢ أغسطس، باقٍ حيّاً لما قد
+> يكون طُبع منه — و`deploy.yml` يحدّثه يدويّاً لمن أضاف `NETLIFY_AUTH_TOKEN`.
+> أمّا `cloudsmenu.netlify.app` — الذي كان مكتوباً قديماً — **فليس ملكاً
 > للمشروع**: لا وجود له في الحساب، ويردّ ٢٠٠ لأنه لأحدٍ آخر.
 
 **نشر يدوي (drag-and-drop):** ابنِ محلياً ثم اسحب مجلد **`deploy/`** بالكامل إلى
@@ -58,10 +61,10 @@ npm run build        # tsc --noEmit && vite build  →  ../deploy
 وتخرج روابط المنيو المشاركة بلا وسوم.
 
 تحقق بعد النشر أن هذه الروابط تعمل (ليست 404) — وهي نفسها ما تفحصه النبضة:
-- `https://heroic-marzipan-b46da4.netlify.app/robots.txt`
-- `https://heroic-marzipan-b46da4.netlify.app/manifest.webmanifest`
-- `https://heroic-marzipan-b46da4.netlify.app/demo` (منيو تجريبي حي)
-- `https://heroic-marzipan-b46da4.netlify.app/<any-slug>` (يجب أن يفتح التطبيق لا 404)
+- `https://neon-frangollo-2c189e.netlify.app/robots.txt`
+- `https://neon-frangollo-2c189e.netlify.app/manifest.webmanifest`
+- `https://neon-frangollo-2c189e.netlify.app/demo` (منيو تجريبي حي)
+- `https://neon-frangollo-2c189e.netlify.app/<any-slug>` (يجب أن يفتح التطبيق لا 404)
 
 ## ملاحظات production
 

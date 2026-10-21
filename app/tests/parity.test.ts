@@ -18,6 +18,7 @@ import { describe, expect, it } from "vitest";
 
 import { parseOptions } from "@/lib/options";
 import { PLANS, CURRENCY_CODE } from "@/lib/plans";
+import { SITE_URL } from "@/lib/config";
 import { parseDishOptions } from "../../supabase/functions/_shared/options";
 import { orderTotals as appTotals, VAT_RATE as APP_VAT, vatAddedOnTop } from "@/lib/vat";
 import { orderTotals as edgeTotals, VAT_RATE as EDGE_VAT } from "../../supabase/functions/_shared/vat";
@@ -552,14 +553,41 @@ describe("قائمة أصول CORS مشتركة", () => {
     (globalThis as { Deno?: unknown }).Deno ??= { env: { get: () => undefined } };
     const { isAllowedOrigin } = await import("../../supabase/functions/_shared/cors.ts");
 
+    expect(isAllowedOrigin(SITE_URL)).toBe(true);
+    expect(isAllowedOrigin("https://neon-frangollo-2c189e.netlify.app")).toBe(true);
+    expect(isAllowedOrigin("https://deploy-preview-12--neon-frangollo-2c189e.netlify.app")).toBe(true);
+    expect(isAllowedOrigin("https://main--neon-frangollo-2c189e.netlify.app")).toBe(true);
+    // القديم باقٍ: نسخته من أغسطس حيّة وتنادي هذه الدوال.
     expect(isAllowedOrigin("https://heroic-marzipan-b46da4.netlify.app")).toBe(true);
-    expect(isAllowedOrigin("http://localhost:5173")).toBe(true);
     expect(isAllowedOrigin("https://deploy-preview-12--heroic-marzipan-b46da4.netlify.app")).toBe(true);
+    expect(isAllowedOrigin("http://localhost:5173")).toBe(true);
 
     expect(isAllowedOrigin("")).toBe(false);
     expect(isAllowedOrigin("https://cloudsmenu.netlify.app")).toBe(false);
     // لا يكفي أن ينتهي بالاسم: `evil.com/?x=heroic-…` أو نطاقٌ يحتويه.
     expect(isAllowedOrigin("https://heroic-marzipan-b46da4.netlify.app.evil.com")).toBe(false);
     expect(isAllowedOrigin("https://evil-heroic-marzipan-b46da4.netlify.app")).toBe(false);
+    expect(isAllowedOrigin("https://neon-frangollo-2c189e.netlify.app.evil.com")).toBe(false);
+    expect(isAllowedOrigin("https://x--neon-frangollo-2c189e.netlify.app.evil.com")).toBe(false);
+  });
+
+  /**
+   * الموقع الرسمي في مكانٍ واحد (`SITE_URL`)، وكل ما يقرؤه قوقل والنبضة عليه.
+   *
+   * كانت الشيفرة كلّها على `heroic-marzipan` والمالك يعمل على `neon-frangollo`
+   * — والنبضة خضراء لأنها تفحص القديم. فتبديل `SITE_URL` وحده يُسقط هذا الفحص
+   * حتى تتبعه الملفّات الأربعة.
+   */
+  it("canonical وخريطة الموقع وrobots والنبضة كلّها على SITE_URL", () => {
+    const html = readFileSync(repo("app/index.html"), "utf8");
+    expect(html).toContain(`<link rel="canonical" href="${SITE_URL}/" />`);
+    expect(html).toContain(`<meta property="og:url" content="${SITE_URL}/" />`);
+    expect(readFileSync(repo("app/public/robots.txt"), "utf8")).toContain(`Sitemap: ${SITE_URL}/sitemap.xml`);
+    const locs = [...readFileSync(repo("app/public/sitemap.xml"), "utf8").matchAll(/<loc>([^<]+)<\/loc>/g)];
+    expect(locs.length).toBeGreaterThan(0);
+    for (const [, loc] of locs) expect(loc.startsWith(`${SITE_URL}/`), loc).toBe(true);
+    expect(readFileSync(repo(".github/workflows/canary.yml"), "utf8")).toMatch(
+      new RegExp(`^\\s*SITE: ${SITE_URL.replace(/\./g, "\\.")}\\s*$`, "m")
+    );
   });
 });

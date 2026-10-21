@@ -171,7 +171,7 @@ Deno.serve(async (req) => {
     const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
     const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const APP_BASE_URL =
-      Deno.env.get("APP_BASE_URL") ?? "https://heroic-marzipan-b46da4.netlify.app";
+      Deno.env.get("APP_BASE_URL") ?? "https://neon-frangollo-2c189e.netlify.app";
 
     // هوية المستدعي من ترويسة Authorization (جلسة Supabase Auth حقيقية).
     // ⚠️ `verify_jwt: true` لا تكفي: مفتاح `anon` جواز صالح عندها، وهو منشور
