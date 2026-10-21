@@ -125,7 +125,7 @@ export function AddToCartButton({
       }}
       aria-label={label}
       title={label}
-      className={`absolute z-10 flex h-11 w-11 items-center justify-center rounded-full text-lg font-black shadow-md transition-transform hover:scale-110 active:scale-95 ${className}`}
+      className={`m-add absolute z-10 flex h-11 w-11 items-center justify-center rounded-full text-lg font-black shadow-md transition-transform hover:scale-110 active:scale-95 ${className}`}
       style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}
     >
       ＋
@@ -292,7 +292,7 @@ export function PickupBanner({
           color: "var(--m-text)",
         }}
       >
-        <span className="inline-flex items-center gap-1.5" style={{ color: open ? "var(--m-accent)" : "var(--m-muted)" }}>
+        <span className="inline-flex items-center gap-1.5" style={{ color: open ? "var(--m-accent-ink, var(--m-accent))" : "var(--m-muted)" }}>
           <Icon name="store" size={15} /> {en ? "Pickup only" : "استلام من الفرع"}
         </span>
         {open ? (

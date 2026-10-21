@@ -15,7 +15,7 @@ import { formatPrice } from "@/lib/utils";
 import { Icon } from "@/lib/icons";
 import { DishArtwork } from "./DishArtwork";
 
-const mFont: CSSProperties = { fontFamily: "var(--m-font)" };
+const mFont: CSSProperties = { fontFamily: "var(--m-name-font, var(--m-font))" };
 
 export function DishOfTheDay({
   dish,
@@ -32,7 +32,7 @@ export function DishOfTheDay({
   return (
     <button
       onClick={onOpen}
-      className="m-surface flex w-full items-stretch overflow-hidden border text-start transition-transform hover:-translate-y-0.5"
+      className="m-feature m-surface flex w-full items-stretch overflow-hidden border text-start transition-transform hover:-translate-y-0.5"
       style={{
         background: "var(--m-surface)",
         borderColor: "var(--m-accent)",
@@ -42,11 +42,11 @@ export function DishOfTheDay({
       <SafeImage
         src={dish.image}
         alt={name}
-        className="h-28 w-28 shrink-0 object-cover sm:h-40 sm:w-40"
+        className="m-img h-28 w-28 shrink-0 object-cover sm:h-40 sm:w-40"
         wrapperClassName="h-28 w-28 shrink-0 text-4xl sm:h-40 sm:w-40"
         style={{ background: "var(--m-bg-2)" } as CSSProperties}
         fallback={
-          <DishArtwork name={dish.name} emoji={dish.emoji} glyphSize={26} className="h-28 w-28 shrink-0 sm:h-40 sm:w-40" />
+          <DishArtwork name={dish.name} emoji={dish.emoji} glyphSize={26} className="m-img h-28 w-28 shrink-0 sm:h-40 sm:w-40" />
         }
       />
 
@@ -70,7 +70,7 @@ export function DishOfTheDay({
         )}
         {/* `dir` على السعر وحده لا على السطر: على السطر كان يدفع السعر إلى الطرف
             الآخر من البطاقة بعيداً عن الاسم فوقه. */}
-        <p className="mt-1 text-base font-black" style={{ color: "var(--m-accent)" }}>
+        <p className="m-price mt-1 text-base font-black" style={{ color: "var(--m-price, var(--m-accent-ink, var(--m-accent)))" }}>
           <span dir="ltr">
             {formatPrice(dish.price ?? 0)} <span className="text-[10px] font-bold">ر.س</span>
           </span>

@@ -109,7 +109,7 @@ export function DishArtwork({
           borderRadius: "9999px",
           background: "color-mix(in srgb, var(--m-accent) 10%, var(--m-bg))",
           boxShadow: "inset 0 0 0 1px color-mix(in srgb, var(--m-accent) 22%, transparent)",
-          color: "var(--m-accent)",
+          color: "var(--m-accent-ink, var(--m-accent))",
         }}
       >
         <Icon name={glyphOf(emoji)} size={glyphSize} strokeWidth={1.5} />

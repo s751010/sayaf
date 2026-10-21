@@ -12,10 +12,18 @@
 import { useEffect, type CSSProperties, type ReactNode } from "react";
 import { type CardReserve } from "@/components/menu/DishCard";
 import type { DishLayout, HeadingStyle } from "@/lib/themes";
+import { ChalkStroke } from "./SkinHeads";
 import { Icon } from "@/lib/icons";
 import type { Dish } from "@/lib/types";
 
 export const mFont: CSSProperties = { fontFamily: "var(--m-font)" };
+
+/**
+ * خطّ اسم الطبق — خطّ القراءة، إلا أن يطلب الطابع غيره بـ`--m-name-font`
+ * (المجلّة تكتب أسماء أطباقها بالأميري كعناوين مقالاتها). متغيّرٌ لا صنف:
+ * الاسم يحمل خطّه في `style`، والمضمَّن يغلب أي قاعدة.
+ */
+export const nameFont: CSSProperties = { fontFamily: "var(--m-name-font, var(--m-font))" };
 
 /**
  * خطّ العناوين — يسقط إلى خطّ النصّ لكل طابع لا يذكر `--m-display` (§18).
@@ -130,12 +138,92 @@ export function sectionReserve(dishes: Dish[], en: boolean): CardReserve {
 }
 
 export const LAYOUT_CLASS: Record<DishLayout, string> = {
-  grid: "grid grid-cols-2 sm:grid-cols-3",
-  list: "flex flex-col",
-  showcase: "grid grid-cols-1 sm:grid-cols-2",
+  grid: "m-dishes grid grid-cols-2 sm:grid-cols-3",
+  list: "m-dishes m-list flex flex-col",
+  showcase: "m-dishes grid grid-cols-1 sm:grid-cols-2",
+  // العرض والتمرير والتمركز كلّها في `menu-skins.css` (`.m-deck`).
+  deck: "m-dishes m-deck",
 };
 
-export function SectionHeading({ name, style }: { name: string; style: HeadingStyle }) {
+
+/**
+ * عنوان القسم — ثلاثة لواجهة المتجر، وخمسة لكلٍّ منها طابعه:
+ * `stars` سطر فاتورة منقّط · `chalk` رقعة بخطّ طباشير · `neon` أنبوب يتوهّج ·
+ * `numeral` رقم القسم كبيراً كأبواب المجلّات · `cartouche` لوحة حجازية مشطوفة.
+ */
+export function SectionHeading({
+  name,
+  style,
+  index = 0,
+}: {
+  name: string;
+  style: HeadingStyle;
+  /** ترتيب القسم — يحتاجه `numeral` وحده. */
+  index?: number;
+}) {
+  const ink = "var(--m-accent-ink, var(--m-accent))";
+  if (style === "stars") {
+    return (
+      <h2 className="m-h mb-4 flex items-center gap-3 text-[15px] font-black" style={{ ...dFont, color: "var(--m-text)" }}>
+        <span aria-hidden="true" className="m-dots h-2 flex-1" />
+        <span className="shrink-0">{name}</span>
+        <span aria-hidden="true" className="m-dots h-2 flex-1" />
+      </h2>
+    );
+  }
+  if (style === "chalk") {
+    return (
+      <h2 className="m-h mb-5 text-center">
+        <span className="m-write block text-[1.95rem] font-bold leading-[1.45]" style={{ ...dFont, color: ink }}>
+          {name}
+        </span>
+        <ChalkStroke className="mx-auto h-2.5 w-28" style={{ color: "var(--m-text)" }} />
+      </h2>
+    );
+  }
+  if (style === "neon") {
+    return (
+      <h2 className="m-h mb-4 flex items-center gap-3 text-[1.4rem] font-bold" style={dFont}>
+        <span className="m-neon-2 shrink-0">{name}</span>
+        <span aria-hidden="true" className="m-tube h-[2px] flex-1 rounded-full" />
+      </h2>
+    );
+  }
+  if (style === "numeral") {
+    // ⚠️ «01» بالأرقام الغربية في اللغتين: الصفر الهندي «٠» نقطةٌ صغيرة، فكان
+    // «٠١» يُقرأ «١» ومعه نقطةٌ شاردة. والأسعار في المنيو كلّه بالغربية أصلاً.
+    const n = String(index + 1).padStart(2, "0");
+    return (
+      <div className="m-h mb-5">
+        <div className="flex items-end gap-3">
+          <span
+            aria-hidden="true"
+            className="m-numeral text-[3.4rem] font-bold leading-[0.85]"
+            style={{ ...dFont, color: ink }}
+          >
+            {n}
+          </span>
+          <h2 className="pb-1 text-[1.65rem] font-bold leading-tight" style={{ ...dFont, color: "var(--m-text)" }}>
+            {name}
+          </h2>
+        </div>
+        <span aria-hidden="true" className="m-grow mt-3 block h-[2px]" style={{ background: "var(--m-text)" }} />
+      </div>
+    );
+  }
+  if (style === "cartouche") {
+    return (
+      <div className="m-h relative mb-5 flex items-center justify-center">
+        <span aria-hidden="true" className="absolute inset-x-0 top-1/2 h-px" style={{ background: "var(--m-border)" }} />
+        <h2
+          className="m-cartouche relative px-8 py-1.5 text-lg font-bold"
+          style={{ ...dFont, background: "var(--m-accent)", color: "var(--m-on-accent)" }}
+        >
+          {name}
+        </h2>
+      </div>
+    );
+  }
   if (style === "rule") {
     return (
       <div className="mb-4 flex items-center gap-3">
@@ -153,7 +241,7 @@ export function SectionHeading({ name, style }: { name: string; style: HeadingSt
         className="mb-3 flex items-center gap-2 text-lg font-black"
         style={{ ...dFont, color: "var(--m-text)" }}
       >
-        <span aria-hidden="true" style={{ color: "var(--m-accent)" }}>
+        <span aria-hidden="true" style={{ color: ink }}>
           ❖
         </span>
         {name}
