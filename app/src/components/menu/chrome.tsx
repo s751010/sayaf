@@ -9,11 +9,12 @@
  *
  * كلّها تُلوَّن بمتغيّرات `--m-*` (ثيم القائمة) لا بألوان اللوحة.
  */
-import { useEffect, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { type CardReserve } from "@/components/menu/DishCard";
 import type { DishLayout, HeadingStyle } from "@/lib/themes";
-import { ChalkStroke } from "./SkinHeads";
-import { Icon } from "@/lib/icons";
+import { SafeImage } from "@/components/ui";
+import { Burst } from "./SkinHeads";
+import { Icon, type IconName } from "@/lib/icons";
 import type { Dish } from "@/lib/types";
 
 export const mFont: CSSProperties = { fontFamily: "var(--m-font)" };
@@ -91,7 +92,7 @@ export function MenuSheet({
         aria-modal="true"
         aria-label={title}
         onClick={(e) => e.stopPropagation()}
-        className="anim-fade-up max-h-[88dvh] w-full max-w-lg overflow-y-auto border p-5"
+        className="m-sheet anim-fade-up max-h-[88dvh] w-full max-w-lg overflow-y-auto border p-5"
         style={{
           background: "var(--m-bg-2)",
           borderColor: "var(--m-border)",
@@ -147,19 +148,76 @@ export const LAYOUT_CLASS: Record<DishLayout, string> = {
 
 
 /**
- * عنوان القسم — ثلاثة لواجهة المتجر، وخمسة لكلٍّ منها طابعه:
- * `stars` سطر فاتورة منقّط · `chalk` رقعة بخطّ طباشير · `neon` أنبوب يتوهّج ·
- * `numeral` رقم القسم كبيراً كأبواب المجلّات · `cartouche` لوحة حجازية مشطوفة.
+ * غلاف القسم: صورةٌ من أطباقه — **المميّز أوّلاً ثم أوّل طبقٍ بصورة**.
+ *
+ * لا عمود جديد ولا رفعٌ آخر: التاجر الذي صوّر أطباقه يجد لكلّ قسمٍ غلافاً
+ * تلقائياً، ويغيّره بتمييز طبقٍ آخر. وبلا صورة يُرسم الغلاف (الملصقات) أو
+ * يغيب (المجلّة) — لا مربّع فارغ.
+ */
+export interface SectionCover {
+  src: string;
+  /** اسم الطبق في الصورة — تعليق المجلّة تحتها. */
+  caption: string;
+}
+
+export function sectionCover(dishes: Dish[], en: boolean): SectionCover | null {
+  const d = dishes.find((x) => x.featured && x.image?.trim()) ?? dishes.find((x) => x.image?.trim());
+  if (!d?.image) return null;
+  return { src: d.image, caption: en && d.name_en ? d.name_en : d.name };
+}
+
+/**
+ * صورة المجلّة الافتتاحية بتعليقها. مكوّنٌ لا `SafeImage`: صورةٌ تفشل يجب أن
+ * يغيب معها تعليقها، وإلا بقي «في الصورة: …» تحت لا صورة.
+ */
+function Opener({ cover, en }: { cover: SectionCover; en: boolean }) {
+  const [failed, setFailed] = useState(false);
+  useEffect(() => setFailed(false), [cover.src]);
+  if (failed) return null;
+  return (
+    <figure className="m-opener mt-5">
+      <img
+        src={cover.src}
+        alt={cover.caption}
+        loading="lazy"
+        decoding="async"
+        onError={() => setFailed(true)}
+        className="m-img aspect-[21/9] w-full object-cover"
+        style={{ background: "var(--m-bg-2)" }}
+      />
+      <figcaption className="mt-2.5 text-[12px]" style={{ color: "var(--m-muted)" }}>
+        {en ? "Pictured: " : "في الصورة: "}
+        {cover.caption}
+      </figcaption>
+    </figure>
+  );
+}
+
+/** ألوان ملصقات الأقسام بالتناوب — من الطابع لا مكتوبة، فتلبس لون العلامة. */
+const POSTER_TONES = ["var(--m-accent-2)", "var(--m-accent)", "var(--m-bg-2)"];
+
+/**
+ * عنوان القسم — ثلاثة لواجهة المتجر، وستّة لكلٍّ منها طابعه:
+ * `stars` سطر فاتورة منقّط · `letters` حروف لوحةٍ بين قطعتَي رمز · `poster`
+ * ملصقٌ بغلاف القسم · `neon` أنبوب يتوهّج · `numeral` رقم القسم كبيراً كأبواب
+ * المجلّات (وصورةٌ افتتاحية إن وُجدت) · `cartouche` لوحة حجازية مشطوفة.
  */
 export function SectionHeading({
   name,
   style,
   index = 0,
+  icon = "plate",
+  cover = null,
+  en = false,
 }: {
   name: string;
   style: HeadingStyle;
-  /** ترتيب القسم — يحتاجه `numeral` وحده. */
+  /** ترتيب القسم — للرقم في المجلّة ولتناوب ألوان الملصقات. */
   index?: number;
+  /** رمز القسم من `categoryIcon` — قطعتا اللوحة ورسم الملصق. */
+  icon?: IconName;
+  cover?: SectionCover | null;
+  en?: boolean;
 }) {
   const ink = "var(--m-accent-ink, var(--m-accent))";
   if (style === "stars") {
@@ -171,14 +229,44 @@ export function SectionHeading({
       </h2>
     );
   }
-  if (style === "chalk") {
+  if (style === "letters") {
     return (
-      <h2 className="m-h mb-5 text-center">
-        <span className="m-write block text-[1.95rem] font-bold leading-[1.45]" style={{ ...dFont, color: ink }}>
-          {name}
-        </span>
-        <ChalkStroke className="mx-auto h-2.5 w-28" style={{ color: "var(--m-text)" }} />
+      <h2
+        className="m-h m-letters mb-5 flex items-center justify-center gap-3 text-[1.2rem] font-extrabold"
+        style={{ ...dFont, color: ink }}
+      >
+        <Icon name={icon} size={17} />
+        {name}
+        <Icon name={icon} size={17} />
       </h2>
+    );
+  }
+  if (style === "poster") {
+    // بلا صورة: رمز القسم كبيراً بحدّ الحبر ونجمتان — ملصقٌ مرسوم لا فراغ.
+    const art = (
+      <span aria-hidden="true" className="m-poster-art absolute inset-0">
+        <Icon name={icon} size={92} strokeWidth={1.3} className="m-poster-icon absolute" />
+        <Burst className="absolute top-4 start-5 h-8 w-8" style={{ color: "var(--m-surface)" }} />
+        <Burst className="absolute bottom-6 end-[38%] h-5 w-5" style={{ color: "var(--m-surface)" }} />
+      </span>
+    );
+    return (
+      <div className="m-h m-poster relative mb-5 overflow-hidden" style={{ backgroundColor: POSTER_TONES[index % POSTER_TONES.length] }}>
+        {cover ? (
+          <SafeImage
+            src={cover.src}
+            alt=""
+            className="m-poster-img absolute inset-0 h-full w-full object-cover"
+            wrapperClassName="absolute inset-0"
+            fallback={art}
+          />
+        ) : (
+          art
+        )}
+        <h2 className="m-poster-label" style={dFont}>
+          {name}
+        </h2>
+      </div>
     );
   }
   if (style === "neon") {
@@ -208,6 +296,8 @@ export function SectionHeading({
           </h2>
         </div>
         <span aria-hidden="true" className="m-grow mt-3 block h-[2px]" style={{ background: "var(--m-text)" }} />
+        {/* الصورة الافتتاحية — كما تفتح المجلّة بابها بصورةٍ وتعليقٍ تحتها. */}
+        {cover && <Opener cover={cover} en={en} />}
       </div>
     );
   }

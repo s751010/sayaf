@@ -35,7 +35,7 @@ export function DishOfTheDay({
       className="m-feature m-surface flex w-full items-stretch overflow-hidden border text-start transition-transform hover:-translate-y-0.5"
       style={{
         background: "var(--m-surface)",
-        borderColor: "var(--m-accent)",
+        borderColor: "var(--m-feature-border, var(--m-accent))",
         borderRadius: "var(--m-radius)",
       }}
     >
@@ -52,7 +52,7 @@ export function DishOfTheDay({
 
       <div className="flex min-w-0 flex-1 flex-col justify-center gap-1 p-3.5">
         <span
-          className="inline-flex w-fit items-center gap-1 rounded-full px-2 py-0.5 text-xs font-black"
+          className="m-badge inline-flex w-fit items-center gap-1 rounded-full px-2 py-0.5 text-xs font-black"
           style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}
         >
           <Icon name="star" size={13} /> {en ? "Today's pick" : "طبق اليوم"}

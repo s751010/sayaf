@@ -18,12 +18,13 @@ import { isDarkTheme, type HeaderShape, type MenuTheme } from "@/lib/themes";
 import { restaurantTypeLabel } from "@/lib/menuText";
 import type { Restaurant } from "@/lib/types";
 import { LogoMark } from "./LogoMark";
-import { ArcadeHead, BoardHead, MastheadHead, PaperHead, SignHead, type HeadProps } from "./SkinHeads";
+import { ArcadeHead, LetterboardHead, MastheadHead, PaperHead, PosterHead, SignHead, type HeadProps } from "./SkinHeads";
 
 /** الترويسات التي بنيتها غير واجهة المتجر — لكلٍّ طابعه (`SkinHeads.tsx`). */
 const SKIN_HEADS: Partial<Record<HeaderShape, ComponentType<HeadProps>>> = {
   paper: PaperHead,
-  board: BoardHead,
+  letterboard: LetterboardHead,
+  poster: PosterHead,
   sign: SignHead,
   masthead: MastheadHead,
   arcade: ArcadeHead,
@@ -66,17 +67,26 @@ export function MenuHeader({
   restaurant,
   theme,
   en = false,
+  tags,
   children,
 }: {
   restaurant: Restaurant;
   theme: MenuTheme;
   en?: boolean;
+  /** أسماء الأقسام — للترويسات التي تعرضها (شريط الملصقات). */
+  tags?: string[];
   /** الشرائح أسفل الاسم (الحالة · الطاولة · اللغة · الروابط). */
   children?: ReactNode;
 }) {
   const { header, pattern, patternOpacity } = theme.design;
   const Skin = SKIN_HEADS[header];
-  if (Skin) return <Skin restaurant={restaurant} theme={theme} en={en}>{children}</Skin>;
+  if (Skin) {
+    return (
+      <Skin restaurant={restaurant} theme={theme} en={en} tags={tags}>
+        {children}
+      </Skin>
+    );
+  }
   // ⚠️ لون التمييز لا `cover_color`: الطابع مصبوغٌ بلون العلامة أصلاً حين يختاره
   // التاجر، و`cover_color` الداكن فوق طابع فاتح كان يرسم **غشاوة رمادية** أعلى المنيو.
   const accent = theme.vars["--m-accent"] ?? "#d4a843";

@@ -199,7 +199,7 @@ export function CartBar({
     return (
       <div className="fixed inset-x-0 bottom-0 z-40 p-3">
         <div
-          className="mx-auto flex w-full max-w-md items-center justify-center gap-2 px-5 py-3 text-xs font-bold shadow-xl"
+          className="m-cart mx-auto flex w-full max-w-md items-center justify-center gap-2 px-5 py-3 text-xs font-bold shadow-xl"
           style={{
             // ⚠️ مُصمتٌ دائماً: `--m-surface` شفّافٌ في الطوابع الداكنة (٤٫٥٪)، فكان
             // عنوان القسم خلف الشريط يُقرأ فوق نصّه.
@@ -220,7 +220,7 @@ export function CartBar({
       <button
         onClick={onOpen}
         disabled={empty}
-        className={`anim-fade-up mx-auto flex w-full max-w-md items-center justify-between gap-3 px-5 py-3.5 text-sm font-black shadow-2xl transition-transform enabled:hover:scale-[1.01] ${pop ? "anim-cart-pop" : ""}`}
+        className={`m-cart anim-fade-up mx-auto flex w-full max-w-md items-center justify-between gap-3 px-5 py-3.5 text-sm font-black shadow-2xl transition-transform enabled:hover:scale-[1.01] ${pop ? "anim-cart-pop" : ""}`}
         style={{
           background: empty ? "linear-gradient(var(--m-surface), var(--m-surface)), var(--m-bg)" : "var(--m-accent)",
           color: empty ? "var(--m-text)" : "var(--m-on-accent)",
@@ -284,7 +284,7 @@ export function PickupBanner({
   return (
     <div className="mx-auto mt-4 max-w-3xl px-4">
       <div
-        className="flex flex-wrap items-center gap-x-4 gap-y-1.5 px-4 py-3 text-[13px] font-bold"
+        className="m-pickup flex flex-wrap items-center gap-x-4 gap-y-1.5 px-4 py-3 text-[13px] font-bold"
         style={{
           background: "var(--m-surface)",
           boxShadow: "inset 0 0 0 1px var(--m-border)",

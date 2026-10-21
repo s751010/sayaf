@@ -4,8 +4,9 @@
  * مربّع اللون وحده لا يكفي: التاجر يحتاج أن يرى الغلاف وشكل الشعار وتخطيط
  * الأطباق قبل أن يختار. وواجهة المتجر **تتبع قاعدة `MenuHeader` نفسها** (كتلةٌ
  * بلون العلامة، إلا الداكن المؤطَّر فغلافه داكنٌ مزخرف) — فما يختاره هنا هو ما
- * يراه زبونه. والطوابع الخمسة ذات البنية الخاصّة (`design.skin`) لكلٍّ منها
- * رسمها: فاتورةٌ على طاولة، وسبّورة بإطار، ولافتة على طوب، وصفحة مجلّة، وأقواس.
+ * يراه زبونه. والطوابع ذات البنية الخاصّة (`design.skin`) لكلٍّ منها رسمها:
+ * فاتورةٌ على طاولة، ولوحة حروفٍ على جدار، وملصقات، ولافتة على طوب، وصفحة
+ * مجلّة، وأقواس.
  *
  * ⚠️ أشكالٌ لا نصوص: خطوط الطوابع لا تُحمَّل في اللوحة ولا في الهبوط، وحرفٌ
  * بخطٍّ احتياطي يكذب على التاجر في أوّل ما يراه من الطابع.
@@ -49,28 +50,68 @@ function ReceiptMini({ v }: { v: Vars }) {
   );
 }
 
-function ChalkMini({ v }: { v: Vars }) {
-  const accent = v["--m-accent"];
+function LetterboardMini({ v }: { v: Vars }) {
+  const felt = `repeating-linear-gradient(180deg, rgba(255,255,255,.05) 0 1px, transparent 1px 3px, rgba(0,0,0,.4) 3px 4px), ${v["--m-bg"]}`;
+  return (
+    <div
+      className="relative h-28 overflow-hidden"
+      style={{
+        backgroundColor: v["--m-page"] ?? "#ebe7df",
+        backgroundImage: "linear-gradient(rgba(0,0,0,.07) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,.07) 1px, transparent 1px)",
+        backgroundSize: "18px 9px",
+      }}
+      aria-hidden="true"
+    >
+      <div
+        className="absolute inset-x-[18%] bottom-2.5 top-2.5 flex flex-col items-center gap-1.5 px-3 pt-3"
+        style={{ background: felt, border: "5px solid #a8743f", boxShadow: "0 10px 18px -10px rgba(0,0,0,.55)" }}
+      >
+        <span className="h-1.5 w-16 rounded-[1px]" style={{ background: v["--m-text"] }} />
+        <span className="h-1 w-9 rounded-[1px]" style={{ background: v["--m-accent"] }} />
+        <div className="mt-1.5 flex w-full flex-col gap-1.5">
+          {[0, 1].map((i) => (
+            <span key={i} className="flex items-center gap-1">
+              <span className="h-1 w-10 rounded-[1px]" style={{ background: v["--m-text"], opacity: 0.85 }} />
+              <span className="h-px flex-1 border-b border-dotted" style={{ borderColor: v["--m-muted"] }} />
+              <span className="h-1 w-3 rounded-[1px]" style={{ background: v["--m-accent"] }} />
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StickerMini({ v }: { v: Vars }) {
+  const ink = v["--m-text"];
+  const outline = `1.5px solid ${ink}`;
+  const card = (tilt: string, bg: string): CSSProperties => ({
+    background: bg,
+    border: outline,
+    boxShadow: `2px 3px 0 ${ink}`,
+    borderRadius: "7px",
+    transform: `rotate(${tilt})`,
+  });
   return (
     <div className="relative h-28 overflow-hidden" style={{ background: v["--m-bg"] }} aria-hidden="true">
-      <span className="absolute inset-x-0 top-0 h-1.5" style={{ background: "linear-gradient(#9a6a41, #57351d)" }} />
-      <div className="flex flex-col items-center pt-4">
-        <span className="h-5 w-5 rounded-full" style={{ outline: `1.5px dashed ${v["--m-muted"]}`, outlineOffset: "2px", background: v["--m-bg-2"] }} />
-        {/* «كتابة» بخطّ اليد: موجةٌ بلون الطباشير، وتحتها خطٌّ بلون التمييز. */}
-        <svg viewBox="0 0 80 14" className="mt-1.5 h-3.5 w-20" fill="none" stroke={v["--m-text"]} strokeWidth="2.2" strokeLinecap="round">
-          <path d="M76 9c-4-6-8 3-12-1s-6-5-10 0-6 2-9-2-7 4-11 1-5-5-9 0-7 1-10-1" />
-        </svg>
-        <svg viewBox="0 0 200 14" preserveAspectRatio="none" className="h-1.5 w-16" fill="none" stroke={accent} strokeWidth="5" strokeLinecap="round">
-          <path d="M197 8 C 162 3, 131 12, 96 7 S 33 4, 3 9" />
-        </svg>
+      <div
+        className="absolute inset-x-2.5 top-2.5 h-11 overflow-hidden rounded-[10px]"
+        style={{
+          backgroundColor: v["--m-accent"],
+          backgroundImage: `radial-gradient(circle, color-mix(in srgb, ${ink} 18%, transparent) 0.8px, transparent 1.1px)`,
+          backgroundSize: "6px 6px",
+          border: outline,
+          boxShadow: `3px 3px 0 ${ink}`,
+        }}
+      >
+        <span className="absolute left-1/2 top-1.5 h-4 w-4 -translate-x-1/2 rounded-full" style={{ background: v["--m-surface"], border: outline }} />
+        <span className="absolute left-1/2 top-7 h-2 w-16 -translate-x-1/2 rounded-[2px]" style={{ background: ink, boxShadow: "0 0 0 1.5px #fff" }} />
       </div>
-      <div className="absolute inset-x-3 bottom-2.5 flex flex-col gap-1.5">
-        {[0, 1].map((i) => (
-          <span key={i} className="flex items-center justify-between">
-            <span className="h-1 w-14 rounded-full" style={{ background: v["--m-text"], opacity: 0.8 }} />
-            <span className="h-1 w-4 rounded-full" style={{ background: accent }} />
-          </span>
-        ))}
+      <span className="absolute -inset-x-2 top-[3.85rem] h-2.5 -rotate-2" style={{ background: ink }} />
+      <div className="absolute inset-x-3 bottom-2 flex gap-2">
+        <span className="h-8 flex-1" style={card("-2deg", v["--m-accent-2"])} />
+        <span className="h-8 flex-1" style={card("1.5deg", v["--m-surface"])} />
+        <span className="h-8 flex-1" style={card("-1deg", v["--m-bg-2"])} />
       </div>
     </div>
   );
@@ -252,8 +293,10 @@ export function ThemePreview({ theme }: { theme: MenuTheme }) {
   switch (theme.design.skin) {
     case "receipt":
       return <ReceiptMini v={v} />;
-    case "chalk":
-      return <ChalkMini v={v} />;
+    case "letterboard":
+      return <LetterboardMini v={v} />;
+    case "sticker":
+      return <StickerMini v={v} />;
     case "neon":
       return <NeonMini v={v} />;
     case "editorial":

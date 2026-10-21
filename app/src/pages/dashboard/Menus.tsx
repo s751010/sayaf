@@ -295,7 +295,7 @@ export default function Menus() {
           <PreviewMenuButton slug={restaurant.slug} label="عاين النتيجة" />
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
           {DESIGN_THEMES.map((t) => {
             const on = activeBase === t.id;
             return (

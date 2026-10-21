@@ -204,7 +204,7 @@ export function DishCard({
    */
   const badge = popular ? (
     <span
-      className="pointer-events-none absolute z-[1] inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-black shadow-sm"
+      className="m-badge pointer-events-none absolute z-[1] inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-black shadow-sm"
       style={{
         background: "var(--m-accent)",
         color: "var(--m-on-accent)",
@@ -283,7 +283,7 @@ export function DishCard({
             <Calories dish={dish} en={en} />
           </span>
         </span>
-        {/* الغلاف `m-thumb` لما لا تحمله `<img>`: شريط اللاصق فوق صورة السبّورة. */}
+        {/* الغلاف `m-thumb` لما لا تحمله `<img>` (إطار الصورة المدسوسة في لوحة الحروف). */}
         {hasImage && (
           <span className="m-thumb relative shrink-0">
             <SafeImage

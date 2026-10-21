@@ -7,9 +7,10 @@
  * آخر على الشكل نفسه لا يجعل منيو المطعم يُتذكَّر. فهنا خمس **بُنى** مختلفة —
  * والزبون يعرف من أوّل نظرة أيّ مطعم فتح:
  *
- * - `PaperHead`    رأس فاتورة حرارية: الاسم، والتاريخ والساعة لحظة الفتح، بخطوطٍ متقطّعة.
- * - `BoardHead`    سبّورة بإطار خشب: الاسم بخطّ الرقعة وخطّ طباشير يُرسم تحته.
- * - `SignHead`     لافتة نيون على جدار طوب: الاسم أنبوبٌ يشتعل.
+ * - `PaperHead`       رأس فاتورة حرارية: الاسم، والتاريخ والساعة لحظة الفتح، بخطوطٍ متقطّعة.
+ * - `LetterboardHead` لوحة حروف معلّقة فوق الكاونتر: حروفٌ بارزة على لبّاد مخدّد.
+ * - `PosterHead`      ملصقٌ بحدٍّ أسود وظلٍّ مصمت، وتحته شريطٌ تجري فيه أقسام المنيو.
+ * - `SignHead`        لافتة نيون على جدار طوب: الاسم أنبوبٌ يشتعل.
  * - `MastheadHead` ترويسة مجلّة: خطّان، وتاريخ اليوم، والاسم بالأميري كبيراً.
  * - `ArcadeHead`   أقواس روشان: الغلاف جدارٌ تنفتح أسفله أقواس، والشعار نافذة.
  *
@@ -23,12 +24,15 @@ import type { MenuTheme } from "@/lib/themes";
 import { restaurantTypeLabel } from "@/lib/menuText";
 import type { Restaurant } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { Icon } from "@/lib/icons";
 import { LogoMark } from "./LogoMark";
 
 export interface HeadProps {
   restaurant: Restaurant;
   theme: MenuTheme;
   en: boolean;
+  /** أسماء أقسام المنيو كاملةً (لا المصفّاة بالبحث) — يحتاجها شريط الملصقات وحده. */
+  tags?: string[];
   children?: ReactNode;
 }
 
@@ -142,48 +146,124 @@ export function ReceiptEnd({ count, code, en }: { count: number; code: string; e
   );
 }
 
-/* ══ سبّورة ════════════════════════════════════════════════════════════ */
+/* ══ لوحة حروف ══════════════════════════════════════════════════════════ */
 
 /**
- * خطّ طباشير مرسوم باليد — **يبدأ من اليمين** كما تُكتب العربية، فيُرسم
- * (`menu-skins.css`) في اتّجاه القراءة. `pathLength` يجعل طول الرسم ١ أيّاً
- * كان عرضه، فيكفي إزاحةٌ واحدة للتحريك.
+ * لوحة الحروف التي يعلّقها الكافيه فوق الكاونتر: لبّادٌ أسود مخدّد، وحروفٌ
+ * بيضاء بارزة، وقطعتا رمزٍ على جانبَي السطر كما تُباع مع اللوحة. الإطار
+ * الخشبي والجدار حولها في `menu-skins.css` (`.m-paper`).
  */
-export function ChalkStroke({ className, style }: { className?: string; style?: CSSProperties }) {
+export function LetterboardHead({ restaurant, en, children }: HeadProps) {
+  const typeLabel = restaurantTypeLabel(restaurant.type);
   return (
-    <svg viewBox="0 0 200 14" preserveAspectRatio="none" aria-hidden="true" className={cn("m-stroke block", className)} style={style}>
+    <header className="m-head m-head-letter px-5 pb-2 pt-10 text-center">
+      <LogoMark
+        restaurant={restaurant}
+        size="mx-auto h-[4.5rem] w-[4.5rem]"
+        style={{ borderRadius: "9999px", background: "var(--m-bg-2)" }}
+        fallbackStyle={{ color: ink }}
+        letterSize="2.2rem"
+      />
+      <h1 className="m-title m-letters mt-5 text-[2.1rem] font-extrabold leading-[1.3] sm:text-[2.6rem]" style={display}>
+        {restaurant.name}
+      </h1>
+      <p className="m-letters mt-2.5 inline-flex items-center gap-2.5 text-[13px] font-bold" style={{ color: ink }}>
+        <Icon name="cup" size={15} />
+        {typeLabel ?? (en ? "MENU" : "قائمة اليوم")}
+        <Icon name="heart" size={14} />
+      </p>
+      <Chips className="mt-6">{children}</Chips>
+    </header>
+  );
+}
+
+/* ══ ملصقات ═════════════════════════════════════════════════════════════ */
+
+/** نجمةٌ مسنّنة — زخرفة الملصقات. اثنا عشر رأساً، مرسومة لا إيموجي. */
+export function Burst({ className, style }: { className?: string; style?: CSSProperties }) {
+  return (
+    <svg viewBox="0 0 40 40" aria-hidden="true" className={className} style={style}>
       <path
-        d="M197 8 C 162 3, 131 12, 96 7 S 33 4, 3 9"
-        pathLength={1}
-        fill="none"
-        stroke="currentColor"
-        strokeWidth={3.2}
-        strokeLinecap="round"
+        d="M20 1 23.6 10.5 33.4 6.6 29.5 16.4 39 20 29.5 23.6 33.4 33.4 23.6 29.5 20 39 16.4 29.5 6.6 33.4 10.5 23.6 1 20 10.5 16.4 6.6 6.6 16.4 10.5Z"
+        fill="currentColor"
+        stroke="var(--m-text)"
+        strokeWidth={2}
+        strokeLinejoin="round"
       />
     </svg>
   );
 }
 
-export function BoardHead({ restaurant, children }: HeadProps) {
-  const typeLabel = restaurantTypeLabel(restaurant.type);
+/**
+ * الشريط الجاري — أقسام المنيو نفسها تدور كشريط لاصقٍ مائل.
+ *
+ * نصفان متطابقان والمسار يُزاح نصفَ عرضه فيعود بلا قفزة. وكلّ نصفٍ يُكرَّر
+ * حتى عشرة عناصر على الأقلّ: نصفٌ أقصر من الشاشة كان سيُظهر فجوةً قبل أن يلتفّ.
+ * زخرفيٌّ (`aria-hidden`): الأقسام نفسها في شريط التصنيفات تحته.
+ */
+function Marquee({ items }: { items: string[] }) {
+  const half: string[] = [];
+  while (half.length < 10) half.push(...items);
   return (
-    <header className="m-head m-head-board relative px-4 pb-2 pt-12 text-center">
-      <LogoMark
-        restaurant={restaurant}
-        size="mx-auto h-20 w-20"
-        style={{ borderRadius: "9999px", background: "var(--m-bg-2)" }}
-        fallbackStyle={{ color: ink }}
-      />
-      <h1 className="m-title mt-6 text-[2.5rem] font-bold leading-[1.35] sm:text-[3.1rem]" style={display}>
-        {restaurant.name}
-      </h1>
-      <ChalkStroke className="mx-auto h-3.5 w-44" style={{ color: ink }} />
-      {typeLabel && (
-        <p className="mt-3 text-sm" style={muted}>
-          {typeLabel}
-        </p>
-      )}
-      <Chips className="mt-5">{children}</Chips>
+    <div className="overflow-hidden py-4" aria-hidden="true">
+      <div className="m-marquee">
+        <div className="m-marquee-track">
+          {[0, 1].map((h) => (
+            <span key={h} className="m-marquee-half">
+              {half.map((t, i) => (
+                <span key={i} className="m-marquee-item">
+                  {t}
+                  <span className="m-marquee-sep">✦</span>
+                </span>
+              ))}
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function PosterHead({ restaurant, tags = [], children }: HeadProps) {
+  const typeLabel = restaurantTypeLabel(restaurant.type);
+  const banner = restaurant.banner_image?.trim();
+  const ticker = tags.length ? tags : [restaurant.name];
+  return (
+    <header className="m-head m-head-poster pt-3">
+      <div className="mx-auto max-w-3xl px-3">
+        <div className="m-cover m-poster-cover relative overflow-hidden px-5 pb-9 pt-10 text-center">
+          {banner ? (
+            <SafeImage
+              src={banner}
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover"
+              wrapperClassName="hidden"
+              fallback={<span />}
+            />
+          ) : (
+            <>
+              <Burst className="m-spin absolute -top-6 end-[-1.5rem] h-28 w-28" style={{ color: "var(--m-accent-2)" }} />
+              <Burst className="absolute bottom-5 start-4 h-7 w-7" style={{ color: "var(--m-surface)" }} />
+            </>
+          )}
+          <div className="relative">
+            <LogoMark
+              restaurant={restaurant}
+              size="mx-auto h-20 w-20"
+              style={{ borderRadius: "9999px", background: "var(--m-surface)" }}
+              fallbackStyle={{ color: "var(--m-text)" }}
+            />
+            {/* لاله‌زار وزنٌ واحد أسودُ أصلاً: `font-normal` لا `font-black`،
+                وإلا رسم المتصفّح سُمكاً مزيّفاً فوق سُمكه فتتلاصق الحروف. */}
+            <h1 className="m-title m-die mt-5 text-[2.7rem] font-normal leading-[1.2] sm:text-[3.6rem]" style={display}>
+              {restaurant.name}
+            </h1>
+            {typeLabel && <p className="m-tag mt-3 inline-block px-3.5 py-1 text-[13px] font-bold">{typeLabel}</p>}
+          </div>
+        </div>
+      </div>
+      <Marquee items={ticker} />
+      <Chips className="mx-auto max-w-3xl px-4">{children}</Chips>
     </header>
   );
 }
@@ -218,7 +298,7 @@ export function SignHead({ restaurant, children }: HeadProps) {
             {restaurant.name}
           </h1>
           {typeLabel && (
-            <p className="m-neon-2 mt-3 text-xs font-bold tracking-[0.2em]">{typeLabel}</p>
+            <p className="m-neon-2 mt-3 text-xs font-bold">{typeLabel}</p>
           )}
         </div>
       </div>
@@ -239,7 +319,7 @@ export function MastheadHead({ restaurant, en, children }: HeadProps) {
   return (
     <header className="m-head m-head-masthead mx-auto max-w-3xl px-4 pt-8">
       <div aria-hidden="true" className="m-rule-double" />
-      <p className="flex items-center justify-between gap-3 py-2 text-[11px] font-bold tracking-wide" style={muted}>
+      <p className="flex items-center justify-between gap-3 py-2 text-[11px] font-bold" style={muted}>
         <span className="truncate">{typeLabel ?? (en ? "The menu" : "قائمة الطعام")}</span>
         <span className="shrink-0">{today}</span>
       </p>

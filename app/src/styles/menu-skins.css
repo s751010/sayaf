@@ -10,7 +10,7 @@
  * ═══ ثلاث قواعد لا تُكسر ═══
  *
  * ١. **اللون من `--m-*` وحدها.** كل طابع يلبس لون علامة التاجر، فلا لون
- *    مكتوب هنا إلا ما لا يتبع العلامة أصلاً (الطوب، الخشب، ورق الفاتورة).
+ *    مكتوب هنا إلا ما لا يتبع العلامة أصلاً (الطوب، الخشب، البلاط، ورق الفاتورة).
  *
  * ٢. **الحالة الافتراضية ساكنةٌ مكشوفة.** كل حركة داخل
  *    `prefers-reduced-motion: no-preference`، وكل حركة مربوطة بالتمرير داخل
@@ -21,7 +21,8 @@
  *    تخطيط. والاستثناء `filter` على صور الفاتورة الصغيرة وحدها.
  *
  * والمضمَّن (`style`) يغلب أي قاعدة هنا، فما يحتاج الطابعُ تغييره من لونٍ
- * مضمَّن يمرّ بمتغيّر (`--m-price` · `--m-name-font`) لا بـ`!important`.
+ * مضمَّن يمرّ بمتغيّر (`--m-price` · `--m-name-font` · `--m-tab-on` ·
+ * `--m-feature-border`) لا بـ`!important`.
  */
 
 /* ══ المشترك ══════════════════════════════════════════════════════════ */
@@ -199,6 +200,11 @@
   outline: 1.5px dashed var(--m-border);
   outline-offset: -1.5px;
 }
+.m-skin-receipt .m-pickup {
+  box-shadow: none !important;
+  outline: 1.5px dashed var(--m-border);
+  outline-offset: -1.5px;
+}
 .m-skin-receipt .m-nav {
   border-bottom-style: dashed !important;
 }
@@ -207,6 +213,10 @@
   border-style: dashed;
   border-width: 1.5px;
   box-shadow: none;
+}
+.m-skin-receipt .m-sheet {
+  border-style: dashed;
+  border-width: 1.5px;
 }
 /* صورةٌ «مطبوعة» على الورق: الضرب يُذيب أبيضها في لونه. */
 .m-skin-receipt .m-img {
@@ -257,134 +267,365 @@
   }
 }
 
-/* ══ سبّورة ════════════════════════════════════════════════════════════
- * لوحٌ أردوازيّ عليه غبار طباشير، بإطار خشب في أعلاه. الاسم يُكتب بالرقعة
- * من اليمين كما تُكتب العربية، وخطّ الطباشير يُرسم تحته. وصور الأطباق
- * مطبوعةٌ ملصقة على اللوح بشريط لاصق.
+/* ══ لوحة حروف ════════════════════════════════════════════════════════
+ * اللوحة التي يعلّقها الكافيه فوق الكاونتر: لبّادٌ أسود بأخاديد أفقية،
+ * وحروفٌ بيضاء بارزة تُدسّ فيها، وإطارٌ من خشب البلّوط — معلّقةٌ على جدار
+ * بلاطٍ أبيض. الأسعار والعناوين بالحروف الملوّنة (لون العلامة).
  */
-.m-skin-chalk {
-  background-image:
-    radial-gradient(60% 38% at 18% 12%, rgba(255, 255, 255, 0.045), transparent 70%),
-    radial-gradient(48% 32% at 86% 58%, rgba(255, 255, 255, 0.035), transparent 70%),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+.m-skin-letterboard {
+  display: flow-root;
+  /* البلاط المستطيل بصفوفٍ متراكبة — جدار الكافيه، لا يتبع لون العلامة. */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='32'%3E%3Crect width='64' height='32' fill='%23d8d2c7'/%3E%3Cg fill='%23f1ede6'%3E%3Crect x='1' y='1' width='30' height='14' rx='1.5'/%3E%3Crect x='33' y='1' width='30' height='14' rx='1.5'/%3E%3Crect x='0' y='17' width='15' height='14' rx='1.5'/%3E%3Crect x='17' y='17' width='30' height='14' rx='1.5'/%3E%3Crect x='49' y='17' width='15' height='14' rx='1.5'/%3E%3C/g%3E%3Cg fill='%23fbf9f5'%3E%3Crect x='2' y='2' width='28' height='2' rx='1'/%3E%3Crect x='34' y='2' width='28' height='2' rx='1'/%3E%3Crect x='18' y='18' width='28' height='2' rx='1'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 64px 32px;
+  --m-price: var(--m-accent-ink, var(--m-accent));
+  --m-tab-on: transparent;
+  --m-tab-on-ink: var(--m-accent-ink, var(--m-accent));
 }
 
-/* الإطار الخشبي — خشبٌ لا يتبع لون العلامة، كما لا يتبعه خشب السبّورة. */
-.m-skin-chalk .m-head-board::before {
-  content: "";
-  position: absolute;
-  inset-inline: 0;
-  top: 0;
-  height: 14px;
+.m-skin-letterboard .m-paper {
+  position: relative;
+  max-width: 34rem;
+  margin: 1.5rem max(0.625rem, calc((100% - 34rem) / 2)) 2.75rem;
+  /* الإطار: خشبٌ بتدرّجٍ يلتقط الضوء من الأعلى — زوايا قائمة كإطار اللوحة. */
+  border: 12px solid #a8743f;
+  border-image: linear-gradient(160deg, #cf9f66, #9c6734 34%, #bd8850 60%, #86562b) 1;
+  /* الأخاديد: خيطُ ضوءٍ ثم ظلٌّ كلّ سبعة بكسلات — فيها تُدسّ الحروف. */
   background:
-    repeating-linear-gradient(176deg, rgba(255, 255, 255, 0.07) 0 1px, transparent 1px 5px),
-    linear-gradient(#9a6a41, #74492a 55%, #57351d);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.45);
+    repeating-linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.035) 0 1px,
+      transparent 1px 4px,
+      rgba(0, 0, 0, 0.42) 4px 5px,
+      transparent 5px 7px
+    ),
+    var(--m-bg);
+  box-shadow:
+    0 34px 60px -30px rgba(0, 0, 0, 0.6),
+    inset 0 0 46px rgba(0, 0, 0, 0.55);
 }
 
-.m-skin-chalk .m-title,
-.m-skin-chalk .m-write {
+/* الحروف بارزةٌ من اللبّاد: ظلٌّ قصير حادّ تحتها وآخر ليّن. */
+.m-letters,
+.m-skin-letterboard .m-title,
+.m-skin-letterboard .m-name,
+.m-skin-letterboard .m-price {
   text-shadow:
-    0 0 1px rgba(255, 255, 255, 0.35),
-    0 0 14px rgba(255, 255, 255, 0.07);
+    0 1px 0 rgba(0, 0, 0, 0.65),
+    0 2px 4px rgba(0, 0, 0, 0.4);
 }
-.m-skin-chalk .m-head-board .m-logo {
-  outline: 2px dashed color-mix(in srgb, var(--m-text) 55%, transparent);
-  outline-offset: 6px;
+.m-skin-letterboard .m-head-letter .m-logo {
+  box-shadow:
+    0 0 0 3px var(--m-text),
+    0 8px 16px -6px rgba(0, 0, 0, 0.7);
 }
-.m-skin-chalk .m-stroke {
-  opacity: 0.9;
+/* صورة السطر مطبوعةٌ مدسوسةٌ في الأخاديد: حاشيةٌ بيضاء وظلّ. للصورة الصغيرة
+   وحدها — الصورة الملاصقة لحافّة بطاقةٍ كانت تخرج بخطٍّ أبيض على حافّتها. */
+.m-skin-letterboard .m-thumb .m-img {
+  box-shadow:
+    0 0 0 2px var(--m-text),
+    0 8px 14px -6px rgba(0, 0, 0, 0.7);
 }
-.m-skin-chalk .m-card.m-surface,
-.m-skin-chalk .m-feature {
-  border-style: dashed;
-  border-width: 1.5px;
-}
-
-/* الصورة الملصقة: حاشيةٌ بيضاء، وميلٌ يتناوب، وشريطٌ لاصق فوقها. */
-.m-skin-chalk .m-thumb {
-  padding: 4px;
-  background: #f2efe4;
-  transform: rotate(-2.2deg);
-  box-shadow: 0 8px 16px -8px rgba(0, 0, 0, 0.6);
-}
-.m-skin-chalk .m-dishes > :nth-child(even) .m-thumb {
-  transform: rotate(1.8deg);
-}
-.m-skin-chalk .m-thumb::after {
-  content: "";
-  position: absolute;
-  top: -8px;
-  left: 50%;
-  width: 46px;
-  height: 15px;
-  translate: -50% 0;
-  rotate: -5deg;
-  background: rgba(236, 226, 196, 0.62);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+.m-skin-letterboard .m-tab[aria-current] {
+  border-radius: 0;
+  box-shadow: inset 0 -2px 0 currentColor;
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .m-skin-chalk .m-title {
-    animation: m-write 1.3s cubic-bezier(0.55, 0, 0.25, 1) 0.15s both;
-  }
-  .m-skin-chalk[dir="ltr"] .m-title {
-    animation-name: m-write-ltr;
-  }
-  .m-skin-chalk .m-head-board .m-stroke path {
-    stroke-dasharray: 1;
-    animation: m-draw 0.7s cubic-bezier(0.5, 0, 0.3, 1) 1.25s both;
+  /* الاسم يُدسّ في أخدوده: يهبط قليلاً ويستقرّ — لا يتلاشى. */
+  .m-skin-letterboard .m-head-letter .m-title {
+    animation: m-press 0.75s cubic-bezier(0.3, 1.4, 0.5, 1) 0.15s both;
   }
 }
 
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
-    /* خطّ زمنيٌّ مسمّى على العنوان: المسار داخل SVG ليس صندوقاً يُقاس، فيقرأ
-       تقدّمه من عنوانه. */
-    .m-skin-chalk .m-h {
-      view-timeline: --m-h block;
+    /* السطر يُدسّ من جانب اللوحة على أخدوده كما تُدسّ الحروف. */
+    .m-skin-letterboard .m-card,
+    .m-skin-letterboard .m-h {
+      animation: m-slot linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 80%;
     }
-    .m-skin-chalk .m-h .m-write {
-      animation: m-write linear both;
-      animation-timeline: --m-h;
-      animation-range: entry 35% cover 32%;
-    }
-    .m-skin-chalk[dir="ltr"] .m-h .m-write {
-      animation-name: m-write-ltr;
-    }
-    .m-skin-chalk .m-h .m-stroke path {
-      stroke-dasharray: 1;
-      animation: m-draw linear both;
-      animation-timeline: --m-h;
-      animation-range: cover 22% cover 40%;
+    .m-skin-letterboard[dir="ltr"] .m-card,
+    .m-skin-letterboard[dir="ltr"] .m-h {
+      animation-name: m-slot-ltr;
     }
   }
 }
 
-/* الكتابة من اليمين: القصّ يبدأ كاملاً من اليسار ويتراجع. والهامش السالب
-   كي لا تُقصّ ذيول الرقعة وأسنانها خارج صندوق السطر. */
-@keyframes m-write {
+@keyframes m-press {
   from {
-    clip-path: inset(-25% -6% -25% 106%);
-  }
-  to {
-    clip-path: inset(-25% -6% -25% -6%);
+    opacity: 0;
+    transform: translateY(-12px) scale(1.04);
   }
 }
-@keyframes m-write-ltr {
+@keyframes m-slot {
   from {
-    clip-path: inset(-25% 106% -25% -6%);
-  }
-  to {
-    clip-path: inset(-25% -6% -25% -6%);
+    opacity: 0;
+    transform: translateX(-22px);
   }
 }
-@keyframes m-draw {
+@keyframes m-slot-ltr {
   from {
-    stroke-dashoffset: 1;
+    opacity: 0;
+    transform: translateX(22px);
   }
+}
+
+/* ══ ملصقات ═════════════════════════════════════════════════════════════
+ * لمحلّ الشاي والكافيه الشبابي: كلّ شيءٍ ملصقٌ بحدٍّ أسود غليظ وظلٍّ مصمت
+ * لا ضبابي، يميل قليلاً كأنه أُلصق باليد. والاسم مقصوصٌ بحاشيةٍ بيضاء،
+ * وأقسام المنيو تجري في شريطٍ مائل، ولكلّ قسمٍ ملصقٌ كبير بصورته.
+ */
+.m-skin-sticker {
+  --m-tab-on: var(--m-accent);
+  --m-tab-on-ink: var(--m-on-accent);
+  --m-tab-ink: var(--m-text);
+  --m-feature-border: var(--m-text);
+  /* شبكة نقاطٍ خفيفة — ورقٌ دفتريّ تُلصق عليه الملصقات. */
+  background-image: radial-gradient(circle, color-mix(in srgb, var(--m-text) 9%, transparent) 1px, transparent 1.5px);
+  background-size: 18px 18px;
+}
+
+/* نقاط الطباعة الشعبية (هافتون) — على الغلاف وملصقات الأقسام المرسومة. */
+.m-poster-cover,
+.m-poster-art {
+  background-image: radial-gradient(circle, color-mix(in srgb, var(--m-text) 15%, transparent) 1.3px, transparent 1.7px);
+  background-size: 11px 11px;
+}
+.m-poster-cover {
+  background-color: var(--m-accent);
+  border: 2.5px solid var(--m-text);
+  border-radius: 1.75rem;
+  box-shadow: 5px 6px 0 var(--m-text);
+}
+.m-skin-sticker .m-head-poster .m-logo {
+  box-shadow:
+    0 0 0 4px #fff,
+    0 0 0 6.5px var(--m-text),
+    4px 6px 0 6.5px var(--m-text);
+  transform: rotate(-6deg);
+}
+
+/* الاسم ملصقٌ مقصوص: حاشيةٌ بيضاء من ثمانية ظلال، ثم ظلٌّ أسود مصمت تحتها.
+   ظلالٌ لا `-webkit-text-stroke`: الحدّ يأكل من داخل الحرف، والظلّ يحيط به. */
+.m-die {
+  color: var(--m-text);
+  text-shadow:
+    3px 0 #fff,
+    -3px 0 #fff,
+    0 3px #fff,
+    0 -3px #fff,
+    2.2px 2.2px #fff,
+    -2.2px -2.2px #fff,
+    2.2px -2.2px #fff,
+    -2.2px 2.2px #fff,
+    5px 6px 0 var(--m-text);
+}
+.m-tag {
+  background: var(--m-text);
+  color: var(--m-bg);
+  border-radius: 999px;
+  transform: rotate(2deg);
+}
+
+/* الشريط الجاري: لاصقٌ أسود مائل يخرج من طرفَي الشاشة. */
+.m-marquee {
+  margin-inline: -12px;
+  padding-block: 10px;
+  background: var(--m-text);
+  color: var(--m-bg);
+  transform: rotate(-1.6deg);
+}
+.m-marquee-track {
+  display: flex;
+  width: max-content;
+}
+.m-marquee-half {
+  display: flex;
+  flex-shrink: 0;
+}
+.m-marquee-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  padding-inline-end: 16px;
+  font-family: var(--m-display, var(--m-font));
+  font-size: 1.2rem;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.m-marquee-sep {
+  color: var(--m-accent);
+  font-size: 0.8em;
+}
+
+/* ملصق القسم: لوحةٌ عريضة بصورة القسم أو برسمه، واسمه شريطٌ أبيض مائل. */
+.m-poster {
+  aspect-ratio: 16 / 7;
+  border: 2.5px solid var(--m-text);
+  border-radius: var(--m-radius);
+  box-shadow: 5px 6px 0 var(--m-text);
+}
+/* على الشاشة العريضة ١٦:٧ ملصقٌ بارتفاع ثلث الشاشة يحجب الأطباق نفسها. */
+@media (min-width: 640px) {
+  .m-poster {
+    aspect-ratio: 16 / 5;
+  }
+}
+.m-poster-icon {
+  top: 50%;
+  inset-inline-end: 7%;
+  color: var(--m-text);
+  translate: 0 -50%;
+  rotate: -8deg;
+}
+.m-poster-label {
+  position: absolute;
+  bottom: 12px;
+  inset-inline-start: 12px;
+  max-width: calc(100% - 24px);
+  padding: 3px 18px 5px;
+  overflow: hidden;
+  border: 2.5px solid var(--m-text);
+  border-radius: 999px;
+  background: var(--m-surface);
+  color: var(--m-text);
+  font-size: 1.55rem;
+  font-weight: 400;
+  line-height: 1.4;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  box-shadow: 3px 4px 0 var(--m-text);
+  transform: rotate(-2deg);
+}
+
+/* البطاقات ملصقات: حدٌّ وظلٌّ مصمتان، وميلٌ يتناوب كأنها أُلصقت باليد. */
+.m-skin-sticker .m-card.m-surface,
+.m-skin-sticker .m-feature {
+  border-width: 2.5px;
+  border-color: var(--m-text);
+  box-shadow: 4px 5px 0 var(--m-text);
+}
+.m-skin-sticker .m-dishes > :nth-child(3n + 1) {
+  --tilt: -1deg;
+}
+.m-skin-sticker .m-dishes > :nth-child(3n + 2) {
+  --tilt: 0.8deg;
+}
+.m-skin-sticker .m-card.m-surface {
+  transform: rotate(var(--tilt, 0deg));
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+.m-skin-sticker .m-card.m-surface:hover {
+  transform: rotate(0deg) translateY(-2px);
+}
+/* الضغط يُلصق البطاقة: تنزل على ظلّها فيختفي. */
+.m-skin-sticker .m-card.m-surface:active {
+  transform: translate(3px, 4px) rotate(var(--tilt, 0deg));
+  box-shadow: 1px 1px 0 var(--m-text);
+}
+.m-skin-sticker .m-card.m-surface .m-img {
+  border-bottom: 2.5px solid var(--m-text);
+}
+.m-skin-sticker .m-card .m-price,
+.m-skin-sticker .m-badge,
+.m-skin-sticker .m-add {
+  border: 2px solid var(--m-text);
+}
+.m-skin-sticker .m-badge {
+  box-shadow: 2px 2px 0 var(--m-text);
+  transform: rotate(-3deg);
+}
+.m-skin-sticker .m-add {
+  box-shadow: 2px 3px 0 var(--m-text);
+}
+.m-skin-sticker .m-tab {
+  border: 2px solid transparent;
+}
+.m-skin-sticker .m-tab[aria-current] {
+  border-color: var(--m-text);
+  box-shadow: 2px 3px 0 var(--m-text);
+}
+/* شريط الطلب وشريط الاستلام ملصقان أيضاً — لا حدٌّ رفيع وسط حدودٍ غليظة. */
+.m-skin-sticker .m-cart,
+.m-skin-sticker .m-pickup {
+  border: 2.5px solid var(--m-text) !important;
+  box-shadow: 3px 4px 0 var(--m-text) !important;
+}
+.m-skin-sticker .m-sheet {
+  border: 2.5px solid var(--m-text);
+  box-shadow: 6px 7px 0 var(--m-text);
+}
+.m-skin-sticker .m-chips > * {
+  box-shadow:
+    inset 0 0 0 2px var(--m-text),
+    2px 3px 0 var(--m-text) !important;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .m-marquee-track {
+    animation: m-marquee 40s linear infinite;
+  }
+  [dir="ltr"] .m-marquee-track {
+    animation-name: m-marquee-ltr;
+  }
+  .m-spin {
+    animation: m-spin 26s linear infinite;
+  }
+  .m-skin-sticker .m-head-poster .m-title {
+    animation: m-slap 0.7s cubic-bezier(0.3, 1.5, 0.5, 1) 0.15s both;
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    /* الملصق يُلصق حين يدخل: يكبر قليلاً ويميل ثم يستقرّ. والسحب الأفقي
+       مستثنى — لبطاقاته حركتها. */
+    .m-skin-sticker .m-dishes:not(.m-deck) > *,
+    .m-skin-sticker .m-poster {
+      animation: m-pop linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 85%;
+    }
+  }
+}
+
+/* نصف عرض المسار = نسخةٌ كاملة من القائمة، فيعود بلا قفزة. */
+@keyframes m-marquee {
   to {
-    stroke-dashoffset: 0;
+    transform: translateX(50%);
+  }
+}
+@keyframes m-marquee-ltr {
+  to {
+    transform: translateX(-50%);
+  }
+}
+@keyframes m-spin {
+  to {
+    rotate: 360deg;
+  }
+}
+@keyframes m-slap {
+  from {
+    opacity: 0;
+    transform: scale(1.35) rotate(-6deg);
+  }
+}
+@keyframes m-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.84) rotate(-5deg);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.03) rotate(1deg);
+  }
+  100% {
+    transform: none;
   }
 }
 
@@ -448,6 +689,10 @@
     0 0 24px -8px color-mix(in srgb, var(--m-glow, var(--m-accent)) 60%, transparent),
     inset 0 0 20px -12px color-mix(in srgb, var(--m-glow, var(--m-accent)) 55%, transparent);
 }
+.m-skin-neon .m-sheet {
+  border-color: color-mix(in srgb, var(--m-glow, var(--m-accent)) 45%, transparent);
+  box-shadow: 0 0 36px -10px color-mix(in srgb, var(--m-glow, var(--m-accent)) 70%, transparent);
+}
 .m-skin-neon .m-tab[aria-current] {
   box-shadow: 0 0 16px color-mix(in srgb, var(--m-glow, var(--m-accent)) 70%, transparent);
 }
@@ -510,6 +755,12 @@
  */
 .m-skin-editorial {
   --m-name-font: var(--m-display);
+  /* التبويب النشط كلمةٌ تحتها خطّ — كأبواب فهرس المجلّة، لا زرٌّ ممتلئ. */
+  --m-tab-on: transparent;
+  --m-tab-on-ink: var(--m-text);
+}
+.m-skin-editorial .m-tab[aria-current] {
+  box-shadow: inset 0 -2px 0 var(--m-accent-ink, var(--m-accent));
 }
 .m-skin-editorial .m-name {
   font-size: 1.08em;
@@ -565,6 +816,12 @@
     .m-skin-editorial[dir="ltr"] .m-grow {
       transform-origin: left;
     }
+    /* الصورة الافتتاحية تنكشف من أعلاها كصفحةٍ تُقلَب. */
+    .m-skin-editorial .m-opener .m-img {
+      animation: m-unveil linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 30%;
+    }
   }
 }
 
@@ -572,6 +829,14 @@
   from {
     opacity: 0;
     transform: translateY(14px);
+  }
+}
+@keyframes m-unveil {
+  from {
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    clip-path: inset(-8px -8px -8px -8px);
   }
 }
 @keyframes m-grow {

@@ -34,6 +34,7 @@ const FAMILY: Record<string, string> = {
   "--font-noto-kufi": "Noto Kufi Arabic",
   "--font-almarai": "Almarai",
   "--font-ruqaa": "Aref Ruqaa",
+  "--font-lalezar": "Lalezar",
 };
 
 /**
@@ -67,6 +68,8 @@ const LOADERS: Record<string, () => Promise<unknown>> = {
     ]),
   "--font-ruqaa": () =>
     Promise.all([import("@fontsource/aref-ruqaa/400.css"), import("@fontsource/aref-ruqaa/700.css")]),
+  // لاله‌زار وزنٌ واحد (400) وهو أسود أصلاً — خطّ الملصقات (OFL 1.1).
+  "--font-lalezar": () => import("@fontsource/lalezar/400.css"),
 };
 
 /** ما بدأ تحميله — النداء الثاني ينتظر الأول ولا يبدأ تحميلاً ثانياً. */

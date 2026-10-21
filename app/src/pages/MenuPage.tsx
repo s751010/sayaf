@@ -29,7 +29,7 @@ import {
 import { CartReview } from "@/components/menu/CartReview";
 import { PickupTicket } from "@/components/menu/PickupTicket";
 import { allergenLabel, buildAllergenIndex, restaurantTypeLabel } from "@/lib/menuText";
-import { Chip, LAYOUT_CLASS, MenuSheet, SectionHeading, sectionReserve } from "@/components/menu/chrome";
+import { Chip, LAYOUT_CLASS, MenuSheet, SectionHeading, sectionCover, sectionReserve } from "@/components/menu/chrome";
 import { DishModal } from "@/components/menu/DishModal";
 import { LoyaltyCard } from "@/components/menu/LoyaltyCard";
 import {
@@ -468,8 +468,8 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
     return dish ? sum + unitPrice(dish, l.option_ids) * l.qty : sum;
   }, 0);
 
-  const { featured, categories } = useMemo(() => {
-    if (state.status !== "ready") return { featured: [], categories: [] as { name: string; dishes: Dish[] }[] };
+  const { featured, categories, tags } = useMemo(() => {
+    if (state.status !== "ready") return { featured: [], categories: [] as { name: string; dishes: Dish[] }[], tags: [] };
     const q = search.trim().toLowerCase();
     const matchesSearch = (d: Dish) =>
       !q ||
@@ -488,12 +488,15 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
     // ترتيب التاجر لا ترتيب أول ظهور لطبق (كان «الحلويات» قد تسبق «المقبلات»
     // لمجرّد أن أول طبق مضاف كان حلوى).
     const order = parseCategoryOrder(state.restaurant.category_order);
+    // كلّ الأقسام لا الظاهرة منها: شريط الملصقات الجاري لا يتقلّص والزبون يبحث.
+    const all = new Set(state.dishes.map((d) => d.category?.trim() || (en ? "Other" : "أخرى")));
     return {
       featured: q || avoid.size > 0 ? [] : visible.filter((d) => d.featured),
       categories: sortCategories([...byCat.keys()], order).map((name) => ({
         name,
         dishes: byCat.get(name)!,
       })),
+      tags: sortCategories([...all], order),
     };
   }, [state, search, en, avoid]);
 
@@ -791,7 +794,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
       {/* ‏`m-paper` غلافٌ بلا أثر إلا في الفاتورة: هناك هو الورقة نفسها —
           ضيّقةٌ في الوسط بحافّتين ممزّقتين، والصفحة تحتها طاولة. */}
       <div className="m-paper">
-        <MenuHeader restaurant={restaurant} theme={theme} en={en}>
+        <MenuHeader restaurant={restaurant} theme={theme} en={en} tags={tags}>
           {table && (
             <span className={pill} style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}>
               <Icon name="tag" size={14} /> {en ? "Table" : "طاولة"} {table}
@@ -929,10 +932,12 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
                     ref={(el) => { catRefs.current[c.name] = el; }}
                     aria-current={activeCat === c.name ? "true" : undefined}
                     className="m-tab flex h-10 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-sm font-bold transition-colors"
+                    // متغيّراتٌ لا ألوانٌ صريحة: الطابع يعيد رسم التبويب النشط بلا
+                    // `!important` (المجلّة خطٌّ تحته، ولوحة الحروف حروفٌ ملوّنة).
                     style={
                       activeCat === c.name
-                        ? { background: "var(--m-accent)", color: "var(--m-on-accent)" }
-                        : { color: "var(--m-muted)" }
+                        ? { background: "var(--m-tab-on, var(--m-accent))", color: "var(--m-tab-on-ink, var(--m-on-accent))" }
+                        : { color: "var(--m-tab-ink, var(--m-muted))" }
                     }
                   >
                     {/* الرمز يرث لون الشريحة عبر `currentColor` — وهذا ما لا
@@ -1066,7 +1071,14 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
                 // بينما ارتفاع الشريط يتغيّر، فيختفي عنوان القسم خلفه عند الضغط.
                 style={{ scrollMarginTop: `${navHeight + 12}px` }}
               >
-                <SectionHeading name={cat.name} style={design.heading} index={ci} />
+                <SectionHeading
+                  name={cat.name}
+                  style={design.heading}
+                  index={ci}
+                  icon={categoryIcon(cat.name)}
+                  cover={design.heading === "poster" || design.heading === "numeral" ? sectionCover(cat.dishes, en) : null}
+                  en={en}
+                />
                 <div className={cn(LAYOUT_CLASS[design.layout], rhythm.gap)}>
                   {cat.dishes.map((d, di) => (
                     /* الغلاف `relative` موجود دائماً كي لا يتغيّر شكل الشبكة بين
