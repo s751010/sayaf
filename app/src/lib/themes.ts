@@ -29,7 +29,8 @@ export type HeaderShape =
 export type DishLayout = "grid" | "list" | "showcase" | "deck";
 export type HeadingStyle =
   | "ornament" | "rule" | "plain"
-  | "stars" | "letters" | "poster" | "neon" | "numeral" | "cartouche";
+  | "stars" | "letters" | "poster" | "neon" | "numeral" | "cartouche"
+  | "plaque" | "sadu" | "bold";
 /** شكل صورة الطبق — دائري للكافيهات، مربّع حادّ للمينيمال، وقوسُ نافذة للروشان. */
 export type ImageShape = "rounded" | "square" | "circle" | "arch";
 /**
@@ -217,7 +218,7 @@ export const DESIGN_THEMES: MenuTheme[] = [
       pattern: "girih",
       patternOpacity: 0.03,
       header: "frame",
-      heading: "ornament",
+      heading: "plaque",
       density: "airy",
       imageShape: "rounded",
       depth: "float", sheen: "gold", entrance: "rise", edge: "gilded",
@@ -427,7 +428,7 @@ export const DESIGN_THEMES: MenuTheme[] = [
       // ‏.035 لا .06: النسيج على الصفحة كلّها كان يزاحم نصّ البطاقات فوقه.
       patternOpacity: 0.035,
       header: "band",
-      heading: "ornament",
+      heading: "sadu",
       depth: "raised", entrance: "rise", edge: "hairline",
     }),
   },
@@ -449,6 +450,7 @@ export const DESIGN_THEMES: MenuTheme[] = [
       "--m-radius": "1rem",
     },
     design: design({
+      heading: "bold",
       depth: "raised", entrance: "fade", edge: "hairline",
     }),
   },

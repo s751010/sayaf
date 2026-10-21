@@ -13,6 +13,7 @@ import { inTimeWindow } from "@/lib/hours";
 import { checkPassword, MIN_PASSWORD } from "@/lib/password";
 import { burnMinutes, isHighSodium, isSfdaCompliant } from "@/lib/nutrition";
 import { aliasType } from "@/lib/starterMenus";
+import { itemsLabel, sectionCover } from "@/components/menu/SectionHeading";
 
 /** تباين WCAG بين لونين سداسيّين. */
 function ratio(a: string, b: string): number {
@@ -227,6 +228,33 @@ describe("خامات الطوابع — البنية والـCSS معاً", () =
     expect(splitThemeId("neon:#ff3d81:deck").layout).toBe("deck");
     expect(getTheme("modern:deck").design.layout).toBe("deck");
     expect(getTheme("neon").design.layout).toBe("deck");
+  });
+});
+
+describe("عنوان القسم — العدد والغلاف", () => {
+  it.each([
+    [1, "صنف واحد"],
+    [2, "صنفان"],
+    [3, "3 أصناف"],
+    [10, "10 أصناف"],
+    [11, "11 صنفاً"],
+    [24, "24 صنفاً"],
+  ])("%i ⇒ «%s»", (n, label) => {
+    expect(itemsLabel(n, false)).toBe(label);
+  });
+
+  it("الإنجليزية مفردٌ وجمع", () => {
+    expect(itemsLabel(1, true)).toBe("1 item");
+    expect(itemsLabel(4, true)).toBe("4 items");
+  });
+
+  /** غلاف القسم يختاره التاجر بتمييز طبقٍ فيه — فالمميّز يسبق ترتيب الأطباق. */
+  it("الغلاف: المميّز بصورةٍ أوّلاً، ثم أوّل طبقٍ بصورة، وبلا صورٍ لا غلاف", () => {
+    const d = (id: string, image: string | null, featured = false) =>
+      ({ id, name: id, name_en: null, image, featured }) as unknown as Parameters<typeof sectionCover>[0][number];
+    expect(sectionCover([d("a", "a.jpg"), d("b", "b.jpg", true)], false)?.src).toBe("b.jpg");
+    expect(sectionCover([d("a", null), d("b", " "), d("c", "c.jpg")], false)?.src).toBe("c.jpg");
+    expect(sectionCover([d("a", null, true), d("b", null)], false)).toBeNull();
   });
 });
 

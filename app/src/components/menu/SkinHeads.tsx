@@ -33,7 +33,18 @@ export interface HeadProps {
   en: boolean;
   /** أسماء أقسام المنيو كاملةً (لا المصفّاة بالبحث) — يحتاجها شريط الملصقات وحده. */
   tags?: string[];
+  /** ما يجلس في زاوية الترويسة العليا (مبدّل اللغة). */
+  corner?: ReactNode;
   children?: ReactNode;
+}
+
+/**
+ * زاوية الترويسة العليا في آخر السطر (يسار العربية، يمين الإنجليزية) — حيث
+ * يبحث الزبون عن اللغة في كل تطبيق. كلّ ترويسةٍ `relative` لتحملها.
+ */
+export function Corner({ children, className }: { children?: ReactNode; className?: string }) {
+  if (!children) return null;
+  return <div className={cn("m-corner absolute end-3 top-3 z-20", className)}>{children}</div>;
 }
 
 const display: CSSProperties = { fontFamily: "var(--m-display, var(--m-font))" };
@@ -59,14 +70,15 @@ function Chips({ children, className }: { children?: ReactNode; className?: stri
 
 /* ══ فاتورة ════════════════════════════════════════════════════════════ */
 
-export function PaperHead({ restaurant, en, children }: HeadProps) {
+export function PaperHead({ restaurant, en, corner, children }: HeadProps) {
   const typeLabel = restaurantTypeLabel(restaurant.type);
   const stamp = useOpenedAt(
     { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false },
     "en-GB"
   ).replace(",", "  ·");
   return (
-    <header className="m-head m-head-paper px-5 pb-2 pt-10 text-center">
+    <header className="m-head m-head-paper relative px-5 pb-2 pt-10 text-center">
+      <Corner>{corner}</Corner>
       <LogoMark
         restaurant={restaurant}
         size="mx-auto h-16 w-16"
@@ -153,10 +165,11 @@ export function ReceiptEnd({ count, code, en }: { count: number; code: string; e
  * بيضاء بارزة، وقطعتا رمزٍ على جانبَي السطر كما تُباع مع اللوحة. الإطار
  * الخشبي والجدار حولها في `menu-skins.css` (`.m-paper`).
  */
-export function LetterboardHead({ restaurant, en, children }: HeadProps) {
+export function LetterboardHead({ restaurant, en, corner, children }: HeadProps) {
   const typeLabel = restaurantTypeLabel(restaurant.type);
   return (
-    <header className="m-head m-head-letter px-5 pb-2 pt-10 text-center">
+    <header className="m-head m-head-letter relative px-5 pb-2 pt-10 text-center">
+      <Corner>{corner}</Corner>
       <LogoMark
         restaurant={restaurant}
         size="mx-auto h-[4.5rem] w-[4.5rem]"
@@ -224,12 +237,14 @@ function Marquee({ items }: { items: string[] }) {
   );
 }
 
-export function PosterHead({ restaurant, tags = [], children }: HeadProps) {
+export function PosterHead({ restaurant, tags = [], corner, children }: HeadProps) {
   const typeLabel = restaurantTypeLabel(restaurant.type);
   const banner = restaurant.banner_image?.trim();
   const ticker = tags.length ? tags : [restaurant.name];
   return (
-    <header className="m-head m-head-poster pt-3">
+    <header className="m-head m-head-poster relative pt-3">
+      {/* داخل الملصق لا فوق حافّته: الزاوية مستديرة بقطر ١٫٧٥rem. */}
+      <Corner className="end-7 top-7">{corner}</Corner>
       <div className="mx-auto max-w-3xl px-3">
         <div className="m-cover m-poster-cover relative overflow-hidden px-5 pb-9 pt-10 text-center">
           {banner ? (
@@ -242,8 +257,9 @@ export function PosterHead({ restaurant, tags = [], children }: HeadProps) {
             />
           ) : (
             <>
-              <Burst className="m-spin absolute -top-6 end-[-1.5rem] h-28 w-28" style={{ color: "var(--m-accent-2)" }} />
-              <Burst className="absolute bottom-5 start-4 h-7 w-7" style={{ color: "var(--m-surface)" }} />
+              {/* النجمة الكبيرة في أوّل السطر: آخره لمبدّل اللغة. */}
+              <Burst className="m-spin absolute -top-6 start-[-1.5rem] h-28 w-28" style={{ color: "var(--m-accent-2)" }} />
+              <Burst className="absolute bottom-5 end-4 h-7 w-7" style={{ color: "var(--m-surface)" }} />
             </>
           )}
           <div className="relative">
@@ -270,11 +286,12 @@ export function PosterHead({ restaurant, tags = [], children }: HeadProps) {
 
 /* ══ نيون ══════════════════════════════════════════════════════════════ */
 
-export function SignHead({ restaurant, children }: HeadProps) {
+export function SignHead({ restaurant, corner, children }: HeadProps) {
   const typeLabel = restaurantTypeLabel(restaurant.type);
   const banner = restaurant.banner_image?.trim();
   return (
-    <header className="m-head m-head-sign">
+    <header className="m-head m-head-sign relative">
+      <Corner>{corner}</Corner>
       <div className="m-cover m-brick relative flex min-h-[16rem] flex-col items-center justify-center overflow-hidden px-4 pb-10 pt-12 text-center sm:min-h-[18rem]">
         {banner && (
           <SafeImage
@@ -309,7 +326,7 @@ export function SignHead({ restaurant, children }: HeadProps) {
 
 /* ══ مجلّة ═════════════════════════════════════════════════════════════ */
 
-export function MastheadHead({ restaurant, en, children }: HeadProps) {
+export function MastheadHead({ restaurant, en, corner, children }: HeadProps) {
   const typeLabel = restaurantTypeLabel(restaurant.type);
   const today = useOpenedAt(
     { weekday: "long", day: "numeric", month: "long", year: "numeric" },
@@ -317,7 +334,9 @@ export function MastheadHead({ restaurant, en, children }: HeadProps) {
   );
   const banner = restaurant.banner_image?.trim();
   return (
-    <header className="m-head m-head-masthead mx-auto max-w-3xl px-4 pt-8">
+    // ‏`pt-14` حين يجلس المبدّل في الزاوية: فوق الخطّين لا عليهما.
+    <header className={cn("m-head m-head-masthead relative mx-auto max-w-3xl px-4", corner ? "pt-14" : "pt-8")}>
+      <Corner className="end-4">{corner}</Corner>
       <div aria-hidden="true" className="m-rule-double" />
       <p className="flex items-center justify-between gap-3 py-2 text-[11px] font-bold" style={muted}>
         <span className="truncate">{typeLabel ?? (en ? "The menu" : "قائمة الطعام")}</span>
@@ -356,7 +375,7 @@ export function MastheadHead({ restaurant, en, children }: HeadProps) {
 
 /* ══ روشان ═════════════════════════════════════════════════════════════ */
 
-export function ArcadeHead({ restaurant, theme, children }: HeadProps) {
+export function ArcadeHead({ restaurant, theme, corner, children }: HeadProps) {
   const typeLabel = restaurantTypeLabel(restaurant.type);
   const { pattern } = theme.design;
   const banner = restaurant.banner_image?.trim();
@@ -371,6 +390,7 @@ export function ArcadeHead({ restaurant, theme, children }: HeadProps) {
   };
   return (
     <header className="m-head m-head-arcade relative">
+      <Corner>{corner}</Corner>
       <div className="m-cover m-arcade relative h-40 w-full overflow-hidden sm:h-56" style={cover}>
         {banner && (
           <SafeImage
