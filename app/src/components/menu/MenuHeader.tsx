@@ -1,74 +1,73 @@
 /**
- * ترويسة المنيو — «الخلفية وراء الشعار».
+ * ترويسة المنيو — **واجهة متجر لا رأس قائمة**.
  *
- * كانت تدرّجاً لونياً مسطّحاً بين لونين إن لم يرفع التاجر صورة غلاف، فيبدو
- * المنيو ناقصاً لا مصمَّماً. الآن أربع معالجات حسب طابع الثيم، وكلها تعمل
- * **بلا صورة غلاف** — وهذه حالة أغلب التجّار في أول يوم.
+ * ═══ لماذا أُعيدت (٢٠٢٦/١٠/٢١) ═══
  *
- * أُخرجت من `MenuPage.tsx` لأنها تجاوزت ألف سطر، وهذا القسم وحده يستحق ملفاً.
+ * كانت شعاراً في الوسط فوق تدرّجٍ مسطّح، وتحتها كومة شرائح وأزرار. فبلا شعار
+ * مرفوع (حال أغلب التجّار في أوّل يوم) يظهر **صحنٌ رمادي** مكان هويّة المطعم،
+ * والمنيو يبدأ تحت أوّل شاشة. والزبون الذي مسح الكود جاء ليأكل لا ليقرأ.
+ *
+ * الآن: غلافٌ بلون العلامة، والشعار على حافّته في أوّل السطر، ثم الاسم والحالة
+ * — كصفحة متجرٍ في تطبيق. وبلا شعار **حرفٌ من اسم المطعم** بخطّ الطابع ولونه:
+ * هويّةٌ تُقرأ، لا مكانٌ فارغ ينتظر صورة.
  */
 import type { CSSProperties, ReactNode } from "react";
 import { SafeImage } from "@/components/ui";
 import { patternImage, PATTERN_SIZE } from "@/lib/patterns";
-import type { MenuTheme } from "@/lib/themes";
+import { isDarkTheme, type MenuTheme } from "@/lib/themes";
 import { restaurantTypeLabel } from "@/lib/menuText";
 import type { Restaurant } from "@/lib/types";
-import { Icon } from "@/lib/icons";
-
-/** منحنى قوس الروشان — يُستخدم للقصّ وللخط معاً كي لا ينحرفا. */
-const ARCH_PATH = "M0 8 Q25 8 38 2 Q50 -3 62 2 Q75 8 100 8";
 
 /**
- * قوس الروشان الحجازي.
- *
- * القصّ وحده لا يُرى: الاقتطاع بلون `--m-bg` بينما البانر يتدرّج إلى نفس اللون
- * ⇒ قوس غير مرئي. لذلك خط بلون التمييز يرسم المنحنى فوق الاقتطاع.
+ * كلماتٌ تسبق اسم المطعم ولا تميّزه — «مطعم الديوان» حرفه «د» لا «م».
+ * و«ال» تُنزع من الكلمة المختارة للسبب نفسه: «الديوان» ⇒ «د».
  */
+const GENERIC = new Set([
+  "مطعم", "مطاعم", "مقهى", "مقاهي", "كافيه", "كافي", "كوفي", "مطبخ", "مخبز", "مخابز",
+  "محمصة", "قهوة", "حلويات", "مشويات", "بيت", "دار", "cafe", "café", "coffee", "restaurant", "the", "kitchen",
+]);
+
+/** الحرف الذي يمثّل المطعم حين لا شعار — مُصدَّر للفحص. */
+export function monogramOf(name: string): string {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  const word = words.find((w) => !GENERIC.has(w.toLowerCase())) ?? words[0] ?? "";
+  const bare = word.length > 2 && word.startsWith("ال") ? word.slice(2) : word;
+  const ch = [...bare][0] ?? "";
+  return /[a-z]/i.test(ch) ? ch.toUpperCase() : ch;
+}
+
+/** الشعار المكتوب (إيموجي) الافتراضي — لا يُعدّ اختياراً من التاجر. */
+const DEFAULT_GLYPHS = new Set(["🍽️", "🍽"]);
+
+/** قوس الروشان — لطابعٍ قديم قد يكون مخزَّناً بشكل `arch`. */
+const ARCH_PATH = "M0 8 Q25 8 38 2 Q50 -3 62 2 Q75 8 100 8";
+
 function ArchMask() {
   return (
     <svg
       viewBox="0 0 100 12"
       preserveAspectRatio="none"
       aria-hidden="true"
-      className="absolute inset-x-0 bottom-0 h-10 w-full"
+      className="absolute inset-x-0 bottom-0 h-8 w-full"
     >
       <path d={`${ARCH_PATH} L100 12 L0 12 Z`} style={{ fill: "var(--m-bg)" }} />
-      <path
-        d={ARCH_PATH}
-        fill="none"
-        style={{ stroke: "var(--m-accent)", strokeWidth: 0.6 }}
-        vectorEffect="non-scaling-stroke"
-      />
     </svg>
   );
 }
 
-/** شريط السدو المنسوج — الطابع النجدي. */
+/** شريط السدو المنسوج — الطابع التراثي. */
 function SaduBand({ color }: { color: string }) {
   return (
     <div
       aria-hidden="true"
-      className="absolute inset-x-0 bottom-0 h-7"
+      className="absolute inset-x-0 bottom-0 h-6"
       style={{
-        // أرضية صريحة تحت النسيج: الزخرفة وحدها فوق تدرّج البانر تخرج باهتة.
         backgroundColor: "var(--m-bg-2)",
         backgroundImage: patternImage("sadu", color, 1),
-        backgroundSize: "60px 60px",
+        backgroundSize: "52px 52px",
         backgroundPosition: "center",
         borderTop: "2px solid var(--m-accent)",
-        borderBottom: "2px solid var(--m-accent)",
       }}
-    />
-  );
-}
-
-/** زوايا مزخرفة للإطار الفاخر. */
-function FrameCorner({ className }: { className: string }) {
-  return (
-    <span
-      aria-hidden="true"
-      className={`pointer-events-none absolute h-5 w-5 ${className}`}
-      style={{ borderColor: "var(--m-accent)" }}
     />
   );
 }
@@ -80,36 +79,86 @@ export function MenuHeader({
 }: {
   restaurant: Restaurant;
   theme: MenuTheme;
-  /** الشرائح أسفل الاسم (الطاولة، ساعات العمل). */
+  /** الشرائح أسفل الاسم (الحالة · الطاولة · اللغة · الروابط). */
   children?: ReactNode;
 }) {
   const { header, pattern, patternOpacity } = theme.design;
+  // ⚠️ لون التمييز لا `cover_color`: الطابع مصبوغٌ بلون العلامة أصلاً حين يختاره
+  // التاجر، و`cover_color` الداكن فوق طابع فاتح كان يرسم **غشاوة رمادية** أعلى المنيو.
   const accent = theme.vars["--m-accent"] ?? "#d4a843";
-  const brand = restaurant.cover_color ?? accent;
   const hasBanner = !!restaurant.banner_image?.trim();
+  const framed = header === "frame";
 
-  /** خلفية مصمَّمة تعمل بلا صورة غلاف — تدرّجات متراكبة + زخرفة الطابع. */
-  const designedBackdrop: CSSProperties = {
-    backgroundImage: [
-      patternImage(pattern, accent, patternOpacity + 0.03),
-      `radial-gradient(115% 95% at 50% 5%, ${brand}55 0%, transparent 72%)`,
-      `radial-gradient(80% 70% at 15% 10%, ${accent}3d 0%, transparent 62%)`,
-      `radial-gradient(80% 70% at 85% 20%, ${brand}30 0%, transparent 60%)`,
-      // ينتهي عند bg-2 لا bg: التدرّج إلى لون الصفحة نفسه يُذيب حدّ الترويسة
-      // ويُخفي قوس الروشان تماماً.
-      "linear-gradient(180deg, var(--m-bg-2) 0%, var(--m-bg-2) 100%)",
-    ]
-      .filter((v) => v !== "none")
-      .join(","),
-    backgroundSize:
-      pattern === "none" ? "auto" : `${PATTERN_SIZE[pattern]}, auto, auto, auto, auto`,
+  /**
+   * الغلاف بلا صورة: **كتلةٌ بلون العلامة** وزخرفة الطابع فوقها بلون نصّها.
+   *
+   * ⚠️ كان تدرّجاً شفّافاً من لون التمييز فوق أرضية الصفحة — فعلى الطوابع
+   * الفاتحة (والتمييز رماديّ أو أخضر) خرج **غشاوةً** لا غلافاً. الكتلة الصريحة
+   * هي ما تفعله العلامات المعروفة: لونها أوّل ما يُرى.
+   *
+   * والاستثناء الطابع الداكن المؤطَّر (فاخر): غلافه داكنٌ بزخرفةٍ ذهبية —
+   * كتلةٌ ذهبية بعرض الشاشة تصرخ حيث يجب أن يهمس.
+   */
+  const darkCover = framed && isDarkTheme(theme);
+  const onAccent = theme.vars["--m-on-accent"] ?? "#ffffff";
+  const sheen = "linear-gradient(160deg, rgba(255,255,255,.16) 0%, rgba(255,255,255,0) 45%, rgba(0,0,0,.16) 100%)";
+  const motif = darkCover
+    ? patternImage(pattern, accent, Math.min(patternOpacity + 0.06, 0.12))
+    : patternImage(pattern, onAccent, 0.12);
+  const cover: CSSProperties = darkCover
+    ? {
+        backgroundColor: "var(--m-bg-2)",
+        backgroundImage: [motif, `radial-gradient(120% 120% at 100% 0%, ${accent}55 0%, transparent 58%)`]
+          .filter((v) => v !== "none")
+          .join(","),
+        backgroundSize: pattern === "none" ? "auto" : `${PATTERN_SIZE[pattern]}, auto`,
+      }
+    : {
+        backgroundColor: accent,
+        backgroundImage: [motif, sheen].filter((v) => v !== "none").join(","),
+        backgroundSize: pattern === "none" ? "auto" : `${PATTERN_SIZE[pattern]}, auto`,
+      };
+
+  /** إطار الشعار: مزدوجٌ مذهّب للطوابع الفاخرة، وحلقةٌ بلون الصفحة لغيرها. */
+  const logoBox: CSSProperties = {
+    borderRadius: framed ? "0.5rem" : "1.375rem",
+    boxShadow: framed
+      ? "0 0 0 2px var(--m-accent), 0 0 0 5px var(--m-bg), 0 14px 30px -12px rgba(0,0,0,.55)"
+      : "0 0 0 4px var(--m-bg), 0 14px 30px -14px rgba(0,0,0,.45)",
+    background: "var(--m-bg-2)",
   };
+  const glyph = restaurant.logo?.trim();
+  const customGlyph = glyph && !DEFAULT_GLYPHS.has(glyph) ? glyph : null;
+  const fallback = (
+    <span
+      className="flex h-[5.25rem] w-[5.25rem] items-center justify-center"
+      style={{
+        ...logoBox,
+        // على غلافٍ بلون العلامة يُقلَب: حرفٌ بلونها على أرضية الصفحة، وإلا ذاب فيه.
+        background: customGlyph || !darkCover ? "linear-gradient(var(--m-surface), var(--m-surface)), var(--m-bg)" : "var(--m-accent)",
+        color: darkCover ? "var(--m-on-accent)" : "var(--m-accent)",
+      }}
+    >
+      {customGlyph ? (
+        <span className="text-[2.6rem] leading-none">{customGlyph}</span>
+      ) : (
+        <span
+          className="text-[2.75rem] font-black leading-none"
+          // خطّ القراءة لا خطّ العرض: حرفٌ منفردٌ بخطٍّ زخرفيّ (ريم كوفي) يُقرأ
+          // شكلاً آخر — «د» كانت تبدو «ط».
+          style={{ fontFamily: "var(--m-font)" }}
+        >
+          {monogramOf(restaurant.name)}
+        </span>
+      )}
+    </span>
+  );
 
-  const bannerHeight = header === "frame" ? "h-28 sm:h-32" : "h-40 sm:h-52";
+  const typeLabel = restaurantTypeLabel(restaurant.type);
 
   return (
     <header className="relative">
-      <div className={`relative w-full overflow-hidden ${bannerHeight}`} style={designedBackdrop}>
+      <div className="relative h-36 w-full overflow-hidden sm:h-52" style={cover}>
         {hasBanner && (
           <>
             <SafeImage
@@ -119,14 +168,11 @@ export function MenuHeader({
               wrapperClassName="h-full w-full"
               fallback={<span />}
             />
-            {/* تعتيم متدرّج: صورة غلاف فاتحة كانت تبتلع اسم المطعم. */}
+            {/* تعتيمٌ من الأسفل وحده: الصورة تبقى صورة، والحافّة تذوب في الصفحة. */}
             <div
               aria-hidden="true"
               className="absolute inset-0"
-              style={{
-                background:
-                  "linear-gradient(180deg, rgba(0,0,0,.15) 0%, rgba(0,0,0,.05) 40%, var(--m-bg) 100%)",
-              }}
+              style={{ background: "linear-gradient(180deg, transparent 45%, rgba(0,0,0,.28) 100%)" }}
             />
           </>
         )}
@@ -134,78 +180,31 @@ export function MenuHeader({
         {header === "band" && <SaduBand color={accent} />}
       </div>
 
-      <div className="mx-auto -mt-12 flex max-w-3xl flex-col items-center px-4 text-center">
-        <div className="relative">
-          {/* إطار شعري بزوايا مزخرفة — الطابع الفاخر لا يحتاج صورة أصلاً. */}
-          {header === "frame" && (
-            <>
-              <span
-                aria-hidden="true"
-                className="pointer-events-none absolute -inset-3 rounded-sm border"
-                style={{ borderColor: "var(--m-border)" }}
-              />
-              <FrameCorner className="-start-5 -top-5 border-s-2 border-t-2" />
-              <FrameCorner className="-end-5 -top-5 border-e-2 border-t-2" />
-              <FrameCorner className="-bottom-5 -start-5 border-b-2 border-s-2" />
-              <FrameCorner className="-bottom-5 -end-5 border-b-2 border-e-2" />
-            </>
-          )}
+      <div className="mx-auto max-w-3xl px-4">
+        <div className="relative -mt-10 sm:-mt-12">
           <SafeImage
             src={restaurant.logo_image}
             alt={restaurant.name}
-            className="h-24 w-24 border-2 object-cover shadow-xl"
-            wrapperClassName="h-24 w-24"
-            style={
-              {
-                borderColor: "var(--m-accent)",
-                background: "var(--m-bg-2)",
-                borderRadius: header === "frame" ? "0.25rem" : "1.5rem",
-              } as CSSProperties
-            }
-            fallback={
-              <span
-                className="flex h-24 w-24 items-center justify-center border-2 text-5xl shadow-xl"
-                style={
-                  {
-                    borderColor: "var(--m-accent)",
-                    background: "var(--m-bg-2)",
-                    borderRadius: header === "frame" ? "0.25rem" : "1.5rem",
-                  } as CSSProperties
-                }
-              >
-                {restaurant.logo || <Icon name="plate" size={30} />}
-              </span>
-            }
+            className="h-[5.25rem] w-[5.25rem] object-cover"
+            wrapperClassName="h-[5.25rem] w-[5.25rem]"
+            style={logoBox}
+            fallback={fallback}
           />
         </div>
 
         <h1
-          className="mt-3 text-2xl font-black"
+          className="mt-3 text-[1.65rem] font-black leading-tight"
           style={{ fontFamily: "var(--m-display, var(--m-font))", color: "var(--m-text)" }}
         >
           {restaurant.name}
         </h1>
-        {restaurantTypeLabel(restaurant.type) && (
-          <p className="text-sm" style={{ color: "var(--m-muted)" }}>
-            {restaurantTypeLabel(restaurant.type)}
+        {typeLabel && (
+          <p className="mt-1 text-sm" style={{ color: "var(--m-muted)" }}>
+            {typeLabel}
           </p>
         )}
 
-        {/* فاصل مزخرف صغير — يعطي الترويسة نهاية مقصودة بدل أن تنتهي فجأة. */}
-        {theme.design.heading !== "plain" && (
-          <span
-            aria-hidden="true"
-            className="mt-2 inline-block h-px w-24"
-            style={{
-              background:
-                "linear-gradient(90deg, transparent, var(--m-accent), transparent)",
-            }}
-          />
-        )}
-
-        {children && (
-          <div className="mt-3 flex flex-wrap items-center justify-center gap-2">{children}</div>
-        )}
+        {children && <div className="mt-4 flex flex-wrap items-center gap-2">{children}</div>}
       </div>
     </header>
   );

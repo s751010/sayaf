@@ -27,10 +27,10 @@ import {
 } from "@/lib/data";
 import {
   DESIGN_THEMES,
-  THEMES,
   getTheme,
   isHex,
   splitThemeId,
+  themeBaseOf,
   themeIdOf,
   type DishLayout,
 } from "@/lib/themes";
@@ -92,7 +92,9 @@ export default function Menus() {
   const activeThemeId = menus?.find((m) => m.theme)?.theme ?? null;
   const parsedTheme = splitThemeId(activeThemeId);
   /** الطابع المطبَّق حالياً بلا اللون — عليه تُبنى الاختيارات والمعاينات. */
-  const activeBase = parsedTheme.base ?? getTheme(activeThemeId).id;
+  // `themeBaseOf` لا `parsedTheme.base`: طابعٌ خرج من القائمة («royal») يُردّ
+  // إلى الباقي الذي يُعرض به فعلاً، فيُعلَّم في المُنتقي بدل ألّا يُعلَّم شيء.
+  const activeBase = themeBaseOf(activeThemeId);
   // لون العلامة: من الثيم المطبَّق إن حمل لوناً، وإلا من cover_color الموجود.
   const [brandHex, setBrandHex] = useState(
     () => parsedTheme.hex ?? restaurant.cover_color ?? "#d4a843"
@@ -332,7 +334,7 @@ export default function Menus() {
           <PreviewMenuButton slug={restaurant.slug} label="عاين النتيجة" />
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
           {DESIGN_THEMES.map((t) => {
             const on = activeBase === t.id;
             return (
@@ -434,38 +436,6 @@ export default function Menus() {
           )}
         </Card>
 
-        {/* اللوحات الكلاسيكية — تبقى لمن اختارها من قبل. */}
-        <details className="mt-4">
-          <summary className="cursor-pointer text-sm font-bold text-dim hover:text-ink">
-            ألوان كلاسيكية (بلا زخرفة)
-          </summary>
-          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {THEMES.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => pickTheme(themeIdOf(t.id, null, activeLayout))}
-                className={cn(
-                  "overflow-hidden rounded-2xl border-2 text-right transition-transform hover:scale-[1.02]",
-                  activeBase === t.id ? "border-gold" : "border-line"
-                )}
-              >
-                <div className="flex h-16 flex-col justify-between p-3" style={{ background: t.vars["--m-bg"] }}>
-                  <span className="h-2 w-1/2 rounded-full" style={{ background: t.vars["--m-accent"] }} />
-                  <div className="flex gap-1">
-                    <span className="h-4 flex-1 rounded" style={{ background: t.vars["--m-surface"], border: `1px solid ${t.vars["--m-border"]}` }} />
-                    <span className="h-4 flex-1 rounded" style={{ background: t.vars["--m-surface"], border: `1px solid ${t.vars["--m-border"]}` }} />
-                  </div>
-                </div>
-                <p className={cn(
-                  "px-3 py-2 text-xs font-bold",
-                  activeBase === t.id ? "bg-gold/10 text-gold" : "bg-panel text-dim"
-                )}>
-                  {t.name} {activeBase === t.id && "✓"}
-                </p>
-              </button>
-            ))}
-          </div>
-        </details>
       </section>
 
       <Modal open={adding} onClose={() => setAdding(false)} title="قائمة جديدة">

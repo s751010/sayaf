@@ -6,7 +6,8 @@
  * تصنيفات، تفاصيل الطبق، الإضافات، بطاقة الولاء) قبل أن يسجّل.
  */
 import { Link, useSearchParams } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { isHex, splitThemeId, themeIdOf } from "@/lib/themes";
 import MenuPage, { type MenuData } from "./MenuPage";
 import type { Dish, Menu, Restaurant } from "@/lib/types";
 import { CTA_PRIMARY } from "@/lib/facts";
@@ -85,7 +86,7 @@ const menus: Menu[] = [
     user_id: "demo-user",
     name: "القائمة الرئيسية",
     description: null,
-    theme: "royal",
+    theme: "dark-gold",
     active: true,
     views: 0,
     created_at: DEMO_TS,
@@ -230,9 +231,53 @@ export default function Demo() {
    * إلى الافتراضي ولا يكسر شيئاً.
    */
   const theme = params.get("theme")?.trim();
-  const data: MenuData = theme
-    ? { ...DEMO, menus: DEMO.menus.map((m) => ({ ...m, theme })) }
-    : DEMO;
+
+  /**
+   * هوية الزائر من صفحة الهبوط — اسمه وشعاره ولونه وطابعه، **من نفس الأصل وحده**.
+   *
+   * ⚠️ رسائل من أصلٍ آخر تُرمى: الإطار يقبل التعليمات من صفحتنا لا من أي
+   * موقع يؤطّره. والشعار رابط `blob:` أنشأته الصفحة الأمّ من ملفٍّ على جهاز
+   * الزائر — لا يُرفع إلى أي مكان، ولا يُقبل غيره (لا روابط خارجية تُحمَّل هنا).
+   */
+  const [brand, setBrand] = useState<{ name?: string; color?: string; theme?: string; logo?: string }>({});
+  const embeddedParam = params.get("embed") === "1";
+  useEffect(() => {
+    if (!embeddedParam) return;
+    const onMessage = (e: MessageEvent) => {
+      if (e.origin !== window.location.origin) return;
+      const d = e.data as Record<string, unknown> | null;
+      if (!d || d.type !== "cm-brand") return;
+      setBrand({
+        name: typeof d.name === "string" ? d.name.trim().slice(0, 40) : undefined,
+        color: typeof d.color === "string" && isHex(d.color) ? d.color : undefined,
+        theme: typeof d.theme === "string" ? d.theme.slice(0, 24) : undefined,
+        logo: typeof d.logo === "string" && d.logo.startsWith("blob:") ? d.logo : undefined,
+      });
+    };
+    window.addEventListener("message", onMessage);
+    // الأمّ لا تعرف متى صار الإطار جاهزاً للاستماع — فيُعلنها هو.
+    window.parent?.postMessage({ type: "cm-ready" }, window.location.origin);
+    return () => window.removeEventListener("message", onMessage);
+  }, [embeddedParam]);
+
+  const data: MenuData = useMemo(() => {
+    const base = brand.theme ?? theme;
+    if (!base && !brand.color && !brand.name && !brand.logo) return DEMO;
+    return {
+      ...DEMO,
+      restaurant: {
+        ...DEMO.restaurant,
+        name: brand.name || DEMO.restaurant.name,
+        // «مأكولات سعودية معاصرة» تحت «برجر البيت» تكذب — فتُخفى مع اسم الزائر.
+        type: brand.name ? null : DEMO.restaurant.type,
+        logo_image: brand.logo ?? DEMO.restaurant.logo_image,
+      },
+      menus: DEMO.menus.map((m) => ({
+        ...m,
+        theme: themeIdOf(splitThemeId(base ?? m.theme).base ?? "dark-gold", brand.color ?? splitThemeId(base).hex),
+      })),
+    };
+  }, [brand, theme]);
 
   /**
    * `?embed=1` — الديمو معروضاً داخل إطار جوّال في صفحة الهبوط.
@@ -242,13 +287,15 @@ export default function Demo() {
    * يسرق ارتفاعاً من شاشة ضيّقة ويضع دعوةً ثانية تنافس دعوة الصفحة. فيُكبح،
    * ويبقى المنيو وحده — وهو المقصود بالعرض.
    */
-  const embedded = params.get("embed") === "1";
+  const embedded = embeddedParam;
 
   return (
     <div className="relative">
       {!embedded && (
-        /* شريط علوي يوضّح أن هذا عرض تجريبي ويعيد الزائر إلى التسجيل. */
-        <div className="sticky top-0 z-40 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 border-b border-line bg-panel/95 px-4 py-2 text-center backdrop-blur">
+        /* شريط علوي يوضّح أن هذا عرض تجريبي ويعيد الزائر إلى التسجيل.
+           ⚠️ غير لاصق: شريط التصنيفات لاصقٌ على `top-0` أيضاً، فكان هذا يغطّيه
+           طوال التصفّح — والزائر يرى منيواً بلا تصنيفات. */
+        <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 border-b border-line bg-panel px-4 py-2 text-center">
           <span className="text-xs font-bold text-dim">
             👋 هذا منيو تجريبي — جرّبه كما يراه زبونك تماماً.
           </span>

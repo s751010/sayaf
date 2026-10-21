@@ -15,6 +15,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { parseOptions } from "@/lib/options";
 import { getOrderStatus, type PublicOrder } from "@/lib/data";
 import { K, getJSON, removeItem, setJSON } from "@/lib/storage";
+import { Icon } from "@/lib/icons";
 import { formatPrice } from "@/lib/utils";
 import type { Dish } from "@/lib/types";
 
@@ -200,7 +201,9 @@ export function CartBar({
         <div
           className="mx-auto flex w-full max-w-md items-center justify-center gap-2 px-5 py-3 text-xs font-bold shadow-xl"
           style={{
-            background: "var(--m-surface)",
+            // ⚠️ مُصمتٌ دائماً: `--m-surface` شفّافٌ في الطوابع الداكنة (٤٫٥٪)، فكان
+            // عنوان القسم خلف الشريط يُقرأ فوق نصّه.
+            background: "linear-gradient(var(--m-surface), var(--m-surface)), var(--m-bg)",
             color: "var(--m-muted)",
             border: "1px solid var(--m-border)",
             borderRadius: "calc(var(--m-radius) * 1.2)",
@@ -219,7 +222,7 @@ export function CartBar({
         disabled={empty}
         className={`anim-fade-up mx-auto flex w-full max-w-md items-center justify-between gap-3 px-5 py-3.5 text-sm font-black shadow-2xl transition-transform enabled:hover:scale-[1.01] ${pop ? "anim-cart-pop" : ""}`}
         style={{
-          background: empty ? "var(--m-surface)" : "var(--m-accent)",
+          background: empty ? "linear-gradient(var(--m-surface), var(--m-surface)), var(--m-bg)" : "var(--m-accent)",
           color: empty ? "var(--m-text)" : "var(--m-on-accent)",
           border: empty ? "1px solid var(--m-accent)" : "1px solid transparent",
           borderRadius: "calc(var(--m-radius) * 1.2)",
@@ -228,7 +231,7 @@ export function CartBar({
         {empty ? (
           <>
             <span className="flex items-center gap-2">
-              🛍️ {en ? "Order for pickup" : "اطلب واستلم من الفرع"}
+              <Icon name="store" size={16} /> {en ? "Order for pickup" : "اطلب واستلم من الفرع"}
             </span>
             {prepMinutes ? (
               <span className="text-xs font-bold" style={{ opacity: 0.7 }}>
@@ -275,37 +278,41 @@ export function PickupBanner({
   minOrder: number;
   en: boolean;
 }) {
+  // سطرٌ واحد بعرض المحتوى نفسه لا بطاقةٌ في الوسط: معلومةٌ تُقرأ ثم يُتجاوز
+  // عنها إلى الأكل — لا كتلةٌ تنافس «طبق اليوم» على العين.
+  const muted = { color: "var(--m-muted)" };
   return (
-    <div
-      // `w-[calc(100%-2rem)]`: بـ`max-w-md` وحده كان الشريط يلامس حافّتَي الجوال
-      // (أضيق من 448px) فتنقطع زواياه المستديرة على الشاشة.
-      className="mx-auto mt-4 flex w-[calc(100%-2rem)] max-w-md flex-wrap items-center justify-center gap-x-3 gap-y-1 px-4 py-2.5 text-xs font-bold"
-      style={{
-        background: open ? "var(--m-surface)" : "var(--m-bg-2)",
-        border: `1px solid ${open ? "var(--m-accent)" : "var(--m-border)"}`,
-        borderRadius: "var(--m-radius)",
-        color: open ? "var(--m-text)" : "var(--m-muted)",
-      }}
-    >
-      <span style={{ color: open ? "var(--m-accent)" : "var(--m-muted)" }}>
-        🛍️ {en ? "Pickup only" : "استلام من الفرع"}
-      </span>
-      {open ? (
-        <>
-          {prepMinutes ? (
-            <span style={{ color: "var(--m-muted)" }}>
-              ⏱ {en ? `Ready in ~${prepMinutes} min` : `يجهز خلال ~${prepMinutes} دقيقة`}
-            </span>
-          ) : null}
-          {minOrder > 0 ? (
-            <span style={{ color: "var(--m-muted)" }}>
-              {en ? `Min ${formatPrice(minOrder)} SAR` : `أقل طلب ${formatPrice(minOrder)} ر.س`}
-            </span>
-          ) : null}
-        </>
-      ) : (
-        <span>{en ? "Closed for orders now" : "مغلق للطلبات الآن"}</span>
-      )}
+    <div className="mx-auto mt-4 max-w-3xl px-4">
+      <div
+        className="flex flex-wrap items-center gap-x-4 gap-y-1.5 px-4 py-3 text-[13px] font-bold"
+        style={{
+          background: "var(--m-surface)",
+          boxShadow: "inset 0 0 0 1px var(--m-border)",
+          borderRadius: "var(--m-radius)",
+          color: "var(--m-text)",
+        }}
+      >
+        <span className="inline-flex items-center gap-1.5" style={{ color: open ? "var(--m-accent)" : "var(--m-muted)" }}>
+          <Icon name="store" size={15} /> {en ? "Pickup only" : "استلام من الفرع"}
+        </span>
+        {open ? (
+          <>
+            {prepMinutes ? (
+              <span className="inline-flex items-center gap-1.5" style={muted}>
+                <Icon name="clock" size={14} />
+                {en ? `Ready in ~${prepMinutes} min` : `يجهز خلال ~${prepMinutes} دقيقة`}
+              </span>
+            ) : null}
+            {minOrder > 0 ? (
+              <span style={muted}>
+                {en ? `Min ${formatPrice(minOrder)} SAR` : `أقل طلب ${formatPrice(minOrder)} ر.س`}
+              </span>
+            ) : null}
+          </>
+        ) : (
+          <span style={muted}>{en ? "Closed for orders now" : "مغلق للطلبات الآن"}</span>
+        )}
+      </div>
     </div>
   );
 }

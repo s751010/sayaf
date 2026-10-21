@@ -52,7 +52,8 @@ describe("عدد الطوابع — مصدر واحد", () => {
     ["scripts/og.mjs", "../scripts/og.mjs"],
   ])("%s يذكر العدد الصحيح ولا يخالفه", (_name, rel) => {
     const text = read(rel);
-    const mentions = [...text.matchAll(/(\d{1,3})\s*طابع/g)].map((m) => Number(m[1]));
+    // «طوابع» أيضاً: من ٣ إلى ١٠ يُجمع المعدود («6 طوابع») فلا يطابق «طابع».
+    const mentions = [...text.matchAll(/(\d{1,3})\s*(?:طابع|طوابع)/g)].map((m) => Number(m[1]));
     expect(mentions.length, "لا ذكر لعدد الطوابع إطلاقاً").toBeGreaterThan(0);
     for (const n of mentions) expect(n).toBe(THEME_COUNT);
   });

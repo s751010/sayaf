@@ -19,6 +19,13 @@ import { ALL_THEMES } from "@/lib/themes";
 /** عدد الطوابع الكاملة — محسوب، فلا يتقادم. */
 export const THEME_COUNT = ALL_THEMES.length;
 
+/**
+ * العدد مع معدوده بقاعدته: «6 طوابع» (جمعٌ من ٣ إلى ١٠) و«12 طابعاً» (مفردٌ
+ * منصوب بعدها). كان النصّ «${THEME_COUNT} طابعاً» ثابتاً، فصحّ مع ٢١ وانكسر مع ٦.
+ */
+export const THEMES_LABEL =
+  THEME_COUNT >= 3 && THEME_COUNT <= 10 ? `${THEME_COUNT} طوابع` : `${THEME_COUNT} طابعاً`;
+
 /** قياسات بطاقة الكاشير — `CARD_SIZES` في `lib/cards.ts`. */
 export const CARD_SIZE_COUNT = 6;
 

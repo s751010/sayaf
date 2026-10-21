@@ -112,7 +112,7 @@ const html = `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-
     border: 1px solid rgba(${INK_RGB},0.14); background: #fff; border-radius: 999px;
     padding: 10px 22px; font-size: 23px; font-weight: 700; }
   .kicker i { width: 10px; height: 10px; border-radius: 50%; background: ${SADU}; display: block; }
-  h1 { font-family: "Almarai", "AlmaraiL", sans-serif; font-weight: 800; font-size: 66px; line-height: 1.3; letter-spacing: -0.5px; }
+  h1 { font-family: "Almarai", "AlmaraiL", sans-serif; font-weight: 800; font-size: 60px; line-height: 1.3; white-space: nowrap; letter-spacing: -0.5px; }
   h1 em { font-style: normal; color: ${GOLD}; }
   p { font-size: 26px; font-weight: 500; color: ${DIM}; line-height: 1.6; }
   .band { width: 240px; height: 16px; ${sadu} }
@@ -137,8 +137,8 @@ const html = `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-
   <div class="wrap">
     <div class="text">
       <span class="kicker"><i></i>للمطاعم والمقاهي السعودية</span>
-      <h1>سعراتك محسوبة،<br><em>لا مكتوبة.</em></h1>
-      <p>اكتب الوصفة — نحسب السعرات والكافيين والحساسية، وننشرها على منيو QR ومطبوع <span style="white-space: nowrap">في 21 طابعاً.</span></p>
+      <h1>منيو يشبه مطعمك،<br><em>ويبيع عنك.</em></h1>
+      <p>باسمك وشعارك وألوانك — يطلب الزبون ويدفع من الطاولة، والسعرات محسوبة من وصفاتك. <span style="white-space: nowrap">6 طوابع.</span></p>
       <div class="foot">
         <div class="brand">
           <svg width="40" height="40" viewBox="0 0 48 48" aria-hidden="true"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f0c96a"/><stop offset="1" stop-color="#c99a2e"/></linearGradient></defs><path d="M13 30a7 7 0 0 1 .6-13.97A10 10 0 0 1 33 14a8 8 0 0 1 2 15.75V30H13Z" fill="url(#g)"/><rect x="16" y="33" width="16" height="2.6" rx="1.3" fill="url(#g)" opacity=".85"/><rect x="19" y="38" width="10" height="2.6" rx="1.3" fill="url(#g)" opacity=".55"/></svg>

@@ -5,12 +5,23 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { ALL_THEMES, getTheme, splitThemeId, bestOnAccent, isHex, normalizeHex } from "@/lib/themes";
+import { ALL_THEMES, getTheme, splitThemeId, themeBaseOf, bestOnAccent, isHex, normalizeHex } from "@/lib/themes";
 import { canonOf, matchKnownCategory, sortCategories } from "@/lib/categories";
 import { inTimeWindow } from "@/lib/hours";
 import { checkPassword, MIN_PASSWORD } from "@/lib/password";
 import { burnMinutes, isHighSodium, isSfdaCompliant } from "@/lib/nutrition";
 import { aliasType } from "@/lib/starterMenus";
+
+/** تباين WCAG بين لونين سداسيّين. */
+function ratio(a: string, b: string): number {
+  const lum = (hex: string) => {
+    const [r, g, b2] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+    const f = (c: number) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+    return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b2);
+  };
+  const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m);
+  return (x + 0.05) / (y + 0.05);
+}
 
 /* ══ §18 · ألوان الطوابع لا تتغيّر ═════════════════════════════════════ */
 
@@ -37,13 +48,69 @@ describe("ثابت §18 — ألوان الطوابع", () => {
     // وحدّثه هنا في نفس الدفعة — فيبقى التغيير مرئياً في المراجعة.
     // حُدّثت مع إضافة «بحري» و«مجلس» (٢٠٢٦-٠٨-٢٠) — إضافة طابعين جديدين،
     // لا تغيير قيمة في أي طابع قائم.
-    expect(fingerprint()).toBe("5ab14c34");
+    // ثم ٢٠٢٦-١٠-٢١: **٢١ ⇒ ٦ بقرار مكتوب** (docs/design.md §18). `dark-gold`
+    // بقيمه حرفياً، والمحذوف يُردّ إلى أقرب باقٍ بلونه (الفحص التالي).
+    expect(fingerprint()).toBe("47243ba9");
   });
 
   it("عدد الطوابع كما تعلنه الصفحات", () => {
     // `lib/facts.ts` يشتقّه من هنا، لكن الرقم يظهر للزائر — فلو نقص طابع
     // بحذف غير مقصود لتغيّر ما تَعِد به الصفحة بلا أن يلاحظ أحد.
-    expect(ALL_THEMES.length).toBe(21);
+    expect(ALL_THEMES.length).toBe(6);
+  });
+
+  /**
+   * الطوابع المحذوفة **في قاعدة الإنتاج** — لا يجوز أن يسقط أيّها إلى
+   * الافتراضي بلا لونه، فيتبدّل منيو تاجرٍ عامل إلى غير ما اختار.
+   */
+  it.each([
+    ["royal", "dark-gold", "#d4af37"],
+    ["emerald", "dark-gold", "#d9b65f"],
+    ["hijazi", "dark-gold", "#e07a5f"],
+    ["crimson", "urban", "#e0533d"],
+    ["qatt", "modern", "#c0392b"],
+    ["sahra", "specialty", "#a9744a"],
+    ["lulu", "marble", "#5f6b7a"],
+    ["green", "dark-gold", "#d9b65f"],
+  ])("المحذوف «%s» ⇒ %s بلونه %s", (old, base, accent) => {
+    const t = getTheme(old);
+    expect(splitThemeId(t.id).base).toBe(base);
+    expect(t.vars["--m-accent"]).toBe(accent);
+  });
+
+  it("لون التاجر يغلب لون الطابع المحذوف، وشكل العرض يبقى", () => {
+    const t = getTheme("royal:#123456:list");
+    expect(t.vars["--m-accent"]).toBe("#123456");
+    expect(t.design.layout).toBe("list");
+    expect(themeBaseOf("royal:#123456")).toBe("dark-gold");
+  });
+
+  /**
+   * التباين محسوبٌ لا مُقدَّر — نصّ الطبق ووصفه يُقرآن في مطعمٍ مُضاء بخفوت.
+   * السطح الشفّاف (`rgba`) يُركَّب فوق الأرضية قبل الحساب، فهو ما تراه العين.
+   */
+  it.each(ALL_THEMES.map((t) => [t.id, t] as const))("«%s»: النصّ والخافت ≥ 4.5 فوق الأرضية والسطح", (_, t) => {
+    const parse = (c: string): [number, number, number, number] => {
+      const m = c.match(/rgba?\(([^)]+)\)/);
+      if (m) {
+        const [r, g, b, a = "1"] = m[1].split(",").map((s) => s.trim());
+        return [+r, +g, +b, +a];
+      }
+      return [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16)).concat(1) as [number, number, number, number];
+    };
+    const over = (top: string, under: string) => {
+      const [r, g, b, a] = parse(top);
+      const [R, G, B] = parse(under);
+      const hex = (v: number) => Math.round(v).toString(16).padStart(2, "0");
+      return `#${hex(r * a + R * (1 - a))}${hex(g * a + G * (1 - a))}${hex(b * a + B * (1 - a))}`;
+    };
+    const v = t.vars;
+    const surface = over(v["--m-surface"], v["--m-bg"]);
+    for (const ground of [v["--m-bg"], surface]) {
+      expect(ratio(v["--m-text"], ground), `نصّ فوق ${ground}`).toBeGreaterThanOrEqual(4.5);
+      expect(ratio(v["--m-muted"], ground), `خافت فوق ${ground}`).toBeGreaterThanOrEqual(4.5);
+    }
+    expect(ratio(v["--m-on-accent"], v["--m-accent"]), "النصّ فوق التمييز").toBeGreaterThanOrEqual(4.5);
   });
 
   it("الافتراضي dark-gold وتخطيطه grid", () => {

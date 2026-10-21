@@ -8,7 +8,7 @@
  * رمادي. فمنيو التاجر الجديد يبدو **ناقصاً** لا بسيطاً — وهذا أسوأ ما يمكن
  * أن يبدو عليه منتجٌ يُباع على جماله.
  *
- * فالبديل هنا **مقصود**: تدرّجٌ من لون طابع المطعم، وزخرفة خفيفة، والأيقونة
+ * فالبديل هنا **مقصود**: تدرّجٌ من لون طابع المطعم، وصحنٌ دائري، والأيقونة
  * المرسومة يدوياً للتصنيف في القلب. منيو بلا صورة واحدة يبدو مصمَّماً.
  *
  * ═══ حتمية لا عشوائية ═══
@@ -21,7 +21,7 @@
  * فلا عمود جديد ولا رفع ولا سعة.
  */
 import type { CSSProperties } from "react";
-import { DishGlyph } from "@/lib/icons";
+import { Icon, iconNameOf, type IconName } from "@/lib/icons";
 
 /**
  * هاش نصّي ثابت (FNV-1a مبسّط).
@@ -38,8 +38,31 @@ function hashOf(input: string): number {
   return Math.abs(h);
 }
 
-/** أربع صياغات للخلفية — تُختار بالهاش فتتنوّع الشبكة بلا فوضى. */
-const SHAPES = ["arcs", "rings", "corner", "waves"] as const;
+/**
+ * الإيموجي ⇒ رمزٌ مرسوم من مجموعتنا.
+ *
+ * ⚠️ الإيموجي يُرسم بخطّ نظام الجوال لا بخطّ الطابع: ألوانه ثابتة، وحجمه
+ * يختلف بين آيفون وأندرويد، ولا يلبس لون العلامة. فكان «🥩» على أرضية ذهبية
+ * يبدو ملصقاً لا جزءاً من التصميم. والمجهول يسقط إلى الصحن لا إلى الإيموجي.
+ */
+const EMOJI_GLYPH: Record<string, IconName> = {
+  "🥩": "skewer", "🍖": "skewer", "🍢": "skewer", "🥓": "skewer",
+  "🍤": "fish", "🐟": "fish", "🦐": "fish", "🦞": "fish", "🦀": "fish", "🍣": "fish",
+  "🥗": "salad", "🥬": "salad", "🥒": "salad",
+  "🍚": "kabsa", "🍛": "kabsa", "🍗": "kabsa", "🥘": "pot", "🍲": "pot",
+  "🍳": "egg", "🥚": "egg",
+  "🍰": "cake", "🎂": "cake", "🧁": "cake", "🍮": "cake", "🍩": "cake", "🍪": "cake", "🍫": "cake", "🍨": "cake", "🍦": "cake",
+  "☕": "cup", "🍵": "istikana", "🧋": "icedcup", "🥤": "icedcup",
+  "🍹": "juice", "🧃": "juice", "🍊": "juice", "🍋": "juice", "🥭": "juice",
+  "🍔": "burger", "🍕": "pizza", "🍟": "fries", "🥐": "croissant", "🥖": "bread", "🍞": "bread", "🫓": "bread",
+  "🥪": "sandwich", "🌯": "sandwich", "🥙": "sandwich", "🌮": "sandwich",
+  "🥣": "soup", "🧆": "mezze", "🫒": "mezze", "🧀": "mezze",
+  "🌰": "sides", "🥜": "sides", "🍽️": "plate", "🍽": "plate",
+};
+
+function glyphOf(value: string | null | undefined): IconName {
+  return iconNameOf(value) ?? EMOJI_GLYPH[value?.trim() ?? ""] ?? "plate";
+}
 
 export function DishArtwork({
   name,
@@ -55,10 +78,8 @@ export function DishArtwork({
   glyphSize?: number;
 }) {
   const h = hashOf(name || "طبق");
-  const shape = SHAPES[h % SHAPES.length];
-  // زاوية التدرّج من الهاش: تنويعٌ محسوس بلا أن يخرج عن لون الطابع.
-  const angle = (h >> 3) % 360;
-  const offset = ((h >> 7) % 30) - 15;
+  // زاوية التدرّج من الهاش: تنويعٌ محسوس بين البطاقات بلا أن يخرج عن لون الطابع.
+  const angle = 120 + ((h >> 3) % 120);
 
   return (
     <span
@@ -69,68 +90,29 @@ export function DishArtwork({
         alignItems: "center",
         justifyContent: "center",
         overflow: "hidden",
-        // التدرّج من لون التمييز نفسه: البطاقة تنتمي للطابع لا تُقحَم عليه.
         background:
-          `linear-gradient(${angle}deg, ` +
-          "color-mix(in srgb, var(--m-accent) 14%, var(--m-bg-2)) 0%, " +
-          "color-mix(in srgb, var(--m-accent) 4%, var(--m-bg-2)) 100%)",
+          `radial-gradient(70% 60% at 50% 42%, color-mix(in srgb, var(--m-accent) 16%, transparent) 0%, transparent 70%), ` +
+          `linear-gradient(${angle}deg, color-mix(in srgb, var(--m-accent) 10%, var(--m-bg-2)) 0%, var(--m-bg-2) 100%)`,
         ...style,
       }}
       aria-hidden="true"
     >
-      {/* الزخرفة: SVG واحد خفيف الوزن، لونه من التمييز بشفافية منخفضة. */}
-      <svg
-        viewBox="0 0 100 100"
-        preserveAspectRatio="xMidYMid slice"
-        style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
-      >
-        <g
-          fill="none"
-          stroke="var(--m-accent)"
-          strokeOpacity={0.22}
-          strokeWidth={1.4}
-          strokeLinecap="round"
-        >
-          {shape === "arcs" && (
-            <>
-              <path d={`M -10 ${70 + offset} Q 50 ${30 + offset} 110 ${70 + offset}`} />
-              <path d={`M -10 ${84 + offset} Q 50 ${44 + offset} 110 ${84 + offset}`} />
-              <path d={`M -10 ${98 + offset} Q 50 ${58 + offset} 110 ${98 + offset}`} />
-            </>
-          )}
-          {shape === "rings" && (
-            <>
-              <circle cx={50 + offset} cy={50} r={44} />
-              <circle cx={50 + offset} cy={50} r={33} strokeOpacity={0.16} />
-              <circle cx={50 + offset} cy={50} r={22} strokeOpacity={0.1} />
-            </>
-          )}
-          {shape === "corner" && (
-            <>
-              <path d={`M ${100 + offset} 0 L ${40 + offset} 0 L ${100 + offset} 60 Z`} fill="var(--m-accent)" fillOpacity={0.07} stroke="none" />
-              <path d={`M 0 ${100 - offset} L 0 ${45 - offset} L 55 ${100 - offset} Z`} fill="var(--m-accent)" fillOpacity={0.05} stroke="none" />
-            </>
-          )}
-          {shape === "waves" && (
-            <>
-              <path d={`M -10 ${30 + offset} q 15 -12 30 0 t 30 0 t 30 0 t 30 0`} />
-              <path d={`M -10 ${58 + offset} q 15 -12 30 0 t 30 0 t 30 0 t 30 0`} strokeOpacity={0.14} />
-              <path d={`M -10 ${86 + offset} q 15 -12 30 0 t 30 0 t 30 0 t 30 0`} strokeOpacity={0.1} />
-            </>
-          )}
-        </g>
-      </svg>
-
-      {/* الأيقونة المرسومة يدوياً — تسقط إلى الإيموجي إن لم يكن للتصنيف رمز. */}
+      {/* الرمز في «صحنٍ» دائري: يملأ المربّع بنسبةٍ ثابتة مهما كان حجمه، فلا
+          يبدو صغيراً تائهاً في بطاقة كبيرة ولا مزدحماً في صغيرة. */}
       <span
         style={{
-          position: "relative",
-          color: "var(--m-accent)",
-          opacity: 0.85,
           display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          width: glyphSize * 2.1,
+          height: glyphSize * 2.1,
+          borderRadius: "9999px",
+          background: "color-mix(in srgb, var(--m-accent) 10%, var(--m-bg))",
+          boxShadow: "inset 0 0 0 1px color-mix(in srgb, var(--m-accent) 22%, transparent)",
+          color: "var(--m-accent)",
         }}
       >
-        <DishGlyph value={emoji} size={glyphSize} />
+        <Icon name={glyphOf(emoji)} size={glyphSize} strokeWidth={1.5} />
       </span>
     </span>
   );
