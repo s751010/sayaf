@@ -29,7 +29,8 @@ import {
 import { CartReview } from "@/components/menu/CartReview";
 import { PickupTicket } from "@/components/menu/PickupTicket";
 import { allergenLabel, buildAllergenIndex, restaurantTypeLabel } from "@/lib/menuText";
-import { Chip, LAYOUT_CLASS, MenuSheet, SectionHeading, sectionCover, sectionReserve } from "@/components/menu/chrome";
+import { Chip, LangToggle, LAYOUT_CLASS, MenuSheet, sectionReserve } from "@/components/menu/chrome";
+import { SectionHeading, sectionCover } from "@/components/menu/SectionHeading";
 import { DishModal } from "@/components/menu/DishModal";
 import { LoyaltyCard } from "@/components/menu/LoyaltyCard";
 import {
@@ -263,6 +264,11 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
   const theme = useMemo(() => getTheme(themeId), [themeId]);
   const design = theme.design;
   const rhythm = RHYTHM[design.density];
+  /** لونا الطابع الفعليّان لزخارف العناوين المرسومة (سدو · مشربية) — صورٌ لا تقرأ `var()`. */
+  const headingPalette = {
+    accent: theme.vars["--m-accent"] ?? "#d4a843",
+    onAccent: theme.vars["--m-on-accent"] ?? "#141210",
+  };
 
   /**
    * خطّ الطابع يُطلب هنا لا في `main.tsx`.
@@ -794,7 +800,14 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
       {/* ‏`m-paper` غلافٌ بلا أثر إلا في الفاتورة: هناك هو الورقة نفسها —
           ضيّقةٌ في الوسط بحافّتين ممزّقتين، والصفحة تحتها طاولة. */}
       <div className="m-paper">
-        <MenuHeader restaurant={restaurant} theme={theme} en={en} tags={tags}>
+        <MenuHeader
+          restaurant={restaurant}
+          theme={theme}
+          en={en}
+          tags={tags}
+          // مبدّل اللغة في زاوية الترويسة لا بين الشرائح — حيث يبحث عنه الزبون.
+          corner={restaurant.english_enabled ? <LangToggle lang={lang} onChange={setLang} /> : null}
+        >
           {table && (
             <span className={pill} style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}>
               <Icon name="tag" size={14} /> {en ? "Table" : "طاولة"} {table}
@@ -823,29 +836,6 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
                 <Icon name="clock" size={14} /> {restaurant.working_hours}
               </button>
             )
-          )}
-          {/* مبدّل اللغة شريحة بين الشرائح — كان يحتلّ صفاً كاملاً وحده. */}
-          {restaurant.english_enabled && (
-            <div
-              className="inline-flex h-9 overflow-hidden rounded-full text-[13px] font-bold"
-              style={pillQuiet}
-            >
-              {(["ar", "en"] as const).map((l) => (
-                <button
-                  key={l}
-                  onClick={() => setLang(l)}
-                  aria-pressed={lang === l}
-                  className="min-w-10 px-3 transition-colors"
-                  style={
-                    lang === l
-                      ? { background: "var(--m-accent)", color: "var(--m-on-accent)" }
-                      : { color: "var(--m-muted)" }
-                  }
-                >
-                  {l === "ar" ? "ع" : "EN"}
-                </button>
-              ))}
-            </div>
           )}
           {/* التقييم والموقع شريحتان بين الشرائح — كانا زرّين ممتلئين بعرض الشاشة
               يدفعان المنيو تحت أوّل شاشة. */}
@@ -1076,7 +1066,9 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
                   style={design.heading}
                   index={ci}
                   icon={categoryIcon(cat.name)}
-                  cover={design.heading === "poster" || design.heading === "numeral" ? sectionCover(cat.dishes, en) : null}
+                  cover={sectionCover(cat.dishes, en)}
+                  count={cat.dishes.length}
+                  palette={headingPalette}
                   en={en}
                 />
                 <div className={cn(LAYOUT_CLASS[design.layout], rhythm.gap)}>

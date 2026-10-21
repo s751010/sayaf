@@ -72,6 +72,173 @@
   box-shadow: 0 0 14px color-mix(in srgb, var(--m-glow, var(--m-accent)) 75%, transparent);
 }
 
+/* ══ عناوين الأقسام بأغلفتها ═════════════════════════════════════════════
+ * لكلّ طابعٍ عنوانه (`SectionHeading.tsx`)، ولأكثرها صورةٌ من أطباق القسم.
+ * والحركة **حركة الطابع نفسه** حين يدخل القسم: الفاخر يقترب كلقطةٍ سينمائية،
+ * والتراثي يُنسج، والروشان تنفتح نافذته، والنيون يُضاء، والعصري يكبر بهدوء.
+ */
+
+/* على الشاشة العريضة صورة القسم بعرض ٧٦٨ بكسل وارتفاعٍ بنسبتها تحجب الأطباق
+   نفسها — فيُحدّ ارتفاعها و`object-cover` يقصّها. */
+@media (min-width: 640px) {
+  .m-h .m-img {
+    max-height: 18rem;
+  }
+}
+
+/* فاخر — خطّان ذهبيّان يلتقيان عند معيّن، وإطارٌ ذهبيّ داخل الصورة. */
+.m-plaque-line {
+  display: block;
+  width: 3.5rem;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--m-accent));
+}
+.m-plaque-line:last-child {
+  background: linear-gradient(90deg, var(--m-accent), transparent);
+}
+.m-plaque-frame {
+  border: 1px solid color-mix(in srgb, var(--m-accent) 70%, transparent);
+  border-radius: calc(var(--m-radius) * 0.6);
+}
+
+/* نيون — رمز القسم أنبوبٌ مضاء، والصورة في إطار أنبوب. */
+.m-neon-icon {
+  display: inline-flex;
+  color: color-mix(in srgb, var(--m-accent-2) 35%, #fff);
+  filter: drop-shadow(0 0 3px var(--m-accent-2)) drop-shadow(0 0 9px color-mix(in srgb, var(--m-accent-2) 70%, transparent));
+}
+.m-neon-frame {
+  border-radius: var(--m-radius);
+  box-shadow:
+    0 0 0 2px var(--m-glow, var(--m-accent)),
+    0 0 26px -4px var(--m-glow, var(--m-accent));
+}
+
+/* روشان — النافذة القوسية بحاشيةٍ من حجر الصفحة. */
+.m-window {
+  box-shadow:
+    0 0 0 4px var(--m-surface),
+    0 0 0 5px var(--m-border),
+    0 18px 30px -18px rgba(0, 0, 0, 0.45);
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    /* فاخر: الصورة تقترب ببطء كلقطة فيلم طول مرورها، والإطار الذهبيّ يستقرّ. */
+    .m-plaque-photo .m-img {
+      animation: m-kenburns linear both;
+      animation-timeline: view();
+      animation-range: entry 0% exit 100%;
+    }
+    .m-plaque-frame {
+      animation: m-settle linear both;
+      animation-timeline: view();
+      animation-range: entry 30% cover 40%;
+    }
+    .m-plaque-line {
+      animation: m-grow linear both;
+      animation-timeline: view();
+      animation-range: entry 40% cover 35%;
+    }
+
+    /* تراثي: الشريط يُنسج من أوّل السطر إلى آخره. */
+    .m-sadu-band {
+      animation: m-weave linear both;
+      animation-timeline: view();
+      animation-range: entry 20% cover 35%;
+    }
+    [dir="ltr"] .m-sadu-band {
+      animation-name: m-weave-ltr;
+    }
+
+    /* روشان: اللوحة المشطوفة تُثبَّت على عتبة النافذة بعد أن تنفتح. */
+    .m-skin-roshan .m-cartouche {
+      animation: m-stamp linear both;
+      animation-timeline: view();
+      animation-range: entry 45% cover 40%;
+    }
+
+    /* نيون: الصورة تسخن كأنبوبٍ يُضاء — من خافتٍ باهت إلى ضوئها. */
+    .m-neon-frame {
+      animation: m-warm linear both;
+      animation-timeline: view();
+      animation-range: entry 10% cover 40%;
+    }
+
+    /* عصري: بطاقة القسم تكبر إلى مكانها بهدوء. */
+    .m-bold-photo {
+      animation: m-scale-in linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 30%;
+    }
+
+    /* فاتورة: العنوان يُطبع كالأسطر تحته. */
+    .m-skin-receipt .m-h {
+      animation: m-print steps(4, end) both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 100%;
+    }
+  }
+}
+
+@keyframes m-kenburns {
+  from {
+    transform: scale(1.14);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+@keyframes m-settle {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
+@keyframes m-weave {
+  from {
+    clip-path: inset(0 0 0 100%);
+  }
+  to {
+    clip-path: inset(-6px -6px -6px -6px);
+  }
+}
+@keyframes m-weave-ltr {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(-6px -6px -6px -6px);
+  }
+}
+@keyframes m-stamp {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+  100% {
+    transform: none;
+  }
+}
+@keyframes m-warm {
+  from {
+    filter: brightness(0.35) saturate(0.3);
+  }
+  to {
+    filter: none;
+  }
+}
+@keyframes m-scale-in {
+  from {
+    opacity: 0.35;
+    transform: scale(0.9);
+  }
+}
+
 /* ══ السحب الأفقي (`deck`) ════════════════════════════════════════════
  * بطاقةٌ في الوسط وجارتاها تطلّان من الطرفين. الفاصلان الوهميّان قبل
  * البطاقات وبعدها يجعلان الأولى **تتوسّط** من أوّل لحظة بدل أن تلتصق بالحافّة.

@@ -18,7 +18,7 @@ import { isDarkTheme, type HeaderShape, type MenuTheme } from "@/lib/themes";
 import { restaurantTypeLabel } from "@/lib/menuText";
 import type { Restaurant } from "@/lib/types";
 import { LogoMark } from "./LogoMark";
-import { ArcadeHead, LetterboardHead, MastheadHead, PaperHead, PosterHead, SignHead, type HeadProps } from "./SkinHeads";
+import { ArcadeHead, Corner, LetterboardHead, MastheadHead, PaperHead, PosterHead, SignHead, type HeadProps } from "./SkinHeads";
 
 /** الترويسات التي بنيتها غير واجهة المتجر — لكلٍّ طابعه (`SkinHeads.tsx`). */
 const SKIN_HEADS: Partial<Record<HeaderShape, ComponentType<HeadProps>>> = {
@@ -68,6 +68,7 @@ export function MenuHeader({
   theme,
   en = false,
   tags,
+  corner,
   children,
 }: {
   restaurant: Restaurant;
@@ -75,6 +76,8 @@ export function MenuHeader({
   en?: boolean;
   /** أسماء الأقسام — للترويسات التي تعرضها (شريط الملصقات). */
   tags?: string[];
+  /** ما يجلس في زاوية الترويسة العليا (مبدّل اللغة). */
+  corner?: ReactNode;
   /** الشرائح أسفل الاسم (الحالة · الطاولة · اللغة · الروابط). */
   children?: ReactNode;
 }) {
@@ -82,7 +85,7 @@ export function MenuHeader({
   const Skin = SKIN_HEADS[header];
   if (Skin) {
     return (
-      <Skin restaurant={restaurant} theme={theme} en={en} tags={tags}>
+      <Skin restaurant={restaurant} theme={theme} en={en} tags={tags} corner={corner}>
         {children}
       </Skin>
     );
@@ -135,6 +138,7 @@ export function MenuHeader({
 
   return (
     <header className="m-head relative">
+      <Corner>{corner}</Corner>
       <div className="m-cover relative h-36 w-full overflow-hidden sm:h-52" style={cover}>
         {hasBanner && (
           <>
