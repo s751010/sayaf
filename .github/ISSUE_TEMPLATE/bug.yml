@@ -21,7 +21,7 @@ body:
     attributes:
       label: الرابط
       description: رابط الصفحة التي ظهر فيها العطل (مثل رابط المنيو).
-      placeholder: https://heroic-marzipan-b46da4.netlify.app/demo
+      placeholder: https://neon-frangollo-2c189e.netlify.app/demo
   - type: textarea
     id: what
     attributes:

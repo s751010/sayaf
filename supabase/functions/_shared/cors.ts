@@ -30,17 +30,23 @@
  * مع ذلك **حيّ ويردّ ٢٠٠** — أي أنه لأحدٍ آخر. فكانت القائمة تسمح لأصلٍ
  * أجنبي بمناداة دوالّ تُنشئ فواتير وتقرأ أكواد الخصم وتفعّل اشتراكات.
  *
- * ومشروع المنيو في الحساب هو `heroic-marzipan-b46da4` (مُتحقَّق من معرّفه
- * `bdcfa5fd-…` وهو نفسه هدف `deploy.yml`).
+ * والموقع الذي يعمل عليه المالك هو `neon-frangollo-2c189e`: مربوطٌ بالمستودع
+ * في Netlify وينشر `main` تلقائياً (`SITE_URL` في `config.ts`).
+ *
+ * ⚠️ **و`heroic-marzipan-b46da4` باقٍ هنا عمداً.** كان هو المكتوب حتى
+ * ٢٠٢٦/١٠/٢١، ونسخته من ٢٢ أغسطس ما زالت حيّة وتنادي هذه الدوال — وقد يكون
+ * طُبع منه كود QR. حذفه يُطفئ الدفع على ما بقي هناك بلا إنذار.
  */
 const STATIC_ORIGINS = [
+  "https://neon-frangollo-2c189e.netlify.app",
   "https://heroic-marzipan-b46da4.netlify.app",
   "http://localhost:5173",
   "http://127.0.0.1:5173",
 ];
 
-/** معاينات Netlify (`deploy-preview-12--heroic-marzipan-b46da4.netlify.app`). */
-const PREVIEW_RE = /^https:\/\/[a-z0-9-]+--heroic-marzipan-b46da4\.netlify\.app$/;
+/** معاينات Netlify (`deploy-preview-12--neon-frangollo-2c189e.netlify.app`) للموقعين. */
+const PREVIEW_RE =
+  /^https:\/\/[a-z0-9-]+--(?:neon-frangollo-2c189e|heroic-marzipan-b46da4)\.netlify\.app$/;
 
 /**
  * ⚠️ يُقرأ عند كل نداء لا عند التحميل: ضبط `ALLOWED_ORIGINS` من لوحة Supabase
