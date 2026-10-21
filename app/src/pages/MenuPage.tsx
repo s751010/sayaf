@@ -157,6 +157,9 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
   useEffect(() => {
     // وضع الديمو: البيانات محقونة، فلا شبكة ولا تتبّع مشاهدات.
     if (demo) {
+      // تُحدَّث مع البيانات لا عند التركيب وحده: معاينة الهبوط تبدّل الاسم
+      // واللون والشعار والزائر يكتب.
+      setState({ status: "ready", ...demo });
       document.title = `${demo.restaurant.name} — منيو تجريبي`;
       return;
     }
@@ -711,6 +714,17 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
   /** سبب الإغلاق بلغة الزبون — نفس نصّ الترويسة فلا يتناقض الاثنان. */
   const closedLabel = !acceptingOrders ? null : (live?.label ?? null);
 
+  /**
+   * شريحةٌ واحدة لكل ما تحت الاسم — كانت خمسة أشكال (شريحة · زرّان ممتلئان
+   * بعرض الشاشة · شريط · مبدّل) فتقرأ العين خمسة أنظمة لا واجهةً واحدة.
+   */
+  const pill = "inline-flex h-9 items-center gap-1.5 rounded-full px-3.5 text-[13px] font-bold transition-opacity hover:opacity-85";
+  const pillQuiet: CSSProperties = {
+    background: "var(--m-surface)",
+    color: "var(--m-text)",
+    boxShadow: "inset 0 0 0 1px var(--m-border)",
+  };
+
   return (
     <div
       dir={en ? "ltr" : "rtl"}
@@ -765,56 +779,46 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
 
       <MenuHeader restaurant={restaurant} theme={theme}>
         {table && (
-          <span
-            className="inline-flex min-h-9 items-center gap-1.5 rounded-full px-3 py-1 text-xs font-black"
-            style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}
-          >
-            <Icon name="tag" size={13} /> {en ? "Table" : "طاولة"} {table}
+          <span className={pill} style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}>
+            <Icon name="tag" size={14} /> {en ? "Table" : "طاولة"} {table}
           </span>
         )}
         {/* ساعات العمل: **شريحة واحدة** تحمل الحالة الحيّة وتفتح جدول الأسبوع.
             كانت شريحتين («مفتوح الآن» + ملخّص الأسبوع) تزدحمان بلا داعٍ —
             الملخّص انتقل إلى داخل اللوح. */}
         {week ? (
-          <button
-            onClick={() => setHoursOpen(true)}
-            className="inline-flex min-h-9 items-center rounded-full px-3 py-1 text-xs font-black transition-opacity hover:opacity-85"
-            style={
-              live?.open
-                ? { background: "var(--m-accent)", color: "var(--m-on-accent)" }
-                : { border: "1px solid var(--m-border)", color: "var(--m-muted)" }
-            }
-          >
+          <button onClick={() => setHoursOpen(true)} className={pill} style={pillQuiet}>
+            {/* النقطة خضراء للمفتوح في كل الطوابع: لونٌ يعرفه الزبون من كل تطبيق،
+                ولون التمييز قد يكون أحمر أو برتقالياً فيُقرأ «مغلق». */}
             <span
               aria-hidden="true"
-              className="inline-block h-2 w-2 rounded-full"
-              style={{ background: live?.open ? "var(--m-accent)" : "var(--m-muted)" }}
-            />{" "}
+              className="inline-block h-2 w-2 shrink-0 rounded-full"
+              style={{ background: live?.open ? "#22c55e" : "var(--m-muted)" }}
+            />
             {live?.label}
-            {live?.open && live.until ? ` · ${en ? "until" : "حتى"} ${live.until}` : ""} ›
+            {live?.open && live.until ? (
+              <span style={{ color: "var(--m-muted)" }}>· {en ? "until" : "حتى"} {live.until}</span>
+            ) : null}
           </button>
         ) : (
           restaurant.working_hours && (
-            <button
-              onClick={() => setHoursOpen(true)}
-              className="inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3 py-1 text-xs"
-              style={{ borderColor: "var(--m-border)", color: "var(--m-muted)" }}
-            >
-              <Icon name="clock" size={13} /> {restaurant.working_hours} ›
+            <button onClick={() => setHoursOpen(true)} className={pill} style={pillQuiet}>
+              <Icon name="clock" size={14} /> {restaurant.working_hours}
             </button>
           )
         )}
         {/* مبدّل اللغة شريحة بين الشرائح — كان يحتلّ صفاً كاملاً وحده. */}
         {restaurant.english_enabled && (
           <div
-            className="inline-flex overflow-hidden rounded-full border text-xs font-black"
-            style={{ borderColor: "var(--m-border)" }}
+            className="inline-flex h-9 overflow-hidden rounded-full text-[13px] font-bold"
+            style={pillQuiet}
           >
             {(["ar", "en"] as const).map((l) => (
               <button
                 key={l}
                 onClick={() => setLang(l)}
-                className="min-h-9 px-3 py-1 transition-colors"
+                aria-pressed={lang === l}
+                className="min-w-10 px-3 transition-colors"
                 style={
                   lang === l
                     ? { background: "var(--m-accent)", color: "var(--m-on-accent)" }
@@ -826,6 +830,13 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
             ))}
           </div>
         )}
+        {/* التقييم والموقع شريحتان بين الشرائح — كانا زرّين ممتلئين بعرض الشاشة
+            يدفعان المنيو تحت أوّل شاشة. */}
+        {primaryLinks.map((s) => (
+          <a key={s.label} href={s.url} target="_blank" rel="noopener noreferrer" className={pill} style={pillQuiet}>
+            <Icon name={s.icon} size={14} /> {s.label}
+          </a>
+        ))}
       </MenuHeader>
 
       {cartOn && <ActiveOrderStrip en={en} />}
@@ -858,28 +869,6 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
           />
         )}
 
-        {/* التقييم والموقع — أعلى الصفحة حيث يراهما الزبون فعلاً. */}
-        {primaryLinks.length > 0 && (
-          <div className="mt-5 flex gap-2">
-            {primaryLinks.map((s) => (
-              <a
-                key={s.label}
-                href={s.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex flex-1 items-center justify-center gap-1.5 px-4 py-3 text-sm font-black transition-transform hover:scale-[1.02]"
-                style={{
-                  background: "var(--m-accent)",
-                  color: "var(--m-on-accent)",
-                  borderRadius: "var(--m-radius)",
-                }}
-              >
-                <Icon name={s.icon} size={15} /> {s.label}
-              </a>
-            ))}
-          </div>
-        )}
-
         {/* طبق اليوم — بطاقة واحدة كاملة بدل شريط بطاقات مقطوعة عند الحافة. */}
         {featured[0] && (
           <div className={rhythm.block}>
@@ -910,17 +899,26 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
               borderBottom: "1px solid var(--m-border)",
             }}
           >
-            <div className="flex flex-1 gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {/* تلاشٍ عند الحافّة التي يُمرَّر إليها: تصنيفٌ مقطوعٌ بحدٍّ حادّ يُقرأ
+                خللاً في الرسم، والمتلاشي يُقرأ «هناك المزيد». */}
+            <div
+              className="flex flex-1 gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              style={{
+                maskImage: `linear-gradient(to ${en ? "left" : "right"}, transparent 0, #000 28px)`,
+                WebkitMaskImage: `linear-gradient(to ${en ? "left" : "right"}, transparent 0, #000 28px)`,
+              }}
+            >
               {categories.map((c) => (
                 <a
                   key={c.name}
                   href={`#${categoryId(c.name)}`}
                   ref={(el) => { catRefs.current[c.name] = el; }}
-                  className="flex min-h-11 shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-bold transition-colors"
+                  aria-current={activeCat === c.name ? "true" : undefined}
+                  className="flex h-10 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-sm font-bold transition-colors"
                   style={
                     activeCat === c.name
                       ? { background: "var(--m-accent)", color: "var(--m-on-accent)" }
-                      : { background: "var(--m-surface)", color: "var(--m-muted)" }
+                      : { color: "var(--m-muted)" }
                   }
                 >
                   {/* الرمز يرث لون الشريحة عبر `currentColor` — وهذا ما لا
@@ -1073,6 +1071,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
                       design={design}
                       reserve={sectionReserve(cat.dishes, en)}
                       popular={popularIds.has(d.id)}
+                      addSlot={cartOn && ordersOpen && Number(d.price ?? 0) > 0}
                       onOpen={() => { setOpenDish(d); if (!demo && !preview) trackDishView(d, { table, lang }); }}
                     />
                     {/* ⚠️ `ordersOpen` لا `cartOn` وحده: زرُّ إضافةٍ على منيو مغلق

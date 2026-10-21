@@ -12,7 +12,8 @@ import type { CSSProperties } from "react";
 import { SafeImage } from "@/components/ui";
 import type { Dish } from "@/lib/types";
 import { formatPrice } from "@/lib/utils";
-import { Icon, DishGlyph } from "@/lib/icons";
+import { Icon } from "@/lib/icons";
+import { DishArtwork } from "./DishArtwork";
 
 const mFont: CSSProperties = { fontFamily: "var(--m-font)" };
 
@@ -45,12 +46,7 @@ export function DishOfTheDay({
         wrapperClassName="h-28 w-28 shrink-0 text-4xl sm:h-40 sm:w-40"
         style={{ background: "var(--m-bg-2)" } as CSSProperties}
         fallback={
-          <div
-            className="flex h-28 w-28 items-center justify-center text-4xl sm:h-40 sm:w-40"
-            style={{ background: "var(--m-bg-2)" } as CSSProperties}
-          >
-            <DishGlyph value={dish.emoji} size={34} />
-          </div>
+          <DishArtwork name={dish.name} emoji={dish.emoji} glyphSize={26} className="h-28 w-28 shrink-0 sm:h-40 sm:w-40" />
         }
       />
 
@@ -72,8 +68,12 @@ export function DishOfTheDay({
             {desc}
           </p>
         )}
-        <p className="mt-1 text-base font-black" style={{ color: "var(--m-accent)" }} dir="ltr">
-          {formatPrice(dish.price ?? 0)} <span className="text-[10px] font-bold">ر.س</span>
+        {/* `dir` على السعر وحده لا على السطر: على السطر كان يدفع السعر إلى الطرف
+            الآخر من البطاقة بعيداً عن الاسم فوقه. */}
+        <p className="mt-1 text-base font-black" style={{ color: "var(--m-accent)" }}>
+          <span dir="ltr">
+            {formatPrice(dish.price ?? 0)} <span className="text-[10px] font-bold">ر.س</span>
+          </span>
         </p>
       </div>
     </button>

@@ -29,7 +29,7 @@
  *    تأكل منطقة الهدوء وتُفشل المسح — ولهذا علامات الأركان خارج اللوح لا داخله.
  */
 import { qrDataUrl, loadImage } from "./qr";
-import { ALL_THEMES, bestOnAccent, isHex, normalizeHex } from "./themes";
+import { bestOnAccent, getTheme, isHex, normalizeHex } from "./themes";
 import { patternImage, PATTERN_MM, type PatternId } from "./patterns";
 import { loadThemeFont } from "./fonts";
 import { iconNameOf, paintIcon } from "./icons";
@@ -226,7 +226,9 @@ function paletteFor(
 
   if (style === "brand") {
     // ألوان طابع منيو التاجر — فتخرج البطاقة أخت منيوه لا غريبة عنه.
-    const theme = ALL_THEMES.find((t) => t.id === themeId) ?? ALL_THEMES[0];
+    // `getTheme` لا بحثٌ بالمعرّف: يفهم الطوابع المحذوفة وصيغة `طابع:#لون`، فبطاقة
+    // مطعمٍ على «royal» تخرج بلونه لا بأوّل طابع في القائمة.
+    const theme = getTheme(themeId);
     const v = theme.vars;
     const accent = brand ?? v["--m-accent"] ?? "#c9a227";
     return {

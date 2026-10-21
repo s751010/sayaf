@@ -101,7 +101,7 @@ describe("أرقام المنتج في النثر", () => {
   it("كل ذكرٍ لعدد الطوابع يطابق `THEME_COUNT`", () => {
     const texts = [JSON.stringify(META), ...slugs.map(body)];
     for (const t of texts) {
-      for (const m of t.matchAll(/(\d{1,3})\s*طابع/g)) expect(Number(m[1])).toBe(THEME_COUNT);
+      for (const m of t.matchAll(/(\d{1,3})\s*(?:طابع|طوابع)/g)) expect(Number(m[1])).toBe(THEME_COUNT);
     }
   });
 });

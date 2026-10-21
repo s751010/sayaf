@@ -1,85 +1,84 @@
 /**
- * معاينة مصغّرة لطابع المنيو.
+ * معاينة مصغّرة لطابع المنيو — في مُنتقي اللوحة وفي معرض الطوابع بالهبوط.
  *
- * مربّع اللون وحده لا يكفي بعد أن صار الثيم طابعاً كاملاً: التاجر يحتاج أن يرى
- * الزخرفة وشكل الترويسة وتخطيط الأطباق قبل أن يختار — لا أن يقرأ اسماً ويكتشف
- * النتيجة على منيوه أمام زبائنه.
+ * مربّع اللون وحده لا يكفي: التاجر يحتاج أن يرى الغلاف وشكل الشعار وتخطيط
+ * الأطباق قبل أن يختار. و**تتبع قاعدة `MenuHeader` نفسها** (كتلةٌ بلون العلامة،
+ * إلا الداكن المؤطَّر فغلافه داكنٌ مزخرف) — فما يختاره هنا هو ما يراه زبونه.
  */
 import type { CSSProperties } from "react";
 import { patternImage, PATTERN_SIZE } from "@/lib/patterns";
-import type { MenuTheme } from "@/lib/themes";
+import { isDarkTheme, type MenuTheme } from "@/lib/themes";
 
 export function ThemePreview({ theme }: { theme: MenuTheme }) {
   const v = theme.vars;
-  const { pattern, patternOpacity, header, layout } = theme.design;
+  const { pattern, header, layout } = theme.design;
   const accent = v["--m-accent"];
+  const framed = header === "frame";
+  const darkCover = framed && isDarkTheme(theme);
 
+  const cover: CSSProperties = darkCover
+    ? {
+        backgroundColor: v["--m-bg-2"],
+        backgroundImage: patternImage(pattern, accent, 0.12),
+        backgroundSize: PATTERN_SIZE[pattern],
+      }
+    : {
+        backgroundColor: accent,
+        backgroundImage: patternImage(pattern, v["--m-on-accent"], 0.14),
+        backgroundSize: PATTERN_SIZE[pattern],
+      };
   const card: CSSProperties = {
-    background: v["--m-surface"],
-    border: `1px solid ${v["--m-border"]}`,
+    background: `linear-gradient(${v["--m-surface"]}, ${v["--m-surface"]}), ${v["--m-bg"]}`,
+    boxShadow: `inset 0 0 0 1px ${v["--m-border"]}`,
     borderRadius: `calc(${v["--m-radius"]} * 0.5)`,
   };
+  const ink = { background: v["--m-text"], opacity: 0.8 };
 
   return (
-    <div
-      className="relative h-24 overflow-hidden"
-      style={{
-        backgroundColor: v["--m-bg"],
-        backgroundImage: patternImage(pattern, accent, Math.max(patternOpacity, 0.05)),
-        backgroundSize: PATTERN_SIZE[pattern],
-      }}
-    >
-      {/* الترويسة المصغّرة */}
-      <div className="relative h-9" style={{ background: v["--m-bg-2"] }}>
+    <div className="relative h-28 overflow-hidden" style={{ backgroundColor: v["--m-bg"] }} aria-hidden="true">
+      <div className="relative h-10" style={cover}>
         {header === "band" && (
           <span
-            className="absolute inset-x-0 bottom-0 h-2.5"
+            className="absolute inset-x-0 bottom-0 h-2"
             style={{
-              backgroundColor: v["--m-bg"],
+              backgroundColor: v["--m-bg-2"],
               backgroundImage: patternImage("sadu", accent, 1),
-              backgroundSize: "24px 24px",
+              backgroundSize: "20px 20px",
               borderTop: `1px solid ${accent}`,
-              borderBottom: `1px solid ${accent}`,
             }}
           />
         )}
-        {header === "arch" && (
-          <svg viewBox="0 0 100 12" preserveAspectRatio="none" className="absolute inset-x-0 bottom-0 h-4 w-full">
-            <path d="M0 8 Q25 8 38 2 Q50 -3 62 2 Q75 8 100 8 L100 12 L0 12 Z" style={{ fill: v["--m-bg"] }} />
-            <path d="M0 8 Q25 8 38 2 Q50 -3 62 2 Q75 8 100 8" fill="none" style={{ stroke: accent, strokeWidth: 1 }} vectorEffect="non-scaling-stroke" />
-          </svg>
-        )}
       </div>
 
-      {/* الشعار */}
+      {/* الشعار على حافّة الغلاف في أوّل السطر — كما في المنيو. */}
       <span
-        className="absolute start-1/2 top-5 h-7 w-7 -translate-x-1/2 border"
+        className="absolute start-2.5 top-6 h-7 w-7"
         style={{
-          background: v["--m-bg-2"],
-          borderColor: accent,
-          borderRadius: header === "frame" ? "2px" : "8px",
-          transform: "translateX(50%)",
+          background: darkCover ? accent : v["--m-bg"],
+          borderRadius: framed ? "3px" : "8px",
+          boxShadow: `0 0 0 2px ${v["--m-bg"]}${framed ? `, 0 0 0 3px ${accent}` : ""}`,
         }}
       />
+      <span className="absolute start-2.5 top-[3.6rem] h-1.5 w-14 rounded-full" style={ink} />
 
-      {/* الأطباق حسب التخطيط — هذا ما يريه الفرق الحقيقي */}
-      <div className="absolute inset-x-2 bottom-2">
+      {/* الأطباق حسب التخطيط — هذا ما يريه الفرق الحقيقي. */}
+      <div className="absolute inset-x-2.5 bottom-2">
         {layout === "list" ? (
           <div className="flex flex-col gap-1.5">
             {[0, 1].map((i) => (
               <span key={i} className="flex items-center gap-1">
-                <span className="h-1.5 w-8 rounded-sm" style={{ background: v["--m-text"], opacity: 0.75 }} />
-                <span className="h-px flex-1 border-b border-dotted" style={{ borderColor: v["--m-border"] }} />
+                <span className="h-1.5 w-10 rounded-sm" style={ink} />
+                <span className="h-px flex-1 border-b border-dotted" style={{ borderColor: v["--m-muted"], opacity: 0.5 }} />
                 <span className="h-1.5 w-4 rounded-sm" style={{ background: accent }} />
               </span>
             ))}
           </div>
         ) : layout === "showcase" ? (
-          <span className="block h-9" style={card} />
+          <span className="block h-7" style={card} />
         ) : (
           <span className="flex gap-1.5">
-            <span className="h-9 flex-1" style={card} />
-            <span className="h-9 flex-1" style={card} />
+            <span className="h-7 flex-1" style={card} />
+            <span className="h-7 flex-1" style={card} />
           </span>
         )}
       </div>

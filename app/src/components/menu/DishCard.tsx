@@ -99,7 +99,9 @@ function Allergens({ dish, en }: { dish: Dish; en: boolean }) {
 function Calories({ dish, en }: { dish: Dish; en: boolean }) {
   if (dish.calories == null) return null;
   return (
-    <span className="whitespace-nowrap text-xs" style={{ color: "var(--m-muted)" }}>
+    // `inline-flex` لا نصٌّ بجانب SVG: الرمز المضمَّن يجلس على خطّ القاعدة فيعلو
+    // سطره، وسطر التفاصيل بارتفاعٍ ثابت (`h-4`) فكان يقصّ رأس اللهب أثراً فوق الرقم.
+    <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap text-xs" style={{ color: "var(--m-muted)" }}>
       <Icon name="flame" size={12} /> {dish.calories} {en ? "cal" : "سعرة"}
     </span>
   );
@@ -157,6 +159,7 @@ export function DishCard({
   design,
   reserve,
   popular = false,
+  addSlot = false,
   onOpen,
 }: {
   dish: Dish;
@@ -165,6 +168,8 @@ export function DishCard({
   reserve?: CardReserve;
   /** ضمن الأكثر طلباً فعلياً — من `popular_dishes` لا من تخمين. */
   popular?: boolean;
+  /** زرّ «أضِف» فوق البطاقة — يُحجز له مكانه في القائمة الرأسية كي لا يغطّي نصّاً. */
+  addSlot?: boolean;
   onOpen: () => void;
 }) {
   const { layout, imageShape, priceStyle, divider } = design;
@@ -187,7 +192,7 @@ export function DishCard({
         top: layout === "list" ? "0.25rem" : "0.5rem",
       }}
     >
-      🔥 {en ? "Popular" : "الأكثر طلباً"}
+      <Icon name="flame" size={11} /> {en ? "Popular" : "الأكثر طلباً"}
     </span>
   ) : null;
   const surface: CSSProperties = {
@@ -198,66 +203,42 @@ export function DishCard({
   const radius = imageRadius(imageShape);
 
   /* ── قائمة رأسية أنيقة ─────────────────────────────────────────────── */
+  /*
+   * النصّ أوّلاً والصورة في آخر السطر — كما في تطبيقات الطلب التي يعرفها
+   * الزبون. وطبقٌ بلا صورة يبقى سطراً طباعياً نظيفاً **بلا مربّع بديل**: منيو
+   * المطاعم الراقية بلا صور أصلاً، والمربّع الفارغ هو ما يجعل القائمة تبدو ناقصة.
+   */
   if (layout === "list") {
     const hasImage = !!dish.image?.trim();
     return (
       <button
         onClick={onOpen}
         className={cn(
-          "m-row flex w-full items-start gap-3 px-1 py-4 text-start transition-opacity hover:opacity-80",
+          "m-row flex w-full items-start gap-4 py-4 text-start transition-opacity hover:opacity-80",
           divider === "rule" && "border-b",
           divider === "dots" && "border-b border-dashed"
         )}
         style={{ borderColor: "var(--m-border)", position: "relative" }}
       >
         {badge}
-        {/* ⚠️ كان `hasImage &&` وحده: طبقٌ بلا صورة لا يرسم شيئاً، فيبدو الصفّ
-            ناقصاً لا بسيطاً. والواقع أن ١٥ من ٢١ طبقاً بلا صورة. */}
-        {hasImage ? (
-          <SafeImage
-            src={dish.image}
-            alt={name(dish, en)}
-            className="h-16 w-16 shrink-0 object-cover"
-            wrapperClassName="h-16 w-16 shrink-0"
-            style={{ borderRadius: radius, background: "var(--m-bg-2)" } as CSSProperties}
-            fallback={
-              <DishArtwork
-                name={dish.name}
-                emoji={dish.emoji}
-                glyphSize={26}
-                className="h-16 w-16 shrink-0"
-                style={{ borderRadius: radius }}
-              />
-            }
-          />
-        ) : (
-          <DishArtwork
-            name={dish.name}
-            emoji={dish.emoji}
-            glyphSize={26}
-            className="h-16 w-16 shrink-0"
-            style={{ borderRadius: radius }}
-          />
-        )}
         <span className="min-w-0 flex-1">
           <span className="flex items-baseline gap-2">
             <span
-              className="shrink-0 text-base font-bold leading-snug"
+              className="min-w-0 text-base font-bold leading-snug"
               style={{ color: "var(--m-text)", ...mFont }}
             >
               {name(dish, en)}
               {dish.featured && !popular && (
-              <Icon name="star" size={12} className="mb-0.5 inline-block align-middle" />
-            )}
+                <Icon name="star" size={12} className="ms-1 inline-block align-[-1px]" />
+              )}
             </span>
             {/* الخط النقطي يقود العين من الاسم إلى السعر — تقليد المنيوهات الراقية.
-                وهو خيار طابع الآن: منيو مينيمال يريد المسافة فارغة لا منقّطة.
                 ولونه من `--m-muted` لا `--m-border`: الحدود على الطوابع الداكنة
-                شفافة جداً (‏.20 مثلاً) فكان الخطّ يختفي تماماً ويضيع الغرض منه. */}
+                شفافة جداً فكان الخطّ يختفي ويضيع الغرض منه. */}
             <span
               aria-hidden="true"
               className={cn(
-                "mx-1 min-w-4 flex-1 translate-y-[-3px]",
+                "min-w-4 flex-1 translate-y-[-3px]",
                 priceStyle === "leader" && "border-b border-dotted opacity-45"
               )}
               style={{ borderColor: "var(--m-muted)" }}
@@ -266,17 +247,35 @@ export function DishCard({
           </span>
           {desc(dish, en) && (
             <span
-              className="mt-1 block text-xs leading-relaxed"
+              className="mt-1 line-clamp-2 block text-[13px] leading-relaxed"
               style={{ color: "var(--m-muted)" }}
             >
               {desc(dish, en)}
             </span>
           )}
-          <span className="mt-1.5 flex items-center gap-2">
+          <span className={cn("mt-2 flex items-center gap-2", addSlot && !hasImage && "pe-12")}>
             <Allergens dish={dish} en={en} />
             <Calories dish={dish} en={en} />
           </span>
         </span>
+        {hasImage && (
+          <SafeImage
+            src={dish.image}
+            alt={name(dish, en)}
+            className="h-24 w-24 shrink-0 object-cover"
+            wrapperClassName="h-24 w-24 shrink-0"
+            style={{ borderRadius: radius === "0" ? "0" : "calc(var(--m-radius) * .9)", background: "var(--m-bg-2)" } as CSSProperties}
+            fallback={
+              <DishArtwork
+                name={dish.name}
+                emoji={dish.emoji}
+                glyphSize={22}
+                className="h-24 w-24 shrink-0"
+                style={{ borderRadius: "calc(var(--m-radius) * .9)" }}
+              />
+            }
+          />
+        )}
       </button>
     );
   }
@@ -345,22 +344,22 @@ export function DishCard({
       style={surface}
     >
       {badge}
-      {/* مربّع تماماً: صور التجّار تأتي بأبعاد شتّى، و`object-cover` على نسبة
-          واحدة يجعلها كلها بحجم واحد. الرافع يضغط بـ`square` أصلاً.
-          و`circle` تحتاج حشوة حولها وإلا لامست الدائرةُ حوافَّ البطاقة. */}
+      {/* نسبةٌ واحدة لكل الصور (٤:٣): صور التجّار تأتي بأبعاد شتّى، و`object-cover`
+          يجعلها كلها بحجم واحد. وكانت مربّعاً فتطول البطاقة على الجوال حتى لا
+          يُرى منها في الشاشة إلا صفّان. و`circle` تحتاج حشوةً وإلا لامست الحافّة. */}
       <div className={cn("w-full", imageShape === "circle" && "p-3 pb-0")}>
         <SafeImage
           src={dish.image}
           alt={name(dish, en)}
-          className="aspect-square w-full object-cover"
-          wrapperClassName="aspect-square w-full text-5xl"
+          className={cn(imageShape === "circle" ? "aspect-square" : "aspect-[4/3]", "w-full object-cover")}
+          wrapperClassName={cn(imageShape === "circle" ? "aspect-square" : "aspect-[4/3]", "w-full")}
           style={{ background: "var(--m-bg-2)", borderRadius: radius } as CSSProperties}
           fallback={
             <DishArtwork
               name={dish.name}
               emoji={dish.emoji}
-              glyphSize={38}
-              className="aspect-square w-full"
+              glyphSize={30}
+              className={cn(imageShape === "circle" ? "aspect-square" : "aspect-[4/3]", "w-full")}
               style={{ borderRadius: radius } as CSSProperties}
             />
           }
@@ -384,7 +383,7 @@ export function DishCard({
         {/* التفاصيل الثانوية ثم السعر — سطران بارتفاع محسوم لا يتبع المحتوى.
             كانا في صفّ واحد فيفيض عن عرض البطاقة على الجوال ويلتفّ، والسعر
             وحده على سطره أسهل مسحاً بالعين نزولاً في عمود واحد. */}
-        <div className="mt-auto flex flex-col gap-1 pt-2">
+        <div className="mt-auto flex flex-col items-start gap-1.5 pt-2">
           {meta}
           <Price dish={dish} style={priceStyle} />
         </div>

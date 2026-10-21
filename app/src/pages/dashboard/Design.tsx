@@ -35,10 +35,10 @@ import {
 } from "@/lib/data";
 import {
   DESIGN_THEMES,
-  THEMES,
   getTheme,
   isHex,
   splitThemeId,
+  themeBaseOf,
   themeIdOf,
   type DishLayout,
 } from "@/lib/themes";
@@ -92,7 +92,9 @@ export default function Design() {
   const activeThemeId = menus?.find((m) => m.theme)?.theme ?? null;
   const parsedTheme = splitThemeId(activeThemeId);
   /** الطابع المطبَّق حالياً بلا اللون — عليه تُبنى الاختيارات والمعاينات. */
-  const activeBase = parsedTheme.base ?? getTheme(activeThemeId).id;
+  // `themeBaseOf` لا `parsedTheme.base`: طابعٌ خرج من القائمة («royal») يُردّ
+  // إلى الباقي الذي يُعرض به فعلاً، فيُعلَّم في المُنتقي بدل ألّا يُعلَّم شيء.
+  const activeBase = themeBaseOf(activeThemeId);
   const [brandHex, setBrandHex] = useState(
     () => parsedTheme.hex ?? restaurant.cover_color ?? "#d4a843"
   );
@@ -176,7 +178,7 @@ export default function Design() {
         <p className="mt-1 text-sm text-dim">
           كل طابع تصميم كامل — زخرفة وترويسة وتخطيط أطباق وخطّ، لا لوناً فقط.
         </p>
-        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
           {DESIGN_THEMES.map((t) => {
             const on = activeBase === t.id;
             const id = themeIdOf(t.id, useBrand ? brandHex : null, activeLayout);
@@ -284,34 +286,6 @@ export default function Design() {
           )}
         </Card>
 
-        {/* اللوحات الكلاسيكية — تبقى لمن اختارها من قبل. */}
-        <details className="mt-4">
-          <summary className="cursor-pointer text-sm font-bold text-dim hover:text-ink">
-            لوحات ألوان كلاسيكية
-          </summary>
-          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {THEMES.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => pickTheme(themeIdOf(t.id, null, activeLayout))}
-                className={cn(
-                  "overflow-hidden rounded-2xl border-2 text-right transition-transform hover:scale-[1.02]",
-                  activeBase === t.id ? "border-gold" : "border-line"
-                )}
-              >
-                <ThemePreview theme={getTheme(themeIdOf(t.id, null, activeLayout))} />
-                <p
-                  className={cn(
-                    "px-3 py-2 text-xs font-bold",
-                    activeBase === t.id ? "bg-gold/10 text-gold" : "bg-panel text-dim"
-                  )}
-                >
-                  {t.name} {activeBase === t.id && "✓"}
-                </p>
-              </button>
-            ))}
-          </div>
-        </details>
       </section>
 
       {/* ── الهوية البصرية ── */}

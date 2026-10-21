@@ -1,22 +1,21 @@
 /**
- * صفحة الهبوط — **فكرةٌ واحدة تُفهم في خمس ثوانٍ**.
+ * صفحة الهبوط — **«منيو يشبه مطعمك، ويبيع عنك»**.
  *
- * ═══ البنية (٢٠٢٦/١٠/١٦) ═══
+ * ═══ البنية (٢٠٢٦/١٠/٢١) ═══
  *
- * سبعة أقسام، كلٌّ منها جملةٌ واحدة:
- *   ١. البطل: **جرّبها الآن** — الحاسبة نفسها، بلا تسجيل.
- *   ٢. كيف يعمل: ثلاث خطوات.
- *   ٣. بهوية مطعمك: الطوابع.
- *   ٤. وفوقها: ستّ مزايا بسطرٍ لكلٍّ.
- *   ٥. السعر.  ٦. الأسئلة.  ٧. الدعوة الأخيرة.
+ *   ١. البطل: الوعد، وتحته **منيو الزائر نفسه** — يكتب اسم مطعمه ويرفع شعاره
+ *      ويختار لونه وطابعه، فيتبدّل المنيو الحقيقي في الجوّال أمامه.
+ *   ٢. لماذا يبيع: أربع نتائج لا أربع مزايا.
+ *   ٣. كيف يعمل: ثلاث خطوات.   ٤. الطوابع الستّة: لكلّ نوع مطعم واحد.
+ *   ٥. الحاسبة: «سعراتك محسوبة، لا مكتوبة».   ٦. وفوقها.
+ *   ٧. السعر.  ٨. الأسئلة.  ٩. الدعوة الأخيرة.
  *
- * ⚠️ كانت تسعة أقسام (عرض قراءة الصورة · منيو حيّ · كلفة الانتقال · ستّ بطاقات
- * بفقرات · ثماني أسئلة…). كلٌّ منها صحيح، ومجموعها صفحةٌ يمرّ عليها الزائر
- * ولا يخرج بجملة. والمقارنة التي حسمت القرار: منافسٌ مجاني يقول فكرته في شاشة
- * — «ارفع صورة منيوك» — وزرّاً واحداً. فصار البطل عندنا **فعلاً** لا وصفاً:
- * يكتب الزائر وصفةً ويرى أرقامها قبل أن يُسأل عن بريده.
+ * ⚠️ كان البطل الحاسبة: «سعراتك محسوبة، لا مكتوبة». وهي ميزةٌ حقيقية تحلّ
+ * إلزاماً نظامياً — لكنّها **ميزة**، والتاجر لا يشتري ميزة: يشتري منيواً
+ * يجعل مطعمه يبدو أفضل ويبيع أكثر. فصار البطل جواب سؤاله الأوّل («كيف سيبدو
+ * منيوي؟»)، ونزلت الحاسبة قسماً يقنع من وصل إليه.
  *
- * الحركة: `lib/reveal.ts` للأقسام، و`motion` في البطل الكسول وحده — الحزمة
+ * الحركة: `lib/reveal.ts` للأقسام، و`motion` في الحاسبة الكسولة وحدها — الحزمة
  * الرئيسية تخدم **صفحة المنيو** التي تُفتح من كود QR على بيانات جوال.
  */
 import { Fragment, Suspense, lazy, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
@@ -24,103 +23,24 @@ import { Link } from "react-router-dom";
 import { Navbar, Footer } from "@/components/site";
 import { Card } from "@/components/ui";
 import { Reveal } from "@/components/landing/Reveal";
-import { PhonePreview } from "@/components/landing/PhonePreview";
+import { BrandControls, DEFAULT_BRAND, PhoneMenu, type Brand } from "@/components/landing/LiveMenu";
 import { PricingCards, daysLabel, useTrialDays } from "@/components/landing/PricingCards";
+import { ThemePreview } from "@/components/menu/ThemePreview";
 import { CURRENCY, CURRENCY_CODE, PLAN, PLANS, effectiveMonthly, type BillingCycle } from "@/lib/plans";
-import { prefersReducedMotion } from "@/lib/reveal";
 import { cn, formatPrice } from "@/lib/utils";
 import { Icon, type IconName } from "@/lib/icons";
-import { ALL_THEMES, getTheme } from "@/lib/themes";
-import { CTA_PRIMARY, CTA_SECONDARY, PRINT_DPI, THEME_COUNT } from "@/lib/facts";
+import { ALL_THEMES } from "@/lib/themes";
+import { CTA_PRIMARY, CTA_SECONDARY, PRINT_DPI, THEMES_LABEL } from "@/lib/facts";
 import { absoluteUrl, useJsonLd, useSeo } from "@/lib/seo";
 
 /**
- * البطل كسولٌ عمداً: يحمل `motion` ومحرّك الوصفة وجدول المكوّنات، والعنوان
- * والزرّان لا يحتاجون شيئاً منها ليُرسموا. فيظهر النصّ فوراً، ومكان الحاسبة
- * محجوزٌ بارتفاعها (`CALC_MIN_H`، مقيسٌ على ٣٩٠ و١٤٤٠) فلا تقفز الصفحة.
+ * الحاسبة كسولةٌ عمداً: تحمل `motion` ومحرّك الوصفة وجدول المكوّنات، وهي قسمٌ
+ * تحت البطل. ومكانها محجوزٌ بارتفاعها (`CALC_MIN_H`) فلا تقفز الصفحة.
  */
 const HeroCalculator = lazy(() =>
   import("@/components/landing/HeroCalculator").then((m) => ({ default: m.HeroCalculator }))
 );
 const CALC_MIN_H = "min-h-[850px] md:min-h-[480px]";
-
-/* ── شريط الطوابع ───────────────────────────────────────────────────── */
-
-/**
- * الطوابع التي يقلّبها العرض التلقائي — **خمسة لا كلّها**: في كل خطوة يتبدّل
- * **محورٌ بنيوي** لا لون (سدو ⇒ رواشين ⇒ بلا زخرفة ⇒ رقعة ⇒ الافتراضي).
- */
-const REEL = ["najdi", "hijazi", "modern", "luxe", "dark-gold"];
-const DEFAULT_ID = "dark-gold";
-
-/**
- * شريط اختيار الطابع — الشريحة **ثلاث نقاط** (أرضية · تمييز · نصّ) لا مربّع
- * لون: الطابع ليس لوناً، فلا ينقض عنصرُ التحكّم الجملةَ التي تبيع المنتج.
- */
-function ThemeRail({ value, onChange }: { value: string; onChange: (id: string) => void }) {
-  const rail = useRef<HTMLDivElement>(null);
-  const first = useRef(true);
-
-  /**
-   * ⚠️ **يُمرَّر الشريط وحده — لا `scrollIntoView`**: تلك تحرّك كل سلفٍ قابل
-   * للتمرير حتى المستند، فكانت تقفز بالصفحة كلّها على الجوال.
-   */
-  useEffect(() => {
-    const el = rail.current;
-    const chip = el?.querySelector<HTMLElement>('[data-on="1"]');
-    if (!el || !chip) return;
-    const box = el.getBoundingClientRect();
-    const c = chip.getBoundingClientRect();
-    el.scrollBy({
-      left: c.left - box.left - (box.width - c.width) / 2,
-      behavior: first.current || prefersReducedMotion() ? "auto" : "smooth",
-    });
-    first.current = false;
-  }, [value]);
-
-  return (
-    // ⚠️ `min-w-0`: حاوية تمريرٍ أفقي داخل شبكة تساهم بعرض محتواها الأقصى
-    // (٢٠٣١px) ما لم يُصفَّر حدّها الأدنى — فكان العمود يتمدّد خارج الشاشة.
-    <div className="mt-6 min-w-0">
-      <div
-        ref={rail}
-        role="tablist"
-        aria-label="طوابع المنيو"
-        className="theme-rail flex min-w-0 snap-x gap-2 overflow-x-auto pb-2"
-      >
-        {ALL_THEMES.map((t) => {
-          const on = t.id === value;
-          return (
-            <button
-              key={t.id}
-              type="button"
-              role="tab"
-              aria-selected={on}
-              data-on={on ? "1" : "0"}
-              onClick={() => onChange(t.id)}
-              title={t.tagline}
-              className={cn(
-                "press flex min-h-12 shrink-0 snap-center items-center gap-2 rounded-full border px-3.5 py-2 text-xs font-bold transition-colors",
-                on ? "border-ink bg-ink text-page" : "border-line bg-panel text-dim hover:text-ink"
-              )}
-            >
-              <span aria-hidden="true" className="flex">
-                {(["--m-bg", "--m-accent", "--m-text"] as const).map((k, i) => (
-                  <span
-                    key={k}
-                    className="h-3.5 w-3.5 rounded-full border border-black/25"
-                    style={{ background: t.vars[k], marginInlineStart: i ? "-5px" : undefined }}
-                  />
-                ))}
-              </span>
-              {t.name}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
 
 /**
  * عنوان يتجمّع كلمةً كلمة — بالكلمة لا بالحرف (التقسيم الحرفي يكسر وصل
@@ -148,23 +68,27 @@ function Words({ text, className }: { text: string; className?: string }) {
 /* ── المحتوى ───────────────────────────────────────────────────────── */
 
 /**
- * ⚠️ **الخطوات الثلاث عادت بقرار (٢٠٢٦/١٠/١٦)** — وكانت محذوفة بقرارٍ مكتوب
- * في `landing-cta.test.ts` لأنها أخذت شاشةً كاملة بقيمة ضئيلة.
- *
- * ما تغيّر: لم يكن في الصفحة بعدها ما يقول **كيف** يصير المنيو جاهزاً، فكان
- * الزائر يخمّن. والآن ثلاثة أسطر في قسمٍ واحد قصير — لا شاشة رسوم.
- * وكل خطوة شيءٌ يفعله المنتج اليوم: قراءة الصورة (`MenuScan`)، والحاسبة،
- * والنشر بالكود والورقة وملف التوصيل.
+ * ما يكسبه التاجر — **نتائج لا مزايا**. كلٌّ منها شيءٌ يفعله المنتج اليوم:
+ * «طبق اليوم» و«الأكثر طلباً» (`popular_dishes` من طلبات حقيقية)، والطلب
+ * والدفع (§13)، وبطاقة الولاء، والحاسبة (§26).
  */
+const OUTCOMES: { icon: IconName; title: string; desc: string }[] = [
+  { icon: "star", title: "يعرض أطباقك كما تستحق", desc: "صورٌ كبيرة، و«طبق اليوم»، و«الأكثر طلباً» من طلبات زبائنك الفعلية — فيختار الزبون ما تريد أن تبيعه." },
+  { icon: "money", title: "يطلب ويدفع من الطاولة", desc: "طلبات واتساب، أو دفعٌ بمدى وApple Pay يصل حسابك مباشرة — بلا عمولة منّا." },
+  { icon: "heart", title: "يرجّع لك الزبون", desc: "بطاقة ولاء بالأختام داخل المنيو — بلا تطبيق، ولا بطاقة ورقية تضيع." },
+  { icon: "shield", title: "نظاميّ من أول يوم", desc: "السعرات والكافيين والصوديوم ومسبّبات الحساسية محسوبة من وصفاتك، كما تطلب الهيئة." },
+];
+
+/** ثلاث خطوات — كلٌّ منها يفعله المنتج اليوم: قراءة الصورة، والطوابع، والنشر. */
 const STEPS: { icon: IconName; title: string; desc: string }[] = [
-  { icon: "image", title: "صوّر منيوك", desc: "نقرأ الأقسام والأصناف والأسعار من الصورة، وتراجعها قبل الحفظ." },
-  { icon: "flame", title: "اكتب وصفات أصنافك", desc: "سطرٌ لكل مكوّن، ونحسب السعرات والكافيين والصوديوم والحساسية." },
-  { icon: "qr", title: "انشر في كل مكان", desc: "كود QR للطاولات، وورقة A4 للطباعة، وملف لتطبيقات التوصيل — بالأرقام نفسها." },
+  { icon: "image", title: "صوّر منيوك الحالي", desc: "نقرأ الأقسام والأصناف والأسعار من الصورة، وتراجعها قبل الحفظ." },
+  { icon: "palette", title: "اختر طابعك وارفع شعارك", desc: `${THEMES_LABEL}، لكلّ نوع مطعم واحد — بلون علامتك.` },
+  { icon: "qr", title: "اطبع كود الطاولة", desc: "كود QR لكل طاولة، وورقة A4 بالأرقام نفسها، وملف لتطبيقات التوصيل." },
 ];
 
 /**
- * ستّ مزايا بسطرٍ لكلٍّ — الحساب والمطبوع قيلا في البطل والخطوات، فهنا ما
- * **فوقهما**. والفقرات الطويلة صارت أسطراً: الزائر يمسح العناوين ولا يقرأ.
+ * ستّ مزايا بسطرٍ لكلٍّ — الهويّة والطلب والولاء والحساب قيلت فوقها، فهنا ما
+ * **فوقها**. والفقرات الطويلة صارت أسطراً: الزائر يمسح العناوين ولا يقرأ.
  */
 const FEATURES: { icon: IconName; title: string; desc: string }[] = [
   { icon: "money", title: "طلبات ودفع من الطاولة", desc: "يدفع زبونك ويصلك المال مباشرة — بلا عمولة." },
@@ -222,20 +146,14 @@ function SectionHead({ title, sub }: { title: ReactNode; sub?: string }) {
 export default function Landing() {
   const [cycle, setCycle] = useState<BillingCycle>("monthly");
   const [openFaq, setOpenFaq] = useState<number | null>(0);
-
-  /**
-   * الطابع المعروض في قسم الهوية. `picked` = اختار الزائر بيده، فيتوقّف
-   * التقليب التلقائي **نهائياً**.
-   */
-  const [themeId, setThemeId] = useState(DEFAULT_ID);
-  const [picked, setPicked] = useState(false);
-  const theme = getTheme(themeId);
+  const [brand, setBrand] = useState<Brand>(DEFAULT_BRAND);
   const hero = usePassed<HTMLElement>();
+  const builder = useRef<HTMLDivElement>(null);
   const trialDaysLabel = daysLabel(useTrialDays());
 
   useSeo({
-    title: "سعرات المنيو محسوبة من الوصفة",
-    description: `اكتب وصفة الصنف ونحسب السعرات والكافيين والصوديوم والحساسية، وننشرها على منيو QR ومنيو مطبوع بـ${THEME_COUNT} طابعاً.`,
+    title: "منيو يشبه مطعمك ويبيع عنك",
+    description: `منيو QR باسم مطعمك وشعاره وألوانه: يطلب الزبون ويدفع من الطاولة، ويجمع أختام الولاء، والسعرات التي تطلبها الهيئة محسوبة من وصفاتك. ${THEMES_LABEL}، ومنيو مطبوع A4.`,
     path: "/",
     image: "/og.png",
   });
@@ -255,7 +173,7 @@ export default function Landing() {
         url: absoluteUrl("/"),
         inLanguage: "ar",
         description:
-          "منيو رقمي ومطبوع للمطاعم والمقاهي السعودية: حاسبة سعرات وكافيين وصوديوم ومسبّبات حساسية من الوصفة، وطوابع بهوية سعودية.",
+          "منيو QR ومطبوع للمطاعم والمقاهي السعودية باسم المطعم وشعاره وألوانه: طلب ودفع من الطاولة، وبطاقة ولاء، وسعرات وحساسية محسوبة من الوصفة.",
         offers: {
           "@type": "Offer",
           price: PLANS[0]?.monthly ?? 99,
@@ -274,30 +192,10 @@ export default function Landing() {
     ],
   });
 
-  /** دورة واحدة على الطوابع ثم سكون — وتتوقّف نهائياً عند أوّل اختيار. */
-  useEffect(() => {
-    if (picked || prefersReducedMotion()) return;
-    let i = -1;
-    let tick = 0;
-    const start = window.setTimeout(() => {
-      tick = window.setInterval(() => {
-        i += 1;
-        if (i >= REEL.length) {
-          window.clearInterval(tick);
-          return;
-        }
-        setThemeId(REEL[i] ?? DEFAULT_ID);
-      }, 2600);
-    }, 7200);
-    return () => {
-      window.clearTimeout(start);
-      window.clearInterval(tick);
-    };
-  }, [picked]);
-
-  const pick = (id: string) => {
-    setPicked(true);
-    setThemeId(id);
+  /** من معرض الطوابع: يُلبَس الطابع لمنيو الزائر ويُعاد إلى الجوّال. */
+  const tryTheme = (id: string) => {
+    setBrand((b) => ({ ...b, theme: id }));
+    builder.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   };
 
   return (
@@ -306,98 +204,153 @@ export default function Landing() {
 
       <Navbar />
 
-      {/* ١. البطل — الحاسبة نفسها، بلا تسجيل. */}
+      {/* ١. البطل — الوعد، ومنيو الزائر نفسه يتبدّل أمامه. */}
       <section ref={hero.ref} className="glow-bg relative overflow-hidden">
-        <div className="mx-auto max-w-6xl px-5 pb-16 pt-12 text-center sm:pt-16">
-          <p className="anim-fade-up mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-line bg-panel/70 px-3.5 py-1.5 text-xs font-semibold text-dim">
-            <span className="h-1.5 w-1.5 rounded-full bg-sadu" aria-hidden="true" />
-            للمطاعم والمقاهي السعودية
-          </p>
-          <h1 className="font-display text-[2.6rem] font-bold leading-[1.2] text-ink sm:text-6xl">
-            <Words text="سعراتك محسوبة،" />
-            <br />
-            <Words text="لا مكتوبة." className="text-gold-grad" />
-          </h1>
-          <p className="anim-fade-up mx-auto mt-5 max-w-[40ch] text-lg leading-[1.8] text-dim">
-            اكتب وصفة الصنف كما تقولها، ونحسب الأرقام التي تطلبها هيئة الغذاء — جرّبها هنا قبل أن
-            تسجّل.
-          </p>
-
-          <div className={cn("mt-10 min-w-0", CALC_MIN_H)}>
-            <Suspense fallback={<div className={cn("skeleton mx-auto max-w-4xl rounded-[20px]", CALC_MIN_H)} />}>
-              <HeroCalculator />
-            </Suspense>
+        {/* الترتيب على الجوّال: الوعد ⇒ الجوّال ⇒ الأدوات ⇒ الزرّان — يرى الزائر
+            المنيو قبل أن يُطلب منه شيء. وعلى الشاشة العريضة عمودان: النصّ
+            والأدوات، والجوّال بجانبهما يتبدّل وهو يكتب. */}
+        <div className="mx-auto grid max-w-6xl items-center gap-8 px-5 pb-16 pt-10 sm:pt-14 lg:grid-cols-[minmax(0,1fr)_auto] lg:gap-x-14 lg:gap-y-6">
+          <div className="min-w-0 text-center lg:col-start-1 lg:row-start-1 lg:text-start">
+            <p className="anim-fade-up mb-5 inline-flex items-center gap-2 rounded-full border border-line bg-panel/70 px-3.5 py-1.5 text-xs font-semibold text-dim">
+              <span className="h-1.5 w-1.5 rounded-full bg-sadu" aria-hidden="true" />
+              منيو QR للمطاعم والمقاهي السعودية
+            </p>
+            <h1 className="font-display text-[2.5rem] font-bold leading-[1.2] text-ink sm:text-[3.4rem]">
+              <Words text="منيو يشبه مطعمك،" />
+              <br />
+              <Words text="ويبيع عنك." className="text-gold-grad" />
+            </h1>
+            <p className="anim-fade-up mx-auto mt-5 max-w-[46ch] text-lg leading-[1.8] text-dim lg:mx-0">
+              موقع منيو باسمك وشعارك وألوانك — يفتحه زبونك من كود الطاولة، يطلب ويدفع، ويرجع لك ببطاقة
+              الولاء. والسعرات التي تطلبها الهيئة محسوبة من وصفاتك.
+            </p>
           </div>
 
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Link
-              to="/login?mode=signup"
-              className="press inline-flex min-h-12 items-center rounded-[12px] bg-gold px-7 font-bold text-on-gold shadow-[0_10px_30px_-10px_var(--c-glow)] hover:bg-gold2"
-            >
-              {CTA_PRIMARY}
-            </Link>
-            <Link
-              to="/demo"
-              className="press inline-flex min-h-12 items-center rounded-[12px] border border-line bg-panel px-6 font-bold text-ink hover:border-ink/35"
-            >
-              {CTA_SECONDARY}
-            </Link>
+          <div className="min-w-0 lg:col-start-2 lg:row-span-3 lg:row-start-1">
+            <PhoneMenu brand={brand} />
+            <p className="mt-4 text-center text-xs text-faint">منيوٌ حقيقي — مرّره وافتح أي طبق.</p>
           </div>
-          {/* المجانيّ هو التجربة وحدها — تحت الزرّ لا على وجهه (`landing-cta.test.ts`). */}
-          <p className="mt-3 text-sm text-dim">{trialDaysLabel} مجاناً — بلا بطاقة بنكية.</p>
+
+          <div ref={builder} className="anim-fade-up mx-auto w-full min-w-0 max-w-xl lg:col-start-1 lg:row-start-2 lg:mx-0">
+            <BrandControls brand={brand} onChange={setBrand} />
+          </div>
+
+          <div className="min-w-0 text-center lg:col-start-1 lg:row-start-3 lg:text-start">
+            <div className="flex flex-wrap items-center justify-center gap-3 lg:justify-start">
+              <Link
+                to="/login?mode=signup"
+                className="press inline-flex min-h-12 items-center rounded-[12px] bg-gold px-7 font-bold text-on-gold shadow-[0_10px_30px_-10px_var(--c-glow)] hover:bg-gold2"
+              >
+                {CTA_PRIMARY}
+              </Link>
+              <Link
+                to="/demo"
+                className="press inline-flex min-h-12 items-center rounded-[12px] border border-line bg-panel px-6 font-bold text-ink hover:border-ink/35"
+              >
+                {CTA_SECONDARY}
+              </Link>
+            </div>
+            {/* المجانيّ هو التجربة وحدها — تحت الزرّ لا على وجهه (`landing-cta.test.ts`). */}
+            <p className="mt-3 text-sm text-dim">{trialDaysLabel} مجاناً — بلا بطاقة بنكية.</p>
+          </div>
         </div>
       </section>
 
-      {/* ٢. كيف يعمل — ثلاث خطوات. */}
-      <section id="how" className="scroll-mt-20 border-y border-line bg-panel/60">
+      {/* ٢. لماذا يبيع — نتائج لا مزايا. */}
+      <section className="border-y border-line bg-panel/60">
         <div className="mx-auto max-w-6xl px-5 py-20">
-          <SectionHead title="ثلاث خطوات ومنيوك جاهز" sub="من صورة منيوك الحالي إلى منيو بأرقامه — في جلسة واحدة." />
-          <ol className="mx-auto grid max-w-2xl gap-0">
-            {STEPS.map((s, i) => (
-              <Reveal key={s.title} delay={i * 90}>
-                <li className="grid grid-cols-[3.25rem_minmax(0,1fr)] gap-5">
-                  <div className="flex flex-col items-center">
-                    <span className="relative flex h-13 w-13 items-center justify-center rounded-full bg-ink text-page shadow-[0_10px_24px_-14px_rgba(0,0,0,0.6)]">
-                      <Icon name={s.icon} size={22} />
-                      <span className="tabular absolute -top-1 -start-1 flex h-5 w-5 items-center justify-center rounded-full bg-sadu text-[11px] font-bold text-white">
-                        {i + 1}
-                      </span>
-                    </span>
-                    {i < STEPS.length - 1 && <span aria-hidden="true" className="my-2 w-px flex-1 bg-line" />}
-                  </div>
-                  <div className={cn("pt-2", i < STEPS.length - 1 && "pb-10")}>
-                    <h3 className="text-xl font-bold text-ink">{s.title}</h3>
-                    <p className="mt-1.5 text-base leading-relaxed text-dim">{s.desc}</p>
-                  </div>
-                </li>
+          <SectionHead
+            title="موظّف مبيعات على كل طاولة"
+            sub="ليس قائمة أسعار: هذا ما يفعله المنيو لمطعمك من أوّل مسحٍ للكود إلى عودة الزبون."
+          />
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {OUTCOMES.map((o, i) => (
+              <Reveal key={o.title} delay={i * 70} className="h-full">
+                <div className="flex h-full flex-col rounded-[18px] border border-line bg-panel p-5">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-[12px] bg-gold/12 text-gold">
+                    <Icon name={o.icon} size={21} />
+                  </span>
+                  <h3 className="mt-4 text-lg font-bold text-ink">{o.title}</h3>
+                  <p className="mt-1.5 text-[15px] leading-relaxed text-dim">{o.desc}</p>
+                </div>
               </Reveal>
             ))}
-          </ol>
+          </div>
         </div>
       </section>
 
-      {/* ٣. بهوية مطعمك — الطوابع. */}
-      <section className="mx-auto w-full max-w-6xl px-5 py-20">
-        <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-          <Reveal className="text-center lg:text-right">
-            <div className="sadu-band mx-auto mb-6 w-32 lg:mx-0" aria-hidden="true" />
-            <h2 className="font-display text-3xl font-bold leading-[1.3] text-ink sm:text-4xl">بهوية مطعمك</h2>
-            <p className="mx-auto mt-4 max-w-[40ch] text-lg leading-[1.8] text-dim lg:mx-0">
-              {THEME_COUNT} طابعاً بهوية محلية — نجدي بنسيج السدو، وحجازي بأقواس الرواشين — أو لون علامتك.
-              والأرقام نفسها تلبس طابعك على الطاولة وعلى الورق.
-            </p>
-            <p className="mt-4 text-sm text-dim">
-              <b className="text-ink">{theme.name}</b> — {theme.tagline}
-            </p>
-          </Reveal>
-          <Reveal delay={90} className="min-w-0">
-            <PhonePreview theme={theme} animate />
-            <ThemeRail value={themeId} onChange={pick} />
-          </Reveal>
+      {/* ٣. كيف يعمل — ثلاث خطوات. */}
+      <section id="how" className="mx-auto w-full max-w-6xl scroll-mt-20 px-5 py-20">
+        <SectionHead title="ثلاث خطوات ومنيوك جاهز" sub="من صورة منيوك الحالي إلى كودٍ على طاولاتك — في جلسة واحدة." />
+        <ol className="grid gap-4 md:grid-cols-3">
+          {STEPS.map((s, i) => (
+            <Reveal key={s.title} delay={i * 90} className="h-full">
+              <li className="relative flex h-full flex-col rounded-[18px] border border-line bg-panel p-5">
+                <span className="flex items-center gap-3">
+                  <span className="relative flex h-12 w-12 items-center justify-center rounded-full bg-ink text-page">
+                    <Icon name={s.icon} size={21} />
+                  </span>
+                  <span className="text-sm font-bold text-faint">{["٠١", "٠٢", "٠٣"][i]}</span>
+                </span>
+                <h3 className="mt-4 text-lg font-bold text-ink">{s.title}</h3>
+                <p className="mt-1.5 text-[15px] leading-relaxed text-dim">{s.desc}</p>
+              </li>
+            </Reveal>
+          ))}
+        </ol>
+      </section>
+
+      {/* ٤. الطوابع — لكلّ نوع مطعم واحد، بلون علامتك. */}
+      <section className="border-y border-line bg-panel/60">
+        <div className="mx-auto max-w-6xl px-5 py-20">
+          <SectionHead
+            title={`${THEMES_LABEL} — لكلّ نوع مطعم واحد`}
+            sub="كلٌّ منها تصميمٌ كامل يلبس شعارك ولون علامتك. اضغط أيّها لتراه على منيوك أعلاه."
+          />
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {ALL_THEMES.map((t, i) => (
+              <Reveal key={t.id} delay={(i % 3) * 70}>
+                <button
+                  type="button"
+                  onClick={() => tryTheme(t.id)}
+                  className={cn(
+                    "press group block w-full overflow-hidden rounded-[18px] border bg-panel text-start transition-colors",
+                    brand.theme === t.id ? "border-ink" : "border-line hover:border-ink/35"
+                  )}
+                >
+                  <ThemePreview theme={t} />
+                  <div className="flex items-start justify-between gap-3 p-4">
+                    <div className="min-w-0">
+                      <p className="font-bold text-ink">{t.name}</p>
+                      <p className="mt-1 text-sm leading-relaxed text-dim">{t.tagline}</p>
+                    </div>
+                    <span className="mt-0.5 shrink-0 text-xs font-bold text-gold group-hover:underline">جرّبه ↑</span>
+                  </div>
+                </button>
+              </Reveal>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* ٤. وفوقها — المزايا. */}
+      {/* ٥. الحاسبة — الإلزام النظامي محلولاً، بلا تسجيل. */}
+      <section id="calories" className="mx-auto w-full max-w-6xl scroll-mt-20 px-5 py-20">
+        <SectionHead
+          title={
+            <>
+              سعراتك محسوبة، <span className="text-gold-grad">لا مكتوبة.</span>
+            </>
+          }
+          sub="اكتب وصفة الصنف كما تقولها، ونحسب الأرقام التي تطلبها هيئة الغذاء — جرّبها هنا قبل أن تسجّل."
+        />
+        <div className={cn("min-w-0", CALC_MIN_H)}>
+          <Suspense fallback={<div className={cn("skeleton mx-auto max-w-4xl rounded-[20px]", CALC_MIN_H)} />}>
+            <HeroCalculator />
+          </Suspense>
+        </div>
+      </section>
+
+      {/* ٦. وفوقها — المزايا. */}
       <section id="features" className="scroll-mt-20 border-y border-line bg-panel/60">
         <div className="mx-auto max-w-6xl px-5 py-20">
           <SectionHead title="وفوقها كل ما يحتاجه مطعمك" />
@@ -419,7 +372,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ٥. السعر — يلي المزايا ويسبق الأسئلة (`landing-cta.test.ts`). */}
+      {/* ٧. السعر — يلي المزايا ويسبق الأسئلة (`landing-cta.test.ts`). */}
       <section id="pricing" className="mx-auto w-full max-w-6xl scroll-mt-20 px-5 py-20">
         <SectionHead title="سعرٌ واحد، كل شيء داخله" sub="بدون رسوم خفية — ألغِ في أي وقت." />
         <div className="mb-8 flex justify-center">
@@ -451,7 +404,7 @@ export default function Landing() {
         <PricingCards cycle={cycle} selectLabel={CTA_PRIMARY} />
       </section>
 
-      {/* ٦. الأسئلة الشائعة */}
+      {/* ٨. الأسئلة الشائعة */}
       <section className="mx-auto w-full max-w-3xl px-5 pb-20">
         <SectionHead title="الأسئلة الشائعة" />
         <div className="flex flex-col gap-3">
@@ -476,14 +429,14 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ٧. الدعوة الأخيرة — شريطٌ بالحبر، جملةٌ وزرّ. */}
+      {/* ٩. الدعوة الأخيرة — شريطٌ بالحبر، جملةٌ وزرّ. */}
       <section className="bg-ink text-page">
         <div className="mx-auto max-w-3xl px-5 py-20 text-center">
           <Reveal>
             <div className="sadu-band mx-auto mb-7 w-32 opacity-90" aria-hidden="true" />
-            <h2 className="font-display text-3xl font-bold leading-[1.3] sm:text-4xl">منيوك بأرقامه الصحيحة — جاهز اليوم</h2>
+            <h2 className="font-display text-3xl font-bold leading-[1.3] sm:text-4xl">منيوك باسمك — جاهز اليوم</h2>
             <p className="mx-auto mt-4 max-w-[42ch] text-lg leading-relaxed opacity-80">
-              صوّر منيوك، اكتب وصفاتك، وانشر الكود والورقة في جلسة واحدة.
+              صوّر منيوك، اختر طابعك وارفع شعارك، واطبع الكود — في جلسة واحدة.
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <Link

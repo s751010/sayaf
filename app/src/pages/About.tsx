@@ -28,7 +28,7 @@ import { Link } from "react-router-dom";
 import { Navbar, Footer } from "@/components/site";
 import { Icon } from "@/lib/icons";
 import { SITE_NAME } from "@/lib/config";
-import { CARD_SIZE_COUNT, PRINT_DPI, THEME_COUNT } from "@/lib/facts";
+import { CARD_SIZE_COUNT, PRINT_DPI, THEME_COUNT, THEMES_LABEL } from "@/lib/facts";
 import { CURRENCY, PLANS } from "@/lib/plans";
 import { ORGANIZATION, absoluteUrl, useJsonLd, useSeo } from "@/lib/seo";
 import { formatPrice } from "@/lib/utils";
@@ -205,8 +205,8 @@ export default function About() {
             <Principle
               icon="palette"
               title="العربية أصل لا ترجمة"
-              promise="بُنيت الواجهة من اليمين إلى اليسار من أول سطر. والطوابع تحمل زخارف من هنا — السدو والقطّ العسيري والمشربية والنخيل — لا قوالب عامّة مصبوغة بلون."
-              proof={`افتح /demo?theme=qatt ثم /demo?theme=najdi: يختلفان في الزخرفة وشكل الترويسة والخطّ والتخطيط، لا في اللون وحده. و${THEME_COUNT} طابعاً كلّها كذلك.`}
+              promise="بُنيت الواجهة من اليمين إلى اليسار من أول سطر. والطوابع تحمل زخارف من هنا — نسيج السدو والمشربية ونجمة الجيري — لا قوالب عامّة مصبوغة بلون."
+              proof={`افتح /demo?theme=najdi ثم /demo?theme=urban: يختلفان في الزخرفة وشكل الترويسة والخطّ والتخطيط، لا في اللون وحده. و${THEMES_LABEL} كلّها كذلك — لكلّ نوع مطعم واحد.`}
             />
             <Principle
               icon="eye"
@@ -227,7 +227,7 @@ export default function About() {
             بعد دقيقة من التسجيل.
           </p>
           <div className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <Stat value={String(THEME_COUNT)} label="طابعاً كاملاً للمنيو" />
+            <Stat value={String(THEME_COUNT)} label="طوابع — لكلّ نوع مطعم واحد" />
             <Stat value={String(CARD_SIZE_COUNT)} label="قياسات بطاقة للطباعة" />
             <Stat value={String(PRINT_DPI)} label="DPI دقّة ملفّ الطباعة" />
             <Stat value="٠" label="تطبيقات يحمّلها زبونك" />
