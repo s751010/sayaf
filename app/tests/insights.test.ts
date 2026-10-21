@@ -76,4 +76,29 @@ describe("buildInsights", () => {
     const out = buildInsights([dish({ id: "k", name_en: "Kabsa" })], rows, restaurant({ english_enabled: true }));
     expect(out.some((i) => i.id === "english-gaps")).toBe(false);
   });
+
+  it("ولا يُقترح صنفٌ لم يفتحه قارئ إنجليزي — مهما فتحه العرب", () => {
+    // «مندي» بلا ترجمة ويفتحه العرب كثيراً، والإنجليزية كلّها على «كبسة» المترجَمة.
+    const rows = [
+      ...views,
+      row({ dish_id: "m", lang: "ar", views: 40 }),
+      row({ dish_id: "k", lang: "en", views: 5 }),
+    ];
+    const dishes = [dish({ id: "m", name: "مندي" }), dish({ id: "k", name: "كبسة", name_en: "Kabsa" })];
+    const out = buildInsights(dishes, rows, restaurant({ english_enabled: true }));
+    expect(out.some((i) => i.id === "english-gaps")).toBe(false);
+  });
+
+  it("ويبدأ بالصنف الأكثر فتحاً بالإنجليزية لا بالأكثر فتحاً عموماً", () => {
+    const rows = [
+      ...views,
+      row({ dish_id: "m", lang: "ar", views: 40 }),
+      row({ dish_id: "m", lang: "en", views: 1, hour: 14 }),
+      row({ dish_id: "f", lang: "en", views: 6 }),
+    ];
+    const dishes = [dish({ id: "m", name: "مندي" }), dish({ id: "f", name: "فول" })];
+    const gap = buildInsights(dishes, rows, restaurant({ english_enabled: true })).find((i) => i.id === "english-gaps");
+    expect(gap?.text).toMatch(/^7 فتحاً بالإنجليزية، و2 /);
+    expect(gap?.text).toContain("ابدأ بـ«فول»");
+  });
 });

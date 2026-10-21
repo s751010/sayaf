@@ -314,6 +314,9 @@ Deno.serve(async (req) => {
     })),
     p_subtotal: totals.subtotal,
     p_total: totals.total,
+    // طريقة تسعير المطعم لحظة الطلب — **لا** «هل الإجمالي شامل»: الإجمالي هنا
+    // فيه الضريبة دائماً. والإيصالات تستنتج المضاف منها من الفرق بين الإجمالي
+    // والبنود (`vatAddedOnTop` في الواجهة)، فلا يُقرأ هذا العمود وحده.
     p_vat_included: restaurant?.prices_include_vat !== false,
     p_name: String(customer.name ?? "").trim().slice(0, 60) || null,
     p_phone: String(customer.mobile ?? "").replace(/\D/g, "").slice(0, 20) || null,

@@ -33,6 +33,12 @@ const MIN_VIEWS = 20;
  *
  * وفتح الطبق يُسجَّل بلغة الشاشة لحظتها — هي اللغة التي قرأ بها فعلاً. ولا
  * يتغيّر شيء في القاعدة: الحقل نفسه، من الصفوف التي كانت تحمله صحيحاً أصلاً.
+ *
+ * ⚠️ **وهو تقريبي**: الفهرس الفريد `analytics_dish_hour_unique` على
+ * `(menu_id, date, hour, dish_id)` بلا `lang`، فكل فتحات الصنف في الساعة
+ * الواحدة صفٌّ واحد بلغة واحدة. يصحّ تماماً حين يُفتح الصنف مرّة في الساعة —
+ * وهي حال أغلب المطاعم — ويميل حين تختلط اللغتان على صنفٍ واحد في ساعة.
+ * إصلاحه في القاعدة (`LAUNCH.md`).
  */
 export function languageSplit(rows: AnalyticsRow[], inRange?: Set<string>): { ar: number; en: number } {
   let ar = 0;
@@ -150,14 +156,22 @@ export function buildInsights(
    * المبدّل لا يظهر للزبون إلا حين تكون مفعّلة. فالتوصية الممكنة هي التالية:
    * من يقرأ بالإنجليزية يرى الصنف غير المترجَم باسمه العربي.
    */
-  const enOpens = languageSplit(dishRows).en;
-  const untranslated = ranked.filter((d) => (hits.get(d.id) ?? 0) > 0 && !d.name_en?.trim());
-  if (restaurant.english_enabled && enOpens > 0 && untranslated.length) {
+  // من الفتحات **بالإنجليزية** وحدها: صنفٌ يفتحه العرب كثيراً ولم يفتحه قارئ
+  // إنجليزي واحد ليس ما يراه ذلك القارئ بلا ترجمة.
+  const enHits = new Map<string, number>();
+  for (const r of dishRows) {
+    if (r.dish_id && r.lang === "en") enHits.set(r.dish_id, (enHits.get(r.dish_id) ?? 0) + (r.views ?? 0));
+  }
+  const enOpens = [...enHits.values()].reduce((s, v) => s + v, 0);
+  const untranslated = dishes
+    .filter((d) => (enHits.get(d.id) ?? 0) > 0 && !d.name_en?.trim())
+    .sort((a, b) => (enHits.get(b.id) ?? 0) - (enHits.get(a.id) ?? 0));
+  if (restaurant.english_enabled && untranslated.length) {
     out.push({
       id: "english-gaps",
       severity: "info",
       icon: "link",
-      text: `${enOpens} فتحاً بالإنجليزية، و${untranslated.length} من الأصناف المفتوحة بلا اسم إنجليزي — ابدأ بـ«${untranslated[0].name}».`,
+      text: `${enOpens} فتحاً بالإنجليزية، و${untranslated.length} من الأصناف التي فُتحت بها بلا اسم إنجليزي — ابدأ بـ«${untranslated[0].name}».`,
       action: { label: "أكمل الترجمة", to: "/dashboard/dishes" },
     });
   }
