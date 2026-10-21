@@ -9,6 +9,7 @@ import { useEffect, useState, type CSSProperties } from "react";
 import { mFont } from "@/components/menu/chrome";
 import { verifyOrder, type PublicOrder } from "@/lib/data";
 import { formatMoney } from "@/lib/utils";
+import { vatAddedOnTop } from "@/lib/vat";
 import { LoyaltyProgress } from "@/components/menu/LoyaltyProgress";
 
 /** الحالات كما يقرؤها الزبون — لا أسماء تقنية. */
@@ -174,6 +175,7 @@ export function PickupTicket({
   }
 
   const view = STATUS_VIEW[order.status] ?? STATUS_VIEW.new;
+  const vatAdded = vatAddedOnTop(order.total, order.items);
 
   return (
     <div className="anim-fade-up mx-auto mt-5 max-w-md overflow-hidden border" style={card}>
@@ -222,6 +224,13 @@ export function PickupTicket({
             الجملة هي التي تُرجعه غداً. */}
         {order.loyalty && <LoyaltyProgress loyalty={order.loyalty} en={en} />}
 
+        {vatAdded > 0 && (
+          <div className="mt-3 flex items-baseline justify-between text-xs" style={{ color: "var(--m-muted)" }}>
+            <span>{en ? "VAT (15%)" : "ضريبة القيمة المضافة ١٥٪"}</span>
+            <span className="tabular-nums">{formatMoney(vatAdded, en)}</span>
+          </div>
+        )}
+
         <div className="mt-3 flex items-baseline justify-between border-t pt-3" style={{ borderColor: "var(--m-border)" }}>
           <span className="text-sm font-black" style={{ color: "var(--m-text)", ...mFont }}>
             {en ? "Total" : "الإجمالي"}
@@ -231,7 +240,7 @@ export function PickupTicket({
           </span>
         </div>
         <p className="mt-1 text-[11px]" style={{ color: "var(--m-muted)" }}>
-          {order.vat_included
+          {order.vat_included || vatAdded > 0
             ? en
               ? "VAT (15%) included"
               : "شامل ضريبة القيمة المضافة ١٥٪"

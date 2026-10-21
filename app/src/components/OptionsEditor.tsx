@@ -3,7 +3,8 @@
  *
  * كان الحقل مربّع نصّ يُطلب فيه من صاحب المطعم كتابة JSON بيده
  * (`[{"name":"جبن إضافي","price":5}]`) — وهذا ليس شيئاً يُطلب من تاجر.
- * هنا صفوف: اسم + سعر اختياري، والتسلسل إلى JSON يحدث خلف الكواليس.
+ * هنا صفوف: اسم + سعر اختياري + سعرات اختيارية، والتسلسل إلى JSON يحدث خلف
+ * الكواليس. والسعرات لأن الهيئة تطلبها للإضافات منفصلة: «جبن إضافي · 80 سعرة».
  */
 import { useState } from "react";
 import { parseOptions, serializeOptions, type DishOption } from "@/lib/options";
@@ -32,11 +33,12 @@ export function OptionsEditor({
   }
 
   /**
-   * صفوف فيها سعر بلا اسم. `serializeOptions` تُسقطها (إضافة بلا اسم لا معنى
-   * لها للزبون)، وكان ذلك يحدث بصمت: التاجر يكتب «5» ويحفظ فتختفي الإضافة.
-   * نُظهر التحذير بدل الحذف الصامت.
+   * صفوف فيها سعر أو سعرات بلا اسم. `serializeOptions` تُسقطها (إضافة بلا اسم
+   * لا معنى لها للزبون)، وكان ذلك يحدث بصمت: التاجر يكتب «5» ويحفظ فتختفي
+   * الإضافة. نُظهر التحذير بدل الحذف الصامت.
    */
-  const priceWithoutName = rows.some((r) => !r.name.trim() && r.price !== undefined);
+  const unnamed = (r: DishOption) => !r.name.trim() && (r.price !== undefined || r.kcal !== undefined);
+  const hasUnnamed = rows.some(unnamed);
 
   return (
     <div className="space-y-2">
@@ -44,7 +46,7 @@ export function OptionsEditor({
 
       {rows.length === 0 && (
         <p className="text-xs text-faint">
-          لا توجد إضافات. مثال: «جبن إضافي +5 ر.س» أو «حجم كبير +10 ر.س».
+          لا توجد إضافات. مثال: «جبن إضافي +5 ر.س · 80 سعرة» أو «شوت إضافي +4 ر.س».
         </p>
       )}
 
@@ -56,9 +58,9 @@ export function OptionsEditor({
               placeholder="اسم الإضافة (مطلوب)"
               className={cn(
                 "flex-1",
-                !row.name.trim() && row.price !== undefined && "border-bad/50"
+                unnamed(row) && "border-bad/50"
               )}
-              aria-invalid={!row.name.trim() && row.price !== undefined}
+              aria-invalid={unnamed(row)}
               onChange={(e) =>
                 push(rows.map((r, j) => (j === i ? { ...r, name: e.target.value } : r)))
               }
@@ -84,6 +86,25 @@ export function OptionsEditor({
                 );
               }}
             />
+            <Input
+              type="number"
+              inputMode="numeric"
+              min="0"
+              step="1"
+              dir="ltr"
+              value={row.kcal ?? ""}
+              placeholder="سعرة"
+              className="w-20 text-center"
+              aria-label="سعرات الإضافة (اختياري)"
+              onChange={(e) => {
+                const n = e.target.value === "" ? undefined : Math.round(Number(e.target.value));
+                push(
+                  rows.map((r, j) =>
+                    j === i ? { ...r, kcal: n !== undefined && Number.isFinite(n) && n > 0 ? n : undefined } : r
+                  )
+                );
+              }}
+            />
             <button
               type="button"
               aria-label={`حذف ${row.name || "الإضافة"}`}
@@ -96,9 +117,9 @@ export function OptionsEditor({
         ))}
       </div>
 
-      {priceWithoutName && (
+      {hasUnnamed && (
         <p className="text-xs text-bad">
-          اكتب اسم الإضافة — السعر وحده لا يظهر للزبون ولن يُحفظ.
+          اكتب اسم الإضافة — السعر أو السعرات وحدها لا تظهر للزبون ولن تُحفظ.
         </p>
       )}
 

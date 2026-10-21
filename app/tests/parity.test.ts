@@ -19,6 +19,8 @@ import { describe, expect, it } from "vitest";
 import { parseOptions } from "@/lib/options";
 import { PLANS, CURRENCY_CODE } from "@/lib/plans";
 import { parseDishOptions } from "../../supabase/functions/_shared/options";
+import { orderTotals as appTotals, VAT_RATE as APP_VAT, vatAddedOnTop } from "@/lib/vat";
+import { orderTotals as edgeTotals, VAT_RATE as EDGE_VAT } from "../../supabase/functions/_shared/vat";
 
 const repo = (p: string) => fileURLToPath(new URL(`../../${p}`, import.meta.url));
 
@@ -82,6 +84,57 @@ describe("تكافؤ parseOptions ⟷ parseDishOptions", () => {
   });
 });
 
+/* ══ ١ب) ضريبة الطلب: السلّة ⟷ paylink-order-create ════════════════════ */
+
+/**
+ * ما يُعرض في السلّة هو ما يُحصَّل — أو يرى الزبون ١١٥ ثم تطلب منه صفحة الدفع
+ * ١٠٠ (أو العكس). والعطل الذي أوجدها: الخادم كان لا يضيف الضريبة أصلاً.
+ */
+describe("تكافؤ orderTotals: lib/vat ⟷ _shared/vat", () => {
+  it("النسبة واحدة", () => expect(APP_VAT).toBe(EDGE_VAT));
+  it.each([0, 5, 18, 82, 99.5, 123.45, 1000, 0.01])("مجموع %s", (n) => {
+    expect(appTotals(n, true)).toEqual(edgeTotals(n, true));
+    expect(appTotals(n, false)).toEqual(edgeTotals(n, false));
+  });
+  it("غير الشاملة تُضاف إليها ١٥٪ — والشاملة لا يتغيّر إجماليها", () => {
+    expect(appTotals(100, false)).toEqual({ subtotal: 100, vat: 15, total: 115 });
+    expect(appTotals(115, true)).toEqual({ subtotal: 115, vat: 15, total: 115 });
+  });
+  /**
+   * الحساب بالريال كان يقرّب `1.5 × 0.15 = 0.22499999…` إلى 0.22 — هللةٌ تنقص في
+   * ١٣٠٢ مبلغاً من كل مئة ألف. والمرجع هنا عدديٌّ صحيح خالص: نصف الهللة إلى أعلى.
+   */
+  it("الضريبة بالهللة: نصفها إلى أعلى في كل مبلغ حتى ١٠٠٠ ريال", () => {
+    expect(appTotals(1.5, false).vat).toBe(0.23);
+    expect(appTotals(3.3, false).vat).toBe(0.5);
+    expect(appTotals(4.1, false).vat).toBe(0.62);
+    const off: number[] = [];
+    for (let h = 1; h <= 100_000; h++) {
+      const want = Math.floor((h * 15 + 50) / 100);
+      const got = appTotals(h / 100, false);
+      if (Math.round(got.vat * 100) !== want || Math.round(got.total * 100) !== h + want) off.push(h);
+    }
+    expect(off.slice(0, 5)).toEqual([]);
+  });
+  it("والشاملة: الضريبة والصافي يجمعان الإجمالي بلا هللة ضائعة", () => {
+    for (let h = 1; h <= 100_000; h += 7) {
+      const { vat, total } = appTotals(h / 100, true);
+      const net = Math.round(total * 100) - Math.round(vat * 100);
+      expect(Math.abs(net * 115 - h * 100)).toBeLessThanOrEqual(115 / 2);
+    }
+  });
+});
+
+describe("vatAddedOnTop — سطر الضريبة في الإيصال", () => {
+  const lines = [{ line_total: 30 }, { line_total: 20 }];
+  it("ما فوق البنود ضريبةٌ مضافة", () => expect(vatAddedOnTop(57.5, lines)).toBe(7.5));
+  it("والإجمالي المساوي للبنود: لا سطر — شاملة، أو طلبٌ قبل نشر الإصلاح", () =>
+    expect(vatAddedOnTop(50, lines)).toBe(0));
+  it("ولا ضريبة سالبة إن نقص الإجمالي", () => expect(vatAddedOnTop(45, lines)).toBe(0));
+  it("بلا كسور عائمة: 0.1 + 0.2", () =>
+    expect(vatAddedOnTop(0.35, [{ line_total: 0.1 }, { line_total: 0.2 }])).toBe(0.05));
+});
+
 /* ══ ٢) الباقات: الواجهة ⟷ _shared/plans.ts ═══════════════════════════ */
 
 describe("تكافؤ plans.ts ⟷ _shared/plans.ts", () => {
@@ -132,6 +185,53 @@ describe("تكافؤ plans.ts ⟷ _shared/plans.ts", () => {
     walk(dir);
     expect(offenders, `سعر مكتوب بيد خارج _shared/plans.ts:\n${offenders.join("\n")}`)
       .toEqual([]);
+  });
+
+  /**
+   * ونظيره في الواجهة: «99 ر.س» مكتوبةً في نصّ صفحة. وُجدت في موضعين
+   * (`Dishes.tsx` · `Help.tsx`) يوم كان السعر قد تغيّر مرّة من قبل — والفحص
+   * أعلاه لا يقرأ إلا دوالّ الحافة. فأي سعر باقةٍ بجانب عملة في `app/src`
+   * خارج `lib/plans.ts` يُسقط CI — والمقالات معها: نصّها لا يستورد السعر.
+   *
+   * والصيغ كلّها لا واحدة: «٩٩ ر.س» و«SAR 599» و«99.00 ﷼» و«99/شهر».
+   * والحدّ قبل الرقم ليس `\b`: تلك تطابق «19.99 ر.س» بعد الفاصلة.
+   */
+  const prices = [...new Set(PLANS.flatMap((p) => [p.monthly, p.yearly]))].join("|");
+  const unit = "ر\\.\\s?س|ريال|SAR|SR\\b|﷼";
+  const num = `(?<![\\d.])(?:${prices})(?:\\.0+)?(?![\\d.]*\\d)`;
+  const planPrice = new RegExp(
+    `${num}\\s*(?:${unit}|/\\s*(?:شهر|سنة)|شهري|سنوي)|(?:${unit})\\s*${num}`
+  );
+  const westernDigits = (s: string) =>
+    s.replace(/[٠-٩۰-۹]/g, (d) => String((d.charCodeAt(0) - 0x660) % 0x90));
+  const hasPlanPrice = (line: string) => planPrice.test(westernDigits(line));
+
+  it.each([
+    "99 ر.س", "599 ريال", "99ر.س", "٩٩ ر.س", "٥٩٩ ريال", "SAR 99", "ر.س 599",
+    "99 SR", "99 ﷼", "99.00 ر.س", "99/شهر", "599 / سنة", "99 شهرياً",
+  ])("الحارس يمسك «%s»", (s) => expect(hasPlanPrice(s)).toBe(true));
+
+  it.each(["19.99 ر.س", "24.599 ريال", "199 ر.س", "990 ريال", "شوفان 99", "SAR 1099"])(
+    "ولا يمسك «%s»",
+    (s) => expect(hasPlanPrice(s)).toBe(false)
+  );
+
+  it("لا صفحة ولا مقال يكتب سعر الباقة برقم", () => {
+    const dir = repo("app/src");
+    const offenders: string[] = [];
+    const walk = (p: string) => {
+      for (const e of readdirSync(p, { withFileTypes: true })) {
+        const full = `${p}/${e.name}`;
+        if (e.isDirectory()) walk(full);
+        else if (/\.(tsx?|json|html)$/.test(e.name) && !full.endsWith("lib/plans.ts")) {
+          readFileSync(full, "utf8").split("\n").forEach((line, i) => {
+            if (hasPlanPrice(line)) offenders.push(`${full.split("/app/src/")[1]}:${i + 1}`);
+          });
+        }
+      }
+    };
+    walk(dir);
+    expect(offenders, `سعر الباقة مكتوب بيد خارج lib/plans.ts:\n${offenders.join("\n")}`).toEqual([]);
   });
 
   it("الخادم لا يسعّر باقة لا تبيعها الواجهة", () => {

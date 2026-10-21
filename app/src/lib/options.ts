@@ -5,7 +5,16 @@
  * `[{name, price?}]`، لكن القارئ يتسامح مع النص الحر المفصول بأسطر/فواصل لأن
  * صفوفاً قديمة كُتبت بهذه الطريقة — لا تُسقط بيانات تاجر لأن صيغتها قديمة.
  */
-export type DishOption = { name: string; price?: number };
+export type DishOption = {
+  name: string;
+  price?: number;
+  /**
+   * سعرات الإضافة — الهيئة تطلب سعرات الإضافات الجانبية **منفصلة** بجانبها.
+   * مفتاحٌ داخل JSON العمود نفسه: لا عمود جديد ولا هجرة. والخادم لا يقرؤه
+   * (`_shared/options.ts`): المعرّف موضعٌ والسعر سعرٌ، فلا يتغيّر ما يُحصَّل.
+   */
+  kcal?: number;
+};
 
 /**
  * ⚠️ **القاعدة نفسها في `supabase/functions/_shared/options.ts`** — رقم أو
@@ -27,6 +36,12 @@ function normalizePrice(value: unknown): number {
   return 0;
 }
 
+/** سعرات صحيحة موجبة — وما عداها (سالب، نصّ غير رقمي، صفر) لا يُعرض. */
+function normalizeKcal(value: unknown): number {
+  const n = Math.round(normalizePrice(value));
+  return n > 0 ? n : 0;
+}
+
 export function parseOptions(raw: string | null | undefined): DishOption[] {
   if (!raw?.trim()) return [];
   try {
@@ -42,7 +57,8 @@ export function parseOptions(raw: string | null | undefined): DishOption[] {
             // `price` يُحذف عند الصفر كي لا تعرض الواجهة «+٠ ر.س» على خيار
             // بلا فرق سعر — والقيمة الرقمية تبقى مطابقة لنسخة الخادم.
             const price = normalizePrice(rec.price);
-            return price ? { name, price } : { name };
+            const kcal = normalizeKcal(rec.kcal);
+            return { name, ...(price ? { price } : {}), ...(kcal ? { kcal } : {}) };
           }
           return null;
         })
@@ -61,12 +77,12 @@ export function parseOptions(raw: string | null | undefined): DishOption[] {
 /** يُرجع `null` للقائمة الفارغة كي يبقى العمود فارغاً بدل `"[]"`. */
 export function serializeOptions(options: DishOption[]): string | null {
   const clean = options
-    .map((o) => ({ name: o.name.trim(), price: o.price }))
+    .map((o) => ({ name: o.name.trim(), price: o.price, kcal: normalizeKcal(o.kcal) }))
     .filter((o) => o.name.length > 0)
-    .map((o) =>
-      typeof o.price === "number" && Number.isFinite(o.price) && o.price > 0
-        ? { name: o.name, price: o.price }
-        : { name: o.name }
-    );
+    .map((o) => ({
+      name: o.name,
+      ...(typeof o.price === "number" && Number.isFinite(o.price) && o.price > 0 ? { price: o.price } : {}),
+      ...(o.kcal ? { kcal: o.kcal } : {}),
+    }));
   return clean.length ? JSON.stringify(clean) : null;
 }

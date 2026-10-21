@@ -303,7 +303,8 @@ Project ref: `wxrukupcyfypnqnotmxv` (اسمه «claudmenu» · سنغافورة)
 - `restaurants.season` → `ramadan` | `national` | `founding` | null · `lib/seasons.ts`.
 - `menus.window_from` / `window_to` → `HH:MM` بتوقيت الرياض (نافذة ظهور
   القائمة، تدعم تجاوز منتصف الليل) · `inTimeWindow` في `lib/hours.ts`.
-- `dishes.options` → JSON `[{name,price?}]` · `lib/options.ts`. **معرّف الإضافة في
+- `dishes.options` → JSON `[{name,price?,kcal?}]` · `lib/options.ts`. (`kcal` سعرات
+  الإضافة للزبون وحده — الخادم لا يقرؤه ولا يحتاجه.) **معرّف الإضافة في
   الطلب هو موضعها في هذه المصفوفة** — `paylink-order-create` تُكرّر منطق
   `parseOptions` حرفياً، فأي تغيير في التحليل هنا يوجب تغييراً مطابقاً هناك وإلا
   أشار الرقم إلى إضافة أخرى. (النسخة الأولى من الدالة افترضت شكلاً مُجمَّعاً

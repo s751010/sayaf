@@ -179,12 +179,20 @@ export function DishModal({
                         )}
                         {o.name}
                       </span>
-                      {/* «+0 ر.س» ضجيج: إضافة بلا سعر (حار، بلا بصل) اسمها يكفي. */}
-                      {o.price != null && o.price > 0 && (
-                        <span style={{ color: "var(--m-accent)" }}>
-                          +{formatPrice(o.price)} {en ? "SAR" : "ر.س"}
-                        </span>
-                      )}
+                      <span className="flex shrink-0 items-center gap-2">
+                        {/* سعرات الإضافة بجانبها — كما تطلب الهيئة للإضافات الجانبية. */}
+                        {o.kcal != null && o.kcal > 0 && (
+                          <span className="text-xs" style={{ color: "var(--m-muted)" }}>
+                            {o.kcal} {en ? "kcal" : "سعرة"}
+                          </span>
+                        )}
+                        {/* «+0 ر.س» ضجيج: إضافة بلا سعر (حار، بلا بصل) اسمها يكفي. */}
+                        {o.price != null && o.price > 0 && (
+                          <span style={{ color: "var(--m-accent)" }}>
+                            +{formatPrice(o.price)} {en ? "SAR" : "ر.س"}
+                          </span>
+                        )}
+                      </span>
                     </>
                   );
                   const cls =

@@ -67,6 +67,7 @@ import { aliasType, type StarterDish } from "@/lib/starterMenus";
 import { DishGlyph, Icon, iconNameOf, iconValue, type IconName } from "@/lib/icons";
 import { cn, formatPrice, numOrNull, strOrNull } from "@/lib/utils";
 import { computedNutrition } from "@/lib/nutrition";
+import { CURRENCY, PLAN } from "@/lib/plans";
 import type { Dish } from "@/lib/types";
 import { useDashboard, UpgradeGate } from "./Dashboard";
 import { MenuTabs } from "./Tabs";
@@ -1066,7 +1067,10 @@ export default function Dishes() {
       {!ent.active && dishes !== null && dishes.length > 0 && (
         <UpgradeGate
           title="فعّل اشتراكك لتفتح كل الميزات"
-          desc="اشتراكك يضمن بقاء منيوك متاحاً لزبائنك. كل المزايا مفتوحة — 99 ر.س شهرياً."
+          // ⚠️ كان «اشتراكك يضمن بقاء منيوك متاحاً» — والمنيو لا يُطفأ بلا اشتراك
+          // (`enforce_publishing` مطفأ عمداً، §21)، والسعر كان مكتوباً بيد خارج
+          // `lib/plans.ts`. فالوعد كاذب والسعر يتقادم مع أول تغيير.
+          desc={`منيوك يبقى متاحاً لزبائنك في كل الأحوال. والاشتراك يفتح الأدوات: الولاء والتحليلات وبطاقات الكاشير والدفع الإلكتروني — ${PLAN.monthly} ${CURRENCY} شهرياً.`}
         />
       )}
     </div>

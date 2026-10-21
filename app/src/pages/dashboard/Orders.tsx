@@ -23,6 +23,7 @@ import {
   type OrderStatus,
 } from "@/lib/data";
 import { formatMoney } from "@/lib/utils";
+import { vatAddedOnTop } from "@/lib/vat";
 import { useDashboard } from "./Dashboard";
 
 /** الحالة التالية وزرّها. `null` = الطلب انتهى. */
@@ -117,6 +118,7 @@ function printTicket(order: MerchantOrder, restaurantName: string) {
         }</td><td class="p">${esc(formatMoney(i.line_total))}</td></tr>`
     )
     .join("");
+  const vat = vatAddedOnTop(order.total, order.items);
   win.document.write(`<!doctype html><html dir="rtl" lang="ar"><head>
 <meta charset="utf-8"><title>طلب ${esc(order.code)}</title><style>
   *{box-sizing:border-box} body{font-family:system-ui,sans-serif;margin:0;padding:10px;width:80mm;color:#000}
@@ -134,7 +136,9 @@ function printTicket(order: MerchantOrder, restaurantName: string) {
   <div class="rest">${esc(restaurantName)}</div>
   <div class="lbl">رقم الاستلام</div>
   <div class="code">${esc(order.code)}</div>
-  <hr><table>${rows}</table><hr>
+  <hr><table>${rows}${
+    vat > 0 ? `<tr><td></td><td>ضريبة القيمة المضافة 15%</td><td class="p">${esc(formatMoney(vat))}</td></tr>` : ""
+  }</table><hr>
   <div class="tot"><span>الإجمالي</span><span>${esc(formatMoney(order.total))}</span></div>
   ${order.note ? `<div class="note">⚠️ ${esc(order.note)}</div>` : ""}
   <div class="meta">${esc(order.customer_name ?? "")} ${esc(order.customer_phone ?? "")}</div>

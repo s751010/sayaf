@@ -13,7 +13,7 @@ import { Badge, Button, Card, Skeleton } from "@/components/ui";
 import { Insights } from "@/components/Insights";
 import { ShareMenu } from "@/components/ShareMenu";
 import { getMyAnalytics, getMyDishes } from "@/lib/data";
-import { buildInsights } from "@/lib/insights";
+import { buildInsights, languageSplit } from "@/lib/insights";
 import { cn, formatPrice } from "@/lib/utils";
 import type { AnalyticsRow, Dish } from "@/lib/types";
 import { useDashboard, FeatureGate } from "./Dashboard";
@@ -197,8 +197,6 @@ function AnalyticsInner() {
     const hours = new Array<number>(24).fill(0);
     const dow = new Array<number>(7).fill(0);
     const tables = new Map<string, number>();
-    let en = 0;
-    let ar = 0;
 
     for (const r of menuRows) {
       if (!r.date || !inRange.has(r.date)) continue;
@@ -207,8 +205,6 @@ function AnalyticsInner() {
       const d = days.find((x) => x.iso === r.date);
       if (d) dow[d.dow] += v;
       if (r.table_no) tables.set(r.table_no, (tables.get(r.table_no) ?? 0) + v);
-      if (r.lang === "en") en += v;
-      else ar += v;
     }
 
     // فتح الأطباق داخل الفترة، مرتّبة.
@@ -233,7 +229,7 @@ function AnalyticsInner() {
       hours: hours.map((v, h) => ({ label: `${h}`, sub: `الساعة ${h}:00`, views: v })),
       dow: dow.map((v, i) => ({ label: DOW_AR[i].slice(0, 3), sub: DOW_AR[i], views: v })),
       tables: [...tables.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6),
-      langSplit: { ar, en },
+      langSplit: languageSplit(dishRows, inRange),
       dishOpens,
       ranked,
       zero,
@@ -477,7 +473,15 @@ function AnalyticsInner() {
               <h2 className="inline-flex items-center gap-2 mb-2 font-display font-extrabold text-ink">
           <Icon name="link" size={17} className="shrink-0 text-gold" />{" "}
           لغة العرض</h2>
-              {stats.langSplit.ar + stats.langSplit.en === 0 ? (
+              {/* المبدّل لا يظهر للزبون إلا مع «ثنائي اللغة» — فبدونه نسبةٌ ١٠٠٪
+                  عربية ليست قياساً بل نتيجة الإعداد، وعرضها يوهم بأن لا أحد يحتاج
+                  الإنجليزية. */}
+              {!restaurant.english_enabled ? (
+                <p className="text-xs leading-relaxed text-faint">
+                  منيوك بالعربية وحدها. فعّل «ثنائي اللغة» من الإعدادات، فتعرف هنا كم صنفاً يُفتح
+                  بالإنجليزية.
+                </p>
+              ) : stats.langSplit.ar + stats.langSplit.en === 0 ? (
                 <p className="text-xs text-faint">لا بيانات بعد.</p>
               ) : (
                 <>
@@ -494,7 +498,8 @@ function AnalyticsInner() {
                     <span className="text-dim">English: {stats.langSplit.en}</span>
                   </div>
                   <p className="mt-2 text-xs text-faint">
-                    يساعدك على معرفة هل يستحق المنيو الإنجليزي جهد الترجمة.
+                    من كل صنف فتحه زبون: بأيّ لغة كان يقرأ. والعدد تقريبي — فتحات الصنف الواحد في
+                    الساعة نفسها تُحسب بلغة واحدة. يكفي ليقول هل تستحق الترجمة جهدها.
                   </p>
                 </>
               )}

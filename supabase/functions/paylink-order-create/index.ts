@@ -30,6 +30,7 @@ import { restaurantHasActiveSubscription } from "../_shared/subscription.ts";
 // (`app/src/lib/options.ts`). كان مكتوباً هنا بيد، وتباعدَ فعلاً في معالجة
 // السعر النصّي — انظر رأس الملفّ المشترك.
 import { parseDishOptions, type DishOption } from "../_shared/options.ts";
+import { orderTotals } from "../_shared/vat.ts";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -281,6 +282,17 @@ Deno.serve(async (req) => {
     return json({ error: `أقل مبلغ للطلب ${minOrder} ر.س.` }, 400);
   }
 
+  /**
+   * الضريبة: الأسعار غير الشاملة تُضاف إليها ١٥٪ هنا — كما يَعِد ذيل المنيو.
+   * وسطرها في **فاتورة PayLink وحدها** (`invoiceProducts`): `products` تُطابَق
+   * بالموضع مع `items` في `place_order`، وسطرٌ زائد هناك يُزيح كل طبق عن صنفه.
+   */
+  const totals = orderTotals(amount, restaurant?.prices_include_vat !== false);
+  const invoiceProducts =
+    restaurant?.prices_include_vat === false && totals.vat > 0
+      ? [...products, { title: "ضريبة القيمة المضافة 15%", price: totals.vat, qty: 1 }]
+      : products;
+
   const table = String(body.table ?? "").replace(/\D/g, "").slice(0, 3);
   const customer = (body.customer ?? {}) as Record<string, unknown>;
   const clientName = String(customer.name ?? "").trim().slice(0, 60) || "زبون";
@@ -300,8 +312,11 @@ Deno.serve(async (req) => {
       unit_price: line.price,
       qty: line.qty,
     })),
-    p_subtotal: amount,
-    p_total: amount,
+    p_subtotal: totals.subtotal,
+    p_total: totals.total,
+    // طريقة تسعير المطعم لحظة الطلب — **لا** «هل الإجمالي شامل»: الإجمالي هنا
+    // فيه الضريبة دائماً. والإيصالات تستنتج المضاف منها من الفرق بين الإجمالي
+    // والبنود (`vatAddedOnTop` في الواجهة)، فلا يُقرأ هذا العمود وحده.
     p_vat_included: restaurant?.prices_include_vat !== false,
     p_name: String(customer.name ?? "").trim().slice(0, 60) || null,
     p_phone: String(customer.mobile ?? "").replace(/\D/g, "").slice(0, 20) || null,
@@ -324,12 +339,12 @@ Deno.serve(async (req) => {
         // معرّف الطلب داخل رقم الفاتورة: يربط الدفعة بالصفّ بلا جدول وسيط،
         // ويجعل كشف حساب PayLink مقروءاً عند مطابقة الحسابات.
         orderNumber: `cmo~${order.id}`,
-        amount,
+        amount: totals.total,
         callBackUrl: `${siteUrl}${menuPath}?order=paid&o=${order.id}`,
         cancelUrl: `${siteUrl}${menuPath}?order=cancelled&o=${order.id}`,
         clientName,
         clientMobile,
-        products,
+        products: invoiceProducts,
         note: table ? `طاولة ${table}` : undefined,
       },
       { apiId: settings.api_id, secretKey: settings.secret_key }
@@ -345,7 +360,7 @@ Deno.serve(async (req) => {
     return json({
       url: invoice.url,
       transactionNo: invoice.transactionNo,
-      amount,
+      amount: totals.total,
       order_id: order.id,
       code: order.code,
     });
