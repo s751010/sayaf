@@ -11,33 +11,23 @@
  * — كصفحة متجرٍ في تطبيق. وبلا شعار **حرفٌ من اسم المطعم** بخطّ الطابع ولونه:
  * هويّةٌ تُقرأ، لا مكانٌ فارغ ينتظر صورة.
  */
-import type { CSSProperties, ReactNode } from "react";
+import type { ComponentType, CSSProperties, ReactNode } from "react";
 import { SafeImage } from "@/components/ui";
 import { patternImage, PATTERN_SIZE } from "@/lib/patterns";
-import { isDarkTheme, type MenuTheme } from "@/lib/themes";
+import { isDarkTheme, type HeaderShape, type MenuTheme } from "@/lib/themes";
 import { restaurantTypeLabel } from "@/lib/menuText";
 import type { Restaurant } from "@/lib/types";
+import { LogoMark } from "./LogoMark";
+import { ArcadeHead, BoardHead, MastheadHead, PaperHead, SignHead, type HeadProps } from "./SkinHeads";
 
-/**
- * كلماتٌ تسبق اسم المطعم ولا تميّزه — «مطعم الديوان» حرفه «د» لا «م».
- * و«ال» تُنزع من الكلمة المختارة للسبب نفسه: «الديوان» ⇒ «د».
- */
-const GENERIC = new Set([
-  "مطعم", "مطاعم", "مقهى", "مقاهي", "كافيه", "كافي", "كوفي", "مطبخ", "مخبز", "مخابز",
-  "محمصة", "قهوة", "حلويات", "مشويات", "بيت", "دار", "cafe", "café", "coffee", "restaurant", "the", "kitchen",
-]);
-
-/** الحرف الذي يمثّل المطعم حين لا شعار — مُصدَّر للفحص. */
-export function monogramOf(name: string): string {
-  const words = name.trim().split(/\s+/).filter(Boolean);
-  const word = words.find((w) => !GENERIC.has(w.toLowerCase())) ?? words[0] ?? "";
-  const bare = word.length > 2 && word.startsWith("ال") ? word.slice(2) : word;
-  const ch = [...bare][0] ?? "";
-  return /[a-z]/i.test(ch) ? ch.toUpperCase() : ch;
-}
-
-/** الشعار المكتوب (إيموجي) الافتراضي — لا يُعدّ اختياراً من التاجر. */
-const DEFAULT_GLYPHS = new Set(["🍽️", "🍽"]);
+/** الترويسات التي بنيتها غير واجهة المتجر — لكلٍّ طابعه (`SkinHeads.tsx`). */
+const SKIN_HEADS: Partial<Record<HeaderShape, ComponentType<HeadProps>>> = {
+  paper: PaperHead,
+  board: BoardHead,
+  sign: SignHead,
+  masthead: MastheadHead,
+  arcade: ArcadeHead,
+};
 
 /** قوس الروشان — لطابعٍ قديم قد يكون مخزَّناً بشكل `arch`. */
 const ARCH_PATH = "M0 8 Q25 8 38 2 Q50 -3 62 2 Q75 8 100 8";
@@ -75,14 +65,18 @@ function SaduBand({ color }: { color: string }) {
 export function MenuHeader({
   restaurant,
   theme,
+  en = false,
   children,
 }: {
   restaurant: Restaurant;
   theme: MenuTheme;
+  en?: boolean;
   /** الشرائح أسفل الاسم (الحالة · الطاولة · اللغة · الروابط). */
   children?: ReactNode;
 }) {
   const { header, pattern, patternOpacity } = theme.design;
+  const Skin = SKIN_HEADS[header];
+  if (Skin) return <Skin restaurant={restaurant} theme={theme} en={en}>{children}</Skin>;
   // ⚠️ لون التمييز لا `cover_color`: الطابع مصبوغٌ بلون العلامة أصلاً حين يختاره
   // التاجر، و`cover_color` الداكن فوق طابع فاتح كان يرسم **غشاوة رمادية** أعلى المنيو.
   const accent = theme.vars["--m-accent"] ?? "#d4a843";
@@ -127,38 +121,11 @@ export function MenuHeader({
       : "0 0 0 4px var(--m-bg), 0 14px 30px -14px rgba(0,0,0,.45)",
     background: "var(--m-bg-2)",
   };
-  const glyph = restaurant.logo?.trim();
-  const customGlyph = glyph && !DEFAULT_GLYPHS.has(glyph) ? glyph : null;
-  const fallback = (
-    <span
-      className="flex h-[5.25rem] w-[5.25rem] items-center justify-center"
-      style={{
-        ...logoBox,
-        // على غلافٍ بلون العلامة يُقلَب: حرفٌ بلونها على أرضية الصفحة، وإلا ذاب فيه.
-        background: customGlyph || !darkCover ? "linear-gradient(var(--m-surface), var(--m-surface)), var(--m-bg)" : "var(--m-accent)",
-        color: darkCover ? "var(--m-on-accent)" : "var(--m-accent)",
-      }}
-    >
-      {customGlyph ? (
-        <span className="text-[2.6rem] leading-none">{customGlyph}</span>
-      ) : (
-        <span
-          className="text-[2.75rem] font-black leading-none"
-          // خطّ القراءة لا خطّ العرض: حرفٌ منفردٌ بخطٍّ زخرفيّ (ريم كوفي) يُقرأ
-          // شكلاً آخر — «د» كانت تبدو «ط».
-          style={{ fontFamily: "var(--m-font)" }}
-        >
-          {monogramOf(restaurant.name)}
-        </span>
-      )}
-    </span>
-  );
-
   const typeLabel = restaurantTypeLabel(restaurant.type);
 
   return (
-    <header className="relative">
-      <div className="relative h-36 w-full overflow-hidden sm:h-52" style={cover}>
+    <header className="m-head relative">
+      <div className="m-cover relative h-36 w-full overflow-hidden sm:h-52" style={cover}>
         {hasBanner && (
           <>
             <SafeImage
@@ -182,18 +149,21 @@ export function MenuHeader({
 
       <div className="mx-auto max-w-3xl px-4">
         <div className="relative -mt-10 sm:-mt-12">
-          <SafeImage
-            src={restaurant.logo_image}
-            alt={restaurant.name}
-            className="h-[5.25rem] w-[5.25rem] object-cover"
-            wrapperClassName="h-[5.25rem] w-[5.25rem]"
+          <LogoMark
+            restaurant={restaurant}
+            size="h-[5.25rem] w-[5.25rem]"
             style={logoBox}
-            fallback={fallback}
+            // على غلافٍ بلون العلامة يُقلَب: حرفٌ بلونها على أرضية الصفحة، وإلا ذاب فيه.
+            fallbackStyle={
+              darkCover
+                ? { background: "var(--m-accent)", color: "var(--m-on-accent)" }
+                : { background: "linear-gradient(var(--m-surface), var(--m-surface)), var(--m-bg)", color: "var(--m-accent-ink, var(--m-accent))" }
+            }
           />
         </div>
 
         <h1
-          className="mt-3 text-[1.65rem] font-black leading-tight"
+          className="m-title mt-3 text-[1.65rem] font-black leading-tight"
           style={{ fontFamily: "var(--m-display, var(--m-font))", color: "var(--m-text)" }}
         >
           {restaurant.name}

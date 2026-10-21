@@ -4,6 +4,8 @@
  * ويعطي طمأنينة كاذبة.
  */
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 
 import { ALL_THEMES, getTheme, splitThemeId, themeBaseOf, bestOnAccent, isHex, normalizeHex } from "@/lib/themes";
 import { canonOf, matchKnownCategory, sortCategories } from "@/lib/categories";
@@ -50,13 +52,15 @@ describe("ثابت §18 — ألوان الطوابع", () => {
     // لا تغيير قيمة في أي طابع قائم.
     // ثم ٢٠٢٦-١٠-٢١: **٢١ ⇒ ٦ بقرار مكتوب** (docs/design.md §18). `dark-gold`
     // بقيمه حرفياً، والمحذوف يُردّ إلى أقرب باقٍ بلونه (الفحص التالي).
-    expect(fingerprint()).toBe("47243ba9");
+    // ثم اليوم نفسه: **٦ ⇒ ٨** — خمسة طوابع بنيتها جديدة (فاتورة · نيون ·
+    // سبّورة · مجلّة · روشان) مكان ثلاثة كانت ألواناً. `dark-gold` بقيمه حرفياً.
+    expect(fingerprint()).toBe("7e9382b4");
   });
 
   it("عدد الطوابع كما تعلنه الصفحات", () => {
     // `lib/facts.ts` يشتقّه من هنا، لكن الرقم يظهر للزائر — فلو نقص طابع
     // بحذف غير مقصود لتغيّر ما تَعِد به الصفحة بلا أن يلاحظ أحد.
-    expect(ALL_THEMES.length).toBe(6);
+    expect(ALL_THEMES.length).toBe(8);
   });
 
   /**
@@ -67,11 +71,15 @@ describe("ثابت §18 — ألوان الطوابع", () => {
     ["royal", "dark-gold", "#d4af37"],
     ["emerald", "dark-gold", "#d9b65f"],
     ["hijazi", "dark-gold", "#e07a5f"],
-    ["crimson", "urban", "#e0533d"],
+    ["crimson", "dark-gold", "#e0533d"],
     ["qatt", "modern", "#c0392b"],
-    ["sahra", "specialty", "#a9744a"],
-    ["lulu", "marble", "#5f6b7a"],
+    ["sahra", "modern", "#a9744a"],
+    ["lulu", "modern", "#5f6b7a"],
     ["green", "dark-gold", "#d9b65f"],
+    // الثلاثة التي خرجت يوم دخلت ⇒ الطابع الذي ورث فكرتها.
+    ["specialty", "modern", "#3f6f52"],
+    ["urban", "neon", "#ff5a1f"],
+    ["marble", "editorial", "#8a6a3f"],
   ])("المحذوف «%s» ⇒ %s بلونه %s", (old, base, accent) => {
     const t = getTheme(old);
     expect(splitThemeId(t.id).base).toBe(base);
@@ -111,6 +119,29 @@ describe("ثابت §18 — ألوان الطوابع", () => {
       expect(ratio(v["--m-muted"], ground), `خافت فوق ${ground}`).toBeGreaterThanOrEqual(4.5);
     }
     expect(ratio(v["--m-on-accent"], v["--m-accent"]), "النصّ فوق التمييز").toBeGreaterThanOrEqual(4.5);
+  });
+
+  /**
+   * ⚠️ لون العلامة يأتي من التاجر: أصفرٌ على «عصري» الأبيض كان يكتب الأسعار
+   * بتباين 2.2:1، وأحمرُ داكن على «سبّورة» 2.9:1. `--m-accent-ink` نسخة
+   * التمييز التي يُكتب بها النصّ، ولا تنزل عن 4.5 أيّاً كان لون التاجر.
+   */
+  it.each([
+    ["modern", "#e0a526"],
+    ["modern", "#f2d16b"],
+    ["chalk", "#c8102e"],
+    ["neon", "#1d4ed8"],
+    ["dark-gold", "#111113"],
+    ["receipt", "#ffd400"],
+  ])("«%s» بلون %s: نصّ التمييز ≥ 4.5 فوق الأرضية", (base, hex) => {
+    const t = getTheme(`${base}:${hex}`);
+    expect(t.vars["--m-accent"]).toBe(hex);
+    expect(ratio(t.vars["--m-accent-ink"], t.vars["--m-bg"])).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it("لونٌ مقروء أصلاً لا يُمسّ", () => {
+    expect(getTheme("dark-gold").vars["--m-accent-ink"]).toBe("#d4a843");
+    expect(getTheme("modern:#1d4ed8").vars["--m-accent-ink"]).toBe("#1d4ed8");
   });
 
   it("الافتراضي dark-gold وتخطيطه grid", () => {
@@ -158,6 +189,35 @@ describe("splitThemeId — المقاطع بأي ترتيب", () => {
 });
 
 /* ══ §3‑ز · التباين بمقارنة فعلية لا بعتبة سطوع ════════════════════════ */
+
+/* ══ §18 · الطوابع ذات البنية الخاصّة ══════════════════════════════════ */
+
+describe("خامات الطوابع — البنية والـCSS معاً", () => {
+  const css = readFileSync(fileURLToPath(new URL("../src/styles/menu-skins.css", import.meta.url)), "utf8");
+  const special = ALL_THEMES.filter((t) => t.design.skin !== "store");
+
+  /**
+   * طابعٌ بخامةٍ لا قاعدة لها في `menu-skins.css` يُرسم **واجهة متجرٍ عارية**
+   * بلا ورقٍ ولا طباشير ولا طوب — وكلّ شيءٍ سليمٌ في الأنواع والبناء.
+   */
+  it.each(special.map((t) => [t.id, t.design.skin] as const))("«%s» ⇒ `.m-skin-%s` معرّفة", (_, skin) => {
+    expect(css).toContain(`.m-skin-${skin} `);
+  });
+
+  it("الترويسة الخاصّة لا تأتي بلا خامتها", () => {
+    // ‏`paper` بلا `m-skin-receipt` ترويسةُ فاتورة بلا ورقة تحتها.
+    const store = new Set(["arch", "band", "frame", "soft"]);
+    for (const t of ALL_THEMES) {
+      expect(store.has(t.design.header), t.id).toBe(t.design.skin === "store");
+    }
+  });
+
+  it("`deck` شكل عرضٍ يُحفظ ويُقرأ كأخواته", () => {
+    expect(splitThemeId("neon:#ff3d81:deck").layout).toBe("deck");
+    expect(getTheme("modern:deck").design.layout).toBe("deck");
+    expect(getTheme("neon").design.layout).toBe("deck");
+  });
+});
 
 describe("bestOnAccent — حدّ WCAG AA", () => {
   function contrast(a: string, b: string): number {

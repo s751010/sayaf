@@ -10,13 +10,34 @@
  */
 import type { PatternId } from "./patterns";
 
-/** شكل الخلفية وراء الشعار — أكثر ما يمنح المنيو شخصيته من أول نظرة. */
-export type HeaderShape = "arch" | "band" | "frame" | "soft";
-/** تخطيط الأطباق — هذا ما يجعل الفرق بين الطوابع يُرى لا يُقرأ. */
-export type DishLayout = "grid" | "list" | "showcase";
-export type HeadingStyle = "ornament" | "rule" | "plain";
-/** شكل صورة الطبق — دائري للكافيهات، مربّع حادّ للمينيمال، ودارج للباقي. */
-export type ImageShape = "rounded" | "square" | "circle";
+/**
+ * شكل الترويسة — أكثر ما يمنح المنيو شخصيته من أول نظرة.
+ *
+ * الأربعة الأولى **واجهة متجر** (غلافٌ والشعار على حافّته)، والخمسة بعدها
+ * ترويساتٌ بنيتها مختلفة كلّياً — انظر `SkinHeads.tsx`:
+ * `paper` رأس فاتورة · `board` سبّورة بإطار خشب · `sign` لافتة نيون على
+ * جدار طوب · `masthead` ترويسة مجلّة · `arcade` أقواس روشان.
+ */
+export type HeaderShape =
+  | "arch" | "band" | "frame" | "soft"
+  | "paper" | "board" | "sign" | "masthead" | "arcade";
+/**
+ * تخطيط الأطباق — هذا ما يجعل الفرق بين الطوابع يُرى لا يُقرأ.
+ * `deck` بطاقاتٌ تُسحب أفقياً لكل قسم، تكبر حين تتوسّط الشاشة.
+ */
+export type DishLayout = "grid" | "list" | "showcase" | "deck";
+export type HeadingStyle =
+  | "ornament" | "rule" | "plain"
+  | "stars" | "chalk" | "neon" | "numeral" | "cartouche";
+/** شكل صورة الطبق — دائري للكافيهات، مربّع حادّ للمينيمال، وقوسُ نافذة للروشان. */
+export type ImageShape = "rounded" | "square" | "circle" | "arch";
+/**
+ * **الخامة الكاملة** للطابع — صنفٌ على جذر المنيو (`m-skin-*`) يقرؤه
+ * `styles/menu-skins.css`: الملمس (ورق، طباشير، طوب)، والحواف (فاتورة
+ * ممزّقة)، والحركة الخاصّة بالطابع (طباعة، كتابة، اشتعال، انفتاح رواشين).
+ * `store` واجهة المتجر العادية بلا شيء من ذلك.
+ */
+export type MenuSkin = "store" | "receipt" | "chalk" | "neon" | "editorial" | "roshan";
 /** كيف يُقدَّم السعر: نصّاً، أو شارة ملوّنة، أو خطّاً منقّطاً يقود إليه. */
 export type PriceStyle = "plain" | "badge" | "leader";
 /** الفاصل بين صفوف القائمة الرأسية. */
@@ -44,6 +65,7 @@ export type Entrance = "none" | "fade" | "rise" | "unfold";
 export type EdgeTreatment = "plain" | "hairline" | "gilded";
 
 export interface MenuDesign {
+  skin: MenuSkin;
   pattern: PatternId;
   /** شفافية الزخرفة — تبقى منخفضة كي لا تزاحم قراءة النص فوقها. */
   patternOpacity: number;
@@ -93,6 +115,7 @@ export const RHYTHM = {
  * كاملةً في كل طابع يخفي ما يميّزه وسط ما يشترك فيه.
  */
 const BASE_DESIGN: MenuDesign = {
+  skin: "store",
   pattern: "none",
   patternOpacity: 0,
   header: "soft",
@@ -150,8 +173,13 @@ const FONT = {
  * و«قهوة» كلّها ليلي ذهبي بأرضية ملوّنة). والتاجر أمام ٢١ خياراً لا يختار
  * أفضلها — يتردّد، أو يأخذ الأوّل. وكلّ طابعٍ ضعيفٍ في القائمة يُضعف الباقي.
  *
- * فصارت ستّة، **لكلّ نوع مطعم واحد**، وكلٌّ منها يلبس لون علامة التاجر
- * وشعاره: فالتمايز بين مطعمين يأتي من هويّتهما لا من عدد الطوابع.
+ * ═══ ثم ثمانية: خمسة «مفاهيم» لا ألوان (٢٠٢٦/١٠/٢١) ═══
+ *
+ * الستّة كانت كلّها **واجهة متجر واحدة** بألوانٍ وزخارف مختلفة — جميلة، لكنها
+ * الشكل الذي يعرفه السوق. فبقي منها ثلاثة (فاخر · عصري · تراثي)، وخرج ثلاثة
+ * كانت ألواناً أكثر منها أفكاراً، وجاء مكانها خمسة **لكلٍّ منها بنيةٌ لم تظهر
+ * في منيو رقمي قبل**: فاتورةٌ تُطبع، وسبّورة تُكتب، ولافتة نيون تشتعل، ومجلّة
+ * بأرقام أقسام، ونوافذ روشان تنفتح. وكلّها تلبس لون علامة التاجر وشعاره.
  *
  * ⚠️ والطوابع المحذوفة **لا تنكسر**: `LEGACY` يردّ كلّ معرّف قديم إلى أقرب
  * طابع **بلون تمييزه الأصلي** — فمنيو «أرجواني ملكي» يصير «فاخر» بذهبه، لا
@@ -187,48 +215,151 @@ export const DESIGN_THEMES: MenuTheme[] = [
     }),
   },
   {
-    id: "modern",
-    name: "عصري",
-    tagline: "للكافيهات والمخابز — أبيض نظيف يُبرز صورك ولون علامتك",
+    id: "receipt",
+    name: "فاتورة",
+    tagline: "للمطاعم الشعبية والفود ترك — منيو يُطبع أمام زبونك كفاتورة",
     vars: {
-      "--m-bg": "#ffffff",
-      "--m-bg-2": "#f4f4f5",
-      "--m-surface": "#ffffff",
-      "--m-text": "#111113",
-      "--m-muted": "#63636b",
-      "--m-accent": "#111113",
-      "--m-accent-2": "#3f3f46",
+      // ‏`--m-page` الطاولة تحت الورقة: الوحيد الذي تختلف أرضيّته عن صفحته.
+      "--m-page": "#24221f",
+      "--m-bg": "#fbfaf5",
+      "--m-bg-2": "#f0ede4",
+      "--m-surface": "#fbfaf5",
+      "--m-text": "#1c1a17",
+      "--m-muted": "#5d5850",
+      // أحمر الختم — وحده ما يُطبع بلونٍ على ورقٍ حراري.
+      "--m-accent": "#c8322a",
+      "--m-accent-2": "#e0645c",
       "--m-on-accent": "#ffffff",
-      "--m-border": "rgba(0,0,0,.08)",
-      "--m-font": FONT.cairo,
-      "--m-radius": "1rem",
+      "--m-border": "rgba(28,26,23,.30)",
+      "--m-font": FONT.tajawal,
+      "--m-display": FONT.cairo,
+      "--m-radius": "0.25rem",
     },
     design: design({
-      depth: "raised", entrance: "fade", edge: "hairline",
+      skin: "receipt",
+      header: "paper",
+      layout: "list",
+      heading: "stars",
+      imageShape: "square",
+      priceStyle: "leader",
+      divider: "dots",
     }),
   },
   {
-    id: "specialty",
-    name: "محمصة",
-    tagline: "للقهوة المختصّة — عاجيّ هادئ وقائمة مرتّبة بالصور",
+    id: "neon",
+    name: "نيون",
+    tagline: "للبرجر والسهر — لافتة نيون تشتعل باسم مطعمك",
     vars: {
-      "--m-bg": "#faf9f7",
-      "--m-bg-2": "#f0eeea",
-      "--m-surface": "#ffffff",
-      "--m-text": "#1c1b19",
-      "--m-muted": "#6b675f",
-      "--m-accent": "#3f6f52",
-      "--m-accent-2": "#8fae9b",
-      "--m-on-accent": "#ffffff",
-      "--m-border": "rgba(28,27,25,.09)",
-      "--m-font": FONT.almarai,
-      "--m-radius": "0.75rem",
+      "--m-bg": "#0b0a10",
+      "--m-bg-2": "#14121c",
+      // سطحٌ مُصمت: الشفّاف فوق الأسود يُطفئ توهّج الحواف.
+      "--m-surface": "#16141f",
+      "--m-text": "#f6f4ff",
+      "--m-muted": "#a9a6c3",
+      "--m-accent": "#ff3d81",
+      // السماوي نقيض الوردي في أنابيب النيون — للسعر وحلقة الشعار.
+      "--m-accent-2": "#3df5ff",
+      "--m-on-accent": "#0b0a10",
+      "--m-border": "rgba(255,61,129,.26)",
+      "--m-font": FONT.cairo,
+      "--m-display": FONT.reem,
+      "--m-radius": "1rem",
     },
     design: design({
+      skin: "neon",
+      header: "sign",
+      layout: "deck",
+      heading: "neon",
+      divider: "none",
+    }),
+  },
+  {
+    id: "chalk",
+    name: "سبّورة",
+    tagline: "للكافيهات والفطور — سبّورة بالطباشير وخطّ الرقعة",
+    vars: {
+      "--m-bg": "#1e2723",
+      "--m-bg-2": "#252f2a",
+      "--m-surface": "rgba(255,255,255,.035)",
+      "--m-text": "#f2f0e6",
+      "--m-muted": "#b5b3a5",
+      "--m-accent": "#f2d16b",
+      "--m-accent-2": "#f3a5b6",
+      "--m-on-accent": "#1e2723",
+      "--m-border": "rgba(242,240,230,.20)",
+      // الرقعة للعناوين وحدها: خطّ عرضٍ مترابط، وأسماء الأطباق تُقرأ بالمراعي.
+      "--m-font": FONT.almarai,
+      "--m-display": FONT.ruqaa,
+      "--m-radius": "0.5rem",
+    },
+    design: design({
+      skin: "chalk",
+      header: "board",
       layout: "list",
-      heading: "rule",
+      heading: "chalk",
       density: "airy",
-      depth: "flat", entrance: "fade", edge: "hairline",
+      imageShape: "square",
+      divider: "none",
+      entrance: "fade",
+    }),
+  },
+  {
+    id: "editorial",
+    name: "مجلّة",
+    tagline: "للبرنش والحلويات — منيو بإخراج مجلّة فاخرة",
+    vars: {
+      "--m-bg": "#f3efe6",
+      "--m-bg-2": "#e8e2d5",
+      "--m-surface": "#faf7f0",
+      "--m-text": "#161513",
+      "--m-muted": "#57524a",
+      "--m-accent": "#a3271c",
+      "--m-accent-2": "#d4775a",
+      "--m-on-accent": "#ffffff",
+      "--m-border": "rgba(22,21,19,.18)",
+      "--m-font": FONT.almarai,
+      "--m-display": FONT.amiri,
+      // ‏`0px` لا `0`: يدخل `calc(var(--m-radius) * 1.4)`، و`calc(0 * 1.4)`
+      // عددٌ بلا وحدة فيُبطل `border-radius` كلّه.
+      "--m-radius": "0px",
+    },
+    design: design({
+      skin: "editorial",
+      header: "masthead",
+      layout: "list",
+      heading: "numeral",
+      density: "airy",
+      imageShape: "square",
+      entrance: "rise",
+    }),
+  },
+  {
+    id: "roshan",
+    name: "روشان",
+    tagline: "للمطبخ الحجازي والبحري — أقواس جدّة القديمة ورواشينها",
+    vars: {
+      // حجر المنقبة الجيري، وأخضر الرواشين المدهونة، وطين القلل.
+      "--m-bg": "#f6efe4",
+      "--m-bg-2": "#ece2d2",
+      "--m-surface": "#fffaf3",
+      "--m-text": "#2a1c11",
+      "--m-muted": "#6b5543",
+      "--m-accent": "#0f6b66",
+      "--m-accent-2": "#c8743f",
+      "--m-on-accent": "#ffffff",
+      "--m-border": "rgba(42,28,17,.14)",
+      "--m-font": FONT.almarai,
+      "--m-display": FONT.amiri,
+      "--m-radius": "0.9rem",
+    },
+    design: design({
+      skin: "roshan",
+      pattern: "mashrabiya",
+      patternOpacity: 0.03,
+      header: "arcade",
+      heading: "cartouche",
+      imageShape: "arch",
+      depth: "raised", edge: "hairline",
     }),
   },
   {
@@ -260,60 +391,24 @@ export const DESIGN_THEMES: MenuTheme[] = [
     }),
   },
   {
-    id: "urban",
-    name: "ستريت",
-    tagline: "للبرجر والوجبات السريعة — فحميّ جريء ولون حارّ",
+    id: "modern",
+    name: "عصري",
+    tagline: "للكافيهات والمخابز — أبيض نظيف يُبرز صورك ولون علامتك",
     vars: {
-      "--m-bg": "#0e0f12",
-      "--m-bg-2": "#17191e",
-      // سطحٌ مُصمت لا شفّاف: الشفّاف فوق الأرضية الداكنة يُظهر ما خلفه.
-      "--m-surface": "#1a1c22",
-      "--m-text": "#f4f5f7",
-      "--m-muted": "#9aa1ad",
-      "--m-accent": "#ff5a1f",
-      "--m-accent-2": "#ff8a5b",
-      // ‏#ff5a1f مع الأبيض 3.1:1 ومع الفحميّ 6.4 — `bestOnAccent` تختار الفحميّ.
-      "--m-on-accent": "#0e0f12",
-      "--m-border": "rgba(255,255,255,.09)",
+      "--m-bg": "#ffffff",
+      "--m-bg-2": "#f4f4f5",
+      "--m-surface": "#ffffff",
+      "--m-text": "#111113",
+      "--m-muted": "#63636b",
+      "--m-accent": "#111113",
+      "--m-accent-2": "#3f3f46",
+      "--m-on-accent": "#ffffff",
+      "--m-border": "rgba(0,0,0,.08)",
       "--m-font": FONT.cairo,
-      "--m-display": FONT.kufi,
       "--m-radius": "1rem",
     },
     design: design({
-      priceStyle: "badge",
-      divider: "none",
-      depth: "raised", entrance: "rise", edge: "plain",
-    }),
-  },
-  {
-    id: "marble",
-    name: "راقٍ",
-    tagline: "للبرنش والحلويات — مرمر أبيض ولمسة برونز",
-    vars: {
-      "--m-bg": "#f7f5f1",
-      "--m-bg-2": "#edeae4",
-      "--m-surface": "#ffffff",
-      "--m-text": "#23211d",
-      // ‏#6b6558 لا أفتح: الأفتح كان 4.13:1 فوق الأرضية — دون AA.
-      "--m-muted": "#6b6558",
-      "--m-accent": "#8a6a3f",
-      "--m-accent-2": "#b9a072",
-      "--m-on-accent": "#ffffff",
-      "--m-border": "rgba(35,33,29,.12)",
-      "--m-font": FONT.almarai,
-      "--m-display": FONT.reem,
-      "--m-radius": "0.35rem",
-    },
-    design: design({
-      pattern: "mashrabiya",
-      patternOpacity: 0.035,
-      header: "frame",
-      layout: "list",
-      heading: "rule",
-      density: "airy",
-      priceStyle: "leader",
-      divider: "none",
-      depth: "float", sheen: "silk", entrance: "rise", edge: "hairline",
+      depth: "raised", entrance: "fade", edge: "hairline",
     }),
   },
 ];
@@ -337,6 +432,11 @@ const DEFAULT_THEME = DESIGN_THEMES[0];
  * إنتاج قديمة.
  */
 const LEGACY: Record<string, string> = {
+  // خرجت يوم دخلت (٢٠٢٦/١٠/٢١) ⇒ الطابع الذي ورث فكرتها.
+  specialty: "modern:#3f6f52",
+  urban: "neon:#ff5a1f",
+  marble: "editorial:#8a6a3f",
+  // الأقدم ⇒ أقرب طابعٍ **محايد** بلونه: منيو عاملٌ لا يستيقظ على لافتة نيون.
   luxe: "dark-gold:#c9a227",
   hijazi: "dark-gold:#e07a5f",
   oud: "dark-gold:#b8873b",
@@ -344,23 +444,23 @@ const LEGACY: Record<string, string> = {
   royal: "dark-gold:#d4af37",
   coffee: "dark-gold:#c89f6a",
   majlis: "dark-gold:#cf9445",
-  crimson: "urban:#e0533d",
-  ocean: "urban:#2dd4bf",
+  crimson: "dark-gold:#e0533d",
+  ocean: "dark-gold:#2dd4bf",
   qatt: "modern:#c0392b",
   bahri: "modern:#155e75",
   minimal: "modern",
-  sahra: "specialty:#a9744a",
-  lulu: "marble:#5f6b7a",
-  "light-luxe": "marble:#b8902f",
+  sahra: "modern:#a9744a",
+  lulu: "modern:#5f6b7a",
+  "light-luxe": "modern:#b8902f",
   green: "dark-gold:#d9b65f",
-  cream: "marble:#b8902f",
-  light: "marble:#b8902f",
-  white: "marble:#b8902f",
+  cream: "modern:#b8902f",
+  light: "modern:#b8902f",
+  white: "modern:#b8902f",
   dark: "dark-gold",
   gold: "dark-gold",
   purple: "dark-gold:#d4af37",
-  red: "urban:#e0533d",
-  blue: "urban:#2dd4bf",
+  red: "dark-gold:#e0533d",
+  blue: "dark-gold:#2dd4bf",
   brown: "dark-gold:#c89f6a",
   mono: "modern",
 };
@@ -499,7 +599,7 @@ export function buildCustomTheme(hex: string): MenuTheme {
   };
 }
 
-export const LAYOUTS: DishLayout[] = ["grid", "list", "showcase"];
+export const LAYOUTS: DishLayout[] = ["grid", "list", "showcase", "deck"];
 
 function isLayout(v: string): v is DishLayout {
   return (LAYOUTS as string[]).includes(v);
@@ -512,13 +612,13 @@ function isLayout(v: string): v is DishLayout {
  * |---|---|
  * | `najdi` | طابع بألوانه وتخطيطه الأصليين |
  * | `najdi:#2fa8a0` | نفس الطابع بلون علامة التاجر |
- * | `najdi:grid` | نفس الطابع لكن بشكل عرض اختاره التاجر |
+ * | `najdi:grid` | نفس الطابع لكن بشكل عرض اختاره التاجر (`grid|list|showcase|deck`) |
  * | `najdi:#2fa8a0:grid` | طابع + لون + شكل عرض |
  * | `custom:#hex` | صيغة قديمة — تبقى تعمل كما كانت تماماً |
  * | `royal` … | طابعٌ خرج من القائمة ⇒ أقرب باقٍ بلونه عبر `LEGACY` |
  *
  * التحليل **غير مرتبط بترتيب** المقاطع: المقطع الذي يصلح لوناً لون، والمطابق
- * لأحد `grid|list|showcase` تخطيط، والأول اسم الطابع. هكذا لا تنكسر أي قيمة
+ * لأحد `grid|list|showcase|deck` تخطيط، والأول اسم الطابع. هكذا لا تنكسر أي قيمة
  * مخزَّنة اليوم مهما كان ترتيب ما يُكتب لاحقاً.
  */
 export function splitThemeId(id: string | null | undefined): {
@@ -590,12 +690,35 @@ function withLayout(theme: MenuTheme, layout: DishLayout): MenuTheme {
   };
 }
 
+/**
+ * لونٌ بدرجة التمييز **يُقرأ نصّاً** فوق أرضية الطابع.
+ *
+ * ⚠️ لون العلامة يأتي من التاجر لا منّا: أصفرُ علامةٍ على الطابع الأبيض كان
+ * يكتب الأسعار بتباين 2.2:1، وأحمرُ داكن على السبّورة 2.9:1 — سعرٌ لا يُقرأ
+ * في مطعمٍ خافت الإضاءة. فالتمييز يبقى كما هو للكتل والشرائح (عليها نصّ
+ * `--m-on-accent`)، ونسخته هذه للنصّ وحده: نفس اللون، أفتح أو أغمق بقدر ما
+ * يلزم لبلوغ ٤٫٥:١ لا أكثر.
+ */
+export function readableOn(hex: string, ground: string, min = 4.5): string {
+  if (!isHex(hex) || !isHex(ground)) return hex;
+  const toward: [number, number, number] = luminance(ground) < 0.4 ? [255, 255, 255] : [0, 0, 0];
+  let c = normalizeHex(hex);
+  for (let i = 0; i < 16 && contrast(c, ground) < min; i++) c = mix(c, toward, 0.1);
+  return c;
+}
+
+function withInk(theme: MenuTheme): MenuTheme {
+  const v = theme.vars;
+  const ink = readableOn(v["--m-accent"] ?? "", v["--m-bg"] ?? "");
+  return { ...theme, vars: { ...v, "--m-accent-ink": ink } };
+}
+
 export function getTheme(id: string | null | undefined): MenuTheme {
   const { base, hex, layout } = splitThemeId(id);
   // صيغة قديمة `custom:#hex` بلا طابع — تبقى كما كانت.
   if (!base) {
     const legacy = hex ? buildCustomTheme(hex) : DEFAULT_THEME;
-    return layout ? withLayout(legacy, layout) : legacy;
+    return withInk(layout ? withLayout(legacy, layout) : legacy);
   }
   const legacy = LEGACY[base] ? splitThemeId(LEGACY[base]) : null;
   const key = legacy?.base ?? base;
@@ -603,7 +726,7 @@ export function getTheme(id: string | null | undefined): MenuTheme {
   // لون التاجر أوّلاً، ثم لون الطابع القديم الذي كان عليه.
   const tint = hex ?? legacy?.hex ?? null;
   const theme = tint ? tintTheme(found, tint) : found;
-  return layout ? withLayout(theme, layout) : theme;
+  return withInk(layout ? withLayout(theme, layout) : theme);
 }
 
 /** معرّف الطابع الباقي لأي قيمة مخزَّنة — قديمةً كانت أو حالية. للمُنتقي. */
@@ -627,7 +750,7 @@ export function isDarkTheme(t: MenuTheme): boolean {
 }
 
 export function skinClass(d: MenuDesign): string {
-  return `m-depth-${d.depth} m-sheen-${d.sheen} m-edge-${d.edge}`;
+  return `m-skin-${d.skin} m-depth-${d.depth} m-sheen-${d.sheen} m-edge-${d.edge}`;
 }
 
 /** صنف دخول البطاقة — يُقرن مع متغيّر `--i` لترتيبها في القسم. */

@@ -1,0 +1,80 @@
+/**
+ * شعار المطعم في ترويسة المنيو — صورته، أو حرفٌ من اسمه حين لا صورة.
+ *
+ * مستقلٌّ عن `MenuHeader` لأن الترويسات كلّها تحمله بأشكالٍ مختلفة (حلقة
+ * الفاتورة، قوس الروشان، حلقة النيون) والقاعدة واحدة: **هويّةٌ تُقرأ، لا مكانٌ
+ * فارغ ينتظر صورة**.
+ */
+import type { CSSProperties } from "react";
+import { SafeImage } from "@/components/ui";
+import type { Restaurant } from "@/lib/types";
+import { cn } from "@/lib/utils";
+
+/**
+ * كلماتٌ تسبق اسم المطعم ولا تميّزه — «مطعم الديوان» حرفه «د» لا «م».
+ * و«ال» تُنزع من الكلمة المختارة للسبب نفسه: «الديوان» ⇒ «د».
+ */
+const GENERIC = new Set([
+  "مطعم", "مطاعم", "مقهى", "مقاهي", "كافيه", "كافي", "كوفي", "مطبخ", "مخبز", "مخابز",
+  "محمصة", "قهوة", "حلويات", "مشويات", "بيت", "دار", "cafe", "café", "coffee", "restaurant", "the", "kitchen",
+]);
+
+/** الحرف الذي يمثّل المطعم حين لا شعار. */
+export function monogramOf(name: string): string {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  const word = words.find((w) => !GENERIC.has(w.toLowerCase())) ?? words[0] ?? "";
+  const bare = word.length > 2 && word.startsWith("ال") ? word.slice(2) : word;
+  const ch = [...bare][0] ?? "";
+  return /[a-z]/i.test(ch) ? ch.toUpperCase() : ch;
+}
+
+/** الشعار المكتوب (إيموجي) الافتراضي — لا يُعدّ اختياراً من التاجر. */
+const DEFAULT_GLYPHS = new Set(["🍽️", "🍽"]);
+
+export function LogoMark({
+  restaurant,
+  size,
+  style,
+  fallbackStyle,
+  letterSize = "2.75rem",
+}: {
+  restaurant: Restaurant;
+  /** صنف المقاس (والتوسيط إن لزم) — يُطبَّق على الصورة وبديلها معاً. */
+  size: string;
+  /** الإطار: نصف القطر والحلقة والأرضية. */
+  style: CSSProperties;
+  /** ما يختلف في البديل وحده: أرضية الحرف ولونه. */
+  fallbackStyle?: CSSProperties;
+  letterSize?: string;
+}) {
+  const glyph = restaurant.logo?.trim();
+  const customGlyph = glyph && !DEFAULT_GLYPHS.has(glyph) ? glyph : null;
+  const fallback = (
+    <span className={cn("m-logo flex items-center justify-center", size)} style={{ ...style, ...fallbackStyle }}>
+      {customGlyph ? (
+        <span className="leading-none" style={{ fontSize: `calc(${letterSize} * .95)` }}>
+          {customGlyph}
+        </span>
+      ) : (
+        <span
+          className="font-black leading-none"
+          // خطّ القراءة لا خطّ العرض: حرفٌ منفردٌ بخطٍّ زخرفيّ (ريم كوفي) يُقرأ
+          // شكلاً آخر — «د» كانت تبدو «ط».
+          style={{ fontSize: letterSize, fontFamily: "var(--m-font)" }}
+        >
+          {monogramOf(restaurant.name)}
+        </span>
+      )}
+    </span>
+  );
+  return (
+    <SafeImage
+      src={restaurant.logo_image}
+      alt={restaurant.name}
+      className={cn("m-logo object-cover", size)}
+      wrapperClassName={size}
+      style={style}
+      fallback={fallback}
+    />
+  );
+}

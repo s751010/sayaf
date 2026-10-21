@@ -1,0 +1,648 @@
+/*
+ * ══ خامات الطوابع وحركاتها (§18) ═══════════════════════════════════════
+ *
+ * كل طابع يضع على جذر المنيو صنف `m-skin-<id>` (`skinClass` في
+ * `lib/themes.ts`)، والمكوّنات تحمل خطاطيف ثابتة لا أنماط لها إلا هنا:
+ * `m-paper` · `m-head` · `m-cover` · `m-logo` · `m-title` · `m-chips` ·
+ * `m-nav` · `m-tab` · `m-sec` · `m-h` · `m-dishes` · `m-card` · `m-img` ·
+ * `m-name` · `m-desc` · `m-price` · `m-feature`.
+ *
+ * ═══ ثلاث قواعد لا تُكسر ═══
+ *
+ * ١. **اللون من `--m-*` وحدها.** كل طابع يلبس لون علامة التاجر، فلا لون
+ *    مكتوب هنا إلا ما لا يتبع العلامة أصلاً (الطوب، الخشب، ورق الفاتورة).
+ *
+ * ٢. **الحالة الافتراضية ساكنةٌ مكشوفة.** كل حركة داخل
+ *    `prefers-reduced-motion: no-preference`، وكل حركة مربوطة بالتمرير داخل
+ *    `@supports (animation-timeline: view())` أيضاً — متصفّحٌ بلا دعم يرى
+ *    المنيو كاملاً ساكناً، لا فارغاً ينتظر حركة لن تأتي (درس §17).
+ *
+ * ٣. **ما يُحرَّك: `transform` و`opacity` و`clip-path`** — رسمٌ بلا إعادة
+ *    تخطيط. والاستثناء `filter` على صور الفاتورة الصغيرة وحدها.
+ *
+ * والمضمَّن (`style`) يغلب أي قاعدة هنا، فما يحتاج الطابعُ تغييره من لونٍ
+ * مضمَّن يمرّ بمتغيّر (`--m-price` · `--m-name-font`) لا بـ`!important`.
+ */
+
+/* ══ المشترك ══════════════════════════════════════════════════════════ */
+
+/** خطّ متقطّع — سطر الفاتورة. */
+.m-dash {
+  height: 0;
+  border-top: 2px dashed var(--m-border);
+}
+
+/** خطّ نقاط — عنوان قسم الفاتورة كما تطبعه الطابعة الحرارية. */
+.m-dots {
+  color: var(--m-muted);
+  background: radial-gradient(circle, currentColor 1.1px, transparent 1.6px) 0 50% / 7px 7px repeat-x;
+}
+
+/** أرقام بعرضٍ ثابت — الأسعار تصطفّ عموداً كما في الإيصال. */
+.m-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/** خطّا الترويسة في المجلّة: سميكٌ فوق رفيع. */
+.m-rule-double {
+  height: 7px;
+  border-top: 3px solid var(--m-text);
+  border-bottom: 1px solid var(--m-text);
+}
+
+/** اللوحة الحجازية المشطوفة — عنوان قسم الروشان. */
+.m-cartouche {
+  clip-path: polygon(14px 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 14px 100%, 0 50%);
+}
+
+/** زرّ الإضافة يأخذ شكل الطابع: ختمٌ في الفاتورة، ومربّعٌ في المجلّة، وقوسٌ في الروشان. */
+.m-skin-receipt .m-add {
+  border-radius: 4px;
+  box-shadow: none;
+}
+.m-skin-editorial .m-add {
+  border-radius: 0;
+}
+.m-skin-roshan .m-add {
+  border-radius: 999px 999px 0.4rem 0.4rem;
+}
+.m-skin-neon .m-add {
+  box-shadow: 0 0 14px color-mix(in srgb, var(--m-glow, var(--m-accent)) 75%, transparent);
+}
+
+/* ══ السحب الأفقي (`deck`) ════════════════════════════════════════════
+ * بطاقةٌ في الوسط وجارتاها تطلّان من الطرفين. الفاصلان الوهميّان قبل
+ * البطاقات وبعدها يجعلان الأولى **تتوسّط** من أوّل لحظة بدل أن تلتصق بالحافّة.
+ */
+.m-deck {
+  --deck-w: min(74vw, 20rem);
+  display: flex;
+  gap: 0.75rem;
+  margin-inline: -1rem;
+  padding-block: 0.25rem 1rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+.m-deck::-webkit-scrollbar {
+  display: none;
+}
+.m-deck::before,
+.m-deck::after {
+  content: "";
+  flex: 0 0 calc((100% - var(--deck-w)) / 2 - 0.75rem);
+}
+.m-deck > * {
+  flex: 0 0 var(--deck-w);
+  scroll-snap-align: center;
+}
+
+/* بفأرة: لا سحب أفقي بلا لمس — فتنفرد البطاقات شبكةً من عمودين. */
+@media (min-width: 640px) and (hover: hover) and (pointer: fine) {
+  .m-deck {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.25rem;
+    margin-inline: 0;
+    overflow: visible;
+  }
+  .m-deck::before,
+  .m-deck::after {
+    content: none;
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) and (hover: none), (prefers-reduced-motion: no-preference) and (max-width: 639px) {
+    .m-deck > * {
+      animation: m-deck-focus linear both;
+      animation-timeline: view(inline);
+    }
+  }
+}
+
+@keyframes m-deck-focus {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(0.88);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ══ فاتورة ════════════════════════════════════════════════════════════
+ * ورقةٌ حرارية ضيّقة على طاولة داكنة، بحافّتين ممزّقتين. الصفوف «تُطبع»
+ * سطراً سطراً مع التمرير، والصور تخرج بالأبيض والأسود ثم **تتحمّض** ألواناً
+ * حين تتوسّط الشاشة.
+ */
+/* ‏`flow-root`: هامش الورقة العلوي كان ينهار عبر الجذر فيدفعه كلّه إلى الأسفل،
+   ويظهر فوقه شريطٌ من أرضية الموقع لا من الطاولة. */
+.m-skin-receipt {
+  display: flow-root;
+}
+.m-skin-receipt .m-paper {
+  position: relative;
+  max-width: 30rem;
+  /* على الجوّال تبقى الطاولة ظاهرةً على الجانبين: ورقةٌ بعرض الشاشة لا تُقرأ ورقة. */
+  margin: 1.5rem max(0.625rem, calc((100% - 30rem) / 2)) 2.75rem;
+  /* تظليلٌ خفيف عند الحافّتين: الورق الحراري يلتفّ قليلاً من لفّته. */
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.035), transparent 7%, transparent 93%, rgba(0, 0, 0, 0.035)),
+    var(--m-bg);
+  box-shadow: 0 36px 60px -34px rgba(0, 0, 0, 0.75);
+}
+
+/* الحافّتان المسنّنتان قناعٌ من SVG لا تدرّجٌ مخروطي: الأخير بلا تنعيم فتظهر
+   أسنانه مدرّجةً بكسلاً بكسلاً، والقناع يُرسم ناعماً ويأخذ لون الورق. */
+.m-skin-receipt .m-paper::before,
+.m-skin-receipt .m-paper::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  height: 7px;
+  background: var(--m-bg);
+}
+.m-skin-receipt .m-paper::before {
+  bottom: 100%;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='7'%3E%3Cpath d='M0 7h14L7 0z'/%3E%3C/svg%3E") 0 0 / 14px 7px repeat-x;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='7'%3E%3Cpath d='M0 7h14L7 0z'/%3E%3C/svg%3E") 0 0 / 14px 7px repeat-x;
+}
+.m-skin-receipt .m-paper::after {
+  top: 100%;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='7'%3E%3Cpath d='M0 0h14L7 7z'/%3E%3C/svg%3E") 0 0 / 14px 7px repeat-x;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='7'%3E%3Cpath d='M0 0h14L7 7z'/%3E%3C/svg%3E") 0 0 / 14px 7px repeat-x;
+}
+
+.m-skin-receipt {
+  --m-price: var(--m-text);
+}
+.m-skin-receipt .m-price,
+.m-skin-receipt .m-name {
+  letter-spacing: 0.01em;
+}
+.m-skin-receipt .m-price {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font-variant-numeric: tabular-nums;
+}
+.m-skin-receipt .m-tab,
+.m-skin-receipt .m-chips > * {
+  border-radius: 3px;
+}
+/* الشرائح إطارٌ متقطّع لا حلقةٌ مظلّلة — حبرٌ على ورق لا زرٌّ في تطبيق. */
+.m-skin-receipt .m-chips > * {
+  box-shadow: none !important;
+  outline: 1.5px dashed var(--m-border);
+  outline-offset: -1.5px;
+}
+.m-skin-receipt .m-nav {
+  border-bottom-style: dashed !important;
+}
+.m-skin-receipt .m-card.m-surface,
+.m-skin-receipt .m-feature {
+  border-style: dashed;
+  border-width: 1.5px;
+  box-shadow: none;
+}
+/* صورةٌ «مطبوعة» على الورق: الضرب يُذيب أبيضها في لونه. */
+.m-skin-receipt .m-img {
+  mix-blend-mode: multiply;
+}
+.m-skin-receipt .m-logo {
+  filter: grayscale(1) contrast(1.15);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* الرأس يخرج من الطابعة: يُكشف من أعلاه في عشر خطوات لا انسياباً. */
+  .m-skin-receipt .m-head-paper {
+    animation: m-print 1.1s steps(10, end) 0.1s both;
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .m-skin-receipt .m-card {
+      animation: m-print steps(5, end) both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 100%;
+    }
+    .m-skin-receipt .m-img {
+      animation: m-develop linear both;
+      animation-timeline: view();
+      animation-range: entry 40% cover 48%;
+    }
+  }
+}
+
+/* النهاية بهامشٍ سالب لا `inset(0)`: القصّ يبقى بعد الحركة (`both`)، وعند
+   حافّة الصفّ تماماً كان يقطع حلقة التركيز حول الصفّ — والصفّ زرٌّ يُبلَغ بلوحة المفاتيح. */
+@keyframes m-print {
+  from {
+    clip-path: inset(0 -8px 100% -8px);
+  }
+  to {
+    clip-path: inset(-8px -8px -8px -8px);
+  }
+}
+@keyframes m-develop {
+  from {
+    filter: grayscale(1) contrast(1.35) brightness(1.06);
+  }
+  to {
+    filter: grayscale(0) contrast(1) brightness(1);
+  }
+}
+
+/* ══ سبّورة ════════════════════════════════════════════════════════════
+ * لوحٌ أردوازيّ عليه غبار طباشير، بإطار خشب في أعلاه. الاسم يُكتب بالرقعة
+ * من اليمين كما تُكتب العربية، وخطّ الطباشير يُرسم تحته. وصور الأطباق
+ * مطبوعةٌ ملصقة على اللوح بشريط لاصق.
+ */
+.m-skin-chalk {
+  background-image:
+    radial-gradient(60% 38% at 18% 12%, rgba(255, 255, 255, 0.045), transparent 70%),
+    radial-gradient(48% 32% at 86% 58%, rgba(255, 255, 255, 0.035), transparent 70%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* الإطار الخشبي — خشبٌ لا يتبع لون العلامة، كما لا يتبعه خشب السبّورة. */
+.m-skin-chalk .m-head-board::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 14px;
+  background:
+    repeating-linear-gradient(176deg, rgba(255, 255, 255, 0.07) 0 1px, transparent 1px 5px),
+    linear-gradient(#9a6a41, #74492a 55%, #57351d);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.45);
+}
+
+.m-skin-chalk .m-title,
+.m-skin-chalk .m-write {
+  text-shadow:
+    0 0 1px rgba(255, 255, 255, 0.35),
+    0 0 14px rgba(255, 255, 255, 0.07);
+}
+.m-skin-chalk .m-head-board .m-logo {
+  outline: 2px dashed color-mix(in srgb, var(--m-text) 55%, transparent);
+  outline-offset: 6px;
+}
+.m-skin-chalk .m-stroke {
+  opacity: 0.9;
+}
+.m-skin-chalk .m-card.m-surface,
+.m-skin-chalk .m-feature {
+  border-style: dashed;
+  border-width: 1.5px;
+}
+
+/* الصورة الملصقة: حاشيةٌ بيضاء، وميلٌ يتناوب، وشريطٌ لاصق فوقها. */
+.m-skin-chalk .m-thumb {
+  padding: 4px;
+  background: #f2efe4;
+  transform: rotate(-2.2deg);
+  box-shadow: 0 8px 16px -8px rgba(0, 0, 0, 0.6);
+}
+.m-skin-chalk .m-dishes > :nth-child(even) .m-thumb {
+  transform: rotate(1.8deg);
+}
+.m-skin-chalk .m-thumb::after {
+  content: "";
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  width: 46px;
+  height: 15px;
+  translate: -50% 0;
+  rotate: -5deg;
+  background: rgba(236, 226, 196, 0.62);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .m-skin-chalk .m-title {
+    animation: m-write 1.3s cubic-bezier(0.55, 0, 0.25, 1) 0.15s both;
+  }
+  .m-skin-chalk[dir="ltr"] .m-title {
+    animation-name: m-write-ltr;
+  }
+  .m-skin-chalk .m-head-board .m-stroke path {
+    stroke-dasharray: 1;
+    animation: m-draw 0.7s cubic-bezier(0.5, 0, 0.3, 1) 1.25s both;
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    /* خطّ زمنيٌّ مسمّى على العنوان: المسار داخل SVG ليس صندوقاً يُقاس، فيقرأ
+       تقدّمه من عنوانه. */
+    .m-skin-chalk .m-h {
+      view-timeline: --m-h block;
+    }
+    .m-skin-chalk .m-h .m-write {
+      animation: m-write linear both;
+      animation-timeline: --m-h;
+      animation-range: entry 35% cover 32%;
+    }
+    .m-skin-chalk[dir="ltr"] .m-h .m-write {
+      animation-name: m-write-ltr;
+    }
+    .m-skin-chalk .m-h .m-stroke path {
+      stroke-dasharray: 1;
+      animation: m-draw linear both;
+      animation-timeline: --m-h;
+      animation-range: cover 22% cover 40%;
+    }
+  }
+}
+
+/* الكتابة من اليمين: القصّ يبدأ كاملاً من اليسار ويتراجع. والهامش السالب
+   كي لا تُقصّ ذيول الرقعة وأسنانها خارج صندوق السطر. */
+@keyframes m-write {
+  from {
+    clip-path: inset(-25% -6% -25% 106%);
+  }
+  to {
+    clip-path: inset(-25% -6% -25% -6%);
+  }
+}
+@keyframes m-write-ltr {
+  from {
+    clip-path: inset(-25% 106% -25% -6%);
+  }
+  to {
+    clip-path: inset(-25% -6% -25% -6%);
+  }
+}
+@keyframes m-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* ══ نيون ══════════════════════════════════════════════════════════════
+ * لافتةٌ على جدار طوب: الاسم أنبوبٌ بلون العلامة **يشتعل** عند الفتح
+ * (ومضتان لا أكثر — دون حدّ الوميض في WCAG 2.3.1)، والبطاقات حوافّها
+ * متوهّجة، والسعر بالأنبوب الثاني.
+ */
+/* التوهّج بنسخة التمييز **المقروءة** لا بالتمييز نفسه: لون علامةٍ داكن
+   (أخضر غامق، كحليّ) أنبوبٌ مطفأ على الأسود، ونسخته المقروءة أنبوبٌ مضاء. */
+.m-skin-neon {
+  --m-glow: var(--m-accent-ink, var(--m-accent));
+  --m-price: color-mix(in srgb, var(--m-accent-2) 35%, #fff);
+}
+
+/* الطوب بلاطةٌ واحدة بصفّين متراكبين — لا يتبع العلامة، والتوهّج فوقه يتبعها. */
+.m-skin-neon .m-brick {
+  background-color: #110e15;
+  background-image:
+    radial-gradient(58% 62% at 50% 50%, color-mix(in srgb, var(--m-glow, var(--m-accent)) 24%, transparent), transparent 74%),
+    linear-gradient(180deg, rgba(11, 10, 16, 0.2), transparent 30%, transparent 62%, var(--m-bg)),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='32'%3E%3Crect width='64' height='32' fill='%230c0a0e'/%3E%3Cg%3E%3Crect x='1' y='1' width='30' height='14' rx='1' fill='%231d1821'/%3E%3Crect x='33' y='1' width='30' height='14' rx='1' fill='%23191520'/%3E%3Crect x='0' y='17' width='15' height='14' rx='1' fill='%231a1620'/%3E%3Crect x='17' y='17' width='30' height='14' rx='1' fill='%231f1924'/%3E%3Crect x='49' y='17' width='15' height='14' rx='1' fill='%231a1620'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: auto, auto, 64px 32px;
+}
+
+.m-neon {
+  color: color-mix(in srgb, var(--m-glow, var(--m-accent)) 20%, #fff);
+  text-shadow:
+    0 0 1px #fff,
+    0 0 6px var(--m-glow, var(--m-accent)),
+    0 0 14px var(--m-glow, var(--m-accent)),
+    0 0 34px color-mix(in srgb, var(--m-glow, var(--m-accent)) 70%, transparent);
+}
+.m-neon-2 {
+  color: color-mix(in srgb, var(--m-accent-2) 30%, #fff);
+  text-shadow:
+    0 0 5px var(--m-accent-2),
+    0 0 16px color-mix(in srgb, var(--m-accent-2) 55%, transparent);
+}
+.m-tube {
+  background: var(--m-glow, var(--m-accent));
+  box-shadow:
+    0 0 6px var(--m-glow, var(--m-accent)),
+    0 0 16px color-mix(in srgb, var(--m-glow, var(--m-accent)) 70%, transparent);
+}
+.m-skin-neon .m-price {
+  text-shadow: 0 0 10px color-mix(in srgb, var(--m-accent-2) 60%, transparent);
+}
+
+.m-skin-neon .m-head-sign .m-logo {
+  box-shadow:
+    0 0 0 2px var(--m-accent-2),
+    0 0 16px color-mix(in srgb, var(--m-accent-2) 75%, transparent),
+    inset 0 0 12px color-mix(in srgb, var(--m-accent-2) 35%, transparent);
+}
+.m-skin-neon .m-card.m-surface,
+.m-skin-neon .m-feature {
+  border-color: color-mix(in srgb, var(--m-glow, var(--m-accent)) 45%, transparent);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--m-glow, var(--m-accent)) 22%, transparent),
+    0 0 24px -8px color-mix(in srgb, var(--m-glow, var(--m-accent)) 60%, transparent),
+    inset 0 0 20px -12px color-mix(in srgb, var(--m-glow, var(--m-accent)) 55%, transparent);
+}
+.m-skin-neon .m-tab[aria-current] {
+  box-shadow: 0 0 16px color-mix(in srgb, var(--m-glow, var(--m-accent)) 70%, transparent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .m-skin-neon .m-neon {
+    animation: m-neon-on 1.6s linear 0.25s both;
+  }
+  .m-skin-neon .m-head-sign .m-logo {
+    animation: m-neon-on 1.6s linear both;
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    /* العنوان «يُضاء» حين يدخل — إضاءةٌ متدرّجة لا وميض: الوميض المربوط
+       بالتمرير يتكرّر بسرعة الإصبع، ولا حدّ لسرعة الإصبع. */
+    .m-skin-neon .m-h {
+      animation: m-power linear both;
+      animation-timeline: view();
+      animation-range: entry 30% cover 30%;
+    }
+  }
+}
+
+@keyframes m-neon-on {
+  0%,
+  14% {
+    opacity: 0.08;
+  }
+  16% {
+    opacity: 1;
+  }
+  24% {
+    opacity: 0.3;
+  }
+  30% {
+    opacity: 1;
+  }
+  46% {
+    opacity: 0.55;
+  }
+  50%,
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes m-power {
+  from {
+    opacity: 0.15;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ══ مجلّة ═════════════════════════════════════════════════════════════
+ * ترويسة صحيفة، وأرقام أقسامٍ كبيرة بالأميري، وأسماء الأطباق بخطّ العناوين،
+ * وعمودان على الشاشة العريضة يفصلهما خيط — كصفحة مجلّة لا شاشة تطبيق.
+ */
+.m-skin-editorial {
+  --m-name-font: var(--m-display);
+}
+.m-skin-editorial .m-name {
+  font-size: 1.08em;
+}
+.m-skin-editorial .m-img {
+  outline: 1px solid color-mix(in srgb, var(--m-text) 65%, transparent);
+  outline-offset: 3px;
+}
+.m-skin-editorial .m-tab {
+  border-radius: 0;
+}
+.m-skin-editorial .m-chips > * {
+  border-radius: 0;
+}
+
+@media (min-width: 640px) {
+  .m-skin-editorial .m-list {
+    display: block;
+    columns: 2;
+    column-gap: 2.75rem;
+    column-rule: 1px solid var(--m-border);
+  }
+  .m-skin-editorial .m-list > * {
+    break-inside: avoid;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .m-skin-editorial .m-title {
+    animation: m-rise 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) 0.1s both;
+  }
+  .m-skin-editorial .m-head .m-rule-double {
+    animation: m-grow 0.9s cubic-bezier(0.6, 0, 0.2, 1) both;
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .m-skin-editorial .m-h {
+      view-timeline: --m-h block;
+    }
+    .m-skin-editorial .m-numeral {
+      animation: m-numeral linear both;
+      animation-timeline: --m-h;
+      animation-range: entry 25% cover 28%;
+    }
+    .m-skin-editorial .m-grow {
+      transform-origin: right;
+      animation: m-grow linear both;
+      animation-timeline: --m-h;
+      animation-range: entry 50% cover 35%;
+    }
+    .m-skin-editorial[dir="ltr"] .m-grow {
+      transform-origin: left;
+    }
+  }
+}
+
+@keyframes m-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+@keyframes m-grow {
+  from {
+    transform: scaleX(0);
+  }
+}
+/* الرقم يصعد من تحت خطّ قصّ — كأرقام الأبواب في المجلّات حين تُقلَّب. */
+@keyframes m-numeral {
+  from {
+    clip-path: inset(0 -10% 100% -10%);
+    transform: translateY(0.35em);
+  }
+  to {
+    clip-path: inset(-10% -10% -10% -10%);
+    transform: none;
+  }
+}
+
+/* ══ روشان ═════════════════════════════════════════════════════════════
+ * الغلاف جدارٌ بلون العلامة عليه مشربية، تنفتح أسفله أقواس. الشعار نافذة،
+ * والصور نوافذ — و**تنفتح كالرواشين** من وسطها حين تدخل الشاشة.
+ */
+.m-skin-roshan .m-arcade::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: -1px;
+  height: 30px;
+  /* أقواسٌ بيضاوية أطول من نصف دائرة، بينها دعاماتٌ عرضها ٨ بكسل. */
+  background: radial-gradient(ellipse 14px 24px at 50% 100%, var(--m-bg) 95%, transparent 100%) 50% 100% / 36px 30px
+    repeat-x;
+}
+.m-skin-roshan .m-tab {
+  border-radius: 999px 999px 0.35rem 0.35rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .m-skin-roshan .m-head-arcade .m-logo {
+    animation: m-shutter-logo 0.9s cubic-bezier(0.6, 0, 0.2, 1) 0.15s both;
+  }
+  .m-skin-roshan .m-title {
+    animation: m-rise 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) 0.35s both;
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .m-skin-roshan .m-img {
+      animation: m-shutter linear both;
+      animation-timeline: view();
+      animation-range: entry 5% cover 32%;
+    }
+  }
+}
+
+/* درفتان تنفتحان من الوسط. */
+@keyframes m-shutter {
+  from {
+    clip-path: inset(0 50% 0 50%);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+/* للشعار هامشٌ سالب في النهاية: القصّ عند حافّته كان سيقطع حلقته وظلّه. */
+@keyframes m-shutter-logo {
+  from {
+    clip-path: inset(0 50% 0 50%);
+  }
+  to {
+    clip-path: inset(-40px -40px -40px -40px);
+  }
+}

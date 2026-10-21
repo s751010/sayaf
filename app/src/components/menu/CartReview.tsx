@@ -302,7 +302,7 @@ export function CartReview({
               <p
                 dir="ltr"
                 className="mt-0.5 text-sm font-black tabular-nums"
-                style={{ color: "var(--m-accent)", textAlign: "start" }}
+                style={{ color: "var(--m-accent-ink, var(--m-accent))", textAlign: "start" }}
               >
                 {formatPrice(r.total)} {en ? "SAR" : "ر.س"}
               </p>
@@ -333,7 +333,7 @@ export function CartReview({
                 aria-label={en ? "Increase" : "زيادة"}
                 disabled={gone}
                 className="h-10 w-10 text-sm font-black disabled:opacity-40"
-                style={{ color: "var(--m-accent)" }}
+                style={{ color: "var(--m-accent-ink, var(--m-accent))" }}
               >
                 ＋
               </button>
@@ -439,7 +439,7 @@ export function CartReview({
           style={{ borderColor: "var(--m-border)", color: "var(--m-text)", ...mFont }}
         >
           <span>{en ? "Total" : "الإجمالي"}</span>
-          <span dir="ltr" className="tabular-nums" style={{ color: "var(--m-accent)" }}>
+          <span dir="ltr" className="tabular-nums" style={{ color: "var(--m-accent-ink, var(--m-accent))" }}>
             {formatPrice(totals.total)} {en ? "SAR" : "ر.س"}
           </span>
         </div>
@@ -458,7 +458,7 @@ export function CartReview({
       {!acceptingOrders && (
         <p
           className="border px-3.5 py-2.5 text-xs font-bold"
-          style={{ ...card, borderColor: "var(--m-accent)", color: "var(--m-accent)" }}
+          style={{ ...card, borderColor: "var(--m-accent)", color: "var(--m-accent-ink, var(--m-accent))" }}
         >
           {en
             ? "The restaurant isn't accepting orders right now."
@@ -468,7 +468,7 @@ export function CartReview({
       {belowMin && (
         <p
           className="border px-3.5 py-2.5 text-xs font-bold"
-          style={{ ...card, borderColor: "var(--m-accent)", color: "var(--m-accent)" }}
+          style={{ ...card, borderColor: "var(--m-accent)", color: "var(--m-accent-ink, var(--m-accent))" }}
         >
           {en
             ? `Minimum order is ${formatPrice(minOrder)} SAR — add ${formatPrice(minOrder - total)} more.`
@@ -478,7 +478,7 @@ export function CartReview({
       {missing && (
         <p
           className="border px-3.5 py-2.5 text-xs font-bold"
-          style={{ ...card, borderColor: "var(--m-accent)", color: "var(--m-accent)" }}
+          style={{ ...card, borderColor: "var(--m-accent)", color: "var(--m-accent-ink, var(--m-accent))" }}
         >
           {en
             ? "An item is no longer available — remove it to continue."
@@ -488,7 +488,7 @@ export function CartReview({
       {error && (
         <p
           className="border px-3.5 py-2.5 text-xs font-bold"
-          style={{ ...card, borderColor: "var(--m-accent)", color: "var(--m-accent)" }}
+          style={{ ...card, borderColor: "var(--m-accent)", color: "var(--m-accent-ink, var(--m-accent))" }}
         >
           {error}
         </p>

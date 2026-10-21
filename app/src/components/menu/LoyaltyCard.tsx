@@ -93,7 +93,7 @@ export function LoyaltyCard({ restaurant, en }: { restaurant: Restaurant; en: bo
             style={{ borderColor: "var(--m-border)", color: "var(--m-text)" }}
           />
           {msg && (
-            <p className="text-center text-xs" style={{ color: "var(--m-accent)" }}>
+            <p className="text-center text-xs" style={{ color: "var(--m-accent-ink, var(--m-accent))" }}>
               {msg}
             </p>
           )}

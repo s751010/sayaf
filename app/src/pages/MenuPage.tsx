@@ -13,6 +13,9 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import { Logo } from "@/components/site";
 import { Skeleton } from "@/components/ui";
 import { MenuHeader } from "@/components/menu/MenuHeader";
+import { ReceiptEnd } from "@/components/menu/SkinHeads";
+// خامات الطوابع وحركاتها — ملفٌّ مستقلّ عن `global.css` لأنها للمنيو وحده.
+import "@/styles/menu-skins.css";
 import { DishCard } from "@/components/menu/DishCard";
 import { DishOfTheDay } from "@/components/menu/DishOfTheDay";
 import {
@@ -254,9 +257,10 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
     };
   }, [slug, demo, wantsPreview]);
 
-  const theme = getTheme(
-    state.status === "ready" ? state.menus.find((m) => m.theme)?.theme : null
-  );
+  // مذكَّر على النصّ المخزَّن: `getTheme` يبني كائناً جديداً في كل نداء، و`theme.vars`
+  // مفتاح تأثير الخطوط تحته — فبلا هذا يُعاد التأثير مع كل إعادة رسم.
+  const themeId = state.status === "ready" ? state.menus.find((m) => m.theme)?.theme : null;
+  const theme = useMemo(() => getTheme(themeId), [themeId]);
   const design = theme.design;
   const rhythm = RHYTHM[design.density];
 
@@ -736,14 +740,21 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
           ...(season ? { "--m-accent-2": season.tint } : {}),
           // زخرفة الطابع تسري على الصفحة كلها بشفافية منخفضة — حضور بلا مزاحمة
           // للنص. `background-attachment: fixed` يجعلها تبدو نسيجاً لا خلفية.
-          backgroundColor: "var(--m-bg)",
-          backgroundImage: patternImage(
-            pagePattern,
-            season?.tint ?? theme.vars["--m-accent"],
-            Math.max(design.patternOpacity, season ? 0.05 : 0)
-          ),
-          backgroundSize: PATTERN_SIZE[pagePattern],
-          backgroundAttachment: "fixed",
+          // ‏`--m-page` للفاتورة وحدها: الطاولة تحت الورقة. والباقي أرضيّته صفحته.
+          backgroundColor: "var(--m-page, var(--m-bg))",
+          // بلا زخرفة ⇒ بلا `backgroundImage` أصلاً: القيمة `none` المضمَّنة كانت
+          // ستغلب ملمس الطابع في `menu-skins.css` (غبار الطباشير، حبر الورق).
+          ...(pagePattern === "none"
+            ? {}
+            : {
+                backgroundImage: patternImage(
+                  pagePattern,
+                  season?.tint ?? theme.vars["--m-accent"],
+                  Math.max(design.patternOpacity, season ? 0.05 : 0)
+                ),
+                backgroundSize: PATTERN_SIZE[pagePattern],
+                backgroundAttachment: "fixed",
+              }),
           color: "var(--m-text)",
           // ⚠️ المنيو مثبَّت على خطّه قبل إعادة تصميم المنصّة: كان يرث خطّ
           // `body`، و`body` صار خطّ المنصّة. فبلا هذا السطر كان كل نصٍّ لا
@@ -777,412 +788,427 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
         </div>
       )}
 
-      <MenuHeader restaurant={restaurant} theme={theme}>
-        {table && (
-          <span className={pill} style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}>
-            <Icon name="tag" size={14} /> {en ? "Table" : "طاولة"} {table}
-          </span>
-        )}
-        {/* ساعات العمل: **شريحة واحدة** تحمل الحالة الحيّة وتفتح جدول الأسبوع.
-            كانت شريحتين («مفتوح الآن» + ملخّص الأسبوع) تزدحمان بلا داعٍ —
-            الملخّص انتقل إلى داخل اللوح. */}
-        {week ? (
-          <button onClick={() => setHoursOpen(true)} className={pill} style={pillQuiet}>
-            {/* النقطة خضراء للمفتوح في كل الطوابع: لونٌ يعرفه الزبون من كل تطبيق،
-                ولون التمييز قد يكون أحمر أو برتقالياً فيُقرأ «مغلق». */}
-            <span
-              aria-hidden="true"
-              className="inline-block h-2 w-2 shrink-0 rounded-full"
-              style={{ background: live?.open ? "#22c55e" : "var(--m-muted)" }}
-            />
-            {live?.label}
-            {live?.open && live.until ? (
-              <span style={{ color: "var(--m-muted)" }}>· {en ? "until" : "حتى"} {live.until}</span>
-            ) : null}
-          </button>
-        ) : (
-          restaurant.working_hours && (
+      {/* ‏`m-paper` غلافٌ بلا أثر إلا في الفاتورة: هناك هو الورقة نفسها —
+          ضيّقةٌ في الوسط بحافّتين ممزّقتين، والصفحة تحتها طاولة. */}
+      <div className="m-paper">
+        <MenuHeader restaurant={restaurant} theme={theme} en={en}>
+          {table && (
+            <span className={pill} style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}>
+              <Icon name="tag" size={14} /> {en ? "Table" : "طاولة"} {table}
+            </span>
+          )}
+          {/* ساعات العمل: **شريحة واحدة** تحمل الحالة الحيّة وتفتح جدول الأسبوع.
+              كانت شريحتين («مفتوح الآن» + ملخّص الأسبوع) تزدحمان بلا داعٍ —
+              الملخّص انتقل إلى داخل اللوح. */}
+          {week ? (
             <button onClick={() => setHoursOpen(true)} className={pill} style={pillQuiet}>
-              <Icon name="clock" size={14} /> {restaurant.working_hours}
+              {/* النقطة خضراء للمفتوح في كل الطوابع: لونٌ يعرفه الزبون من كل تطبيق،
+                  ولون التمييز قد يكون أحمر أو برتقالياً فيُقرأ «مغلق». */}
+              <span
+                aria-hidden="true"
+                className="inline-block h-2 w-2 shrink-0 rounded-full"
+                style={{ background: live?.open ? "#22c55e" : "var(--m-muted)" }}
+              />
+              {live?.label}
+              {live?.open && live.until ? (
+                <span style={{ color: "var(--m-muted)" }}>· {en ? "until" : "حتى"} {live.until}</span>
+              ) : null}
             </button>
-          )
-        )}
-        {/* مبدّل اللغة شريحة بين الشرائح — كان يحتلّ صفاً كاملاً وحده. */}
-        {restaurant.english_enabled && (
-          <div
-            className="inline-flex h-9 overflow-hidden rounded-full text-[13px] font-bold"
-            style={pillQuiet}
-          >
-            {(["ar", "en"] as const).map((l) => (
-              <button
-                key={l}
-                onClick={() => setLang(l)}
-                aria-pressed={lang === l}
-                className="min-w-10 px-3 transition-colors"
-                style={
-                  lang === l
-                    ? { background: "var(--m-accent)", color: "var(--m-on-accent)" }
-                    : { color: "var(--m-muted)" }
-                }
-              >
-                {l === "ar" ? "ع" : "EN"}
+          ) : (
+            restaurant.working_hours && (
+              <button onClick={() => setHoursOpen(true)} className={pill} style={pillQuiet}>
+                <Icon name="clock" size={14} /> {restaurant.working_hours}
               </button>
-            ))}
-          </div>
-        )}
-        {/* التقييم والموقع شريحتان بين الشرائح — كانا زرّين ممتلئين بعرض الشاشة
-            يدفعان المنيو تحت أوّل شاشة. */}
-        {primaryLinks.map((s) => (
-          <a key={s.label} href={s.url} target="_blank" rel="noopener noreferrer" className={pill} style={pillQuiet}>
-            <Icon name={s.icon} size={14} /> {s.label}
-          </a>
-        ))}
-      </MenuHeader>
-
-      {cartOn && <ActiveOrderStrip en={en} />}
-
-      {cartOn && (
-        <PickupBanner
-          open={ordersOpen}
-          prepMinutes={prepMinutes}
-          minOrder={minOrder}
-          en={en}
-        />
-      )}
-
-      {/* ⚠️ **الحشوة تتبع ظهور الشريط لا امتلاء السلّة.**
-
-          `CartBar` يُركَّب متى كان `cartOn`، ويظهر **فارغاً** بنصّ «اطلب
-          واستلم من الفرع» — أي أنه ثابت أسفل الشاشة لكل زائر أوّل مرّة، قبل
-          أن يضيف صنفاً واحداً. وكانت الحشوة مشروطة بـ`cart.count > 0`، فكان
-          الشريط يغطّي آخر ما في الصفحة لكل زائر **لم يطلب بعد** — وهو الحال
-          الغالب. رُصد في لقطة الصفحة الرئيسية: الشريط فوق سعر «طبق اليوم». */}
-      <main className={cn("mx-auto max-w-3xl px-4", cartOn && "pb-24")}>
-        {/* عودة الزبون من بوابة الدفع — أعلى شيء يراه، قبل الأطباق. */}
-        {orderResult && (
-          <PickupTicket
-            orderId={orderId}
-            status={orderResult}
-            en={en}
-            onDismiss={() => setOrderResult(null)}
-            onConfirmed={cart.clear}
-          />
-        )}
-
-        {/* طبق اليوم — بطاقة واحدة كاملة بدل شريط بطاقات مقطوعة عند الحافة. */}
-        {featured[0] && (
-          <div className={rhythm.block}>
-            <DishOfTheDay
-              dish={featured[0]}
-              en={en}
-              onOpen={() => {
-                setOpenDish(featured[0]);
-                if (!demo && !preview) trackDishView(featured[0], { table, lang });
-              }}
-            />
-          </div>
-        )}
-
-        {/* شريط التصنيفات + البحث في صف واحد لاصق.
-            البحث كان يحتلّ صفاً كاملاً في الأعلى ويختفي عند التمرير؛ هنا يبقى
-            في متناول اليد **أثناء التصفّح** ويوفّر كتلة كاملة قبل الأكل. */}
-        {(categories.length > 1 || search) && (
-          <nav
-            ref={navRef}
-            className={cn(
-              "sticky top-0 z-30 -mx-4 flex items-center gap-2 px-4 py-2.5",
-              rhythm.block
-            )}
-            style={{
-              // خلفية معتمة لا ضبابية وحدها: الضبابية فوق نقش السدو تُنتج طمشاً.
-              background: "var(--m-bg)",
-              borderBottom: "1px solid var(--m-border)",
-            }}
-          >
-            {/* تلاشٍ عند الحافّة التي يُمرَّر إليها: تصنيفٌ مقطوعٌ بحدٍّ حادّ يُقرأ
-                خللاً في الرسم، والمتلاشي يُقرأ «هناك المزيد». */}
+            )
+          )}
+          {/* مبدّل اللغة شريحة بين الشرائح — كان يحتلّ صفاً كاملاً وحده. */}
+          {restaurant.english_enabled && (
             <div
-              className="flex flex-1 gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-              style={{
-                maskImage: `linear-gradient(to ${en ? "left" : "right"}, transparent 0, #000 28px)`,
-                WebkitMaskImage: `linear-gradient(to ${en ? "left" : "right"}, transparent 0, #000 28px)`,
-              }}
+              className="inline-flex h-9 overflow-hidden rounded-full text-[13px] font-bold"
+              style={pillQuiet}
             >
-              {categories.map((c) => (
-                <a
-                  key={c.name}
-                  href={`#${categoryId(c.name)}`}
-                  ref={(el) => { catRefs.current[c.name] = el; }}
-                  aria-current={activeCat === c.name ? "true" : undefined}
-                  className="flex h-10 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-sm font-bold transition-colors"
+              {(["ar", "en"] as const).map((l) => (
+                <button
+                  key={l}
+                  onClick={() => setLang(l)}
+                  aria-pressed={lang === l}
+                  className="min-w-10 px-3 transition-colors"
                   style={
-                    activeCat === c.name
+                    lang === l
                       ? { background: "var(--m-accent)", color: "var(--m-on-accent)" }
                       : { color: "var(--m-muted)" }
                   }
                 >
-                  {/* الرمز يرث لون الشريحة عبر `currentColor` — وهذا ما لا
-                      يفعله الإيموجي: كان `💛` أصفر فوق كل طابع من الستّة عشر. */}
-                  <Icon name={categoryIcon(c.name)} size={15} />
-                  {c.name}
-                </a>
+                  {l === "ar" ? "ع" : "EN"}
+                </button>
               ))}
             </div>
+          )}
+          {/* التقييم والموقع شريحتان بين الشرائح — كانا زرّين ممتلئين بعرض الشاشة
+              يدفعان المنيو تحت أوّل شاشة. */}
+          {primaryLinks.map((s) => (
+            <a key={s.label} href={s.url} target="_blank" rel="noopener noreferrer" className={pill} style={pillQuiet}>
+              <Icon name={s.icon} size={14} /> {s.label}
+            </a>
+          ))}
+        </MenuHeader>
 
-            {searchOpen || search ? (
-              <input
-                autoFocus
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                onBlur={() => !search && setSearchOpen(false)}
-                placeholder={en ? "Search…" : "ابحث…"}
-                aria-label={en ? "Search the menu" : "ابحث في المنيو"}
-                className="min-h-11 w-28 shrink-0 rounded-full border bg-transparent px-3 py-1.5 text-sm sm:w-40"
-                style={{
-                  borderColor: "var(--m-border)",
-                  background: "var(--m-surface)",
-                  color: "var(--m-text)",
+        {cartOn && <ActiveOrderStrip en={en} />}
+
+        {cartOn && (
+          <PickupBanner
+            open={ordersOpen}
+            prepMinutes={prepMinutes}
+            minOrder={minOrder}
+            en={en}
+          />
+        )}
+
+        {/* ⚠️ **الحشوة تتبع ظهور الشريط لا امتلاء السلّة.**
+
+            `CartBar` يُركَّب متى كان `cartOn`، ويظهر **فارغاً** بنصّ «اطلب
+            واستلم من الفرع» — أي أنه ثابت أسفل الشاشة لكل زائر أوّل مرّة، قبل
+            أن يضيف صنفاً واحداً. وكانت الحشوة مشروطة بـ`cart.count > 0`، فكان
+            الشريط يغطّي آخر ما في الصفحة لكل زائر **لم يطلب بعد** — وهو الحال
+            الغالب. رُصد في لقطة الصفحة الرئيسية: الشريط فوق سعر «طبق اليوم». */}
+        <main className={cn("m-main mx-auto max-w-3xl px-4", cartOn && "pb-24")}>
+          {/* عودة الزبون من بوابة الدفع — أعلى شيء يراه، قبل الأطباق. */}
+          {orderResult && (
+            <PickupTicket
+              orderId={orderId}
+              status={orderResult}
+              en={en}
+              onDismiss={() => setOrderResult(null)}
+              onConfirmed={cart.clear}
+            />
+          )}
+
+          {/* طبق اليوم — بطاقة واحدة كاملة بدل شريط بطاقات مقطوعة عند الحافة. */}
+          {featured[0] && (
+            <div className={rhythm.block}>
+              <DishOfTheDay
+                dish={featured[0]}
+                en={en}
+                onOpen={() => {
+                  setOpenDish(featured[0]);
+                  if (!demo && !preview) trackDishView(featured[0], { table, lang });
                 }}
               />
-            ) : (
-              <button
-                onClick={() => setSearchOpen(true)}
-                aria-label={en ? "Search the menu" : "ابحث في المنيو"}
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border"
-                style={{ borderColor: "var(--m-border)", color: "var(--m-muted)" }}
-              >
-                <Icon name="search" size={16} />
-              </button>
-            )}
+            </div>
+          )}
 
-            {/* زرّ استبعاد الحساسية — يظهر فقط إن سجّل التاجر حساسياتٍ فعلاً.
-                زرٌّ يفتح قائمة فارغة أسوأ من غيابه. */}
-            {allergensInMenu.length > 0 && (
-              <button
-                onClick={() => setAvoidOpen(true)}
-                aria-label={en ? "Dietary filter" : "استبعاد مسبّبات الحساسية"}
-                className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full border"
-                style={
-                  avoid.size > 0
-                    ? { background: "var(--m-accent)", color: "var(--m-on-accent)", borderColor: "transparent" }
-                    : { borderColor: "var(--m-border)", color: "var(--m-muted)" }
-                }
-              >
-                <Icon name="sliders" size={16} />
-                {avoid.size > 0 && (
-                  <span
-                    className="absolute -top-0.5 -end-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-black"
-                    style={{ background: "var(--m-text)", color: "var(--m-bg)" }}
-                  >
-                    {avoid.size}
-                  </span>
-                )}
-              </button>
-            )}
-          </nav>
-        )}
-
-        {/* شريط يوضّح أن ما يراه مُصفّى — الزبون لا يجب أن يظنّ المنيو ناقصاً. */}
-        {avoid.size > 0 && (
-          <div
-            className="mx-auto mt-3 flex max-w-md items-center justify-between gap-3 px-4 py-2.5 text-xs font-bold"
-            style={{
-              background: "var(--m-surface)",
-              border: "1px solid var(--m-accent)",
-              borderRadius: "var(--m-radius)",
-              color: "var(--m-text)",
-            }}
-          >
-            <span className="min-w-0 truncate">
-              {en
-                ? `Hiding dishes with: ${[...avoid].map((id) => allergenLabel(id, en)).join(", ")}`
-                : `مخفيّ ما يحتوي: ${[...avoid].map((id) => allergenLabel(id, en)).join("، ")}`}
-            </span>
-            <button
-              onClick={() => setAvoid(new Set())}
-              className="shrink-0 underline underline-offset-2"
-              style={{ color: "var(--m-accent)" }}
+          {/* شريط التصنيفات + البحث في صف واحد لاصق.
+              البحث كان يحتلّ صفاً كاملاً في الأعلى ويختفي عند التمرير؛ هنا يبقى
+              في متناول اليد **أثناء التصفّح** ويوفّر كتلة كاملة قبل الأكل. */}
+          {(categories.length > 1 || search) && (
+            <nav
+              ref={navRef}
+              className={cn(
+                "m-nav sticky top-0 z-30 -mx-4 flex items-center gap-2 px-4 py-2.5",
+                rhythm.block
+              )}
+              style={{
+                // خلفية معتمة لا ضبابية وحدها: الضبابية فوق نقش السدو تُنتج طمشاً.
+                background: "var(--m-bg)",
+                borderBottom: "1px solid var(--m-border)",
+              }}
             >
-              {en ? "Clear" : "إلغاء"}
-            </button>
-          </div>
-        )}
-
-        {/* الأقسام */}
-        {categories.length === 0 ? (
-          <div
-            className={cn(rhythm.section, "mx-auto max-w-sm border px-5 py-10 text-center")}
-            style={{
-              borderColor: "var(--m-border)",
-              background: "var(--m-surface)",
-              borderRadius: "var(--m-radius)",
-            }}
-          >
-            <Icon name={search ? "search" : "plate"} size={34} className="mx-auto" strokeWidth={1.4} />
-            <p className="mt-2 text-sm font-bold" style={{ color: "var(--m-text)" }}>
-              {search
-                ? en
-                  ? "No results for your search."
-                  : "لا نتائج لبحثك."
-                : en
-                  ? "No items available yet."
-                  : "لا توجد أصناف متاحة حالياً."}
-            </p>
-            {search && (
-              <button
-                onClick={() => {
-                  setSearch("");
-                  setSearchOpen(false);
+              {/* تلاشٍ عند الحافّة التي يُمرَّر إليها: تصنيفٌ مقطوعٌ بحدٍّ حادّ يُقرأ
+                  خللاً في الرسم، والمتلاشي يُقرأ «هناك المزيد». */}
+              <div
+                className="flex flex-1 gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                style={{
+                  maskImage: `linear-gradient(to ${en ? "left" : "right"}, transparent 0, #000 28px)`,
+                  WebkitMaskImage: `linear-gradient(to ${en ? "left" : "right"}, transparent 0, #000 28px)`,
                 }}
-                className="mt-3 rounded-full px-4 py-1.5 text-xs font-black"
-                style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}
               >
-                {en ? "Clear search" : "امسح البحث"}
-              </button>
-            )}
-          </div>
-        ) : (
-          categories.map((cat) => (
-            <section
-              key={cat.name}
-              id={categoryId(cat.name)}
-              data-cat={cat.name}
-              className={rhythm.section}
-              // هامش تمرير مربوط بارتفاع الشريط الفعلي — كان ثابتاً (scroll-mt-20)
-              // بينما ارتفاع الشريط يتغيّر، فيختفي عنوان القسم خلفه عند الضغط.
-              style={{ scrollMarginTop: `${navHeight + 12}px` }}
-            >
-              <SectionHeading name={cat.name} style={design.heading} />
-              <div className={cn(LAYOUT_CLASS[design.layout], rhythm.gap)}>
-                {cat.dishes.map((d, di) => (
-                  /* الغلاف `relative` موجود دائماً كي لا يتغيّر شكل الشبكة بين
-                     مطعم فتح الدفع ومطعم لم يفتحه — والزر وحده هو المشروط.
-                     و`--i` ترتيب البطاقة في قسمها: منه يأتي تدرّج الدخول، بلا
-                     حالة React ولا مراقب تقاطع. يُحدّ بستّة كي لا يتأخّر آخر
-                     صنف في قسم من ثلاثين صنفاً ثانيةً كاملة. */
-                  <div
-                    key={d.id}
-                    className={cn("relative", entranceClass(design))}
-                    style={{ "--i": Math.min(di, 6) } as CSSProperties}
+                {categories.map((c) => (
+                  <a
+                    key={c.name}
+                    href={`#${categoryId(c.name)}`}
+                    ref={(el) => { catRefs.current[c.name] = el; }}
+                    aria-current={activeCat === c.name ? "true" : undefined}
+                    className="m-tab flex h-10 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-sm font-bold transition-colors"
+                    style={
+                      activeCat === c.name
+                        ? { background: "var(--m-accent)", color: "var(--m-on-accent)" }
+                        : { color: "var(--m-muted)" }
+                    }
                   >
-                    <DishCard
-                      dish={d}
-                      en={en}
-                      design={design}
-                      reserve={sectionReserve(cat.dishes, en)}
-                      popular={popularIds.has(d.id)}
-                      addSlot={cartOn && ordersOpen && Number(d.price ?? 0) > 0}
-                      onOpen={() => { setOpenDish(d); if (!demo && !preview) trackDishView(d, { table, lang }); }}
-                    />
-                    {/* ⚠️ `ordersOpen` لا `cartOn` وحده: زرُّ إضافةٍ على منيو مغلق
-                        يملأ سلّةً لا مخرج لها — والشريط أسفلها يقول «يفتح ١٣:٠٠». */}
-                    {cartOn && ordersOpen && Number(d.price ?? 0) > 0 && (
-                      <AddToCartButton
-                        label={en ? `Add ${d.name}` : `أضِف ${d.name}`}
-                        onAdd={() => cart.add(d.id)}
-                        className={design.layout === "list" ? "bottom-3 end-0" : "top-2 end-2"}
-                      />
-                    )}
-                  </div>
+                    {/* الرمز يرث لون الشريحة عبر `currentColor` — وهذا ما لا
+                        يفعله الإيموجي: كان `💛` أصفر فوق كل طابع من الستّة عشر. */}
+                    <Icon name={categoryIcon(c.name)} size={15} />
+                    {c.name}
+                  </a>
                 ))}
               </div>
-            </section>
-          ))
-        )}
 
-        {/* ── التذييل ككتلة واحدة ─────────────────────────────────────
-            كانت ست كتل متتالية بمحاذاات مختلفة تطفو بلا علاقة بينها.
-            الآن تسلسل واحد بفواصل رفيعة وإيقاع `RHYTHM` نفسه. */}
-        <div
-          className={cn(rhythm.section, "border-t")}
-          style={{ borderColor: "var(--m-border)" }}
-        >
-          {allergenIndex.length > 0 && (
-            <button
-              onClick={() => setAllergensOpen(true)}
-              className={cn(
-                rhythm.block,
-                "mx-auto flex w-full max-w-md items-center justify-between gap-3 border px-4 py-3 text-start transition-transform hover:scale-[1.01]"
+              {searchOpen || search ? (
+                <input
+                  autoFocus
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  onBlur={() => !search && setSearchOpen(false)}
+                  placeholder={en ? "Search…" : "ابحث…"}
+                  aria-label={en ? "Search the menu" : "ابحث في المنيو"}
+                  className="min-h-11 w-28 shrink-0 rounded-full border bg-transparent px-3 py-1.5 text-sm sm:w-40"
+                  style={{
+                    borderColor: "var(--m-border)",
+                    background: "var(--m-surface)",
+                    color: "var(--m-text)",
+                  }}
+                />
+              ) : (
+                <button
+                  onClick={() => setSearchOpen(true)}
+                  aria-label={en ? "Search the menu" : "ابحث في المنيو"}
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border"
+                  style={{ borderColor: "var(--m-border)", color: "var(--m-muted)" }}
+                >
+                  <Icon name="search" size={16} />
+                </button>
               )}
+
+              {/* زرّ استبعاد الحساسية — يظهر فقط إن سجّل التاجر حساسياتٍ فعلاً.
+                  زرٌّ يفتح قائمة فارغة أسوأ من غيابه. */}
+              {allergensInMenu.length > 0 && (
+                <button
+                  onClick={() => setAvoidOpen(true)}
+                  aria-label={en ? "Dietary filter" : "استبعاد مسبّبات الحساسية"}
+                  className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full border"
+                  style={
+                    avoid.size > 0
+                      ? { background: "var(--m-accent)", color: "var(--m-on-accent)", borderColor: "transparent" }
+                      : { borderColor: "var(--m-border)", color: "var(--m-muted)" }
+                  }
+                >
+                  <Icon name="sliders" size={16} />
+                  {avoid.size > 0 && (
+                    <span
+                      className="absolute -top-0.5 -end-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-black"
+                      style={{ background: "var(--m-text)", color: "var(--m-bg)" }}
+                    >
+                      {avoid.size}
+                    </span>
+                  )}
+                </button>
+              )}
+            </nav>
+          )}
+
+          {/* شريط يوضّح أن ما يراه مُصفّى — الزبون لا يجب أن يظنّ المنيو ناقصاً. */}
+          {avoid.size > 0 && (
+            <div
+              className="mx-auto mt-3 flex max-w-md items-center justify-between gap-3 px-4 py-2.5 text-xs font-bold"
+              style={{
+                background: "var(--m-surface)",
+                border: "1px solid var(--m-accent)",
+                borderRadius: "var(--m-radius)",
+                color: "var(--m-text)",
+              }}
+            >
+              <span className="min-w-0 truncate">
+                {en
+                  ? `Hiding dishes with: ${[...avoid].map((id) => allergenLabel(id, en)).join(", ")}`
+                  : `مخفيّ ما يحتوي: ${[...avoid].map((id) => allergenLabel(id, en)).join("، ")}`}
+              </span>
+              <button
+                onClick={() => setAvoid(new Set())}
+                className="shrink-0 underline underline-offset-2"
+                style={{ color: "var(--m-accent-ink, var(--m-accent))" }}
+              >
+                {en ? "Clear" : "إلغاء"}
+              </button>
+            </div>
+          )}
+
+          {/* الأقسام */}
+          {categories.length === 0 ? (
+            <div
+              className={cn(rhythm.section, "mx-auto max-w-sm border px-5 py-10 text-center")}
               style={{
                 borderColor: "var(--m-border)",
                 background: "var(--m-surface)",
                 borderRadius: "var(--m-radius)",
               }}
             >
-              <span>
-                <span
-                  className="flex items-center gap-1.5 text-sm font-black"
-                  style={{ color: "var(--m-text)" }}
+              <Icon name={search ? "search" : "plate"} size={34} className="mx-auto" strokeWidth={1.4} />
+              <p className="mt-2 text-sm font-bold" style={{ color: "var(--m-text)" }}>
+                {search
+                  ? en
+                    ? "No results for your search."
+                    : "لا نتائج لبحثك."
+                  : en
+                    ? "No items available yet."
+                    : "لا توجد أصناف متاحة حالياً."}
+              </p>
+              {search && (
+                <button
+                  onClick={() => {
+                    setSearch("");
+                    setSearchOpen(false);
+                  }}
+                  className="mt-3 rounded-full px-4 py-1.5 text-xs font-black"
+                  style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}
                 >
-                  <Icon name="warn" size={15} />
-                  {en ? "Allergen guide" : "دليل مسببات الحساسية"}
-                </span>
-                <span className="mt-0.5 block text-xs" style={{ color: "var(--m-muted)" }}>
-                  {en
-                    ? `${allergenIndex.length} allergens across the menu`
-                    : `${allergenIndex.length} مسبباً في هذا المنيو — اعرف أي طبق يحتويه`}
-                </span>
-              </span>
-              <span style={{ color: "var(--m-accent)" }}>›</span>
-            </button>
-          )}
-
-          {restaurant.loyalty_enabled && <LoyaltyCard restaurant={restaurant} en={en} />}
-
-          {socials.length > 0 && (
-            <div className={cn(rhythm.block, "flex flex-wrap items-center justify-center gap-2")}>
-              {socials.map((s) => (
-                <Chip key={s.label} href={s.url}>
-                  {s.icon} {s.label}
-                </Chip>
-              ))}
+                  {en ? "Clear search" : "امسح البحث"}
+                </button>
+              )}
             </div>
+          ) : (
+            categories.map((cat, ci) => (
+              <section
+                key={cat.name}
+                id={categoryId(cat.name)}
+                data-cat={cat.name}
+                className={cn("m-sec", rhythm.section)}
+                // هامش تمرير مربوط بارتفاع الشريط الفعلي — كان ثابتاً (scroll-mt-20)
+                // بينما ارتفاع الشريط يتغيّر، فيختفي عنوان القسم خلفه عند الضغط.
+                style={{ scrollMarginTop: `${navHeight + 12}px` }}
+              >
+                <SectionHeading name={cat.name} style={design.heading} index={ci} />
+                <div className={cn(LAYOUT_CLASS[design.layout], rhythm.gap)}>
+                  {cat.dishes.map((d, di) => (
+                    /* الغلاف `relative` موجود دائماً كي لا يتغيّر شكل الشبكة بين
+                       مطعم فتح الدفع ومطعم لم يفتحه — والزر وحده هو المشروط.
+                       و`--i` ترتيب البطاقة في قسمها: منه يأتي تدرّج الدخول، بلا
+                       حالة React ولا مراقب تقاطع. يُحدّ بستّة كي لا يتأخّر آخر
+                       صنف في قسم من ثلاثين صنفاً ثانيةً كاملة. */
+                    /* ‏`deck` بلا دخول التمرير الرأسي: لبطاقاته حركتها الأفقية (تكبر
+                       حين تتوسّط)، واجتماع الاثنين على عنصرٍ واحد يُسقط أحدهما. */
+                    <div
+                      key={d.id}
+                      className={cn("relative", design.layout !== "deck" && entranceClass(design))}
+                      style={{ "--i": Math.min(di, 6) } as CSSProperties}
+                    >
+                      <DishCard
+                        dish={d}
+                        en={en}
+                        design={design}
+                        reserve={sectionReserve(cat.dishes, en)}
+                        popular={popularIds.has(d.id)}
+                        addSlot={cartOn && ordersOpen && Number(d.price ?? 0) > 0}
+                        onOpen={() => { setOpenDish(d); if (!demo && !preview) trackDishView(d, { table, lang }); }}
+                      />
+                      {/* ⚠️ `ordersOpen` لا `cartOn` وحده: زرُّ إضافةٍ على منيو مغلق
+                          يملأ سلّةً لا مخرج لها — والشريط أسفلها يقول «يفتح ١٣:٠٠». */}
+                      {cartOn && ordersOpen && Number(d.price ?? 0) > 0 && (
+                        <AddToCartButton
+                          label={en ? `Add ${d.name}` : `أضِف ${d.name}`}
+                          onAdd={() => cart.add(d.id)}
+                          className={design.layout === "list" ? "bottom-3 end-0" : "top-2 end-2"}
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ))
           )}
 
-          {/* معلومات المطعم والضريبة — نصّ واحد متّسق بدل ثلاث كتل. */}
-          <div
-            className={cn(rhythm.block, "space-y-1 text-center text-xs leading-relaxed")}
-            style={{ color: "var(--m-muted)" }}
-          >
-            {restaurant.address && (
-              <p className="inline-flex items-center gap-1.5">
-                <Icon name="pin" size={13} /> {restaurant.address}
-              </p>
-            )}
-            {restaurant.phone && <p dir="ltr">📞 {restaurant.phone}</p>}
-            {restaurant.allergens_text && <p>⚠️ {restaurant.allergens_text}</p>}
-            {/* أرقام غربية و«%» — نفس اتفاقية formatPrice ونِسب التحليلات،
-                وتتفادى إعادة ترتيب «٪» داخل نص RTL. */}
-            <p>
-              {restaurant.prices_include_vat === false
-                ? en
-                  ? "Prices exclude 15% VAT — it is added at checkout."
-                  : "الأسعار غير شاملة ضريبة القيمة المضافة (تُضاف 15% عند الدفع)."
-                : en
-                  ? "All prices include 15% VAT."
-                  : "جميع الأسعار شاملة ضريبة القيمة المضافة 15%."}
-            </p>
-            {restaurant.vat_number && (
-              <p>
-                {en ? "VAT number" : "الرقم الضريبي"}:{" "}
-                <span dir="ltr">{restaurant.vat_number}</span>
-              </p>
-            )}
-          </div>
-        </div>
+          {/* ذيل الفاتورة: عدد الأصناف والشكر وباركودٌ من رابط المطعم. */}
+          {design.skin === "receipt" && categories.length > 0 && (
+            <ReceiptEnd
+              count={categories.reduce((n, c) => n + c.dishes.length, 0)}
+              code={restaurant.slug ?? restaurant.name}
+              en={en}
+            />
+          )}
 
-        {/* توقيع المنصة */}
-        <footer className={cn(rhythm.section, "flex flex-col items-center gap-2 opacity-70")}>
-          {/* التصغير على المحتوى لا على الرابط: `scale-90` على الرابط نفسه
-              يصغّر منطقة اللمس معه (٤٤ ⇐ ٤٠). */}
-          <Link to="/" className="inline-flex min-h-11 items-center">
-            <span className="scale-90">
-              <Logo />
-            </span>
-          </Link>
-        </footer>
-      </main>
+          {/* ── التذييل ككتلة واحدة ─────────────────────────────────────
+              كانت ست كتل متتالية بمحاذاات مختلفة تطفو بلا علاقة بينها.
+              الآن تسلسل واحد بفواصل رفيعة وإيقاع `RHYTHM` نفسه. */}
+          <div
+            className={cn(rhythm.section, "border-t")}
+            style={{ borderColor: "var(--m-border)" }}
+          >
+            {allergenIndex.length > 0 && (
+              <button
+                onClick={() => setAllergensOpen(true)}
+                className={cn(
+                  rhythm.block,
+                  "mx-auto flex w-full max-w-md items-center justify-between gap-3 border px-4 py-3 text-start transition-transform hover:scale-[1.01]"
+                )}
+                style={{
+                  borderColor: "var(--m-border)",
+                  background: "var(--m-surface)",
+                  borderRadius: "var(--m-radius)",
+                }}
+              >
+                <span>
+                  <span
+                    className="flex items-center gap-1.5 text-sm font-black"
+                    style={{ color: "var(--m-text)" }}
+                  >
+                    <Icon name="warn" size={15} />
+                    {en ? "Allergen guide" : "دليل مسببات الحساسية"}
+                  </span>
+                  <span className="mt-0.5 block text-xs" style={{ color: "var(--m-muted)" }}>
+                    {en
+                      ? `${allergenIndex.length} allergens across the menu`
+                      : `${allergenIndex.length} مسبباً في هذا المنيو — اعرف أي طبق يحتويه`}
+                  </span>
+                </span>
+                <span style={{ color: "var(--m-accent-ink, var(--m-accent))" }}>›</span>
+              </button>
+            )}
+
+            {restaurant.loyalty_enabled && <LoyaltyCard restaurant={restaurant} en={en} />}
+
+            {socials.length > 0 && (
+              <div className={cn(rhythm.block, "flex flex-wrap items-center justify-center gap-2")}>
+                {socials.map((s) => (
+                  <Chip key={s.label} href={s.url}>
+                    {s.icon} {s.label}
+                  </Chip>
+                ))}
+              </div>
+            )}
+
+            {/* معلومات المطعم والضريبة — نصّ واحد متّسق بدل ثلاث كتل. */}
+            <div
+              className={cn(rhythm.block, "space-y-1 text-center text-xs leading-relaxed")}
+              style={{ color: "var(--m-muted)" }}
+            >
+              {restaurant.address && (
+                <p className="inline-flex items-center gap-1.5">
+                  <Icon name="pin" size={13} /> {restaurant.address}
+                </p>
+              )}
+              {restaurant.phone && <p dir="ltr">📞 {restaurant.phone}</p>}
+              {restaurant.allergens_text && <p>⚠️ {restaurant.allergens_text}</p>}
+              {/* أرقام غربية و«%» — نفس اتفاقية formatPrice ونِسب التحليلات،
+                  وتتفادى إعادة ترتيب «٪» داخل نص RTL. */}
+              <p>
+                {restaurant.prices_include_vat === false
+                  ? en
+                    ? "Prices exclude 15% VAT — it is added at checkout."
+                    : "الأسعار غير شاملة ضريبة القيمة المضافة (تُضاف 15% عند الدفع)."
+                  : en
+                    ? "All prices include 15% VAT."
+                    : "جميع الأسعار شاملة ضريبة القيمة المضافة 15%."}
+              </p>
+              {restaurant.vat_number && (
+                <p>
+                  {en ? "VAT number" : "الرقم الضريبي"}:{" "}
+                  <span dir="ltr">{restaurant.vat_number}</span>
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* توقيع المنصة */}
+          <footer className={cn(rhythm.section, "flex flex-col items-center gap-2 opacity-70")}>
+            {/* التصغير على المحتوى لا على الرابط: `scale-90` على الرابط نفسه
+                يصغّر منطقة اللمس معه (٤٤ ⇐ ٤٠). */}
+            <Link to="/" className="inline-flex min-h-11 items-center">
+              <span className="scale-90">
+                <Logo />
+              </span>
+            </Link>
+          </footer>
+        </main>
+      </div>
 
       {/* «لأعلى» — منيو بستة أقسام يحتاجه؛ يظهر بعد شاشتين فقط.
           يرتفع فوق شريط السلة حين تكون مشغولة كي لا يتراكبا. */}
@@ -1313,7 +1339,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
         >
           {/* ملخّص الأسبوع انتقل إلى هنا من شريحة ثانية كانت تزدحم في الترويسة. */}
           {week && (
-            <p className="mb-3 text-center text-sm font-bold" style={{ color: "var(--m-accent)" }}>
+            <p className="mb-3 text-center text-sm font-bold" style={{ color: "var(--m-accent-ink, var(--m-accent))" }}>
               {weekSummary(week, en)}
             </p>
           )}
@@ -1340,7 +1366,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
                   <span className="font-bold">
                     {en ? d.en : d.ar}
                     {isToday && (
-                      <span style={{ color: "var(--m-accent)" }}> · {en ? "today" : "اليوم"}</span>
+                      <span style={{ color: "var(--m-accent-ink, var(--m-accent))" }}> · {en ? "today" : "اليوم"}</span>
                     )}
                   </span>
                   <span dir="ltr" style={{ color: day.open ? "var(--m-text)" : "var(--m-muted)" }}>

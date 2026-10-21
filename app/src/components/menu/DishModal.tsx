@@ -105,7 +105,7 @@ export function DishModal({
                 </span>
               )}
             </h3>
-            <span className="shrink-0 text-lg font-black" style={{ color: "var(--m-accent)" }}>
+            <span className="shrink-0 text-lg font-black" style={{ color: "var(--m-accent-ink, var(--m-accent))" }}>
               {formatPrice(dish.price ?? 0)} ر.س
             </span>
           </div>
@@ -188,7 +188,7 @@ export function DishModal({
                         )}
                         {/* «+0 ر.س» ضجيج: إضافة بلا سعر (حار، بلا بصل) اسمها يكفي. */}
                         {o.price != null && o.price > 0 && (
-                          <span style={{ color: "var(--m-accent)" }}>
+                          <span style={{ color: "var(--m-accent-ink, var(--m-accent))" }}>
                             +{formatPrice(o.price)} {en ? "SAR" : "ر.س"}
                           </span>
                         )}
@@ -256,7 +256,7 @@ export function DishModal({
                   onClick={() => setQty((q) => Math.min(99, q + 1))}
                   aria-label={en ? "Increase" : "زيادة"}
                   className="h-11 w-11 text-lg font-black"
-                  style={{ color: "var(--m-accent)" }}
+                  style={{ color: "var(--m-accent-ink, var(--m-accent))" }}
                 >
                   ＋
                 </button>

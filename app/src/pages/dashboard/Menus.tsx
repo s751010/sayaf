@@ -32,53 +32,14 @@ import {
   splitThemeId,
   themeBaseOf,
   themeIdOf,
-  type DishLayout,
 } from "@/lib/themes";
 import { ThemePreview } from "@/components/menu/ThemePreview";
+import { LAYOUT_OPTIONS, LayoutGlyph } from "@/components/LayoutOptions";
 import { cn } from "@/lib/utils";
 import type { Menu } from "@/lib/types";
 import { useDashboard } from "./Dashboard";
 import { MenuTabs } from "./Tabs";
 import { Icon } from "@/lib/icons";
-
-/**
- * خيارات شكل العرض. `null` = «اترك افتراضي الطابع» — وهو خيار حقيقي لا غياب
- * خيار: التاجر الذي جرّب ثم ندم يعود لأصل الطابع بضغطة واحدة.
- */
-const LAYOUT_OPTIONS: { value: DishLayout | null; label: string; hint: string }[] = [
-  { value: null, label: "افتراضي الطابع", hint: "كما صُمّم" },
-  { value: "grid", label: "مربّعات", hint: "بطاقتان بالصف" },
-  { value: "list", label: "قائمة", hint: "أنيقة بلا صور كبيرة" },
-  { value: "showcase", label: "صور كبيرة", hint: "للكافيهات" },
-];
-
-/** رسم مصغّر لشكل العرض — الاختيار بالعين لا بقراءة الاسم. */
-function LayoutGlyph({ value }: { value: DishLayout | null }) {
-  const box = "rounded-[3px] bg-dim/35";
-  if (value === null)
-    return (
-      <span className="flex h-6 items-center justify-center text-dim">
-        <Icon name="sparkle" size={18} />
-      </span>
-    );
-  if (value === "list")
-    return (
-      <span className="mx-auto flex h-6 w-16 flex-col justify-center gap-1">
-        {[0, 1, 2].map((i) => (
-          <span key={i} className={cn(box, "h-1")} />
-        ))}
-      </span>
-    );
-  if (value === "showcase")
-    return <span className={cn(box, "mx-auto block h-6 w-16")} />;
-  return (
-    <span className="mx-auto grid h-6 w-16 grid-cols-2 gap-1">
-      {[0, 1, 2, 3].map((i) => (
-        <span key={i} className={cn(box, "h-[10px]")} />
-      ))}
-    </span>
-  );
-}
 
 export default function Menus() {
   const { user, restaurant, setRestaurant, menus, refreshMenus, ent } = useDashboard();
@@ -334,7 +295,7 @@ export default function Menus() {
           <PreviewMenuButton slug={restaurant.slug} label="عاين النتيجة" />
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
           {DESIGN_THEMES.map((t) => {
             const on = activeBase === t.id;
             return (
@@ -369,7 +330,7 @@ export default function Menus() {
             لكل طابع شكله الافتراضي، لكن الاختيار لك: زخرفة الطابع وترويسته وخطّه
             تبقى كما هي ويتغيّر شكل البطاقات وحده.
           </p>
-          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5">
             {LAYOUT_OPTIONS.map((o) => {
               const on = activeLayout === o.value;
               return (
