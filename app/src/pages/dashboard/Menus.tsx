@@ -58,7 +58,7 @@ export default function Menus() {
   const activeBase = themeBaseOf(activeThemeId);
   // لون العلامة: من الثيم المطبَّق إن حمل لوناً، وإلا من cover_color الموجود.
   const [brandHex, setBrandHex] = useState(
-    () => parsedTheme.hex ?? restaurant.cover_color ?? "#d4a843"
+    () => parsedTheme.hex ?? (restaurant.cover_color && isHex(restaurant.cover_color) ? restaurant.cover_color : "#d4a843")
   );
   const [useBrand, setUseBrand] = useState(() => parsedTheme.hex !== null);
   /** شكل العرض المختار — `null` يعني «اترك افتراضي الطابع». */

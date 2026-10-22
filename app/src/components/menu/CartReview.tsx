@@ -8,6 +8,7 @@
  * فُصلت عن `Cart.tsx` لأنها أطول أجزائها وأكثرها استقلالاً: تأخذ السلّة
  * جاهزة وتتصرّف في العرض والإرسال، ولا يشاركها بقيّة الملفّ حالةً.
  */
+import { Link } from "react-router-dom";
 import { useState, type CSSProperties } from "react";
 import { unitPrice, type Cart, type CartLine } from "@/components/menu/Cart";
 import { mFont } from "@/components/menu/chrome";
@@ -414,6 +415,17 @@ export function CartReview({
             style={field}
           />
         </div>
+        {/* إشعار الجمع عند نقطة الجمع — نظام حماية البيانات يطلبه هنا لا في
+            صفحة بعيدة. والختم التلقائي (`mark_order_paid`) يُذكر صراحةً: إضافة
+            رقم الزبون إلى بطاقة ولاء بلا علمه معالجةٌ لم يُخبَر بها. */}
+        <p className="mt-2 text-[11px] leading-relaxed" style={{ color: "var(--m-muted)" }}>
+          {en
+            ? "Your name and mobile go to this restaurant to handle your order (and to the payment gateway if you pay online). If the restaurant runs a loyalty card, a paid order adds a stamp to your number. "
+            : "يصل اسمك وجوالك إلى هذا المطعم لتنفيذ طلبك (وإلى بوّابة الدفع إن دفعت إلكترونياً). وإن كان للمطعم بطاقة ولاء أُضيف ختمٌ لرقمك عند الدفع. "}
+          <Link to="/privacy" className="underline underline-offset-2">
+            {en ? "Privacy" : "الخصوصية"}
+          </Link>
+        </p>
       </div>
 
       {/* ── الفاتورة ──────────────────────────────────────────────────

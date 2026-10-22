@@ -58,7 +58,7 @@ export default function Design() {
   // إلى الباقي الذي يُعرض به فعلاً، فيُعلَّم في المُنتقي بدل ألّا يُعلَّم شيء.
   const activeBase = themeBaseOf(activeThemeId);
   const [brandHex, setBrandHex] = useState(
-    () => parsedTheme.hex ?? restaurant.cover_color ?? "#d4a843"
+    () => parsedTheme.hex ?? (restaurant.cover_color && isHex(restaurant.cover_color) ? restaurant.cover_color : "#d4a843")
   );
   const [useBrand, setUseBrand] = useState(() => parsedTheme.hex !== null);
   const activeLayout = parsedTheme.layout;
@@ -299,7 +299,7 @@ export default function Design() {
                   try {
                     const blob = await renderOgImage({
                       name: restaurant.name,
-                      accent: restaurant.cover_color || "#d4a843",
+                      accent: restaurant.cover_color && isHex(restaurant.cover_color) ? restaurant.cover_color : "#d4a843",
                       logo: restaurant.logo,
                       type: restaurant.type,
                     });

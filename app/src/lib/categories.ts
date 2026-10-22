@@ -178,6 +178,14 @@ export function canonOf(raw: string | null | undefined): Canon | null {
   return BY_KEY.get(categoryKey(raw)) ?? null;
 }
 
+/**
+ * اسم التصنيف بلغة الزبون: الإنجليزي من `CANON` لما نعرفه، والاسم كما كتبه
+ * التاجر لما لا نعرفه. **للعرض وحده** — المعرّفات والترتيب على الاسم العربي.
+ */
+export function categoryLabel(raw: string, en: boolean): string {
+  return en ? (canonOf(raw)?.en ?? raw) : raw;
+}
+
 /** رمز التصنيف — يسقط إلى الصحن العامّ لما لا نعرفه. */
 export function categoryIcon(raw: string | null | undefined): IconName {
   return canonOf(raw)?.icon ?? "plate";

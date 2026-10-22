@@ -4,6 +4,7 @@
  * البطاقة تُحفظ **محلياً** بمفتاح `cm2_loyalty_<id>`: الزبون بلا حساب، فلا
  * سبيل لربطه بصفّه في القاعدة إلا بما يبقى على جهازه.
  */
+import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { mFont } from "@/components/menu/chrome";
 import { getLoyaltyCustomer, joinLoyalty, reportSilentFailure } from "@/lib/data";
@@ -92,6 +93,15 @@ export function LoyaltyCard({ restaurant, en }: { restaurant: Restaurant; en: bo
             className="min-h-11 rounded-xl border bg-transparent px-3.5 py-2.5 text-sm"
             style={{ borderColor: "var(--m-border)", color: "var(--m-text)" }}
           />
+          {/* الموافقة صريحة في نصّ الزرّ نفسه: «انضم» بعد هذا السطر هي الموافقة. */}
+          <p className="text-[11px] leading-relaxed" style={{ color: "var(--m-muted)" }}>
+            {en
+              ? "By joining, you agree this restaurant keeps your name and mobile to track your stamps. Ask the restaurant anytime to delete them. "
+              : "بانضمامك توافق أن يحفظ المطعم اسمك وجوالك لتتبّع أختامك، ولك أن تطلب منه حذفها متى شئت. "}
+            <Link to="/privacy" className="underline underline-offset-2">
+              {en ? "Privacy" : "الخصوصية"}
+            </Link>
+          </p>
           {msg && (
             <p className="text-center text-xs" style={{ color: "var(--m-accent-ink, var(--m-accent))" }}>
               {msg}

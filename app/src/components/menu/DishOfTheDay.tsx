@@ -70,11 +70,13 @@ export function DishOfTheDay({
         )}
         {/* `dir` على السعر وحده لا على السطر: على السطر كان يدفع السعر إلى الطرف
             الآخر من البطاقة بعيداً عن الاسم فوقه. */}
-        <p className="m-price mt-1 text-base font-black" style={{ color: "var(--m-price, var(--m-accent-ink, var(--m-accent)))" }}>
-          <span dir="ltr">
-            {formatPrice(dish.price ?? 0)} <span className="text-[10px] font-bold">ر.س</span>
-          </span>
-        </p>
+        {(dish.price ?? 0) > 0 && (
+          <p className="m-price mt-1 text-base font-black" style={{ color: "var(--m-price, var(--m-accent-ink, var(--m-accent)))" }}>
+            <span dir="ltr">
+              {formatPrice(dish.price ?? 0)} <span className="text-[10px] font-bold">{en ? "SAR" : "ر.س"}</span>
+            </span>
+          </p>
+        )}
       </div>
     </button>
   );

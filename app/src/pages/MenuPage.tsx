@@ -31,6 +31,7 @@ import { PickupTicket } from "@/components/menu/PickupTicket";
 import { allergenLabel, buildAllergenIndex, restaurantTypeLabel } from "@/lib/menuText";
 import { Chip, LangToggle, LAYOUT_CLASS, MenuSheet, sectionReserve } from "@/components/menu/chrome";
 import { SectionHeading, sectionCover } from "@/components/menu/SectionHeading";
+import { normalizeAr } from "@/lib/arabic";
 import { DishModal } from "@/components/menu/DishModal";
 import { LoyaltyCard } from "@/components/menu/LoyaltyCard";
 import {
@@ -50,7 +51,7 @@ import {
   trackMenuView,
   getPopularDishes,
 } from "@/lib/data";
-import { categoryIcon, parseCategoryOrder, sortCategories } from "@/lib/categories";
+import { categoryIcon, categoryLabel, parseCategoryOrder, sortCategories } from "@/lib/categories";
 import { ALLERGENS } from "@/lib/allergens";
 
 import {
@@ -62,7 +63,9 @@ import {
 import { patternImage, PATTERN_SIZE } from "@/lib/patterns";
 import { loadThemeFont } from "@/lib/fonts";
 import { getSeason } from "@/lib/seasons";
-import { installPixels } from "@/lib/pixels";
+import { hasPixels, installPixels } from "@/lib/pixels";
+import { PixelConsent } from "@/components/menu/PixelConsent";
+import { DAILY_CAFFEINE_MAX_MG, DAILY_KCAL } from "@/lib/nutrition";
 import { loadSession } from "@/lib/session";
 import { getBillingSettings } from "@/lib/billing";
 import { absoluteUrl, dietOf, priceRangeOf, schemaHours, useJsonLd, useSeo } from "@/lib/seo";
@@ -71,6 +74,10 @@ import { categoryId, cn, httpUrl, whatsappUrl } from "@/lib/utils";
 import type { Dish, Menu, Restaurant } from "@/lib/types";
 import { Icon, type IconName } from "@/lib/icons";
 import { menuUrl, slugFromRequest } from "@/lib/menuUrl";
+
+/** «سلس» إلا لمن طلب من نظامه تقليل الحركة — التمرير المتحرّك حركةٌ أيضاً. */
+const scrollBehavior = (): ScrollBehavior =>
+  window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
 
 type LoadState =
   | { status: "loading" }
@@ -100,7 +107,11 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
   const [state, setState] = useState<LoadState>(
     demo ? { status: "ready", ...demo } : { status: "loading" }
   );
-  const [lang, setLang] = useState<"ar" | "en">("ar");
+  // `?lang=en` يفتح المنيو بالإنجليزية (رابط يرسله المطعم لزبائنه الأجانب) —
+  // ويُتجاهل حين لا يفعّل المطعم الإنجليزية (انظر `en` أدناه).
+  const [lang, setLang] = useState<"ar" | "en">(() =>
+    params.get("lang") === "en" ? "en" : "ar"
+  );
   const [search, setSearch] = useState("");
   const [activeCat, setActiveCat] = useState<string | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -312,7 +323,10 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
           type: "restaurant",
           noindex: !!demo || preview,
         }
-      : null
+      : state.status === "notfound" || state.status === "error"
+        ? // صفحةٌ تقول «غير موجود» لا تُفهرَس — وإلا ورث قوقل لها عنوان الصفحة الرئيسية.
+          { title: state.status === "notfound" ? "المطعم غير موجود" : "تعذّر تحميل المنيو", noindex: true }
+        : null
   );
 
   /**
@@ -415,7 +429,42 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
   // كما ضبطهما الطابع، فلا ينكسر التباين مهما اختار التاجر.
   const pagePattern = season?.pattern ?? design.pattern;
 
-  const en = lang === "en";
+  const en =
+    lang === "en" && (state.status !== "ready" || state.restaurant.english_enabled === true);
+
+  /**
+   * لغة الصفحة واتجاهها يتبعان المنيو: `<html lang="ar" dir="rtl">` ثابتاً كان
+   * يجعل قارئ الشاشة ينطق الإنجليزية بصوتٍ عربي. ويُعادان عند الخروج.
+   */
+  useEffect(() => {
+    if (demo || preview) return;
+    const root = document.documentElement;
+    const prev = { lang: root.lang, dir: root.dir };
+    root.lang = en ? "en" : "ar";
+    root.dir = en ? "ltr" : "rtl";
+    return () => {
+      root.lang = prev.lang;
+      root.dir = prev.dir;
+    };
+  }, [en, demo, preview]);
+
+  /**
+   * لون شريط المتصفّح وخلفية الصفحة من الطابع: كانا كريميّين ثابتين، فيظهر
+   * شريطٌ كريميّ فوق منيو أسود على أندرويد، ويلمع الكريمي عند السحب في iOS.
+   */
+  const pageBg = theme.vars["--m-page"] ?? theme.vars["--m-bg"];
+  useEffect(() => {
+    if (!pageBg || preview) return;
+    const tag = document.head.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+    const prevTag = tag?.content;
+    const prevBody = document.body.style.backgroundColor;
+    if (tag) tag.content = pageBg;
+    document.body.style.backgroundColor = pageBg;
+    return () => {
+      if (tag && prevTag) tag.content = prevTag;
+      document.body.style.backgroundColor = prevBody;
+    };
+  }, [pageBg, preview]);
 
   /**
    * السلة تُستدعى بلا شرط (قاعدة الخطّافات) وتبقى معطّلة حتى يفتح التاجر الدفع
@@ -452,15 +501,27 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
    * تُستثنى المعاينة والديمو: التاجر يتصفّح منيوه فلا يجوز أن يُحسب زبوناً في
    * إحصاءات إعلانه، تماماً كما لا يُحسب في مشاهداته (`trackMenuView`).
    */
+  const pixelIds =
+    state.status === "ready"
+      ? {
+          meta: state.restaurant.meta_pixel_id?.trim() || null,
+          ga: state.restaurant.ga_measurement_id?.trim() || null,
+          snap: state.restaurant.snap_pixel_id?.trim() || null,
+        }
+      : null;
+  const pixelsWanted = !!pixelIds && !demo && !preview && hasPixels(pixelIds);
+  // موافقة الزبون قبل أي بكسل — انظر `PixelConsent`. تُقرأ مرة عند التحميل.
+  const [pixelConsent, setPixelConsent] = useState(() => getItem(K.PIXEL_CONSENT));
   useEffect(() => {
-    if (state.status !== "ready" || demo || preview) return;
-    const r = state.restaurant;
-    installPixels({
-      meta: r.meta_pixel_id?.trim() || null,
-      ga: r.ga_measurement_id?.trim() || null,
-      snap: r.snap_pixel_id?.trim() || null,
-    });
-  }, [state, demo, preview]);
+    if (!pixelsWanted || pixelConsent !== "yes" || !pixelIds) return;
+    installPixels(pixelIds);
+    // `pixelIds` كائنٌ جديد كل رسم ومصدره `state` — فالاعتماد على `state` نفسه.
+  }, [pixelsWanted, pixelConsent, state]);
+  const answerPixels = (yes: boolean) => {
+    const v = yes ? "yes" : "no";
+    setItem(K.PIXEL_CONSENT, v);
+    setPixelConsent(v);
+  };
 
   const dishById = useMemo(
     () =>
@@ -474,14 +535,57 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
     return dish ? sum + unitPrice(dish, l.option_ids) * l.qty : sum;
   }, 0);
 
+  /**
+   * نافذة الطبق في سجلّ المتصفّح: `?dish=<id>`.
+   *
+   * كان زرّ «رجوع» في أندرويد يُخرج الزبون من المنيو كلّه بدل أن يغلق النافذة،
+   * ولم يكن للطبق رابطٌ يُشارَك. فالفتح يضيف مدخلاً للسجلّ، والرجوع يغلقه، ورابطٌ
+   * يحمل `?dish=` يفتح الطبق عند الوصول.
+   *
+   * ⚠️ الديمو والمعاينة بلا سجلّ: الديمو يسكن إطاراً في صفحة الهبوط، ومدخلٌ في
+   * سجلّه يجعل «رجوع» الزائر يغلق نافذةً لا يراها بدل أن يرجع.
+   */
+  const historyOn = !demo && !preview;
+  const openDishView = (d: Dish) => {
+    setOpenDish(d);
+    if (historyOn) {
+      trackDishView(d, { table, lang });
+      const url = new URL(window.location.href);
+      url.searchParams.set("dish", d.id);
+      window.history.pushState({ ...window.history.state, cmDish: d.id }, "", url);
+    }
+  };
+  const closeDishView = () => {
+    if (historyOn && window.history.state?.cmDish) window.history.back();
+    else {
+      setOpenDish(null);
+      if (historyOn && new URL(window.location.href).searchParams.has("dish")) {
+        // وصل من رابطٍ فيه `?dish=` — لا مدخل قبله نرجع إليه، فيُنظَّف الرابط.
+        const url = new URL(window.location.href);
+        url.searchParams.delete("dish");
+        window.history.replaceState(window.history.state, "", url);
+      }
+    }
+  };
+  useEffect(() => {
+    if (!historyOn || state.status !== "ready") return;
+    const sync = () => {
+      const id = new URL(window.location.href).searchParams.get("dish");
+      setOpenDish(id ? (dishById.get(id) ?? null) : null);
+    };
+    sync();
+    window.addEventListener("popstate", sync);
+    return () => window.removeEventListener("popstate", sync);
+  }, [historyOn, state.status, dishById]);
+
   const { featured, categories, tags } = useMemo(() => {
     if (state.status !== "ready") return { featured: [], categories: [] as { name: string; dishes: Dish[] }[], tags: [] };
-    const q = search.trim().toLowerCase();
+    const q = normalizeAr(search);
     const matchesSearch = (d: Dish) =>
       !q ||
       [d.name, d.name_en, d.description, d.description_en, d.category]
         .filter(Boolean)
-        .some((s) => s!.toLowerCase().includes(q));
+        .some((s) => normalizeAr(s!).includes(q));
     // الطبق يُخفى إن حمل **صراحةً** أحد ما يتجنّبه الزبون. وبلا قائمة يبقى.
     const passesAvoid = (d: Dish) =>
       avoid.size === 0 || !(d.allergens ?? []).some((a) => avoid.has(a));
@@ -545,7 +649,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
   useEffect(() => {
     if (!activeCat) return;
     catRefs.current[activeCat]?.scrollIntoView({
-      behavior: "smooth",
+      behavior: scrollBehavior(),
       inline: "nearest",
       block: "nearest",
     });
@@ -649,6 +753,15 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
             ? "تأكد من الرابط المطبوع على كود QR، أو اسأل موظف المطعم."
             : "تحقق من اتصالك بالإنترنت ثم أعد المحاولة."}
         </p>
+        {state.status !== "notfound" && (
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="mt-1 min-h-11 rounded-xl bg-gold px-5 text-sm font-bold text-on-gold"
+          >
+            أعد المحاولة
+          </button>
+        )}
         <Link to="/" className="mt-2 text-sm font-bold text-gold hover:underline">
           → كلاود منيو
         </Link>
@@ -882,10 +995,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
               <DishOfTheDay
                 dish={featured[0]}
                 en={en}
-                onOpen={() => {
-                  setOpenDish(featured[0]);
-                  if (!demo && !preview) trackDishView(featured[0], { table, lang });
-                }}
+                onOpen={() => openDishView(featured[0])}
               />
             </div>
           )}
@@ -933,7 +1043,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
                     {/* الرمز يرث لون الشريحة عبر `currentColor` — وهذا ما لا
                         يفعله الإيموجي: كان `💛` أصفر فوق كل طابع من الستّة عشر. */}
                     <Icon name={categoryIcon(c.name)} size={15} />
-                    {c.name}
+                    {categoryLabel(c.name, en)}
                   </a>
                 ))}
               </div>
@@ -1062,7 +1172,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
                 style={{ scrollMarginTop: `${navHeight + 12}px` }}
               >
                 <SectionHeading
-                  name={cat.name}
+                  name={categoryLabel(cat.name, en)}
                   style={design.heading}
                   index={ci}
                   icon={categoryIcon(cat.name)}
@@ -1092,7 +1202,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
                         reserve={sectionReserve(cat.dishes, en)}
                         popular={popularIds.has(d.id)}
                         addSlot={cartOn && ordersOpen && Number(d.price ?? 0) > 0}
-                        onOpen={() => { setOpenDish(d); if (!demo && !preview) trackDishView(d, { table, lang }); }}
+                        onOpen={() => openDishView(d)}
                       />
                       {/* ⚠️ `ordersOpen` لا `cartOn` وحده: زرُّ إضافةٍ على منيو مغلق
                           يملأ سلّةً لا مخرج لها — والشريط أسفلها يقول «يفتح ١٣:٠٠». */}
@@ -1183,15 +1293,36 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
               {restaurant.allergens_text && <p>⚠️ {restaurant.allergens_text}</p>}
               {/* أرقام غربية و«%» — نفس اتفاقية formatPrice ونِسب التحليلات،
                   وتتفادى إعادة ترتيب «٪» داخل نص RTL. */}
-              <p>
-                {restaurant.prices_include_vat === false
-                  ? en
+              {/* عبارات الهيئة على المنيو الرقمي كما على المطبوع (`PrintMenu`):
+                  تظهر متى عرض المنيو سعرات أو كافيين — العبارة تصاحب الرقم. */}
+              {state.dishes.some((d) => d.calories != null) && (
+                <p className="font-bold" style={{ color: "var(--m-text)" }}>
+                  {en
+                    ? `Adults need on average ${DAILY_KCAL.toLocaleString("en-US")} calories a day.`
+                    : `يحتاج البالغ في المتوسّط إلى ${DAILY_KCAL.toLocaleString("ar-SA-u-nu-latn")} سعرة حرارية يومياً.`}
+                </p>
+              )}
+              {state.dishes.some((d) => (d.caffeine_mg ?? 0) > 0) && (
+                <p className="font-bold" style={{ color: "var(--m-text)" }}>
+                  {en
+                    ? `Maximum daily caffeine for adults is ${DAILY_CAFFEINE_MAX_MG} mg.`
+                    : `الحدّ الأعلى اليومي من الكافيين للبالغ ${DAILY_CAFFEINE_MAX_MG} ملغم.`}
+                </p>
+              )}
+              {/* ⚠️ «شامل الضريبة» ادّعاءٌ بضريبة: مطعمٌ غير مسجّل لا يجوز أن
+                  يقولها. فالعبارة تظهر حين يكون للمطعم رقم ضريبي، أو حين تُضاف
+                  الضريبة فعلاً عند الدفع (فالزبون يحتاج أن يعرف قبل السلّة). */}
+              {restaurant.prices_include_vat === false ? (
+                <p>
+                  {en
                     ? "Prices exclude 15% VAT — it is added at checkout."
-                    : "الأسعار غير شاملة ضريبة القيمة المضافة (تُضاف 15% عند الدفع)."
-                  : en
-                    ? "All prices include 15% VAT."
-                    : "جميع الأسعار شاملة ضريبة القيمة المضافة 15%."}
-              </p>
+                    : "الأسعار غير شاملة ضريبة القيمة المضافة (تُضاف 15% عند الدفع)."}
+                </p>
+              ) : (
+                restaurant.vat_number && (
+                  <p>{en ? "All prices include 15% VAT." : "جميع الأسعار شاملة ضريبة القيمة المضافة 15%."}</p>
+                )
+              )}
               {restaurant.vat_number && (
                 <p>
                   {en ? "VAT number" : "الرقم الضريبي"}:{" "}
@@ -1218,16 +1349,22 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
           يرتفع فوق شريط السلة حين تكون مشغولة كي لا يتراكبا. */}
       {showTop && (
         <button
-          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          onClick={() => window.scrollTo({ top: 0, behavior: scrollBehavior() })}
           aria-label={en ? "Back to top" : "العودة لأعلى"}
           className={cn(
             "fixed end-5 z-40 flex h-11 w-11 items-center justify-center rounded-full shadow-lg transition-transform hover:scale-105",
-            cart.count > 0 ? "bottom-24" : "bottom-5"
+            // الشريط يظهر متى فُتحت السلّة ولو فارغة — كان الشرط `cart.count`
+            // فيختبئ الزرّ خلف شريطٍ فارغ.
+            cartOn ? "bottom-24" : "bottom-5"
           )}
           style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}
         >
           ↑
         </button>
+      )}
+
+      {pixelsWanted && pixelConsent === null && (
+        <PixelConsent en={en} raised={cartOn} onAnswer={answerPixels} />
       )}
 
       {cartOn && (
@@ -1332,7 +1469,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
           en={en}
           cart={cartOn && ordersOpen ? cart : null}
           popular={popularIds.has(openDish.id)}
-          onClose={() => setOpenDish(null)}
+          onClose={closeDishView}
         />
       )}
 

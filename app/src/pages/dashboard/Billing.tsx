@@ -36,6 +36,7 @@ import type { Subscription } from "@/lib/types";
 import { track } from "@/lib/track";
 import { useDashboard } from "./Dashboard";
 import { Icon } from "@/lib/icons";
+import { SUBSCRIPTION_TAX_NOTE, yearlyDiscountPct } from "@/lib/legal";
 
 /** مرّات استطلاع التفعيل بعد العودة، كل ٣ ثوانٍ. */
 const POLL_TRIES = 6;
@@ -223,8 +224,7 @@ export default function Billing() {
             ))}
           </ul>
           <p className="mt-3 text-xs text-faint">
-            هذا سجل دفعاتك لدينا. تحتاج فاتورة ضريبية بصيغة الهيئة؟ راسلنا من صندوق
-            الدعم ونصدرها لك.
+            هذا سجل دفعاتك لدينا. {SUBSCRIPTION_TAX_NOTE}
           </p>
         </Card>
       )}
@@ -247,7 +247,7 @@ export default function Billing() {
                   "rounded-full px-2 py-0.5 text-[11px]",
                   cycle === "yearly" ? "bg-on-gold/15 text-on-gold" : "bg-good/15 text-good"
                 )}>
-                  شهر مجاني
+                  خصم {yearlyDiscountPct(PLAN)}٪
                 </span>
               )}
             </button>
@@ -265,7 +265,9 @@ export default function Billing() {
           </span>
         </div>
         <p className="mt-1 text-sm text-dim">
-          {yearly ? "لسنة كاملة — بشهر مجاني" : "لشهر واحد، تُجدّده متى شئت"}
+          {yearly
+            ? `لسنة كاملة — بدل ${formatPrice(PLAN.monthly * 12)} ${CURRENCY}`
+            : "لشهر واحد، تُجدّده متى شئت"}
         </p>
 
         <ul className="mt-4 flex flex-col gap-1.5">

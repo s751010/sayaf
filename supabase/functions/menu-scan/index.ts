@@ -135,38 +135,47 @@ Deno.serve(async (req) => {
   }
 
   // ── حدّ المعدّل: نداء النموذج يكلّف، فلا يُترك مفتوحاً ──────────────
-  const hit = await fetch(`${URL_}/rest/v1/rpc/abuse_hit`, {
-    method: "POST",
-    headers: {
-      apikey: SERVICE,
-      authorization: `Bearer ${SERVICE}`,
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({
-      p_scope: "menu_scan",
-      p_key: restaurant_id,
-      p_limit: 20,
-      p_minutes: 60,
-    }),
-  });
+  const rateHit = (scope: string, key: string, limit: number) =>
+    fetch(`${URL_}/rest/v1/rpc/abuse_hit`, {
+      method: "POST",
+      headers: {
+        apikey: SERVICE,
+        authorization: `Bearer ${SERVICE}`,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({ p_scope: scope, p_key: key, p_limit: limit, p_minutes: 60 }),
+    });
   /**
-   * ⚠️ **فشل العدّاد رفضٌ لا سماح.**
+   * حدّان لا حدّ واحد: **المطعم** (٢٠/ساعة) و**الحساب** (٤٠/ساعة).
    *
-   * كان الشرط `hit.ok && …` — أي أن أي فشل في العدّاد (٤٠٠ من معرّف مشوّه،
-   * أو عطل عابر) يعني **لا حدّ**. وخلف هذه النقطة نموذج مدفوع يُحاسَب عليه
-   * المالك، فالإغلاق عند الشكّ أرخص من الفتح عنده — وهو ما تفعله
-   * `paylink-order-create` عمداً لنفس السبب.
+   * كان المفتاح المطعم وحده، وإنشاء مطعم صفٌّ واحد من اللوحة — فتاجرٌ بعشرة
+   * مطاعم وهمية يملك عشرة أضعاف السقف على فاتورة النموذج. الحساب هو المرساة
+   * التي لا تتكاثر بنقرة.
    */
-  if (!hit.ok) {
-    console.error("abuse_hit:", hit.status, await hit.text().catch(() => ""));
-    return json(req, { error: "rate_unavailable", message: "تعذّر التحقّق الآن. حاول بعد قليل." },
-      503,
-    );
-  }
-  if ((await hit.json()) === false) {
-    return json(req, { error: "rate_limited", message: "جرّبت كثيراً خلال ساعة. انتظر قليلاً." },
-      429,
-    );
+  for (const [scope, key, limit] of [
+    ["menu_scan", String(restaurant_id), 20],
+    ["menu_scan_user", uid, 40],
+  ] as const) {
+    const hit = await rateHit(scope, key, limit);
+    /**
+     * ⚠️ **فشل العدّاد رفضٌ لا سماح.**
+     *
+     * كان الشرط `hit.ok && …` — أي أن أي فشل في العدّاد (٤٠٠ من معرّف مشوّه،
+     * أو عطل عابر) يعني **لا حدّ**. وخلف هذه النقطة نموذج مدفوع يُحاسَب عليه
+     * المالك، فالإغلاق عند الشكّ أرخص من الفتح عنده — وهو ما تفعله
+     * `paylink-order-create` عمداً لنفس السبب.
+     */
+    if (!hit.ok) {
+      console.error("abuse_hit:", scope, hit.status, await hit.text().catch(() => ""));
+      return json(req, { error: "rate_unavailable", message: "تعذّر التحقّق الآن. حاول بعد قليل." },
+        503,
+      );
+    }
+    if ((await hit.json()) === false) {
+      return json(req, { error: "rate_limited", message: "جرّبت كثيراً خلال ساعة. انتظر قليلاً." },
+        429,
+      );
+    }
   }
 
   // ── النموذج ────────────────────────────────────────────────────────

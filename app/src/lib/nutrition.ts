@@ -44,3 +44,12 @@ export function computedNutrition(
     sfdaCompliant: isSfdaCompliant(calories, sodiumMg),
   };
 }
+
+/** متوسّط الاحتياج اليومي للبالغ — العبارة المرجعية أسفل القوائم. */
+export const DAILY_KCAL = 2000;
+
+/**
+ * الحدّ الأعلى اليومي للكافيين للبالغ — عبارةٌ تطلبها لائحة الهيئة (نافذة منذ
+ * يوليو ٢٠٢٥) **مع** كمية الكافيين في كل منيو فيه مشروبٌ بكافيين.
+ */
+export const DAILY_CAFFEINE_MAX_MG = 400;

@@ -1,2 +1,8 @@
+# روابط يخمّنها الزائر — كانت تعرض «هذا المطعم غير موجود». محجوزة في
+# `shared/menu-url.mjs` (RESERVED_PATHS) كي لا يأخذها تاجر.
+/pricing  /#pricing  301
+/contact  /help      301
+/faq      /help      301
+
 # SPA fallback — ضروري: slug المطعم يُقرأ من المسار، وبدونه /<slug> تعطي 404
 /*  /index.html  200

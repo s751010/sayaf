@@ -85,6 +85,14 @@ function addScript(src: string): void {
  * تُنظَّف بإزالة الوسم، فمحاولة «الإلغاء» توهم بأمان غير موجود. والزبون يفتح
  * منيو واحداً في الجلسة عملياً.
  */
+/**
+ * هل لدى المطعم أداة تتبّع صالحة واحدة على الأقل؟ — يحسم هل يُسأل الزبون.
+ * منيوٌ بلا بكسل لا يسأل أحداً عن شيء لن يحدث.
+ */
+export function hasPixels(ids: PixelIds): boolean {
+  return !!(validPixelId("meta", ids.meta) || validPixelId("ga", ids.ga) || validPixelId("snap", ids.snap));
+}
+
 export function installPixels(ids: PixelIds): void {
   if (typeof document === "undefined") return;
   if (document.head.querySelector(`[${MARK}]`)) return; // حُقنت في هذا التحميل

@@ -4,6 +4,7 @@ import { Link, NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { getSiteSetting, reportSilentFailure } from "@/lib/data";
 import { SITE_NAME } from "@/lib/config";
+import { LEGAL } from "@/lib/legal";
 import { menuUrl } from "@/lib/menuUrl";
 import { cn } from "@/lib/utils";
 import { CTA_PRIMARY } from "@/lib/facts";
@@ -117,8 +118,9 @@ export function Navbar() {
           : "bg-transparent"
       )}
     >
-      <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5">
-        <Link to="/" aria-label={SITE_NAME}>
+      <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 min-[360px]:gap-4 min-[360px]:px-5">
+        {/* `shrink-0` و`whitespace-nowrap`: عند ٣٢٠px كان الشعار والزرّ ينكسران سطرين. */}
+        <Link to="/" aria-label={SITE_NAME} className="shrink-0 whitespace-nowrap">
           <Logo />
         </Link>
         {/**
@@ -185,7 +187,7 @@ export function Navbar() {
               </Link>
               <Link
                 to="/login?mode=signup"
-                className="inline-flex min-h-11 items-center rounded-xl bg-gold px-4 py-2 text-sm font-bold text-on-gold hover:bg-gold2"
+                className="inline-flex min-h-11 items-center whitespace-nowrap rounded-xl bg-gold px-3 py-2 text-sm font-bold text-on-gold hover:bg-gold2 min-[360px]:px-4"
               >
                 {CTA_PRIMARY}
               </Link>
@@ -307,7 +309,16 @@ export function Footer() {
         </div>
       </div>
       <div className="border-t border-line py-4 text-center text-xs text-faint">
-        © {new Date().getFullYear()} {SITE_NAME} — صُنع بحب في السعودية 🇸🇦
+        {/* ⚠️ لا علم: العلم السعودي يحمل الشهادة، ونظام العلم يمنع استعماله في
+            الإعلان التجاري والزينة. «صُنع في السعودية» تقول المعنى بلا مخالفة. */}
+        © {new Date().getFullYear()} {LEGAL.name ?? SITE_NAME} — صُنع في السعودية
+        {(LEGAL.cr || LEGAL.vat) && (
+          <span className="mt-1 block" dir="rtl">
+            {LEGAL.cr && <>السجل التجاري <bdi>{LEGAL.cr}</bdi></>}
+            {LEGAL.cr && LEGAL.vat && " · "}
+            {LEGAL.vat && <>الرقم الضريبي <bdi>{LEGAL.vat}</bdi></>}
+          </span>
+        )}
       </div>
     </footer>
   );

@@ -37,6 +37,12 @@ export const K = {
    * LAUNCH.md). فالأرقام المحسوبة تُحفظ في القاعدة، والنصّ الذي أنتجها لا.
    */
   RECIPE: "cm2_recipe",
+  /**
+   * موافقة زبون المنيو على أدوات التتبّع الإعلانية للتاجر — localStorage،
+   * `yes` أو `no`. الرفض يُحفظ كالقبول: سؤالٌ يتكرّر مع كل فتح منيو إزعاجٌ
+   * يدفع إلى «قبول» لا يُقصد، وتلك ليست موافقة.
+   */
+  PIXEL_CONSENT: "cm2_pixel_consent",
 } as const;
 
 function store(session: boolean): Storage | null {

@@ -39,7 +39,9 @@ export const SEASONS: Season[] = [
     name: "اليوم الوطني",
     greeting: "كل عام والوطن بخير",
     greetingEn: "Happy Saudi National Day",
-    emoji: "🇸🇦",
+    // لا علم: يحمل الشهادة، ونظام العلم يمنع استعماله زينةً تجارية — وهذا
+    // شريطٌ داخل منيو مطعم. القلب الأخضر يقول المناسبة بلا مخالفة.
+    emoji: "💚",
     pattern: "palm",
     tint: "#1c8a4e",
   },

@@ -153,8 +153,18 @@ Deno.serve(async (req) => {
               },
               body,
               signal: ctrl.signal,
+              /**
+               * ⚠️ **لا تتبّع لإعادة التوجيه.** الحارس يفحص الرابط الأوّل وحده،
+               * و`fetch` كان يتبع `307 Location: http://169.254.169.254/…` إلى
+               * أيّ عنوان داخلي بالجسم والترويسات نفسها — أي أن رابطاً عامّاً
+               * سليماً كان بوّابةً إلى الشبكة الداخلية.
+               */
+              redirect: "manual",
             }).finally(() => clearTimeout(timer));
-            return res.ok ? null : `http_${res.status}`;
+            if (res.status >= 300 && res.status < 400) return "blocked_redirect";
+            // صنفٌ لا رقم: رمز الحالة الدقيق من وجهةٍ داخلية عرّافٌ يميّز
+            // الخدمات الموجودة من غيرها (انظر `classifyFetchError`).
+            return res.ok ? null : res.status >= 500 ? "http_5xx" : "http_4xx";
           } catch (e) {
             /**
              * ⚠️ **صنف لا نصّ.** `last_error` يظهر في لوحة التاجر، ونصّ الخطأ

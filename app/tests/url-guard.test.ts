@@ -28,6 +28,10 @@ describe("checkWebhookUrl — يُرفض", () => {
     ["https://printer.local/hook", "internal_host"],
     ["https://db.internal/hook", "internal_host"],
     ["https://intranet/hook", "internal_host"],
+    // النقطة الأخيرة اسمٌ صحيح للوجهة نفسها — كانت تتجاوز المقارنة الحرفية.
+    ["https://localhost./hook", "internal_host"],
+    ["https://metadata.google.internal./x", "internal_host"],
+    ["https://api.localhost/hook", "internal_host"],
 
     // ── مخطّط ومنفذ ──
     ["http://example.com/hook", "not_https"],

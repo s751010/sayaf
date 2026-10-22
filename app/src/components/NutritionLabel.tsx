@@ -9,6 +9,7 @@
  */
 import { displayAllergens } from "@/lib/allergens";
 import { cn } from "@/lib/utils";
+import { DAILY_CAFFEINE_MAX_MG, DAILY_KCAL } from "@/lib/nutrition";
 
 export type LabelValues = {
   kcal: number | null;
@@ -23,14 +24,8 @@ export type LabelValues = {
   servingGrams?: number | null;
 };
 
-/** متوسّط الاحتياج اليومي للبالغ — العبارة المرجعية أسفل القوائم. */
-export const DAILY_KCAL = 2000;
-
-/**
- * الحدّ الأعلى اليومي للكافيين للبالغ — عبارةٌ تطلبها لائحة الهيئة (نافذة منذ
- * يوليو ٢٠٢٥) **مع** كمية الكافيين في كل منيو فيه مشروبٌ بكافيين.
- */
-export const DAILY_CAFFEINE_MAX_MG = 400;
+/** في `lib/nutrition` كي يقرأها المنيو العامّ بلا حزمة هذا المكوّن. */
+export { DAILY_CAFFEINE_MAX_MG, DAILY_KCAL };
 
 function Num({ value, unit }: { value: number | null | undefined; unit?: string }) {
   if (value === null || value === undefined) return <span className="text-faint">—</span>;

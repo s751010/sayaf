@@ -33,6 +33,18 @@ function json(body: unknown, status = 200, extra: Record<string, string> = {}): 
 const err = (message: string, status: number, extra?: Record<string, string>) =>
   json({ error: message }, status, extra);
 
+/**
+ * خطأ القاعدة كما يصل المطوّر: أخطاء **مدخلاته** (صنفا Postgres ‎22 و23 —
+ * قيمة غير صالحة، قيد مكسور) تمرّ بنصّها لأنها ما يحتاجه ليصلح طلبه؛ وما عداها
+ * (صلاحيات، أعمدة، أعطال) يُسجَّل عندنا ويخرج عامّاً — نصّه يكشف بنية الجداول
+ * والسياسات لمن يحمل مفتاحاً، وليس فيه ما يُصلحه هو.
+ */
+const dbErr = (e: { code?: string; message: string }) => {
+  if (/^2[23]/.test(e.code ?? "")) return err(e.message, 400);
+  console.error("api db:", e.code, e.message);
+  return err("تعذّر تنفيذ الطلب.", 500);
+};
+
 /** ٦٠ طلباً في الدقيقة لكل مفتاح — سخيّ لنقطة بيع، ضيّق على السحب الجماعي. */
 const RATE_LIMIT = 60;
 
@@ -251,7 +263,7 @@ Deno.serve(async (req) => {
           .eq("id", R)
           .select(RESTAURANT_COLS)
           .single();
-        if (error) return err(error.message, 400);
+        if (error) return dbErr(error);
         return json(data);
       }
     }
@@ -320,7 +332,7 @@ Deno.serve(async (req) => {
           })
           .select(PUBLIC_DISH_COLS)
           .single();
-        if (error) return err(error.message, 400);
+        if (error) return dbErr(error);
         return json(data, 201);
       }
 
@@ -352,7 +364,7 @@ Deno.serve(async (req) => {
           .eq("restaurant_id", R)
           .select(PUBLIC_DISH_COLS)
           .maybeSingle();
-        if (error) return err(error.message, 400);
+        if (error) return dbErr(error);
         return data ? json(data) : err("الطبق غير موجود.", 404);
       }
 
@@ -366,7 +378,7 @@ Deno.serve(async (req) => {
           .eq("restaurant_id", R)
           .select("id")
           .maybeSingle();
-        if (error) return err(error.message, 400);
+        if (error) return dbErr(error);
         return data ? json({ deleted: id }) : err("الطبق غير موجود.", 404);
       }
     }
