@@ -1,5 +1,6 @@
 /** الدخول وإنشاء الحساب — نفس حسابات Supabase الحالية تعمل هنا. */
 import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useSeo } from "@/lib/seo";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Logo } from "@/components/site";
 import { Button, Card, ErrorNote, Field, Input, Spinner, ThemeToggle } from "@/components/ui";
@@ -25,9 +26,7 @@ export default function Login() {
   const [busy, setBusy] = useState(false);
   const strength = checkPassword(password);
 
-  useEffect(() => {
-    document.title = "دخول التجّار — كلاود منيو";
-  }, []);
+  useSeo({ title: "دخول التجّار", path: "/login" });
 
   /**
    * وجهة ما بعد الدخول — لوحة المؤسس لصاحب المنصة، ولوحة التاجر لغيره.

@@ -20,26 +20,35 @@ import { listPublicRestaurants, type DirectoryRow } from "@/lib/data";
 import { restaurantTypeLabel } from "@/lib/menuText";
 import { menuUrl } from "@/lib/menuUrl";
 import { Icon } from "@/lib/icons";
+import { isHex, normalizeHex } from "@/lib/themes";
+import { normalizeAr } from "@/lib/arabic";
+import { useSeo } from "@/lib/seo";
 
 export default function Restaurants() {
   // `null` = يُحمَّل، `[]` = فارغ فعلاً (القاعدة (ج)).
   const [rows, setRows] = useState<DirectoryRow[] | null>(null);
   const [q, setQ] = useState("");
 
+  // canonical خاصّ بالدليل: بدونه يرث رابط الصفحة الرئيسية، فيعدّه قوقل نسخةً منها.
+  useSeo({
+    title: "دليل المطاعم",
+    description: "مطاعم ومقاهٍ سعودية بمنيو رقمي على كلاود منيو — تصفّح منيو أي منها من جوّالك.",
+    path: "/restaurants",
+  });
+
   useEffect(() => {
-    document.title = "دليل المطاعم — كلاود منيو";
     listPublicRestaurants()
       .then(setRows)
       .catch(() => setRows([]));
   }, []);
 
   const visible = useMemo(() => {
-    const needle = q.trim().toLowerCase();
+    const needle = normalizeAr(q);
     if (!needle) return rows ?? [];
     return (rows ?? []).filter((r) =>
       [r.name, restaurantTypeLabel(r.type)]
         .filter(Boolean)
-        .some((s) => s!.toLowerCase().includes(needle))
+        .some((s) => normalizeAr(s!).includes(needle))
     );
   }, [rows, q]);
 
@@ -75,7 +84,9 @@ export default function Restaurants() {
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {visible.map((r) => {
               const href = menuUrl(r.slug, "");
-              const accent = r.cover_color || "#d4a843";
+              // ⚠️ لونٌ سداسيّ أو الافتراضي: `cover_color` يكتبه التاجر عبر الواجهة البرمجية
+              // أيضاً، و`url(...)` فيه كانت تجعل الدليل كلّه بكسل تتبّعٍ لكل زائر.
+              const accent = r.cover_color && isHex(r.cover_color) ? normalizeHex(r.cover_color) : "#d4a843";
               const typeLabel = restaurantTypeLabel(r.type);
               return (
                 <a

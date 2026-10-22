@@ -267,6 +267,16 @@ describe("تكافؤ دالة الحافة ⟷ config.ts", () => {
   it("عنوان Supabase مطابق", () => {
     expect(grab(edge, "SUPABASE_URL")).toBe(grab(config, "SUPABASE_URL"));
   });
+
+  it("`connect-src` في CSP مثبَّت على مشروعنا نفسه", () => {
+    // كان `*.supabase.co`: أيّ مشروعٍ لأيّ أحد وجهةٌ مسموحة للتسريب. وتثبيته
+    // يعني أن نقل المشروع بلا تحديثه هنا يقطع المنيو كلّه — فيُفحص معاً.
+    const headers = readFileSync(repo("app/public/_headers"), "utf8");
+    const csp = headers.match(/Content-Security-Policy:([^\n]+)/)?.[1] ?? "";
+    const connect = csp.match(/connect-src([^;]+)/)?.[1] ?? "";
+    expect(connect).toContain(grab(config, "SUPABASE_URL"));
+    expect(connect).not.toMatch(/\*\.supabase\.co/);
+  });
 });
 
 /* ══ ٤) معيار الظهور: الدليل ⟷ خريطة الموقع ══════════════════════════ */

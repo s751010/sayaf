@@ -97,6 +97,7 @@ app/src/
     menu/DishModal.tsx   نافذة الطبق — **نقطة اختيار الإضافات الوحيدة**
     menu/LoyaltyCard.tsx بطاقة الولاء داخل المنيو (تُحفظ محلياً)
     menu/LoyaltyProgress.tsx شريط تقدّم الأختام
+    menu/PixelConsent.tsx سؤال الزبون قبل بكسلات التاجر — لا يُحمَّل بكسل قبل «موافق» (§15)
     menu/DishArtwork.tsx رسمٌ مشتقّ من اسم الطبق حين لا صورة (FNV-1a)
     menu/Cart.tsx        السلّة نفسها: useCart · CartBar · AddToCartButton (§13)
     menu/CartReview.tsx  شاشة المراجعة والدفع (§13)
@@ -155,6 +156,8 @@ app/src/
     menuUrl.ts          واجهة مُنمَّطة لـshared/menu-url.mjs — **كل رابط منيو منها**
     menuText.ts         نصوص المنيو بلغة الزبون — **مصدر واحد** لاسم الطبق ووصفه
     billing.ts          مفاتيح التحصيل + بدء الاشتراك — **المحلّل الوحيد** لها
+    legal.ts            هويّة المنشأة (`LEGAL`) وجملة الضريبة وخصم السنوي — **مصدر واحد** لكل نصّ نظامي
+    arabic.ts           `normalizeAr` — توحيد الكتابة للبحث (قهوه=قهوة · حمّص=حمص)
     cards.ts            رسم بطاقات الكاشير (§17) — حزمة مستقلّة، لا تُستورد في الهبوط
     qr.ts               توليد كود QR (مشترك بين الاستوديو وصفحة الأكواد)
     facts.ts            أرقام المنتج المعروضة (طوابع · قياسات · DPI)
@@ -412,6 +415,7 @@ cd app && npm run typecheck
 | `cm_staff` | sessionStorage | رمز الكاشير + slug مطعمه (لا يبقى على جهاز مشترك) |
 | `cm2_loyalty_<id>` | localStorage | بطاقة ولاء الزبون محلياً |
 | `cm2_recipe_<id>` | localStorage | نصّ وصفة الطبق في الحاسبة — **على هذا الجهاز وحده** (§26) |
+| `cm2_pixel_consent` | localStorage | موافقة زبون المنيو على بكسلات التاجر — `yes`/`no` |
 
 ---
 

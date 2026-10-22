@@ -60,10 +60,12 @@ function desc(d: Dish, en: boolean): string | null {
  * `leader` ليس شكلاً للسعر نفسه بل للمسافة قبله (الخطّ المنقّط)، فيُرسم كـ
  * `plain` هنا ويتكفّل تخطيط القائمة بالخطّ.
  */
-function Price({ dish, big, style }: { dish: Dish; big?: boolean; style: PriceStyle }) {
+function Price({ dish, big, style, en }: { dish: Dish; big?: boolean; style: PriceStyle; en: boolean }) {
+  // «0 ر.س» يقرؤه الزبون «مجاناً» — صنفٌ بلا سعر (حسب الوزن، أو يُسأل عنه) بلا سعر معروض.
+  if (!((dish.price ?? 0) > 0)) return null;
   const text = (
     <>
-      {formatPrice(dish.price ?? 0)} <span className="text-[10px] font-bold">ر.س</span>
+      {formatPrice(dish.price ?? 0)} <span className="text-[10px] font-bold">{en ? "SAR" : "ر.س"}</span>
     </>
   );
   if (style === "badge") {
@@ -266,7 +268,7 @@ export function DishCard({
               )}
               style={{ borderColor: "var(--m-muted)" }}
             />
-            <Price dish={dish} big style={priceStyle} />
+            <Price dish={dish} big style={priceStyle} en={en} />
           </span>
           {desc(dish, en) && (
             // الحجز على الوصف أيضاً لا على سطر التفاصيل وحده: وصفٌ من سطرين
@@ -357,7 +359,7 @@ export function DishCard({
           )}
           <div className="mt-auto flex items-center justify-between gap-3 pt-1">
             <span className="min-w-0 flex-1">{meta}</span>
-            <Price dish={dish} big style={priceStyle} />
+            <Price dish={dish} big style={priceStyle} en={en} />
           </div>
         </div>
       </button>
@@ -413,7 +415,7 @@ export function DishCard({
             وحده على سطره أسهل مسحاً بالعين نزولاً في عمود واحد. */}
         <div className="mt-auto flex flex-col items-start gap-1.5 pt-2">
           {meta}
-          <Price dish={dish} style={priceStyle} />
+          <Price dish={dish} style={priceStyle} en={en} />
         </div>
       </div>
     </button>

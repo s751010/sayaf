@@ -145,6 +145,8 @@ export function MenuHeader({
             <SafeImage
               src={restaurant.banner_image}
               alt=""
+              // أكبر صورة فوق الطيّ — التحميل الكسول يؤخّرها حتى يحسب المتصفّح التخطيط.
+              loading="eager"
               className="h-full w-full object-cover"
               wrapperClassName="h-full w-full"
               fallback={<span />}

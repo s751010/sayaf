@@ -61,7 +61,9 @@ function setMetaContent(html, attr, name, value) {
   const tag = new RegExp(`<meta\\b[^>]*\\b${attr}="${name}"[^>]*>`, "i");
   return html.replace(tag, (m) =>
     /\bcontent="/i.test(m)
-      ? m.replace(/\bcontent="[^"]*"/i, `content="${escapeAttr(value)}"`)
+      // دالّة استبدال لا نصّ: `$'` و`` $` `` في اسم مطعمٍ كانت تُفسَّر أنماطَ
+      // استبدال فتنسخ نصّ الصفحة داخل الوسم.
+      ? m.replace(/\bcontent="[^"]*"/i, () => `content="${escapeAttr(value)}"`)
       : m
   );
 }
@@ -94,7 +96,8 @@ export function injectMeta(html, restaurant, siteUrl, slug) {
   let out = html;
 
   // العنوان: أول ما يقرؤه الإنسان في البطاقة وفي تبويب المتصفّح.
-  out = out.replace(/<title>[\s\S]*?<\/title>/i, `<title>${escapeAttr(title)}</title>`);
+  // ⚠️ دالّة استبدال لا نصّ — انظر `setMetaContent`.
+  out = out.replace(/<title>[\s\S]*?<\/title>/i, () => `<title>${escapeAttr(title)}</title>`);
 
   out = setMetaContent(out, "name", "description", description);
   out = setMetaContent(out, "property", "og:title", title);
@@ -108,7 +111,7 @@ export function injectMeta(html, restaurant, siteUrl, slug) {
 
   out = out.replace(
     /<link\b[^>]*\brel="canonical"[^>]*>/i,
-    `<link rel="canonical" href="${escapeAttr(url)}" />`
+    () => `<link rel="canonical" href="${escapeAttr(url)}" />`
   );
 
   /**

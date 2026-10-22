@@ -3,7 +3,7 @@
  * زرّ «＋» على البطاقة يضيف الطبق أساسياً بلا إضافات، ومن أراد «حار» أو
  * «جبن زيادة» يفتح الطبق من هنا.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { SafeImage } from "@/components/ui";
 import { DishArtwork } from "@/components/menu/DishArtwork";
 import { unitPrice, type Cart } from "@/components/menu/Cart";
@@ -35,6 +35,18 @@ export function DishModal({
 }) {
   const [picked, setPicked] = useState<string[]>([]);
   const [qty, setQty] = useState(1);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  /**
+   * التركيز يدخل النافذة ويعود إلى البطاقة التي فتحتها: كان يبقى على البطاقة
+   * خلف الغطاء، فقارئ الشاشة يقرأ المنيو لا الطبق، و«Tab» يتجوّل خلف النافذة.
+   */
+  useEffect(() => {
+    const prev = document.activeElement as HTMLElement | null;
+    // النافذة نفسها لا زرّ الإغلاق: قارئ الشاشة يبدأ من اسم الطبق، ولا تظهر
+    // حلقة تركيز على الزرّ لمن فتح بلمسة.
+    dialogRef.current?.focus({ preventScroll: true });
+    return () => prev?.focus?.({ preventScroll: true });
+  }, []);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     document.addEventListener("keydown", onKey);
@@ -51,9 +63,9 @@ export function DishModal({
   const allergens = displayAllergens(dish.allergens, en);
   const nutrition = [
     dish.calories != null && { label: en ? "Calories" : "سعرات", value: dish.calories, icon: "🔥" },
-    dish.sodium_mg != null && { label: en ? "Sodium" : "صوديوم", value: `${dish.sodium_mg} ملغم`, icon: "🧂" },
-    dish.caffeine_mg != null && { label: en ? "Caffeine" : "كافيين", value: `${dish.caffeine_mg} ملغم`, icon: "☕" },
-    dish.burn_minutes != null && { label: en ? "Burn (walk)" : "دقائق حرق", value: `${dish.burn_minutes} د`, icon: "🚶" },
+    dish.sodium_mg != null && { label: en ? "Sodium" : "صوديوم", value: `${dish.sodium_mg} ${en ? "mg" : "ملغم"}`, icon: "🧂" },
+    dish.caffeine_mg != null && { label: en ? "Caffeine" : "كافيين", value: `${dish.caffeine_mg} ${en ? "mg" : "ملغم"}`, icon: "☕" },
+    dish.burn_minutes != null && { label: en ? "Burn (walk)" : "دقائق حرق", value: `${dish.burn_minutes} ${en ? "min" : "د"}`, icon: "🚶" },
   ].filter(Boolean) as { label: string; value: string | number; icon: string }[];
 
   return (
@@ -64,8 +76,11 @@ export function DishModal({
       <div
         role="dialog"
         aria-modal="true"
+        aria-labelledby="dish-modal-title"
+        ref={dialogRef}
+        tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
-        className="m-sheet anim-fade-up relative max-h-[92dvh] w-full max-w-lg overflow-y-auto border"
+        className="m-sheet anim-fade-up relative outline-none max-h-[92dvh] w-full max-w-lg overflow-y-auto border"
         style={{
           background: "var(--m-bg-2)",
           borderColor: "var(--m-border)",
@@ -87,14 +102,14 @@ export function DishModal({
         <button
           onClick={onClose}
           aria-label={en ? "Close" : "إغلاق"}
-          className="absolute end-3 top-3 flex h-10 w-10 items-center justify-center rounded-full text-sm font-black shadow-md"
+          className="absolute end-3 top-3 flex h-11 w-11 items-center justify-center rounded-full text-sm font-black shadow-md"
           style={{ background: "var(--m-bg-2)", color: "var(--m-text)" }}
         >
           ✕
         </button>
         <div className="p-5">
           <div className="flex items-start justify-between gap-3">
-            <h3 className="text-xl font-black" style={{ color: "var(--m-text)", ...mFont }}>
+            <h3 id="dish-modal-title" className="text-xl font-black" style={{ color: "var(--m-text)", ...mFont }}>
               {dishName(dish, en)}
               {popular && (
                 <span
@@ -105,9 +120,11 @@ export function DishModal({
                 </span>
               )}
             </h3>
-            <span className="shrink-0 text-lg font-black" style={{ color: "var(--m-accent-ink, var(--m-accent))" }}>
-              {formatPrice(dish.price ?? 0)} ر.س
-            </span>
+            {(dish.price ?? 0) > 0 && (
+              <span dir="ltr" className="shrink-0 text-lg font-black" style={{ color: "var(--m-accent-ink, var(--m-accent))" }}>
+                {formatPrice(dish.price ?? 0)} {en ? "SAR" : "ر.س"}
+              </span>
+            )}
           </div>
           {dishDesc(dish, en) && (
             <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--m-muted)" }}>

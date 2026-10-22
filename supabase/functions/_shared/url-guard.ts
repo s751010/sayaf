@@ -32,7 +32,7 @@ export type UrlRejection =
   | "internal_host"
   | "malformed";
 
-const INTERNAL_SUFFIXES = [".local", ".internal", ".localdomain", ".home.arpa"];
+const INTERNAL_SUFFIXES = [".local", ".localhost", ".internal", ".localdomain", ".home.arpa"];
 const INTERNAL_NAMES = new Set(["localhost", "metadata.google.internal", "metadata"]);
 
 /** `1.2.3.4` — الأربع خانات، لا مجرّد «فيه أرقام ونقاط». */
@@ -56,7 +56,9 @@ export function checkWebhookUrl(raw: string): UrlRejection | null {
   // منفذ غير 443 يعني خدمة غير قياسية — وهو شكل مسح المنافذ نفسه.
   if (u.port && u.port !== "443") return "bad_port";
 
-  const host = u.hostname.toLowerCase();
+  // ⚠️ النقطة الأخيرة تُنزع: `localhost.` و`metadata.google.internal.` اسمان
+  // صحيحان يُحلّان إلى الوجهة نفسها، وكانا يتجاوزان المقارنة الحرفية بالنقطة.
+  const host = u.hostname.toLowerCase().replace(/\.+$/, "");
 
   // IPv6 يصل داخل أقواس، فـ`hostname` يعيده بلا أقواس ولكن بنقطتين.
   if (IPV4.test(host) || host.includes(":")) return "ip_literal";

@@ -1,7 +1,9 @@
 import { Link } from "react-router-dom";
 import { Navbar, Footer } from "@/components/site";
+import { useSeo } from "@/lib/seo";
 
 export default function NotFound() {
+  useSeo({ title: "الصفحة غير موجودة", noindex: true });
   return (
     <div className="flex min-h-dvh flex-col">
       <Navbar />
