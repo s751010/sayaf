@@ -36,6 +36,18 @@ describe("الضريبة على الاشتراك", () => {
   });
 });
 
+describe("«شامل الضريبة» لا يُقال بلا رقم ضريبي", () => {
+  it("المنيو والسلّة والمطبوع يشترطون رقماً ضريبياً صالحاً", () => {
+    for (const f of ["pages/MenuPage.tsx", "components/menu/CartReview.tsx", "pages/dashboard/PrintMenu.tsx"]) {
+      expect(src(f), f).toContain("isVatNumber(");
+    }
+  });
+
+  it("الإعدادات لا تحفظ «غير شاملة» بلا رقم ضريبي — فهي تُضيف ١٥٪ على الزبون", () => {
+    expect(src("pages/dashboard/Settings.tsx")).toMatch(/blocked=\{!f\.prices_include_vat && !isVatNumber\(f\.vat_number\)\}/);
+  });
+});
+
 describe("خصم السنوي", () => {
   it("محسوب من السعرين — ٥٩٩ مقابل ١١٨٨ ≈ ٥٠٪", () => {
     const p = PLANS[0]!;

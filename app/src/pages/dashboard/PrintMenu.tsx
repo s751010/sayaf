@@ -29,6 +29,7 @@ import { burnMinutes, isHighSodium } from "@/lib/nutrition";
 import { Icon } from "@/lib/icons";
 import { formatPrice } from "@/lib/utils";
 import type { Dish } from "@/lib/types";
+import { isVatNumber } from "@/lib/legal";
 
 const INK = "#15130f";
 const MUTED = "#5a5346";
@@ -327,7 +328,8 @@ export default function PrintMenu() {
                 {usedAllergens.length > 0 && (
                   <p>مسبّبات الحساسية: {usedAllergens.map((a) => `${a.emoji} ${a.label}`).join(" · ")}</p>
                 )}
-                <p>«د مشي» دقائق المشي التقريبية لحرق سعرات الصنف.{restaurant.prices_include_vat ? " الأسعار شاملة ضريبة القيمة المضافة." : ""}</p>
+                <p>«د مشي» دقائق المشي التقريبية لحرق سعرات الصنف.{/* كالمنيو الرقمي: «شاملة» ادّعاء بضريبة لا يُطبع بلا رقم ضريبي. */}
+                  {restaurant.prices_include_vat && isVatNumber(restaurant.vat_number) ? " الأسعار شاملة ضريبة القيمة المضافة." : ""}</p>
               </div>
               {qr && (
                 <div style={{ textAlign: "center" }}>
