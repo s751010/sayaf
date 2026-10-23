@@ -32,6 +32,7 @@ import { allergenLabel, buildAllergenIndex, restaurantTypeLabel } from "@/lib/me
 import { Chip, LangToggle, LAYOUT_CLASS, MenuSheet, sectionReserve } from "@/components/menu/chrome";
 import { SectionHeading, sectionCover } from "@/components/menu/SectionHeading";
 import { normalizeAr } from "@/lib/arabic";
+import { isVatNumber } from "@/lib/legal";
 import { DishModal } from "@/components/menu/DishModal";
 import { LoyaltyCard } from "@/components/menu/LoyaltyCard";
 import {
@@ -1319,7 +1320,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
                     : "الأسعار غير شاملة ضريبة القيمة المضافة (تُضاف 15% عند الدفع)."}
                 </p>
               ) : (
-                restaurant.vat_number && (
+                isVatNumber(restaurant.vat_number) && (
                   <p>{en ? "All prices include 15% VAT." : "جميع الأسعار شاملة ضريبة القيمة المضافة 15%."}</p>
                 )
               )}
@@ -1458,6 +1459,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
             prepMinutes={prepMinutes}
             minOrder={minOrder}
             vatIncluded={restaurant.prices_include_vat !== false}
+            vatNumber={restaurant.vat_number}
             onClose={() => setCartOpen(false)}
           />
         </MenuSheet>

@@ -9,6 +9,7 @@
  * جاهزة وتتصرّف في العرض والإرسال، ولا يشاركها بقيّة الملفّ حالةً.
  */
 import { Link } from "react-router-dom";
+import { isVatNumber } from "@/lib/legal";
 import { useState, type CSSProperties } from "react";
 import { unitPrice, type Cart, type CartLine } from "@/components/menu/Cart";
 import { mFont } from "@/components/menu/chrome";
@@ -85,6 +86,7 @@ export function CartReview({
   prepMinutes = null,
   minOrder = 0,
   vatIncluded = true,
+  vatNumber = null,
   onClose,
 }: {
   cart: Cart;
@@ -101,6 +103,8 @@ export function CartReview({
   prepMinutes?: number | null;
   minOrder?: number;
   vatIncluded?: boolean;
+  /** «شامل الضريبة» ادّعاء بضريبة — لا يُقال إلا لمطعمٍ له رقم ضريبي. */
+  vatNumber?: string | null;
   onClose: () => void;
 }) {
   const [name, setName] = useState("");
@@ -455,15 +459,17 @@ export function CartReview({
             {formatPrice(totals.total)} {en ? "SAR" : "ر.س"}
           </span>
         </div>
-        <p className="mt-1 text-[11px]" style={{ color: "var(--m-muted)" }}>
-          {vatIncluded
-            ? en
-              ? "VAT (15%) included"
-              : "شامل ضريبة القيمة المضافة ١٥٪"
-            : en
-              ? "Prices exclude VAT — added above"
-              : "الأسعار غير شاملة — أُضيفت الضريبة أعلاه"}
-        </p>
+        {(!vatIncluded || isVatNumber(vatNumber)) && (
+          <p className="mt-1 text-[11px]" style={{ color: "var(--m-muted)" }}>
+            {vatIncluded
+              ? en
+                ? "VAT (15%) included"
+                : "شامل ضريبة القيمة المضافة ١٥٪"
+              : en
+                ? "Prices exclude VAT — added above"
+                : "الأسعار غير شاملة — أُضيفت الضريبة أعلاه"}
+          </p>
+        )}
       </div>
 
       {/* ── ما يمنع الإتمام، مشروحاً قبل الضغط لا بعده ─────────────── */}

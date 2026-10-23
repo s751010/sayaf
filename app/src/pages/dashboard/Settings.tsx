@@ -44,6 +44,7 @@ import { useDashboard, FeatureGate } from "./Dashboard";
 import type { Restaurant } from "@/lib/types";
 import { Icon } from "@/lib/icons";
 import { menuUrl, slugError, urlAffixes } from "@/lib/menuUrl";
+import { isVatNumber } from "@/lib/legal";
 
 /** حسابات التواصل — تُعرض عند الحاجة لا كخمسة حقول فارغة دائمة. */
 const SOCIALS = [
@@ -257,11 +258,22 @@ export default function Settings() {
   }
 
   /** زرّ الحفظ + حالته — مكرّر خمس مرات، فيُكتب مرة. */
-  function SaveRow({ id, keys, patch }: { id: string; keys: (keyof typeof f)[]; patch: () => Partial<RestaurantSettingsPayload> }) {
+  function SaveRow({
+    id,
+    keys,
+    patch,
+    blocked,
+  }: {
+    id: string;
+    keys: (keyof typeof f)[];
+    patch: () => Partial<RestaurantSettingsPayload>;
+    /** سببٌ يمنع الحفظ — يُعرض في القسم نفسه، فيبقى الزرّ معطّلاً بلا لغز. */
+    blocked?: boolean;
+  }) {
     const d = dirty(keys);
     return (
       <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-line pt-4">
-        <Button disabled={saving !== null || !d} onClick={() => saveSection(id, patch())}>
+        <Button disabled={saving !== null || !d || blocked} onClick={() => saveSection(id, patch())}>
           {saving === id ? "جارٍ الحفظ…" : "حفظ"}
         </Button>
         <SavedBadge dirty={d} />
@@ -576,9 +588,11 @@ export default function Settings() {
         <CollapsibleCard
           title="🧾 الضريبة"
           subtitle={
-            f.prices_include_vat
-              ? "الأسعار شاملة ضريبة القيمة المضافة 15%"
-              : "الأسعار غير شاملة الضريبة"
+            !isVatNumber(f.vat_number)
+              ? "غير مسجّل في الضريبة — لا تُذكر ضريبة للزبون"
+              : f.prices_include_vat
+                ? "الأسعار شاملة ضريبة القيمة المضافة 15%"
+                : "الأسعار غير شاملة الضريبة"
           }
         >
           <div className="flex flex-col gap-4">
@@ -587,7 +601,9 @@ export default function Settings() {
                 <p className="text-sm font-bold text-ink">
                   الأسعار المعروضة شاملة ضريبة القيمة المضافة 15%
                 </p>
-                <p className="text-xs text-faint">يظهر للزبون سطر واضح أسفل المنيو يوضّح ذلك.</p>
+                <p className="text-xs text-faint">
+                  مع رقم ضريبي يظهر للزبون سطرٌ يوضّح ذلك. وبلا رقم لا يُذكر للزبون أي ضريبة.
+                </p>
               </div>
               <Switch
                 checked={f.prices_include_vat}
@@ -614,9 +630,20 @@ export default function Settings() {
                 الرقم الضريبي السعودي ١٥ رقماً — كتبت {f.vat_number.length}.
               </p>
             )}
+            {/* ⚠️ «غير شاملة» تعني أن الدفع الإلكتروني **يُضيف ١٥٪ على الزبون**.
+                وتحصيل ضريبةٍ بلا تسجيلٍ فيها مخالفة على المطعم — والمنصّة هي من
+                أضافت الرقم إلى فاتورته. فلا تُحفظ إلا مع رقم ضريبي صالح. */}
+            {!f.prices_include_vat && !isVatNumber(f.vat_number) && (
+              <p className="rounded-xl border border-bad/30 bg-bad/5 px-3 py-2 text-xs leading-relaxed text-bad">
+                «غير شاملة» تُضيف ضريبة ١٥٪ على الزبون عند الدفع — وهذا لمنشأة مسجّلة
+                في الضريبة فقط. أدخل رقمك الضريبي (١٥ رقماً يبدأ وينتهي بـ3)، أو أبقِ
+                الأسعار شاملة.
+              </p>
+            )}
           </div>
           <SaveRow
             id="vat"
+            blocked={!f.prices_include_vat && !isVatNumber(f.vat_number)}
             keys={["prices_include_vat", "vat_number"]}
             patch={() => ({
               prices_include_vat: f.prices_include_vat,
