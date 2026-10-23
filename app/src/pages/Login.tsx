@@ -24,6 +24,14 @@ export default function Login() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
+  /**
+   * موافقة صريحة عند الإنشاء — لا «بدخولك أنت توافق».
+   *
+   * الموافقة الضمنية تحت الزرّ أضعف ما يُحتجّ به: لا دليل أن التاجر رآها. وفي
+   * الإقرار سطرٌ لا يُستغنى عنه: أن أرقام السعرات **تقديرٌ يراجعه هو** — فمن
+   * غُرِّم على منيوه لا يقول «المنصّة حسبتها».
+   */
+  const [agreed, setAgreed] = useState(false);
   const strength = checkPassword(password);
 
   useSeo({ title: "دخول التجّار", path: "/login" });
@@ -67,6 +75,7 @@ export default function Login() {
     if (mode === "signup") {
       const check = checkPassword(password);
       if (!check.ok) return setError(check.error);
+      if (!agreed) return setError("أكّد موافقتك على الشروط وسياسة الخصوصية لإنشاء الحساب.");
     }
     setBusy(true);
     try {
@@ -254,6 +263,27 @@ export default function Login() {
                 </p>
               )}
 
+              {mode === "signup" && (
+                <label className="flex cursor-pointer items-start gap-2.5 text-xs leading-relaxed text-dim">
+                  <input
+                    type="checkbox"
+                    checked={agreed}
+                    onChange={(e) => setAgreed(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--c-gold)]"
+                  />
+                  <span>
+                    أقرّ بأني بلغت ١٨ سنة وأمثّل المنشأة، وأوافق على{" "}
+                    <Link to="/terms" target="_blank" className="font-bold text-gold hover:underline">
+                      شروط الاستخدام
+                    </Link>{" "}
+                    و
+                    <Link to="/privacy" target="_blank" className="font-bold text-gold hover:underline">
+                      سياسة الخصوصية
+                    </Link>
+                    ، وأن السعرات والقيم الغذائية التي تحسبها المنصّة تقديرية أراجعها قبل نشرها.
+                  </span>
+                </label>
+              )}
               <Button type="submit" disabled={busy} className="mt-1 w-full py-3">
                 {busy ? (
                   <Spinner className="h-4 w-4 border-on-gold" />
@@ -270,7 +300,7 @@ export default function Login() {
           {/* ⚠️ كان هذا السطر **نصّاً بلا رابط** — موافقة على وثيقتين لا وجود
               لهما ولا سبيل لقراءتهما. الموافقة على ما لا يُقرأ لا تُعتدّ. */}
           <p className="mt-4 text-center text-xs text-faint">
-            بدخولك أنت توافق على{" "}
+            {mode === "signup" ? "اقرأ" : "بدخولك أنت توافق على"}{" "}
             <Link to="/terms" className="font-bold text-dim hover:text-gold hover:underline">
               شروط الاستخدام
             </Link>{" "}
