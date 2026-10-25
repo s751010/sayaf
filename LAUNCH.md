@@ -335,7 +335,7 @@ where plan_id = 'trial' and active
 **ما تغيّر في الشيفرة**: `SITE_URL` وcanonical وخريطة الموقع وrobots والنبضة
 كلّها على `neon-frangollo` (وفحصٌ في `parity.test.ts` يُبقيها معاً). وبناء
 Netlify نفسه صار يشغّل الاختبارات قبل أن يُنشر (`netlify.toml`)، و`deploy.yml`
-صار يدويّاً للموقع القديم وحده — **فلا `NETLIFY_AUTH_TOKEN` عليك بعد اليوم**.
+حُذف (٢٠٢٦/١٠/٢٦) — **فلا `NETLIFY_AUTH_TOKEN` عليك**.
 
 **وما يبقى عليك — في Supabase** (لم ألمسه بطلبك):
 

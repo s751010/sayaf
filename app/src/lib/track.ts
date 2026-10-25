@@ -109,7 +109,9 @@ function installProvider(cfg: AnalyticsConfig): void {
       window.dataLayer!.push(arguments);
     } as typeof window.gtag;
     window.gtag!("js", new Date());
-    window.gtag!("config", cfg.id);
+    // بلا `page_view` تلقائي: سياستنا تَعِد بأحداث القمع وحدها، وGA4 يرسل
+    // الرابط الكامل عند كل تحميل لولا هذا (مراجعة الأمن ٢٠٢٦/١٠/٢٦).
+    window.gtag!("config", cfg.id, { send_page_view: false });
     el.async = true;
     el.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(cfg.id)}`;
     document.head.appendChild(el);

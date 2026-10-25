@@ -28,3 +28,4 @@
 | «شامل الضريبة» في التذكرة وصفحة المتابعة بلا رقم | `PickupTicket.tsx` · `OrderStatus.tsx` | `legal.test.ts` (مسح كل `app/src`) | #28 |
 | رموز الحساسية لا تُقصّ بصمت (+N) · ترويسة الصفحات العامّة على 320–399 | `DishCard.tsx` (`MetaRow`) · `site.tsx` | — | #28 |
 | عامل الخدمة لا يخزّن ردّاً فاشلاً ولا HTML مكان JS · مخابئ بإصدار | `public/sw.js` | `sw.test.ts` | #28 |
+| الخصوصية: نقل البيانات بلا ادّعاء ضمانات · وعد الحذف مطابق لإجراء مكتوب · إفصاح التحليلات · GA4 بلا `page_view` تلقائي · `deploy.yml` حُذف · `plausible.io` في CSP | `Legal.tsx` · `runbooks/account-deletion.md` · `track.ts` · `_headers` | — | #29 |
