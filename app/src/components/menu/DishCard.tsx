@@ -15,7 +15,7 @@
  * رموز مسببات الحساسية والسعرات موجودة في التخطيطات الثلاثة: ميزة قائمة لا
  * يجوز أن تختفي لأن التاجر بدّل شكل منيوه.
  */
-import type { CSSProperties } from "react";
+import { useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { SafeImage } from "@/components/ui";
 import { displayAllergens } from "@/lib/allergens";
 import type { ImageShape, MenuDesign, PriceStyle } from "@/lib/themes";
@@ -97,24 +97,114 @@ function Price({ dish, big, style, en }: { dish: Dish; big?: boolean; style: Pri
   );
 }
 
-function Allergens({ dish, en }: { dish: Dish; en: boolean }) {
+function chip(a: { key: string; label: string; emoji: string }, extra?: string, style?: CSSProperties) {
+  return (
+    <span
+      key={a.key}
+      title={a.label}
+      className={cn("shrink-0 rounded-md px-1 text-[11px]", extra)}
+      style={{ background: "var(--m-bg-2)", ...style }}
+    >
+      {a.emoji}
+    </span>
+  );
+}
+
+/**
+ * رموز مسببات الحساسية.
+ *
+ * - **حرّة** (`fit` غائب): تلتفّ أسطراً — في القائمة الرأسية حيث لا ارتفاع ثابت.
+ * - **مقيسة** (`fit`): داخل `MetaRow` ذي الارتفاع الثابت. ⚠️ كانت تلتفّ هناك
+ *   أيضاً فيقصّ `overflow-hidden` السطرَ الثاني بصمت — وعلى ٣٢٠ بالعربي كان
+ *   الالتفاف يرفع الكتلة فيقصّ **السطرين معاً**: صفر رمز من ثلاثة (روبيان:
+ *   قشريات · سمسم · جلوتين). وحساسيةٌ مخفيّة بلا علامة خطرُ سلامة لا عيب شكل.
+ *   فالآن سطرٌ واحد: ما يتّسع ثم شارة «+N» تسمّي الباقي في `title` و`aria-label`،
+ *   والنافذة تعرضها كلّها.
+ *
+ * والقياس بلا إعادة تخطيط متكرّرة: كل الرموز تبقى في الشجرة، وما لا يتّسع
+ * `invisible` ويُدفع بـ`order` بعد الشارة — فعرضه يبقى مقيساً حين يتّسع المكان.
+ */
+function Allergens({ dish, en, fit }: { dish: Dish; en: boolean; fit?: boolean }) {
   const icons = displayAllergens(dish.allergens, en);
+  const box = useRef<HTMLDivElement>(null);
+  const [shown, setShown] = useState(icons.length);
+
+  useLayoutEffect(() => {
+    const el = box.current;
+    if (!fit || !el) return;
+    const measure = () => {
+      const kids = [...el.children] as HTMLElement[];
+      const chips = kids.filter((k) => !k.hasAttribute("data-more"));
+      const more = kids.find((k) => k.hasAttribute("data-more"));
+      const gap = parseFloat(getComputedStyle(el).columnGap) || 0;
+      // ⚠️ عرض التخطيط الكسري — لا `offsetWidth` ولا `getBoundingClientRect`:
+      // الأوّل يقرّب فيجمع ٤٨ لمحتوى عرضه ٤٧٫٤ فيُخفي رمزاً، فتتّسع الكتلة للشارة
+      // فيعود — تذبذبٌ لا يستقرّ. والثاني يقيس الصندوق **بعد** التحويل، وبطاقات
+      // `sticker` مائلة فينتفخ كل عرض فيُحسب ما لا يتّسع متّسعاً.
+      // و`border-box` من preflight، فالعرض المحسوب يشمل الحاشية.
+      const width = (n: Element) => parseFloat(getComputedStyle(n).width) || 0;
+      // المكان المتاح: الكتلة تنكمش إليه حين تفيض، وتساوي محتواها حين يتّسع.
+      const room = width(el) + 0.5;
+      // الشارة تُقاس حتى وهي مخفيّة؛ و«+9» أعرض رقم غالباً.
+      const moreW = (more ? width(more) : 22) + gap;
+      let used = 0;
+      let k = 0;
+      for (; k < chips.length; k++) {
+        const w = width(chips[k]) + (k ? gap : 0);
+        const restAfter = k + 1 < chips.length ? moreW : 0;
+        if (used + w + restAfter > room) break;
+        used += w;
+      }
+      setShown(k);
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    if (el.parentElement) ro.observe(el.parentElement);
+    return () => ro.disconnect();
+  }, [fit, icons.length]);
+
   if (!icons.length) return null;
+  const label = en ? "Allergens" : "مسببات الحساسية";
+  if (!fit) {
+    return (
+      <div className="flex flex-wrap items-center gap-1" aria-label={label}>
+        {icons.map((a) => chip(a))}
+      </div>
+    );
+  }
+  const k = Math.min(shown, icons.length);
+  const hidden = icons.slice(k);
+  const hiddenNames = hidden.map((a) => a.label).join(en ? ", " : "، ");
   return (
     <div
-      className="flex flex-wrap items-center gap-1"
-      aria-label={en ? "Allergens" : "مسببات الحساسية"}
+      ref={box}
+      className="flex min-w-0 shrink flex-nowrap items-center gap-1 overflow-hidden"
+      aria-label={label}
     >
-      {icons.map((a) => (
-        <span
-          key={a.key}
-          title={a.label}
-          className="rounded-md px-1 text-[11px]"
-          style={{ background: "var(--m-bg-2)" }}
-        >
-          {a.emoji}
-        </span>
-      ))}
+      {icons.map((a, i) =>
+        i < k ? chip(a, undefined, { order: 0 }) : chip(a, "invisible", { order: 2 })
+      )}
+      <span
+        data-more=""
+        title={hiddenNames}
+        aria-label={hidden.length ? `${en ? "and" : "و"} ${hiddenNames}` : undefined}
+        aria-hidden={hidden.length ? undefined : true}
+        className={cn(
+          "shrink-0 rounded-md px-1 text-[10px] font-black leading-4",
+          hidden.length ? "" : "invisible"
+        )}
+        style={{
+          order: hidden.length ? 1 : 3,
+          background: "var(--m-bg-2)",
+          color: "var(--m-text)",
+          // ⚠️ لا تمتدّ الكتلة بعرض شارةٍ مخفيّة حين يتّسع كل شيء.
+          position: hidden.length ? undefined : "absolute",
+        }}
+        dir="ltr"
+      >
+        +{hidden.length || 9}
+      </span>
     </div>
   );
 }
@@ -142,8 +232,8 @@ function MetaRow({ dish, en, reserve }: { dish: Dish; en: boolean; reserve: bool
   const has = !!displayAllergens(dish.allergens, en).length || dish.calories != null;
   if (!has && !reserve) return null;
   return (
-    <span className="flex h-4 flex-nowrap items-center gap-1.5 overflow-hidden opacity-80">
-      <Allergens dish={dish} en={en} />
+    <span className="flex h-4 min-w-0 max-w-full flex-nowrap items-center gap-1.5 overflow-hidden opacity-80">
+      <Allergens dish={dish} en={en} fit />
       <Calories dish={dish} en={en} />
     </span>
   );

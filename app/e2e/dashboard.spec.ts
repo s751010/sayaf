@@ -136,6 +136,66 @@ test("المنيو المطبوع يُقلع بورقته وكوده", async ({ 
   expect(crashes, crashes.join("\n")).toEqual([]);
 });
 
+test("فشل جلب المطعم لا يعرض شاشة الإنشاء — بل «أعد المحاولة» التي تُصلحه", async ({ page }) => {
+  /**
+   * كان الفشل يُحسم إلى «لا مطعم» فيظهر نموذج «أهلاً بك، عرّفنا على مطعمك»
+   * لتاجرٍ له مطعم وكوده مطبوع — فيُنشئ مطعماً ثانياً برابط جديد (الدرس ٣٢).
+   * والمسار المسجَّل لاحقاً أولى من الأوّل في Playwright، و`fallback` يُرجع
+   * الطلب إلى المحاكاة العادية حين يعود الاتصال.
+   */
+  const { crashes } = watch(page);
+  await signedIn(page);
+  let down = true;
+  await page.route(/\/rest\/v1\/restaurants/, (route) =>
+    down
+      ? route.fulfill({ status: 500, contentType: "application/json", body: '{"message":"boom"}' })
+      : route.fallback()
+  );
+  await page.goto("/dashboard");
+
+  const retry = page.getByRole("button", { name: "أعد المحاولة" });
+  await expect(retry).toBeVisible();
+  await expect(page.getByText("أهلاً بك في كلاود منيو")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /أنشئ مطعمي/ })).toHaveCount(0);
+
+  down = false;
+  await retry.click();
+  await expect(page.getByText("مقهى الفحص").first()).toBeVisible();
+  await expect(retry).toHaveCount(0);
+
+  expect(crashes, crashes.join("\n")).toEqual([]);
+});
+
+test.describe("اللوحة على ٣٢٠px", () => {
+  /**
+   * أضيق جوال يُباع — وعرض الجوال في المشروع ٤١٢ فلا يرى الفيض (الدرس ٣٤).
+   * كانت الترويسة وحدها تمدّ الصفحة إلى ٣٨٩px. والاشتراك هنا تجربةٌ تنتهي
+   * اليوم: «تنتهي اليوم» أطول شارة مختصرة، فالفحص على أسوأ حالة لا أسهلها.
+   */
+  test.use({ viewport: { width: 320, height: 640 } });
+
+  for (const path of ["/dashboard", "/dashboard/design", "/dashboard/dishes"]) {
+    test(`${path} بلا تمرير أفقي`, async ({ page }) => {
+      const { crashes } = watch(page);
+      await signedIn(page);
+      const endsSoon = [{ ...subscriptions[0], plan_id: "trial", end_date: new Date(Date.now() + 12 * 36e5).toISOString() }];
+      await page.route(/\/rest\/v1\/subscriptions/, (route) =>
+        route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(endsSoon) })
+      );
+      await page.goto(path);
+
+      // الشارة المختصرة نفسها ظاهرة — مدخل الفوترة باقٍ على الجوال.
+      await expect(page.locator("header").getByRole("link", { name: /الاشتراك والفوترة/ })).toBeVisible();
+      await expect(page.locator("header").getByText("تنتهي اليوم", { exact: true })).toBeVisible();
+      await page.waitForLoadState("networkidle");
+
+      const width = await page.evaluate(() => document.documentElement.scrollWidth);
+      expect(width).toBeLessThanOrEqual(320);
+      expect(crashes, crashes.join("\n")).toEqual([]);
+    });
+  }
+});
+
 test("الطباعة: الورقة وحدها ظاهرة — وصفحةٌ أخرى لا تخرج بيضاء", async ({ page }) => {
   /**
    * عطلان لا يُريان على الشاشة إطلاقاً:

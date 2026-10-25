@@ -340,7 +340,7 @@ function LoadFailed({ founderView, onRetry }: { founderView: boolean; onRetry: (
  *
  * «تجربة مجانية · ١٢ يوماً» وحدها ١٣١px، ومعها المعاينة وزرّان كانت الترويسة
  * تحتاج ٣٨٩px على شاشة ٣٢٠ فيُدفع زرّ الخروج خارجها. والرقم وحده يكفي من
- * يرى الشارة كل يوم؛ والجملة كاملةً في `aria-label` الرابط وفي الشاشات الأعرض.
+ * يرى الشارة كل يوم؛ والجملة كاملةً في `aria-label` الرابط ومن عرض ٣٩٠ فما فوق.
  * والعدد بتمييزه العربي (يومان · ٣ أيام · ١١ يوماً) لأنه يُقرأ وحده بلا سياق.
  */
 function planShortLabel(ent: Entitlements): string {
@@ -455,11 +455,13 @@ function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode
             {/* الشعار بلا اسم على الجوال: الاسم بخطّ العرض الجديد أعرض، فكان
                 يُطوى سطرين ويطوي الشارة معه على ٣٩٠px. والسحابة وحدها تكفي رابطاً. */}
             <Link to="/" aria-label="كلاود منيو — الرئيسية" className="shrink-0"><Logo compact /></Link>
-            {/* ⚠️ مقيسة على ٣٢٠px (أضيق جوال يُباع): الشعار ٣٦ + الشارة المختصرة
-                + «معاينة» ٨٦ + الخروج ٤٤ ≈ ٢٥٥ من ٢٨٨ متاحة. كان معها الوضع
-                الليلي والشارة كاملةً فتحتاج ٣٨٩ — الصفحة كلّها تتمرّر أفقياً.
-                فخرج مفتاح الوضع إلى سطر الحساب أسفل الصفحة؛ وأي زرّ يُضاف هنا
-                يُقاس أولاً (`dashboard.spec.ts` يفحص `scrollWidth` على ٣٢٠). */}
+            {/* ⚠️ مقيسة لا مذوقة: على ٣٢٠px (أضيق جوال يُباع) الشعار ٣٦ وأطول
+                شارة مختصرة («تنتهي اليوم» ٨١) و«معاينة» ٨٦ والخروج ٤٤ مع الفراغات
+                = ٢٧١ من ٢٨٨ متاحة. وكان معها الوضع الليلي والشارة كاملةً (١٣١)
+                فبلغ عرض الصفحة ٣٨٩ — تتمرّر أفقياً ويُدفع الخروج خارجها. فخرج
+                مفتاح الوضع إلى سطر الحساب أسفل الصفحة، والشارة الكاملة تعود من
+                ٣٩٠ (أطولها ٣٢١ من ٣٥٨). وأي زرّ يُضاف هنا يُقاس أولاً:
+                `dashboard.spec.ts` يفحص `scrollWidth` على ٣٢٠ بأطول شارة. */}
             <div className="flex min-w-0 items-center gap-2">
               {/* ⚠️ لازمة لا تجميل: الشريط الجانبي مخفيّ على الجوال، وقد خرج
                   «الاشتراك» من القائمة — فبدون هذه الشارة لا يبقى للجوال أي
@@ -474,8 +476,8 @@ function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode
                     !ctx.ent.active ? "neutral" : ctx.ent.trialDaysLeft === 1 ? "red" : "gold"
                   }
                 >
-                  <span className="min-[400px]:hidden">{planShortLabel(ctx.ent)}</span>
-                  <span className="hidden min-[400px]:inline">{planLabel(ctx.ent)}</span>
+                  <span className="min-[390px]:hidden">{planShortLabel(ctx.ent)}</span>
+                  <span className="hidden min-[390px]:inline">{planLabel(ctx.ent)}</span>
                 </Badge>
               </Link>
               <PreviewMenuButton
@@ -579,23 +581,39 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (!user || viewAs === null) return;
+    let alive = true;
+    const loaded = (r: Restaurant | null) => {
+      if (!alive) return;
+      setLoadFailed(false);
+      setRestaurant(r);
+    };
+    /**
+     * ⚠️ الفشل **لا يلمس** `restaurant`: كان `setRestaurant(null)` فيظهر نموذج
+     * الإنشاء لتاجر له مطعم. وفي وضع الانتحال كان أسوأ: نموذجٌ يُنشئ مطعماً
+     * باسم المؤسّس. وإن كان المطعم محمَّلاً من قبل (إعادة جلب بعد تجدّد
+     * الجلسة) يبقى معروضاً — فشل الخلفية لا يُطفئ لوحة تعمل.
+     */
+    const failed = () => {
+      if (alive) setLoadFailed(true);
+    };
     if (viewAs && asId) {
       getRestaurantById(asId)
         .then((r) => {
-          setRestaurant(r);
+          loaded(r);
           void logAudit("فتح لوحة تاجر", {
             table: "restaurants",
             id: r.id,
             name: r.name,
           });
         })
-        .catch(() => setRestaurant(null));
-      return;
+        .catch(failed);
+    } else {
+      getMyRestaurant(user.id).then(loaded).catch(failed);
     }
-    getMyRestaurant(user.id)
-      .then(setRestaurant)
-      .catch(() => setRestaurant(null));
-  }, [user, viewAs, asId]);
+    return () => {
+      alive = false;
+    };
+  }, [user, viewAs, asId, attempt]);
 
   useEffect(() => {
     void refreshEnt();
@@ -614,6 +632,18 @@ export default function Dashboard() {
     );
   }
   if (!user) return <Navigate to="/login" replace />;
+  // قبل فرع «لا مطعم» وقبل الدوّار: فشلٌ بلا مطعمٍ محمَّل لا يُحسم إلى أيٍّ منهما.
+  if (restaurant === undefined && loadFailed && viewAs !== null) {
+    return (
+      <LoadFailed
+        founderView={viewAs}
+        onRetry={() => {
+          setLoadFailed(false);
+          setAttempt((a) => a + 1);
+        }}
+      />
+    );
+  }
   if (restaurant === undefined || viewAs === null) {
     return (
       <div className="flex min-h-dvh items-center justify-center">
