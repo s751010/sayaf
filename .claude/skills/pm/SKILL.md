@@ -15,6 +15,7 @@ trigger: PM
    - آخر تقريرين في `company/reports/` (`git show origin/main:company/reports/<ملف>`؛
      القائمة بـ`git ls-tree --name-only origin/main company/reports/`).
    - `company/backlog.md` و`company/owner-queue.md` و`company/decisions.md`.
+   - `company/agenda.md` وآخر محضر في `company/meetings/`.
 2. طلبات الدمج المفتوحة وحالة CI عليها: أدوات `mcp__github__` (`list_pull_requests`
    على `s751010/sayaf`، و`pull_request_read` → `get_check_runs`). وآخر ٥ دفعات
    على `main` (`git log --oneline -5 origin/main`).
@@ -27,6 +28,11 @@ trigger: PM
 ## ٢) ردّ على المالك — بالخليجي، بهذا الترتيب
 
 **الخلاصة** في سطرين: وش صار من آخر مرة، والموقع شغّال على أي نسخة.
+
+**آخر اجتماع** — الأجندة في سطر، ثم أبرز ما قاله كل قسم وأين اختلفوا، وماذا حُسم
+ولماذا. (المالك يريد أن يرى النقاش، لا النتيجة وحدها.)
+
+**الأجندة الحالية** — هدف الأسبوع وأهمّ بنوده ومن يملكها، من `agenda.md`.
 
 **تمّ** — كل بند بسطر: ماذا تغيّر للتاجر أو الزبون (لا أسماء ملفات)، ورقم طلب
 الدمج، ودُمج أم ينتظر.

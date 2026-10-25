@@ -985,6 +985,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
               orderId={orderId}
               status={orderResult}
               en={en}
+              vatNumber={restaurant.vat_number}
               onDismiss={() => setOrderResult(null)}
               onConfirmed={cart.clear}
             />

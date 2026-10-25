@@ -118,7 +118,15 @@ export function Navbar() {
           : "bg-transparent"
       )}
     >
-      <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 min-[360px]:gap-4 min-[360px]:px-5">
+      {/**
+        * ⚠️ **ما دون ٤٠٠px: زرّ الوضع ينتقل إلى قائمة الجوال.** الصفّ كان يحتاج
+        * ٣٩٠px بالضبط (شعار ١٢٥ + وضع ٤٤ + قائمة ٤٤ + «ابدأ تجربتك» ١٠١ + فجوات
+        * وحاشيتان) — فكل جوال أضيق يفيض: ٢٩px على ٣٢٠ تقصّ الدعوة «ابدأ تجرب»،
+        * و٢٦px على ٣٦٠، وما بينهما إلى ٣٨٩ (scrollWidth مقيس ٢٠٢٦/١٠/٢٥).
+        * والذي يُنقل هو الأقلّ استعمالاً: الشعار هويّة، والقائمة الباب، والدعوة
+        * سبب الصفحة — ولا يصغر هدف لمسٍ عن ٤٤px. والفجوة ٨px تحت ٣٦٠ هامشُ أمان.
+        */}
+      <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-2 px-4 min-[360px]:gap-4 min-[360px]:px-5">
         {/* `shrink-0` و`whitespace-nowrap`: عند ٣٢٠px كان الشعار والزرّ ينكسران سطرين. */}
         <Link to="/" aria-label={SITE_NAME} className="shrink-0 whitespace-nowrap">
           <Logo />
@@ -154,7 +162,9 @@ export function Navbar() {
           )}
         </div>
         <div className="flex items-center gap-2">
-          <ThemeToggle />
+          <span className="hidden min-[400px]:contents">
+            <ThemeToggle />
+          </span>
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}
@@ -211,6 +221,11 @@ export function Navbar() {
                 )}
               </li>
             ))}
+            {/* زرّ الوضع هنا لما دون ٤٠٠px وحده — فوقها هو في الترويسة (انظر `<nav>`). */}
+            <li className="flex min-h-12 items-center justify-between rounded-[10px] px-3 text-base font-bold text-ink min-[400px]:hidden">
+              <span>المظهر</span>
+              <ThemeToggle />
+            </li>
             {!user && (
               <li className="mt-1 border-t border-line pt-2">
                 <Link to="/login" className="flex min-h-12 items-center rounded-[10px] px-3 text-base font-bold text-dim hover:bg-panel2">

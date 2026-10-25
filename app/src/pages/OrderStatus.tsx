@@ -215,11 +215,12 @@ export default function OrderStatusPage() {
             {formatMoney(order.total)}
           </span>
         </div>
-        <p className="mt-1 text-[11px] text-muted">
-          {order.vat_included || vatAdded > 0
-            ? "شامل ضريبة القيمة المضافة ١٥٪"
-            : "غير شامل ضريبة القيمة المضافة ١٥٪"}
-        </p>
+        {/* ⚠️ لا «شامل الضريبة» هنا أبداً: الادّعاء يشترط رقماً ضريبياً صالحاً،
+            و`order_public_status` لا تُرجع الرقم (وإرجاعه هجرة). فلا يبقى إلا
+            ما يُثبته الطلب نفسه: ضريبةٌ أُضيفت فوق البنود، ومبلغها أعلاه. */}
+        {vatAdded > 0 && (
+          <p className="mt-1 text-[11px] text-muted">الأسعار غير شاملة — أُضيفت الضريبة أعلاه</p>
+        )}
       </section>
 
       {(order.address || order.maps || order.restaurant_phone) && (

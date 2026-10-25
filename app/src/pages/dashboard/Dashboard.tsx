@@ -36,6 +36,7 @@ import { useAuth } from "@/lib/auth";
 import { track } from "@/lib/track";
 import {
   DEFAULT_ENTITLEMENTS,
+  NO_PLAN_NAME,
   fetchEntitlements,
   planLabel,
   type Entitlements,
@@ -281,7 +282,76 @@ function Onboarding({ user, onDone }: { user: SessionUser; onDone: (r: Restauran
   );
 }
 
+/* ── تعذّر التحميل ────────────────────────────────────────────────── */
+/**
+ * ⚠️ **الفشل ليس «لا مطعم».**
+ *
+ * كان فشل جلب المطعم يُحسم إلى `null` — وهي القيمة نفسها التي تعني «لم يُنشئ
+ * مطعماً بعد» — فعطل شبكة عابر يُظهر شاشة «أهلاً بك، عرّفنا على مطعمك» لتاجر
+ * له مطعم وكوده مطبوع على طاولاته. فيملؤها ظانّاً أن حسابه ضاع، فيخرج له
+ * مطعم ثانٍ برابط جديد لا يعرفه أي كود مطبوع (الدرس ٣٢).
+ *
+ * فهذه الشاشة **لا تعرض نموذج الإنشاء أبداً**: تقول ما حدث، وتعيد الجلب.
+ */
+function LoadFailed({ founderView, onRetry }: { founderView: boolean; onRetry: () => void }) {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+  return (
+    <div className="glow-bg flex min-h-dvh items-center justify-center px-5 py-10">
+      <Card className="anim-fade-up w-full max-w-md p-7 text-center">
+        <div role="alert">
+          <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-bad/10 text-bad">
+            <Icon name="warn" size={22} />
+          </span>
+          <h1 className="mt-3 font-display text-xl font-black text-ink">
+            {founderView ? "تعذّر فتح لوحة هذا التاجر" : "تعذّر تحميل لوحتك"}
+          </h1>
+          <p className="mt-2 text-sm leading-relaxed text-dim">
+            {founderView
+              ? "لم نصل إلى بيانات المطعم — قد يكون الاتصال انقطع، أو المعرّف غير صحيح."
+              : "لم نصل إلى بيانات مطعمك — غالباً انقطاعٌ في الاتصال. مطعمك ومنيوك بخير، ولم يتغيّر شيء."}
+          </p>
+        </div>
+        <Button onClick={onRetry} className="mt-5 w-full py-3">
+          أعد المحاولة
+        </Button>
+        {founderView ? (
+          <Link to="/founder/merchants" className="mt-3 inline-block text-sm font-bold text-dim hover:text-ink">
+            العودة إلى التجّار
+          </Link>
+        ) : (
+          // مخرجٌ إن كانت العلّة جلسةً منتهية لا شبكة: الإعادة وحدها لا تُصلحها.
+          <button
+            onClick={() => { logout(); navigate("/login"); }}
+            className="mt-3 inline-flex min-h-11 items-center text-sm font-bold text-dim hover:text-ink"
+          >
+            سجّل الدخول من جديد
+          </button>
+        )}
+      </Card>
+    </div>
+  );
+}
+
 /* ── الشريط الجانبي ───────────────────────────────────────────────── */
+
+/**
+ * الشارة في العرض الضيّق — **الحالة لا الجملة**.
+ *
+ * «تجربة مجانية · ١٢ يوماً» وحدها ١٣١px، ومعها المعاينة وزرّان كانت الترويسة
+ * تحتاج ٣٨٩px على شاشة ٣٢٠ فيُدفع زرّ الخروج خارجها. والرقم وحده يكفي من
+ * يرى الشارة كل يوم؛ والجملة كاملةً في `aria-label` الرابط ومن عرض ٣٩٠ فما فوق.
+ * والعدد بتمييزه العربي (يومان · ٣ أيام · ١١ يوماً) لأنه يُقرأ وحده بلا سياق.
+ */
+function planShortLabel(ent: Entitlements): string {
+  if (ent.loading) return "…";
+  if (!ent.active) return NO_PLAN_NAME;
+  if (!ent.trial) return "مشترك";
+  const n = ent.trialDaysLeft;
+  if (n <= 1) return "تنتهي اليوم";
+  if (n === 2) return "يومان";
+  return n <= 10 ? `${n} أيام` : `${n} يوماً`;
+}
 
 function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode }) {
   const { logout } = useAuth();
@@ -385,17 +455,29 @@ function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode
             {/* الشعار بلا اسم على الجوال: الاسم بخطّ العرض الجديد أعرض، فكان
                 يُطوى سطرين ويطوي الشارة معه على ٣٩٠px. والسحابة وحدها تكفي رابطاً. */}
             <Link to="/" aria-label="كلاود منيو — الرئيسية" className="shrink-0"><Logo compact /></Link>
-            <div className="flex items-center gap-2">
+            {/* ⚠️ مقيسة لا مذوقة: على ٣٢٠px (أضيق جوال يُباع) الشعار ٣٦ وأطول
+                شارة مختصرة («تنتهي اليوم» ٨١) و«معاينة» ٨٦ والخروج ٤٤ مع الفراغات
+                = ٢٧١ من ٢٨٨ متاحة. وكان معها الوضع الليلي والشارة كاملةً (١٣١)
+                فبلغ عرض الصفحة ٣٨٩ — تتمرّر أفقياً ويُدفع الخروج خارجها. فخرج
+                مفتاح الوضع إلى سطر الحساب أسفل الصفحة، والشارة الكاملة تعود من
+                ٣٩٠ (أطولها ٣٢١ من ٣٥٨). وأي زرّ يُضاف هنا يُقاس أولاً:
+                `dashboard.spec.ts` يفحص `scrollWidth` على ٣٢٠ بأطول شارة. */}
+            <div className="flex min-w-0 items-center gap-2">
               {/* ⚠️ لازمة لا تجميل: الشريط الجانبي مخفيّ على الجوال، وقد خرج
                   «الاشتراك» من القائمة — فبدون هذه الشارة لا يبقى للجوال أي
                   مدخل إلى الفوترة إطلاقاً. */}
-              <Link to="/dashboard/billing" title="الاشتراك والفوترة">
+              <Link
+                to="/dashboard/billing"
+                title="الاشتراك والفوترة"
+                aria-label={`${planLabel(ctx.ent)} — الاشتراك والفوترة`}
+              >
                 <Badge
                   variant={
                     !ctx.ent.active ? "neutral" : ctx.ent.trialDaysLeft === 1 ? "red" : "gold"
                   }
                 >
-                  {planLabel(ctx.ent)}
+                  <span className="min-[390px]:hidden">{planShortLabel(ctx.ent)}</span>
+                  <span className="hidden min-[390px]:inline">{planLabel(ctx.ent)}</span>
                 </Badge>
               </Link>
               <PreviewMenuButton
@@ -403,7 +485,6 @@ function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode
                 label="معاينة"
                 className="px-2.5 py-1.5 text-xs"
               />
-              <ThemeToggle />
               <button
                 onClick={() => { logout(); navigate("/"); }}
                 aria-label="تسجيل خروج"
@@ -437,6 +518,14 @@ function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode
           <fieldset disabled={ctx.readOnly} className="m-0 min-w-0 border-0 p-0">
             {children}
           </fieldset>
+          {/* سطر الحساب (جوال) — نظير أسفل الشريط الجانبي: البريد ومفتاح الوضع.
+              خرج المفتاح إلى هنا من الترويسة ليتّسع سطرها لـ٣٢٠px، والبريد كان
+              غائباً عن الجوال كلّياً فلا يعرف من على جهاز مشترك بأيّ حساب دخل.
+              وخارج الـ`fieldset`: الوضع تفضيل جهاز لا كتابةٌ في مطعم التاجر. */}
+          <div className="mt-10 flex items-center justify-between gap-3 border-t border-line pt-4 lg:hidden">
+            <p className="min-w-0 truncate text-xs text-faint" dir="ltr">{ctx.user.email}</p>
+            <ThemeToggle className="shrink-0" />
+          </div>
         </main>
       </div>
       </div>
@@ -451,7 +540,14 @@ export default function Dashboard() {
   // ⚠️ فوق كل عودة مبكّرة — عطل React #310 أطفأ كل منيو من خطّاف تحتها.
   const location = useLocation();
   const [params] = useSearchParams();
+  /** `undefined` = يُحمَّل · `null` = لا مطعم **فعلاً** (لا فشل) · وإلا المطعم. */
   const [restaurant, setRestaurant] = useState<Restaurant | null | undefined>(undefined);
+  /**
+   * فشل الجلب حالةٌ ثالثة مستقلّة — لا تُطوى في `null` (انظر `LoadFailed`).
+   * و`attempt` يعيد تشغيل الجلب من زرّ «أعد المحاولة».
+   */
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   const [menus, setMenus] = useState<Menu[] | null>(null);
   const [ent, setEnt] = useState<Entitlements>(DEFAULT_ENTITLEMENTS);
   /**
@@ -485,23 +581,39 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (!user || viewAs === null) return;
+    let alive = true;
+    const loaded = (r: Restaurant | null) => {
+      if (!alive) return;
+      setLoadFailed(false);
+      setRestaurant(r);
+    };
+    /**
+     * ⚠️ الفشل **لا يلمس** `restaurant`: كان `setRestaurant(null)` فيظهر نموذج
+     * الإنشاء لتاجر له مطعم. وفي وضع الانتحال كان أسوأ: نموذجٌ يُنشئ مطعماً
+     * باسم المؤسّس. وإن كان المطعم محمَّلاً من قبل (إعادة جلب بعد تجدّد
+     * الجلسة) يبقى معروضاً — فشل الخلفية لا يُطفئ لوحة تعمل.
+     */
+    const failed = () => {
+      if (alive) setLoadFailed(true);
+    };
     if (viewAs && asId) {
       getRestaurantById(asId)
         .then((r) => {
-          setRestaurant(r);
+          loaded(r);
           void logAudit("فتح لوحة تاجر", {
             table: "restaurants",
             id: r.id,
             name: r.name,
           });
         })
-        .catch(() => setRestaurant(null));
-      return;
+        .catch(failed);
+    } else {
+      getMyRestaurant(user.id).then(loaded).catch(failed);
     }
-    getMyRestaurant(user.id)
-      .then(setRestaurant)
-      .catch(() => setRestaurant(null));
-  }, [user, viewAs, asId]);
+    return () => {
+      alive = false;
+    };
+  }, [user, viewAs, asId, attempt]);
 
   useEffect(() => {
     void refreshEnt();
@@ -520,6 +632,18 @@ export default function Dashboard() {
     );
   }
   if (!user) return <Navigate to="/login" replace />;
+  // قبل فرع «لا مطعم» وقبل الدوّار: فشلٌ بلا مطعمٍ محمَّل لا يُحسم إلى أيٍّ منهما.
+  if (restaurant === undefined && loadFailed && viewAs !== null) {
+    return (
+      <LoadFailed
+        founderView={viewAs}
+        onRetry={() => {
+          setLoadFailed(false);
+          setAttempt((a) => a + 1);
+        }}
+      />
+    );
+  }
   if (restaurant === undefined || viewAs === null) {
     return (
       <div className="flex min-h-dvh items-center justify-center">
