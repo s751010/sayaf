@@ -4,7 +4,7 @@
  * كل فحص هنا يحرس جملةً قيلت للزبون أو التاجر: خصمٌ موصوفٌ بغير حقيقته، أو
  * ضريبةٌ تُدّعى بلا رقم ضريبي، أو بكسلٌ يُحمَّل قبل أن يُسأل الزبون.
  */
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { LEGAL, SUBSCRIPTION_TAX_NOTE, VAT_REGISTERED, isVatNumber, yearlyDiscountPct } from "@/lib/legal";
 import { PLANS } from "@/lib/plans";
@@ -36,11 +36,71 @@ describe("الضريبة على الاشتراك", () => {
   });
 });
 
+/** كل ملفّات `app/src` الشيفرية (`.ts`/`.tsx`) بمسارٍ نسبيّ إليها. */
+function sourceFiles(dir = ""): string[] {
+  const root = new URL("../src/", import.meta.url);
+  return readdirSync(new URL(dir || ".", root), { withFileTypes: true }).flatMap((e) => {
+    const rel = dir ? `${dir}/${e.name}` : e.name;
+    if (e.isDirectory()) return sourceFiles(rel);
+    return /\.tsx?$/.test(e.name) ? [rel] : [];
+  });
+}
+
+/**
+ * ما يُعدّ ادّعاءً بالضريبة — عربياً بالتذكير والتأنيث ومع «ال» وبدونها،
+ * وإنجليزياً بالصيغتين المكتوبتين في المنيو والسلّة. والنفي («غير شامل») يُعدّ
+ * أيضاً عمداً: هو كذلك وعدٌ بضريبة تُضاف.
+ */
+const VAT_CLAIM = /شاملة? (?:ال)?ضريبة|VAT \(15%\) included|include 15% VAT/;
+
+/**
+ * استثناءات مسمّاة — كلٌّ بسببه. لا يُضاف إليها ملفّ يراه **الزبون**.
+ * (`lib/legal.ts` والإعدادات لا تحتاجان استثناءً: كلتاهما تنادي `isVatNumber(`.)
+ */
+const VAT_CLAIM_EXEMPT: Record<string, string> = {
+  "pages/founder/MerchantDetail.tsx": "عنوان مفتاح «الأسعار شاملة الضريبة» في لوحة المؤسّس — إعدادٌ لا جملةٌ للزبون",
+};
+
+/**
+ * التعليقات تشرح القاعدة ولا تَعِد أحداً — فتُنزع قبل البحث. والنزع يقتصر على
+ * ما يبدأ السطر (`//` و`/*` و`{/*`) كي لا يبتلع نصّاً مثل `accept="image/*"`.
+ */
+const stripComments = (s: string) =>
+  s.replace(/^[ \t]*\{?\/\*[\s\S]*?\*\/\}?/gm, "").replace(/^[ \t]*\/\/.*$/gm, "");
+
 describe("«شامل الضريبة» لا يُقال بلا رقم ضريبي", () => {
-  it("المنيو والسلّة والمطبوع يشترطون رقماً ضريبياً صالحاً", () => {
-    for (const f of ["pages/MenuPage.tsx", "components/menu/CartReview.tsx", "pages/dashboard/PrintMenu.tsx"]) {
-      expect(src(f), f).toContain("isVatNumber(");
+  // الدرس ٣٣: هذا الحارس كان يعدّ ثلاثة ملفّات بالاسم، ففاتته تذكرة الاستلام
+  // وصفحة متابعة الطلب — كلتاهما تقول «شامل» لمطعمٍ بلا رقم. فصار يمسح الكل.
+  it("كل ملفّ في app/src يحمل ادّعاء ضريبة يشترط isVatNumber( — أو استثناءٌ مسمّى", () => {
+    const files = sourceFiles();
+    expect(files.length).toBeGreaterThan(100); // المسح وصل فعلاً — لا يمرّ فارغاً
+    const offenders = files.filter((f) => {
+      const s = src(f);
+      return VAT_CLAIM.test(stripComments(s)) && !s.includes("isVatNumber(") && !(f in VAT_CLAIM_EXEMPT);
+    });
+    expect(offenders).toEqual([]);
+  });
+
+  it("الاستثناء لا يبقى بعد زوال سببه", () => {
+    for (const f of Object.keys(VAT_CLAIM_EXEMPT)) {
+      expect(VAT_CLAIM.test(stripComments(src(f))), f).toBe(true);
     }
+  });
+
+  it("المسح يرى الادّعاء ولا يخدعه التعليق", () => {
+    expect(VAT_CLAIM.test(stripComments(`<p>{"شامل ضريبة القيمة المضافة ١٥٪"}</p>`))).toBe(true);
+    expect(VAT_CLAIM.test(stripComments(`x = "All prices include 15% VAT."`))).toBe(true);
+    expect(VAT_CLAIM.test(stripComments(`  /** الأسعار شاملة ضريبة القيمة */`))).toBe(false);
+    expect(VAT_CLAIM.test(stripComments(`  {/* «شامل الضريبة» ادّعاء */}`))).toBe(false);
+    expect(VAT_CLAIM.test(stripComments(`  // شامل الضريبة`))).toBe(false);
+  });
+
+  it("صفحة متابعة الطلب لا تقول «شامل» أبداً — لا رقم ضريبي يصلها", () => {
+    expect(stripComments(src("pages/OrderStatus.tsx"))).not.toMatch(VAT_CLAIM);
+  });
+
+  it("التذكرة تأخذ الرقم من المنيو", () => {
+    expect(src("pages/MenuPage.tsx")).toMatch(/<PickupTicket[^>]*vatNumber=\{restaurant\.vat_number\}/);
   });
 
   it("الإعدادات لا تحفظ «غير شاملة» بلا رقم ضريبي — فهي تُضيف ١٥٪ على الزبون", () => {

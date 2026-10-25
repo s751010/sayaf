@@ -10,6 +10,7 @@ import { mFont } from "@/components/menu/chrome";
 import { verifyOrder, type PublicOrder } from "@/lib/data";
 import { formatMoney } from "@/lib/utils";
 import { vatAddedOnTop } from "@/lib/vat";
+import { isVatNumber } from "@/lib/legal";
 import { LoyaltyProgress } from "@/components/menu/LoyaltyProgress";
 
 /** الحالات كما يقرؤها الزبون — لا أسماء تقنية. */
@@ -73,12 +74,15 @@ export function PickupTicket({
   orderId,
   status,
   en,
+  vatNumber,
   onDismiss,
   onConfirmed,
 }: {
   orderId: string | null;
   status: "paid" | "cancelled";
   en: boolean;
+  /** «شامل الضريبة» ادّعاء بضريبة — لا يُقال إلا لمطعمٍ له رقم ضريبي صالح. */
+  vatNumber?: string | null;
   onDismiss: () => void;
   onConfirmed: () => void;
 }) {
@@ -239,15 +243,21 @@ export function PickupTicket({
             {formatMoney(order.total, en)}
           </span>
         </div>
-        <p className="mt-1 text-[11px]" style={{ color: "var(--m-muted)" }}>
-          {order.vat_included || vatAdded > 0
-            ? en
-              ? "VAT (15%) included"
-              : "شامل ضريبة القيمة المضافة ١٥٪"
-            : en
-              ? "VAT (15%) not included"
-              : "غير شامل ضريبة القيمة المضافة ١٥٪"}
-        </p>
+        {/* ⚠️ «شامل الضريبة» ادّعاءٌ بضريبة، والتذكرة إيصالٌ يُحفظ: مطعمٌ بلا
+            رقم ضريبي صالح لا تُقال عنه. فالسطر واحدٌ من حالتين صادقتين — ضريبةٌ
+            أُضيفت فعلاً (مبلغها في السطر أعلاه)، أو أسعارٌ شاملة لمطعمٍ مسجّل —
+            وما عداهما صمت. كانت «شامل» تُكتب لكل طلبٍ `vat_included` بلا رقم. */}
+        {(vatAdded > 0 || (order.vat_included && isVatNumber(vatNumber))) && (
+          <p className="mt-1 text-[11px]" style={{ color: "var(--m-muted)" }}>
+            {vatAdded > 0
+              ? en
+                ? "Prices exclude VAT — added above"
+                : "الأسعار غير شاملة — أُضيفت الضريبة أعلاه"
+              : en
+                ? "VAT (15%) included"
+                : "شامل ضريبة القيمة المضافة ١٥٪"}
+          </p>
+        )}
 
         {/* ⚠️ هذا الرابط ليس زينة: بدونه تبقى صفحة المتابعة يتيمة لا يصلها
             أحد. الزبون يقفل جواله وينتظر، والتذكرة داخل المنيو تختفي بأول
