@@ -51,7 +51,7 @@ npm run build        # tsc --noEmit && vite build  →  ../deploy
 
 > ⚠️ **`neon-frangollo-2c189e` هو الموقع** (`SITE_URL` في `config.ts`). و
 > `heroic-marzipan-b46da4` موقعٌ قديم على نسخة ٢٢ أغسطس، باقٍ حيّاً لما قد
-> يكون طُبع منه — و`deploy.yml` يحدّثه يدويّاً لمن أضاف `NETLIFY_AUTH_TOKEN`.
+> يكون طُبع منه، ولا يُحدَّث بعد اليوم (حُذف `deploy.yml` بقرار المالك ٢٠٢٦/١٠/٢٦).
 > أمّا `cloudsmenu.netlify.app` — الذي كان مكتوباً قديماً — **فليس ملكاً
 > للمشروع**: لا وجود له في الحساب، ويردّ ٢٠٠ لأنه لأحدٍ آخر.
 
