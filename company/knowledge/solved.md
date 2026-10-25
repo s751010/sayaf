@@ -24,3 +24,7 @@
 | حقن `$'` في وسوم المشاركة · CSP مقصور على مشروعنا · `url-guard` · `webhook-dispatch` بلا تحويلات · حدّ الحساب في `menu-scan` · أخطاء `api` العامّة | `shared/menu-meta.mjs` · `_headers` · `supabase/functions/*` | `parity.test.ts` · `url-guard.test.ts` | #26 (الدوال تنتظر نشر المالك) |
 | المدونة مطابقة للمنتج (١٨ مقالاً · ٩ صور) | `content/articles/` | `articles.test.ts` · `parity.test.ts` | #27 |
 | فيديو الإطلاق ٣٢ ث عمودي · دليل الهويّة PDF وحزمة الأصول | خارج المستودع (أُرسلت للمالك) | — | — |
+| فشل الشبكة في اللوحة لا يعرض «أنشئ مطعمك» · إعادة محاولة · ترويسة اللوحة على 320 | `Dashboard.tsx` | `e2e/dashboard.spec.ts` (٥٠٠ + 320) | #28 |
+| «شامل الضريبة» في التذكرة وصفحة المتابعة بلا رقم | `PickupTicket.tsx` · `OrderStatus.tsx` | `legal.test.ts` (مسح كل `app/src`) | #28 |
+| رموز الحساسية لا تُقصّ بصمت (+N) · ترويسة الصفحات العامّة على 320–399 | `DishCard.tsx` (`MetaRow`) · `site.tsx` | — | #28 |
+| عامل الخدمة لا يخزّن ردّاً فاشلاً ولا HTML مكان JS · مخابئ بإصدار | `public/sw.js` | `sw.test.ts` | #28 |
