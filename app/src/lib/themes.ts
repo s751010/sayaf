@@ -17,11 +17,11 @@ import type { PatternId } from "./patterns";
  * ترويساتٌ بنيتها مختلفة كلّياً — انظر `SkinHeads.tsx`:
  * `paper` رأس فاتورة · `letterboard` لوحة حروف معلّقة · `poster` ملصقٌ
  * بشريط أقسامٍ يجري · `sign` لافتة نيون على جدار طوب · `masthead` ترويسة
- * مجلّة · `arcade` أقواس روشان.
+ * مجلّة · `arcade` أقواس روشان · `mud` بيت طينٍ نجديّ بشُرفاته وبابه.
  */
 export type HeaderShape =
   | "arch" | "band" | "frame" | "soft"
-  | "paper" | "letterboard" | "poster" | "sign" | "masthead" | "arcade";
+  | "paper" | "letterboard" | "poster" | "sign" | "masthead" | "arcade" | "mud";
 /**
  * تخطيط الأطباق — هذا ما يجعل الفرق بين الطوابع يُرى لا يُقرأ.
  * `deck` بطاقاتٌ تُسحب أفقياً لكل قسم، تكبر حين تتوسّط الشاشة.
@@ -37,9 +37,10 @@ export type ImageShape = "rounded" | "square" | "circle" | "arch";
  * **الخامة الكاملة** للطابع — صنفٌ على جذر المنيو (`m-skin-*`) يقرؤه
  * `styles/menu-skins.css`: الملمس (ورق، لبّاد، طوب، بلاط)، والحواف (فاتورة
  * ممزّقة، إطار خشب، ملصقٌ بحدٍّ أسود)، والحركة الخاصّة بالطابع (طباعة،
- * اشتعال، ملصقاتٌ تُلصق، انفتاح رواشين). `store` واجهة المتجر بلا شيء منها.
+ * اشتعال، ملصقاتٌ تُلصق، انفتاح رواشين، بابٌ نجديّ ينفتح). `store` واجهة
+ * المتجر بلا شيء منها.
  */
-export type MenuSkin = "store" | "receipt" | "letterboard" | "sticker" | "neon" | "editorial" | "roshan";
+export type MenuSkin = "store" | "receipt" | "letterboard" | "sticker" | "neon" | "editorial" | "roshan" | "najdi";
 /** كيف يُقدَّم السعر: نصّاً، أو شارة ملوّنة، أو خطّاً منقّطاً يقود إليه. */
 export type PriceStyle = "plain" | "badge" | "leader";
 /** الفاصل بين صفوف القائمة الرأسية. */
@@ -423,11 +424,17 @@ export const DESIGN_THEMES: MenuTheme[] = [
       "--m-display": FONT.reem,
       "--m-radius": "0.6rem",
     },
+    // ═══ «بيت طين نجدي» (٢٠٢٦/١٠/٢٦) ═══ كان على `store` بلا خامة، وأوّل شاشته
+    // تطابق «عصري» بنيةً — أضعف الطوابع بقياس الجودة (٦٤ من ٩٠) ويقع على أكبر
+    // شريحة (الشعبي). صار له **بنيةٌ** لا لون: جدار طينٍ بلِياسته وشُرفاته وطِرمته،
+    // وبابٌ نجديّ بلون العلامة يحمل الشعار، والسدو عتبةٌ تحته. **ولم تُمسّ قيمة
+    // لونٍ واحدة أعلاه** (بصمة التسعة المجمّدة في `invariants.test.ts`).
     design: design({
+      skin: "najdi",
       pattern: "sadu",
       // ‏.035 لا .06: النسيج على الصفحة كلّها كان يزاحم نصّ البطاقات فوقه.
       patternOpacity: 0.035,
-      header: "band",
+      header: "mud",
       heading: "sadu",
       depth: "raised", entrance: "rise", edge: "hairline",
     }),

@@ -28,7 +28,7 @@ import {
 } from "@/components/menu/Cart";
 import { CartReview } from "@/components/menu/CartReview";
 import { PickupTicket } from "@/components/menu/PickupTicket";
-import { allergenLabel, buildAllergenIndex, restaurantTypeLabel } from "@/lib/menuText";
+import { allergenLabel, buildAllergenIndex, dishName, restaurantTypeLabel } from "@/lib/menuText";
 import { Chip, LangToggle, LAYOUT_CLASS, MenuSheet, sectionReserve } from "@/components/menu/chrome";
 import { SectionHeading, sectionCover } from "@/components/menu/SectionHeading";
 import { normalizeAr } from "@/lib/arabic";
@@ -1210,7 +1210,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
                           يملأ سلّةً لا مخرج لها — والشريط أسفلها يقول «يفتح ١٣:٠٠». */}
                       {cartOn && ordersOpen && Number(d.price ?? 0) > 0 && (
                         <AddToCartButton
-                          label={en ? `Add ${d.name}` : `أضِف ${d.name}`}
+                          label={en ? `Add ${dishName(d, en)}` : `أضِف ${d.name}`}
                           onAdd={() => cart.add(d.id)}
                           className={design.layout === "list" ? "bottom-3 end-0" : "top-2 end-2"}
                         />
@@ -1340,7 +1340,9 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
                 يصغّر منطقة اللمس معه (٤٤ ⇐ ٤٠). */}
             <Link to="/" className="inline-flex min-h-11 items-center">
               <span className="scale-90">
-                <Logo />
+                {/* ‏`tone="menu"`: بلون الطابع لا بلون المنصّة — `text-ink` الفاتح كان
+                    يكتب «كلاود» بتباين 1.01 على «فاخر» و1.04 على «نيون». */}
+                <Logo tone="menu" />
               </span>
             </Link>
           </footer>

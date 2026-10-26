@@ -50,6 +50,30 @@ function gridAspect(shape: ImageShape): string {
 function name(d: Dish, en: boolean): string {
   return en && d.name_en ? d.name_en : d.name;
 }
+
+/**
+ * الاسم ونجمة «المميّز» — **النجمة مربوطةٌ بآخر كلمة**.
+ *
+ * كانت رمزاً مضمَّناً بعد النصّ، فإذا امتلأ السطر انكسرت وحدها إلى سطرٍ ثانٍ
+ * («ستيك واقيو مشوي» ثم ☆ وحدها تحته — ظهر في «فاخر» على 390). فآخر كلمةٍ
+ * والنجمة في `nowrap` واحد: إن انكسرا انكسرا معاً.
+ */
+function NameText({ dish, en, star, className }: { dish: Dish; en: boolean; star: boolean; className: string }) {
+  const text = name(dish, en);
+  if (!star) return <>{text}</>;
+  const cut = text.trimEnd().lastIndexOf(" ");
+  const head = cut > 0 ? text.slice(0, cut + 1) : "";
+  const last = cut > 0 ? text.slice(cut + 1) : text;
+  return (
+    <>
+      {head}
+      <span className="whitespace-nowrap">
+        {last}
+        <Icon name="star" size={12} className={className} />
+      </span>
+    </>
+  );
+}
 function desc(d: Dish, en: boolean): string | null {
   return en && d.description_en ? d.description_en : d.description;
 }
@@ -157,6 +181,9 @@ function Calories({ dish, en, className, style }: { dish: Dish; en: boolean; cla
  * - `w-0 min-w-full` لا `w-full`: صفٌّ لا يلتفّ يرفع **العرض الأدنى** لعمود
  *   الشبكة بمجموع رموزه، فكانت بطاقة بستّ حساسيات تتّسع من ١٣٤px إلى ٢٤٩px
  *   وتختلّ الشبكة. العرض الصفري يُسقط إسهامه، والحدّ الأدنى ١٠٠٪ يردّ عرضه.
+ * - **بلا `opacity`**: كان السطر كلّه `opacity-80` فوق `--m-muted`، فنزلت السعرات
+ *   تحت AA في خمسة طوابع (أسوؤها «تراثي» 3.52). الخافت محسوبٌ ≥ ٤٫٥ أصلاً
+ *   (`invariants.test.ts`)، وأيّ تخفيفٍ فوقه يُسقطه.
  */
 function MetaRow({ dish, en, reserve }: { dish: Dish; en: boolean; reserve: boolean }) {
   const icons = displayAllergens(dish.allergens, en);
@@ -208,7 +235,7 @@ function MetaRow({ dish, en, reserve }: { dish: Dish; en: boolean; reserve: bool
   return (
     <span
       ref={row}
-      className="flex h-4 w-0 min-w-full flex-nowrap items-center gap-1 overflow-hidden opacity-80"
+      className="flex h-4 w-0 min-w-full flex-nowrap items-center gap-1 overflow-hidden"
       aria-label={icons.length ? (en ? "Allergens" : "مسببات الحساسية") : undefined}
     >
       {icons.map((a, i) => chip(a, i >= k))}
@@ -337,16 +364,17 @@ export function DishCard({
         style={{ borderColor: "var(--m-border)", position: "relative" }}
       >
         {badge}
-        <span className="min-w-0 flex-1">
-          <span className="flex items-baseline gap-2">
+        {/* ‏`@container`: السطر يقيس عموده لا الشاشة. وحين يضيق العمود (صورةٌ في
+            آخر السطر على 320، أو ورقة الفاتورة) ينزل السعر وخطّه المنقّط إلى سطرٍ
+            تحت الاسم — كان الاسم يُعصر إلى ٢٩ بكسل فيصير كلمةً في كل سطر (١٤ سطراً
+            في الفاتورة ولوحة الحروف بطبقٍ اسمه ٨٤ حرفاً، قياس الجودة ٢٠٢٦/١٠/٢٦). */}
+        <span className="@container min-w-0 flex-1">
+          <span className="flex items-baseline gap-x-2 gap-y-1 @max-[16rem]:flex-wrap">
             <span
-              className="m-name min-w-0 text-base font-bold leading-snug"
+              className="m-name min-w-0 text-base font-bold leading-snug @max-[16rem]:basis-full"
               style={{ color: "var(--m-text)", ...nameFont }}
             >
-              {name(dish, en)}
-              {dish.featured && !popular && (
-                <Icon name="star" size={12} className="ms-1 inline-block align-[-1px]" />
-              )}
+              <NameText dish={dish} en={en} star={!!dish.featured && !popular} className="ms-1 inline-block align-[-1px]" />
             </span>
             {/* الخط النقطي يقود العين من الاسم إلى السعر — تقليد المنيوهات الراقية.
                 ولونه من `--m-muted` لا `--m-border`: الحدود على الطوابع الداكنة
@@ -438,10 +466,7 @@ export function DishCard({
             className={cn(NAME_2_LINES, "m-name text-base font-bold leading-snug")}
             style={{ color: "var(--m-text)", ...nameFont }}
           >
-            {name(dish, en)}
-            {dish.featured && !popular && (
-              <Icon name="star" size={12} className="mb-0.5 inline-block align-middle" />
-            )}
+            <NameText dish={dish} en={en} star={!!dish.featured && !popular} className="ms-0.5 mb-0.5 inline-block align-middle" />
           </p>
           {showDesc && (
             <p className={cn(DESC_2_LINES, "m-desc text-xs leading-relaxed")} style={{ color: "var(--m-muted)" }}>
@@ -458,10 +483,13 @@ export function DishCard({
   }
 
   /* ── الشبكة (الافتراضي) ────────────────────────────────────────────── */
+  /* ‏`w-full`: الزرّ عنصرٌ سطريّ في الأصل، فبطاقةٌ بلا صورة ولا وصف كانت تنكمش إلى
+     عرض اسمها (٧٠ من ١٧٣ بكسل في «عصري») وزرّ «＋» يطفو خارجها — في كل طابعٍ
+     تخطيطه شبكة، ومنها الافتراضي. */
   return (
     <button
       onClick={onOpen}
-      className="m-card m-surface group relative flex h-full flex-col overflow-hidden border text-start transition-transform hover:-translate-y-0.5"
+      className="m-card m-surface group relative flex h-full w-full flex-col overflow-hidden border text-start transition-transform hover:-translate-y-0.5"
       style={surface}
     >
       {badge}
@@ -491,10 +519,7 @@ export function DishCard({
           className={cn(NAME_2_LINES, "m-name text-sm font-bold leading-snug")}
           style={{ color: "var(--m-text)", ...nameFont }}
         >
-          {name(dish, en)}
-          {dish.featured && !popular && (
-              <Icon name="star" size={12} className="mb-0.5 inline-block align-middle" />
-            )}
+          <NameText dish={dish} en={en} star={!!dish.featured && !popular} className="ms-0.5 mb-0.5 inline-block align-middle" />
         </p>
         {showDesc && (
           <p className={cn(DESC_2_LINES, "m-desc text-xs leading-relaxed")} style={{ color: "var(--m-muted)" }}>

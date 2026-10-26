@@ -19,10 +19,26 @@ const GENERIC = new Set([
   "محمصة", "قهوة", "حلويات", "مشويات", "بيت", "دار", "cafe", "café", "coffee", "restaurant", "the", "kitchen",
 ]);
 
+/**
+ * واو العطف لا تبدأ اسماً: «مطبخ **و**مشويات الديوان» كانت تعطي «و» — وتُقرأ
+ * «9» في الفاتورة والروشان والنيون (قياس الجودة ٢٠٢٦/١٠/٢٦).
+ *
+ * ⚠️ لكن الواو تبدأ أسماءً حقيقية («مطعم **و**ليد»، «**و**رد»). فلا تُنزع إلا
+ * من كلمةٍ بعد الأولى **وما بعدها كلمةٌ عامّة** («ومشويات» ⇒ «مشويات» ⇒
+ * تُتجاوز)، أو «وال…» (عطفٌ على معرَّف: «والديوان» ⇒ «ديوان»).
+ */
+function isConjoinedGeneric(w: string, i: number): boolean {
+  return i > 0 && w.length > 2 && w.startsWith("و") && GENERIC.has(w.slice(1).toLowerCase());
+}
+function dropConjunction(w: string, i: number): string {
+  return i > 0 && w.length > 4 && w.startsWith("وال") ? w.slice(1) : w;
+}
+
 /** الحرف الذي يمثّل المطعم حين لا شعار. */
 export function monogramOf(name: string): string {
   const words = name.trim().split(/\s+/).filter(Boolean);
-  const word = words.find((w) => !GENERIC.has(w.toLowerCase())) ?? words[0] ?? "";
+  const at = words.findIndex((w, i) => !GENERIC.has(w.toLowerCase()) && !isConjoinedGeneric(w, i));
+  const word = at >= 0 ? dropConjunction(words[at], at) : words[0] ?? "";
   const bare = word.length > 2 && word.startsWith("ال") ? word.slice(2) : word;
   const ch = [...bare][0] ?? "";
   return /[a-z]/i.test(ch) ? ch.toUpperCase() : ch;

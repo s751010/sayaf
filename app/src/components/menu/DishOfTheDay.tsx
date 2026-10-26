@@ -58,7 +58,7 @@ export function DishOfTheDay({
           <Icon name="star" size={13} /> {en ? "Today's pick" : "طبق اليوم"}
         </span>
         <p
-          className="mt-0.5 truncate text-lg font-black"
+          className="mt-0.5 line-clamp-2 text-lg font-black leading-snug"
           style={{ color: "var(--m-text)", ...mFont }}
         >
           {name}
