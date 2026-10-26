@@ -30,8 +30,10 @@ export function Tabs({ tabs }: { tabs: Tab[] }) {
           end={t.end}
           className={({ isActive }) =>
             cn(
-              "rounded-lg px-4 py-2 text-sm font-bold transition-colors",
-              "inline-flex items-center gap-2",
+              // `px-3` تحت `sm`: تبويبات الطباعة الثلاثة كانت تمدّ الصفحة على
+              // 320 إلى 323px (مقيس بـe2e «اللوحة على ٣٢٠px»).
+              "rounded-lg px-3 py-2 text-sm font-bold transition-colors sm:px-4",
+              "inline-flex items-center gap-1.5 sm:gap-2",
               isActive ? "bg-gold text-on-gold" : "text-dim hover:text-ink"
             )
           }
