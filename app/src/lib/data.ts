@@ -229,15 +229,26 @@ export async function getAvailableDishes(menuIds: string[]): Promise<Dish[]> {
  * فيها المعطّلة وخارج نافذة الوقت. فالمنادي **ملزَم** بترشيحها بمعرّفات
  * القوائم المعروضة فعلاً — وإلا ظهرت للزبون أصناف قائمةٍ أطفأها التاجر.
  *
- * وشرط التوفّر يبقى **مطابقاً حرفياً**: `null` تعني متاح (صفوف قديمة قبل
- * إضافة العمود)، و`eq.true` وحدها كانت تُخفيها عن الزبون بينما يراها التاجر
- * «متاحة» في لوحته.
+ * ═══ «نفد اليوم»: **لا ترشيح بالتوفّر هنا** (٢٠٢٦/١٠/٢٦، بموافقة المالك) ═══
+ *
+ * كانت تحمل `or=(available.is.null,available.eq.true)`، فالطبق الذي يُطفئه التاجر
+ * يختفي من المنيو كأنه لم يكن — والزبون الذي جاء من أجله يظنّ المطعم غيّر
+ * قائمته. الآن يصل كلّ طبق، والمنيو يعرض النافد بشارة «نفد اليوم» في آخر قسمه
+ * بلا زرّ إضافة (`lib/soldOut.ts`). و`null` يبقى «متاحاً» (صفوف قبل العمود).
+ *
+ * ⚠️ **لماذا هذا آمن من القاعدة (و)**: `available` داخل `PUBLIC_DISH_COLS`
+ * و**يُطلب في `select` اليوم**، والمرشّح القديم نفسه كان يقرؤه — وPostgres لا
+ * يسمح بالترشيح على عمودٍ بلا `SELECT`. فالمنح قائمٌ بالبرهان لا بالظنّ، ولم
+ * يتغيّر في الطلب عمودٌ واحد: الحذف **يوسّع الصفوف لا الأعمدة**.
+ *
+ * ⚠️ والسلّة **لا تعرف النافد**: `MenuPage` تبني لها خريطة المتاح وحده، فسطرٌ
+ * محفوظ لطبقٍ نفد يظهر «لم يعد متاحاً» ويحجب الإرسال كما كان. والخادم يرفضه
+ * أيضاً (`paylink-order-create`: `available === false`).
  */
 export async function getRestaurantDishes(restaurantId: string): Promise<Dish[]> {
   if (!restaurantId) return [];
   return rest<Dish[]>(
     `dishes?restaurant_id=eq.${encodeURIComponent(restaurantId)}` +
-      `&or=(available.is.null,available.eq.true)` +
       `&select=${PUBLIC_DISH_COLS}&order=sort_order.asc,created_at.asc`,
     { anonymous: true }
   );

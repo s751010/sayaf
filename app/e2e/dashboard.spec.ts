@@ -216,6 +216,34 @@ test("الطباعة: الورقة وحدها ظاهرة — وصفحةٌ أخر
   await expect(page.getByText("مطعم الديوان", { exact: false }).first()).toBeVisible();
 });
 
+test("ملفّ الامتثال: من شاشة الامتثال إلى ورقةٍ تُطبع — تقديرية، بلا حكم", async ({ page }) => {
+  /**
+   * اللاتيه بلا أرقام ⇒ «غير مُدخَل» في الورقة لا فراغ. والورقة **وحدها** في
+   * الطباعة (القاعدة نفسها في المنيو المطبوع). ولا كلمة حكم في نصّها المطبوع.
+   */
+  const { crashes } = watch(page);
+  await signedIn(page);
+  await page.goto("/dashboard/nutrition");
+  await page.getByRole("link", { name: /ملفّ الامتثال/ }).click();
+  await expect(page).toHaveURL(/\/dashboard\/nutrition\/file$/);
+
+  const sheet = page.locator("[data-compliance-file]");
+  await expect(sheet.getByText("مقهى الفحص").first()).toBeVisible();
+  await expect(sheet.locator("[data-estimate-note]")).toContainText("تقديرية");
+  await expect(sheet.getByRole("row").filter({ hasText: "لاتيه" })).toContainText("غير مُدخَل");
+  await expect(sheet.getByRole("row").filter({ hasText: "كرواسون" })).toContainText("310");
+  await expect(sheet).toContainText("2,000");
+
+  const text = (await sheet.innerText()).toLowerCase();
+  for (const w of ["ممتثل", "امتثال", "معتمد", "مطابق", "compliant", "approved"]) expect(text).not.toContain(w);
+
+  await page.emulateMedia({ media: "print" });
+  await expect(sheet.getByText("مقهى الفحص").first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: "ملفّ الامتثال" })).toBeHidden();
+
+  expect(crashes, crashes.join("\n")).toEqual([]);
+});
+
 /**
  * المُنتقي يرتّب حسب نوع النشاط **ولا يطبّق شيئاً** (قرار ٢٦/١٠).
  *

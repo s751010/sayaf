@@ -20,6 +20,7 @@ import { useState, type CSSProperties } from "react";
 import { SafeImage } from "@/components/ui";
 import { Icon, type IconName } from "@/lib/icons";
 import { patternImage, PATTERN_SIZE } from "@/lib/patterns";
+import { isSoldOut } from "@/lib/soldOut";
 import type { HeadingStyle } from "@/lib/themes";
 import type { Dish } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -42,7 +43,10 @@ export interface SectionCover {
 }
 
 export function sectionCover(dishes: Dish[], en: boolean): SectionCover | null {
-  const d = dishes.find((x) => x.featured && x.image?.trim()) ?? dishes.find((x) => x.image?.trim());
+  // ⚠️ **من المتاح وحده**: غلافٌ بصورة طبقٍ نفد (وتعليق المجلّة باسمه) يعلن عن
+  // صنفٍ لا يُطلب اليوم — والمميّز النافد كان سيصير الغلاف لأنه مميّز.
+  const shown = dishes.filter((x) => !isSoldOut(x));
+  const d = shown.find((x) => x.featured && x.image?.trim()) ?? shown.find((x) => x.image?.trim());
   if (!d?.image) return null;
   return { src: d.image, caption: en && d.name_en ? d.name_en : d.name };
 }
