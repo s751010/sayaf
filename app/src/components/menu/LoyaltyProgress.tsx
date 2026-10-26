@@ -28,6 +28,7 @@
  */
 import { mFont } from "@/components/menu/chrome";
 import type { OrderLoyalty } from "@/lib/data";
+import { Icon } from "@/lib/icons";
 
 export function LoyaltyProgress({ loyalty, en }: { loyalty: OrderLoyalty; en: boolean }) {
   const goal = Math.max(1, loyalty.goal);
@@ -41,7 +42,7 @@ export function LoyaltyProgress({ loyalty, en }: { loyalty: OrderLoyalty; en: bo
   return (
     <div
       className="mt-3 border-t pt-3"
-      style={{ borderColor: "var(--m-border, var(--c-line))" }}
+      style={{ borderColor: "var(--m-line, var(--m-border, var(--c-line)))" }}
       // القارئ الصوتي يقرأ الجملة لا النقاط.
       aria-label={
         done
@@ -55,8 +56,13 @@ export function LoyaltyProgress({ loyalty, en }: { loyalty: OrderLoyalty; en: bo
     >
       <div className="flex items-baseline justify-between gap-3">
         <p className="text-xs font-black" style={{ color: "var(--m-text, var(--c-ink))", ...mFont }}>
+          {done && (
+            <span className="me-1 inline-block align-[-2px]" style={{ color: "var(--m-accent-ink, var(--m-accent, var(--c-gold)))" }}>
+              <Icon name="sparkle" size={13} />
+            </span>
+          )}
           {done
-            ? en ? "🎉 Your card is full!" : "🎉 بطاقتك اكتملت!"
+            ? en ? "Your card is full!" : "بطاقتك اكتملت!"
             : en ? "You earned a stamp" : "ربحت ختماً بهذا الطلب"}
         </p>
         {!done && (
@@ -108,8 +114,18 @@ export function LoyaltyProgress({ loyalty, en }: { loyalty: OrderLoyalty; en: bo
             </>
           ) : (
             <>
-              بقي <b style={{ color: "var(--m-text, var(--c-ink))" }}>{left}</b>{" "}
-              {left === 1 ? "طلب واحد" : left === 2 ? "طلبان" : `${left} طلبات`} و
+              {/* كان «بقي 3 3 طلبات»: الرقم يُكتب مرّتين. والمفرد والمثنّى بلا رقم. */}
+              بقي{" "}
+              {left === 1 ? (
+                "طلب واحد"
+              ) : left === 2 ? (
+                "طلبان"
+              ) : (
+                <>
+                  <b style={{ color: "var(--m-text, var(--c-ink))" }}>{left}</b> طلبات
+                </>
+              )}{" "}
+              و
               <b style={{ color: "var(--m-text, var(--c-ink))" }}>{reward}</b> لك.
             </>
           )

@@ -1764,3 +1764,481 @@
     clip-path: circle(150% at 0% 0%);
   }
 }
+
+/* ══ شاشات الطلب: السلّة · نافذة الطبق · التذكرة · المتابعة (٢٠٢٦/١٠/٢٦) ══════
+ * كانت تُرسم بـ`--m-border` و`--m-accent` في كل حدٍّ وزرّ — وكلاهما **لون علامة
+ * التاجر** متى اختار لوناً (`tintTheme` تكتب الحدّ `rgba(علامته,.28)`). فسلّة
+ * «محمصة» بعلامةٍ زرقاء كانت استمارةً زرقاء فوق ورق كرافت.
+ *
+ * القاعدة هنا: **الأسطح والحدود من حبر الطابع** (`--m-line`، محايدٌ أيّاً كانت
+ * العلامة)، و**لون العلامة على زرّ الإتمام والمختار وحدهما** (`m-o-cta` ·
+ * `[aria-pressed=true]` · `m-o-badge-on`). وكلّ طابعٍ يلبس هذه الخطاطيف بخامته
+ * كما يلبس بطاقات المنيو — ولا لون مكتوب هنا إلا ما لا يتبع العلامة أصلاً.
+ *
+ * الخطاطيف: `m-order` · `m-o-card` · `m-o-field` · `m-o-cta` · `m-o-ghost` ·
+ * `m-o-step` · `m-o-opt` · `m-o-tick` · `m-o-badge` · `m-o-chip` · `m-o-num` ·
+ * `m-o-title` · `m-o-total` · `m-o-thumb` · `m-o-stub` · `m-o-tear` · `m-o-soldout`.
+ */
+[class*="m-skin-"] {
+  /* خيطٌ من حبر الطابع للأسطح، وأثقل منه للحقول — حدّ الحقل يُرى (≥ ٣:١ في
+     الطوابع الفاتحة) لأنه وحده يقول «اكتب هنا». */
+  --m-line: color-mix(in srgb, var(--m-text) 15%, transparent);
+  --m-line-strong: color-mix(in srgb, var(--m-text) 48%, transparent);
+  --m-tint: color-mix(in srgb, var(--m-text) 6%, transparent);
+}
+
+.m-o-card {
+  background-color: var(--m-surface);
+  border: 1px solid var(--m-line);
+  border-radius: var(--m-radius);
+}
+/* الأرقام بكايرو: أرقامه بعرضٍ واحد (طجوال بلا `tnum` — انظر `.m-price`). */
+.m-o-num {
+  font-family: var(--font-cairo), var(--m-font);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+/* العناوين بخطّ عناوين الطابع — صوته، لا خطّ القراءة. */
+.m-o-title {
+  font-family: var(--m-display, var(--m-font));
+}
+/* ‏Lalezar بوزنٍ واحد: «font-black» عليه يُركَّب عريضاً مزيّفاً. */
+.m-skin-sticker .m-o-title {
+  font-weight: 400;
+}
+
+.m-o-field {
+  background-color: var(--m-bg);
+  color: var(--m-text);
+  border: 1px solid var(--m-line-strong);
+  border-radius: calc(var(--m-radius) * 0.75);
+}
+.m-o-field::placeholder {
+  color: var(--m-muted);
+  opacity: 1;
+}
+.m-o-field:focus {
+  outline: 2px solid var(--m-accent-ink, var(--m-accent));
+  outline-offset: 1px;
+}
+
+.m-o-cta {
+  background-color: var(--m-accent);
+  color: var(--m-on-accent);
+  border-radius: calc(var(--m-radius) * 1.2);
+  box-shadow: 0 10px 22px -14px color-mix(in srgb, var(--m-text) 70%, transparent);
+}
+.m-o-ghost {
+  color: var(--m-text);
+  border: 1px solid var(--m-line-strong);
+  border-radius: calc(var(--m-radius) * 1.2);
+}
+.m-o-step {
+  border: 1px solid var(--m-line);
+  border-radius: 999px;
+}
+.m-o-chip {
+  background-color: var(--m-tint);
+  border: 1px solid var(--m-line);
+  border-radius: 999px;
+}
+.m-o-badge,
+.m-o-step-dot {
+  border-radius: 999px;
+  background-color: var(--m-tint);
+  color: var(--m-text);
+}
+.m-o-step-dot {
+  color: var(--m-muted);
+}
+/* المختار — المرحلة المبلوغة، والطلب الجاهز: العلامة ولونها المقروء. */
+.m-o-badge.m-o-badge-on,
+.m-o-step-dot.m-o-badge-on {
+  background-color: var(--m-accent);
+  color: var(--m-on-accent);
+}
+.m-o-thumb {
+  border-radius: calc(var(--m-radius) * 0.7);
+}
+
+/* الخيار: إطارٌ محايد، والمختار حدٌّ بنسخة العلامة المقروءة ومربّعٌ ممتلئ. */
+.m-o-opt {
+  background-color: var(--m-surface);
+  border: 1px solid var(--m-line);
+  border-radius: calc(var(--m-radius) * 0.75);
+}
+.m-o-opt[aria-pressed="true"] {
+  border-color: var(--m-accent-ink, var(--m-accent));
+  box-shadow: inset 0 0 0 1px var(--m-accent-ink, var(--m-accent));
+}
+.m-o-tick {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 1.5px solid var(--m-line-strong);
+  border-radius: 6px;
+  color: var(--m-on-accent);
+}
+[aria-pressed="true"] .m-o-tick {
+  background-color: var(--m-accent);
+  border-color: var(--m-accent);
+}
+.m-o-soldout {
+  color: var(--m-muted);
+  background-color: var(--m-tint);
+  border: 1px dashed var(--m-line-strong);
+  border-radius: calc(var(--m-radius) * 1.2);
+  cursor: not-allowed;
+}
+/* خطّ الإجمالي حين يسبقه شيء — أوّلَ البطاقة (بلا ضريبةٍ تُضاف) خطٌّ بلا معنى. */
+.m-o-total:not(:first-child) {
+  border-top: 1px solid var(--m-line);
+}
+.m-o-rule {
+  border-top: 1px solid var(--m-line);
+}
+/* ملاحظة الطلب: السهم يدور بدل أن يتبدّل رمزه — مطويّةٌ ⇐ إلى الأسفل.
+   (`chevron` ينعكس مع العربية، فالدوران نفسه يصحّ في الاتّجاهين بإشارته.) */
+.m-o-caret {
+  rotate: 90deg;
+}
+[dir="ltr"] .m-o-caret {
+  rotate: -90deg;
+}
+[aria-expanded="true"] .m-o-caret {
+  rotate: -90deg;
+}
+[dir="ltr"] [aria-expanded="true"] .m-o-caret {
+  rotate: 90deg;
+}
+
+/* ── التذكرة: كعبٌ وجسمٌ يفصلهما ثقبٌ متقطّع وقضمتان ──
+ * القضمتان قناعٌ دائريّ على الزاويتين المتقابلتين، والخطّ المتقطّع حدُّ الجسم
+ * العلوي — فالتذكرة تُقرأ تذكرةً في كل طابع بلا رسمٍ خاصّ لكلّ واحد. */
+.m-o-tear > .m-o-stub {
+  border-bottom: 0;
+  border-end-start-radius: 0;
+  border-end-end-radius: 0;
+  -webkit-mask:
+    radial-gradient(circle 10px at 0 100%, transparent 96%, #000) 0 0 / 51% 100% no-repeat,
+    radial-gradient(circle 10px at 100% 100%, transparent 96%, #000) 100% 0 / 51% 100% no-repeat;
+  mask:
+    radial-gradient(circle 10px at 0 100%, transparent 96%, #000) 0 0 / 51% 100% no-repeat,
+    radial-gradient(circle 10px at 100% 100%, transparent 96%, #000) 100% 0 / 51% 100% no-repeat;
+}
+.m-o-tear > .m-o-tail {
+  border-top: 2px dashed var(--m-line-strong);
+  border-start-start-radius: 0;
+  border-start-end-radius: 0;
+  -webkit-mask:
+    radial-gradient(circle 10px at 0 0, transparent 96%, #000) 0 0 / 51% 100% no-repeat,
+    radial-gradient(circle 10px at 100% 0, transparent 96%, #000) 100% 0 / 51% 100% no-repeat;
+  mask:
+    radial-gradient(circle 10px at 0 0, transparent 96%, #000) 0 0 / 51% 100% no-repeat,
+    radial-gradient(circle 10px at 100% 0, transparent 96%, #000) 100% 0 / 51% 100% no-repeat;
+}
+
+/* ── فاخر وعصري (واجهة المتجر) ── */
+.m-edge-gilded .m-o-card {
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--m-text) 9%, transparent);
+}
+.m-skin-store.m-edge-hairline .m-o-card {
+  box-shadow: var(--m-shadow-1, 0 0 transparent);
+}
+
+/* ── فاتورة: كلّ شيء مطبوعٌ على الورق — إطاراتٌ متقطّعة وأرقامٌ مصفوفة ── */
+.m-skin-receipt .m-o-card,
+.m-skin-receipt .m-o-opt,
+.m-skin-receipt .m-o-step,
+.m-skin-receipt .m-o-chip {
+  border-style: dashed;
+  border-width: 1.5px;
+  border-color: var(--m-line-strong);
+}
+.m-skin-receipt .m-o-card {
+  background-color: var(--m-bg);
+  border-radius: 3px;
+}
+.m-skin-receipt .m-o-total:not(:first-child) {
+  border-top: 2px dashed var(--m-line-strong);
+}
+.m-skin-receipt .m-o-cta,
+.m-skin-receipt .m-o-ghost,
+.m-skin-receipt .m-o-field,
+.m-skin-receipt .m-o-opt,
+.m-skin-receipt .m-o-soldout {
+  border-radius: 4px;
+}
+.m-skin-receipt .m-o-cta {
+  box-shadow: none;
+}
+.m-skin-receipt .m-o-thumb {
+  border-radius: 2px;
+  filter: grayscale(1) contrast(1.1);
+  mix-blend-mode: multiply;
+}
+
+/* ── نيون: الأسطح مطفأة، والأنبوب على زرّ الإتمام والمختار وحدهما ── */
+.m-skin-neon .m-o-cta {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--m-glow, var(--m-accent)) 60%, transparent),
+    0 0 26px -6px color-mix(in srgb, var(--m-glow, var(--m-accent)) 80%, transparent);
+}
+.m-skin-neon .m-o-opt[aria-pressed="true"] {
+  box-shadow:
+    inset 0 0 0 1px var(--m-glow, var(--m-accent)),
+    0 0 18px -6px color-mix(in srgb, var(--m-glow, var(--m-accent)) 80%, transparent);
+}
+.m-skin-neon .m-o-badge-on {
+  box-shadow: 0 0 14px -2px color-mix(in srgb, var(--m-glow, var(--m-accent)) 75%, transparent);
+}
+
+/* ── ملصقات: حدٌّ أسود غليظ وظلٌّ مصمت — كلّ بطاقةٍ ملصق ── */
+.m-skin-sticker .m-o-card,
+.m-skin-sticker .m-o-field,
+.m-skin-sticker .m-o-ghost,
+.m-skin-sticker .m-o-step,
+.m-skin-sticker .m-o-opt {
+  border: 2px solid var(--m-text);
+}
+.m-skin-sticker .m-o-card {
+  box-shadow: 3px 4px 0 var(--m-text);
+}
+.m-skin-sticker .m-o-cta {
+  border: 2.5px solid var(--m-text);
+  box-shadow: 3px 4px 0 var(--m-text);
+}
+.m-skin-sticker .m-o-opt[aria-pressed="true"] {
+  border-color: var(--m-text);
+  box-shadow: 2px 3px 0 var(--m-text);
+}
+.m-skin-sticker .m-o-tick {
+  border: 2px solid var(--m-text);
+}
+.m-skin-sticker .m-o-thumb {
+  box-shadow: 0 0 0 2px var(--m-text);
+}
+/* التذكرة: القناع يقصّ الظلّ المصمت، فيُرسم ظلّاً للشكل كلّه (بقضمتيه). */
+.m-skin-sticker .m-o-tear {
+  filter: drop-shadow(3px 4px 0 var(--m-text));
+}
+.m-skin-sticker .m-o-tear > .m-o-card {
+  box-shadow: none;
+}
+
+/* ── لوحة حروف: البطاقات لبّادٌ بأخاديد، والإطار خشب ── */
+.m-skin-letterboard .m-o-card {
+  background:
+    repeating-linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.03) 0 1px,
+      transparent 1px 4px,
+      rgba(0, 0, 0, 0.32) 4px 5px,
+      transparent 5px 7px
+    ),
+    var(--m-bg);
+  border-radius: 3px;
+}
+.m-skin-letterboard .m-o-title,
+.m-skin-letterboard .m-o-stub .m-o-num {
+  text-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.65),
+    0 2px 4px rgba(0, 0, 0, 0.4);
+}
+.m-skin-letterboard .m-o-cta,
+.m-skin-letterboard .m-o-ghost,
+.m-skin-letterboard .m-o-field,
+.m-skin-letterboard .m-o-opt,
+.m-skin-letterboard .m-o-soldout {
+  border-radius: 4px;
+}
+/* النوافذ نفسها لوحةٌ بإطار البلّوط — كاللوحة المعلّقة فوق الكاونتر. */
+.m-skin-letterboard .m-sheet {
+  border: 8px solid #a8743f;
+  border-image: linear-gradient(160deg, #cf9f66, #9c6734 34%, #bd8850 60%, #86562b) 1;
+}
+
+/* ── مجلّة: لا صناديق — أعمدةٌ تفصلها خيوط، والإجمالي تحت خطّين ── */
+.m-skin-editorial .m-o-card {
+  background-color: transparent;
+  border-width: 1px 0 0;
+  border-color: var(--m-text);
+  border-radius: 0;
+  padding-inline: 0;
+}
+.m-skin-editorial .m-o-total:not(:first-child) {
+  border-top: 3px double var(--m-text);
+}
+.m-skin-editorial .m-o-field {
+  background-color: transparent;
+  border-width: 0 0 1.5px;
+  border-radius: 0;
+  padding-inline: 0.25rem;
+}
+.m-skin-editorial .m-o-cta,
+.m-skin-editorial .m-o-ghost,
+.m-skin-editorial .m-o-opt,
+.m-skin-editorial .m-o-soldout,
+.m-skin-editorial .m-o-chip,
+.m-skin-editorial .m-o-step,
+.m-skin-editorial .m-o-tick {
+  border-radius: 0;
+}
+.m-skin-editorial .m-o-cta {
+  box-shadow: none;
+}
+.m-skin-editorial .m-o-thumb {
+  border-radius: 0;
+  outline: 1px solid color-mix(in srgb, var(--m-text) 65%, transparent);
+  outline-offset: 2px;
+}
+/* التذكرة في المجلّة قصاصةٌ لا صندوق: الكعب والجسم بإطارٍ كامل رفيع. */
+.m-skin-editorial .m-o-tear > .m-o-card {
+  border-width: 1px;
+  padding-inline: 1rem;
+}
+.m-skin-editorial .m-o-tear > .m-o-tail {
+  border-top: 2px dashed var(--m-text);
+}
+
+/* ── روشان: النوافذ أقواس، وزرّ الإتمام عقدٌ فوق بابه ── */
+.m-skin-roshan .m-o-thumb {
+  border-radius: 999px 999px 0.4rem 0.4rem;
+}
+.m-skin-roshan .m-o-cta {
+  border-radius: 1.75rem 1.75rem 0.5rem 0.5rem;
+}
+.m-skin-roshan .m-o-card {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), var(--m-shadow-1, 0 0 transparent);
+}
+.m-skin-roshan .m-o-total > :last-child::before {
+  content: "";
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  margin-inline-end: 6px;
+  vertical-align: 0.2em;
+  background: var(--m-accent-2);
+  rotate: 45deg;
+}
+
+/* ── نجدي: ألواحُ لِياسة بحبيبتها، والإتمام بابٌ بإطاره ── */
+.m-skin-najdi .m-o-card {
+  position: relative;
+  isolation: isolate;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.65),
+    inset 0 -2px 0 color-mix(in srgb, var(--m-text) 8%, transparent);
+}
+.m-skin-najdi .m-o-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: inherit;
+  background-image: var(--m-grain);
+  background-size: 180px 180px;
+  opacity: 0.4;
+}
+.m-skin-najdi .m-o-cta {
+  border-radius: 4px 4px 2px 2px;
+  box-shadow:
+    inset 0 0 0 3px color-mix(in srgb, var(--m-on-accent) 22%, transparent),
+    0 10px 20px -14px color-mix(in srgb, var(--m-text) 80%, transparent);
+}
+/* ⚠️ خافت «نجدي» على أرضية النوافذ (`--m-bg-2` ‎#e9d9be) **3.98:1** — دون AA،
+   وكان كذلك قبل هذا القسم (فحص الثوابت يقيس الأرضية والسطح لا `bg-2`). لا قيمة
+   تُمسّ في الطابع: الخافت داخل النافذة وحدها يُخلط بحبره ⇐ ‎5.3:1. */
+.m-skin-najdi {
+  /* نسخةٌ تُورَث من خافت الجذر — إعادة تعريفه بنفسه داخل النافذة دورةٌ تُبطله. */
+  --m-muted-root: var(--m-muted);
+}
+.m-skin-najdi .m-sheet {
+  --m-muted: color-mix(in srgb, var(--m-muted-root) 70%, var(--m-text));
+}
+.m-skin-najdi .m-o-chip,
+.m-skin-najdi .m-o-step {
+  border-radius: 0.55rem;
+}
+
+/* ── محمصة: النافذة ورق الكيس، والبطاقات لاصقاتٌ بحدّ حبر ── */
+.m-skin-roastery .m-sheet {
+  background-image: var(--m-kraft);
+  background-size: 220px 220px;
+}
+.m-skin-roastery .m-o-card {
+  border: 0;
+  border-radius: 3px;
+  box-shadow:
+    0 0 0 1px var(--m-text),
+    0 8px 16px -14px rgba(0, 0, 0, 0.5);
+}
+.m-skin-roastery .m-o-field {
+  background-color: var(--m-surface);
+  border-color: var(--m-text);
+  border-radius: 3px;
+}
+.m-skin-roastery .m-o-cta,
+.m-skin-roastery .m-o-ghost,
+.m-skin-roastery .m-o-opt,
+.m-skin-roastery .m-o-soldout {
+  border-radius: 4px;
+}
+.m-skin-roastery .m-o-ghost {
+  border-color: var(--m-text);
+}
+.m-skin-roastery .m-o-step,
+.m-skin-roastery .m-o-chip {
+  border-radius: 4px;
+  border-color: color-mix(in srgb, var(--m-text) 55%, transparent);
+}
+.m-skin-roastery .m-o-thumb {
+  border-radius: 3px;
+  box-shadow: 0 0 0 1px var(--m-text);
+}
+/* الإجمالي على شريطٍ مطبوع بالحبر — كسطر الوزن على لاصق الكيس. */
+.m-skin-roastery .m-o-total:not(:first-child) {
+  border-top: 1.5px solid var(--m-text);
+}
+.m-skin-roastery .m-o-tear > .m-o-card {
+  box-shadow: none;
+  border: 1px solid var(--m-text);
+}
+.m-skin-roastery .m-o-tear > .m-o-tail {
+  border-top: 2px dashed var(--m-text);
+}
+
+/* ── الحركة: حالةٌ ساكنة أوّلاً، والحركة داخل `no-preference` وحدها ── */
+@media (prefers-reduced-motion: no-preference) {
+  .m-o-caret {
+    transition: rotate 0.18s ease;
+  }
+  .m-o-opt,
+  .m-o-cta,
+  .m-o-ghost {
+    transition:
+      transform 0.14s cubic-bezier(0.2, 0.8, 0.2, 1),
+      box-shadow 0.14s ease,
+      border-color 0.14s ease;
+  }
+  .m-o-cta:not(:disabled):not([aria-disabled="true"]):active,
+  .m-o-opt:active {
+    transform: scale(0.985);
+  }
+  /* المربّع يُختم حين يُختار — ختمٌ قصير لا ارتداد. */
+  [aria-pressed="true"] .m-o-tick {
+    animation: m-o-stamp 0.2s cubic-bezier(0.3, 1.4, 0.5, 1);
+  }
+  .m-skin-sticker .m-o-cta:not(:disabled):not([aria-disabled="true"]):active {
+    transform: translate(3px, 4px);
+    box-shadow: 0 0 0 var(--m-text);
+  }
+}
+@keyframes m-o-stamp {
+  from {
+    transform: scale(0.6);
+  }
+}

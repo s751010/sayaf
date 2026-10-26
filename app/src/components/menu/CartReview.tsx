@@ -7,12 +7,19 @@
  *
  * فُصلت عن `Cart.tsx` لأنها أطول أجزائها وأكثرها استقلالاً: تأخذ السلّة
  * جاهزة وتتصرّف في العرض والإرسال، ولا يشاركها بقيّة الملفّ حالةً.
+ *
+ * ═══ الشكل: تلبس الطابع لا «نموذجاً» (٢٠٢٦/١٠/٢٦) ═══
+ *
+ * كانت كلّ حدودها وأزرارها بـ`--m-border` و`--m-accent` — وكلاهما **لون علامة
+ * التاجر** حين يختار لوناً (`tintTheme`)، فتصير السلّة في «محمصة» بأزرق التاجر
+ * استمارةً زرقاء لا جزءاً من المنيو. الآن الأسطح والحدود محايدة من حبر الطابع
+ * (`--m-line` في `menu-skins.css`)، ولون العلامة على **زرّ الإتمام والمختار**
+ * وحدهما، وكلّ طابعٍ يلبسها بخامته عبر خطاطيف `m-o-*`. المنطق والمُرسَل لم يتغيّرا.
  */
 import { Link } from "react-router-dom";
 import { isVatNumber } from "@/lib/legal";
-import { useState, type CSSProperties } from "react";
+import { useState, type ReactNode } from "react";
 import { unitPrice, type Cart, type CartLine } from "@/components/menu/Cart";
-import { mFont } from "@/components/menu/chrome";
 import { DishArtwork } from "@/components/menu/DishArtwork";
 import { createOrder } from "@/lib/data";
 import { parseOptions } from "@/lib/options";
@@ -71,6 +78,18 @@ function orderText(args: {
   if (name) L.push(en ? `Name: ${name}` : `الاسم: ${name}`);
   if (mobile) L.push(en ? `Mobile: ${mobile}` : `الجوال: ${mobile}`);
   return L.join("\n");
+}
+
+/** ما يمنع الإتمام — بطاقةٌ محايدة بعلامة تنبيه، لا كتلةٌ بلون العلامة. */
+function Notice({ children }: { children: ReactNode }) {
+  return (
+    <p className="m-o-card flex items-start gap-2 px-3.5 py-2.5 text-xs font-bold" style={{ color: "var(--m-text)" }}>
+      <span className="mt-px shrink-0" style={{ color: "var(--m-accent-ink, var(--m-accent))" }}>
+        <Icon name="warn" size={15} />
+      </span>
+      <span className="min-w-0">{children}</span>
+    </p>
+  );
 }
 
 export function CartReview({
@@ -178,22 +197,18 @@ export function CartReview({
     }
   }
 
-  const field: CSSProperties = {
-    borderColor: "var(--m-border)",
-    background: "var(--m-bg)",
-    color: "var(--m-text)",
-  };
-  const card: CSSProperties = {
-    borderColor: "var(--m-border)",
-    background: "var(--m-surface)",
-    borderRadius: "var(--m-radius)",
-  };
+  const sar = en ? "SAR" : "ر.س";
 
   if (rows.length === 0) {
     return (
       <div className="flex flex-col items-center gap-2 py-10 text-center">
-        <span className="text-4xl">🛍️</span>
-        <p className="text-sm font-black" style={{ color: "var(--m-text)", ...mFont }}>
+        <span
+          className="flex h-14 w-14 items-center justify-center rounded-full"
+          style={{ background: "color-mix(in srgb, var(--m-text) 7%, transparent)", color: "var(--m-muted)" }}
+        >
+          <Icon name="bag" size={26} />
+        </span>
+        <p className="m-o-title text-sm font-black" style={{ color: "var(--m-text)" }}>
           {en ? "Your order is empty" : "طلبك فارغ"}
         </p>
         <p className="text-xs" style={{ color: "var(--m-muted)" }}>
@@ -204,22 +219,17 @@ export function CartReview({
   }
 
   return (
-    <div className="flex flex-col gap-3 pb-2">
+    <div className="m-order flex flex-col gap-3 pb-1">
       {/* ── طريقة الاستلام ─────────────────────────────────────────────
           الزبون يجب أن يعرف **كيف يصله طلبه** قبل أن يدفع، لا بعده. وهي
-          حقيقة ثابتة هنا (استلام فقط) فتُعلَن لا تُسأل. */}
-      <div
-        className="flex items-center gap-3 border px-3.5 py-3"
-        style={{ ...card, borderColor: "var(--m-accent)" }}
-      >
-        <span
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg"
-          style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}
-        >
-          {dineIn ? "🍽️" : "🛍️"}
+          حقيقة ثابتة هنا (استلام فقط) فتُعلَن لا تُسأل. محايدةٌ اللون: معلومة
+          لا زرّ — ولون العلامة محفوظٌ لما يُضغط. */}
+      <div className="m-o-card flex items-center gap-3 px-3.5 py-3">
+        <span className="m-o-badge flex h-10 w-10 shrink-0 items-center justify-center">
+          <Icon name={dineIn ? "plate" : "bag"} size={20} />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block text-sm font-black" style={{ color: "var(--m-text)", ...mFont }}>
+          <span className="m-o-title block text-sm font-black" style={{ color: "var(--m-text)" }}>
             {dineIn
               ? en
                 ? `Order for table ${table}`
@@ -235,8 +245,8 @@ export function CartReview({
         </span>
         {table && !dineIn && (
           <span
-            className="shrink-0 rounded-full px-2.5 py-1 text-[11px] font-black"
-            style={{ background: "var(--m-bg-2)", color: "var(--m-muted)" }}
+            className="m-o-chip shrink-0 px-2.5 py-1 text-[11px] font-black"
+            style={{ color: "var(--m-text)" }}
           >
             {en ? `Table ${table}` : `طاولة ${table}`}
           </span>
@@ -253,111 +263,100 @@ export function CartReview({
             cart.clear();
             onClose();
           }}
-          className="text-[11px] font-bold underline underline-offset-2"
+          className="min-h-8 text-[11px] font-bold underline underline-offset-2"
           style={{ color: "var(--m-muted)" }}
         >
           {en ? "Clear all" : "إفراغ السلة"}
         </button>
       </div>
 
-      {rows.map((r) => {
-        const gone = !r.dish;
-        return (
-          <div
-            key={`${r.line.dish_id}-${r.index}`}
-            className="flex items-center gap-3 border px-3 py-2.5"
-            style={{ ...card, opacity: gone ? 0.6 : 1 }}
-          >
-            {/* الصورة تجعل المراجعة بصرية: الزبون يتعرّف على ما طلبه بلمحة. */}
-            {r.dish?.image?.trim() ? (
-              <img
-                src={r.dish.image}
-                alt=""
-                loading="lazy"
-                className="h-14 w-14 shrink-0 object-cover"
-                style={{ borderRadius: "calc(var(--m-radius) * 0.7)" }}
-              />
-            ) : (
-              // نفس الصورة المولَّدة التي في المنيو: الزبون يرى ما رآه هناك،
-              // فلا تنقلب البطاقة إلى مربّع رمادي عند المراجعة.
-              <DishArtwork
-                name={r.dish?.name ?? ""}
-                emoji={r.dish?.emoji}
-                glyphSize={24}
-                className="h-14 w-14 shrink-0"
-                style={{ borderRadius: "calc(var(--m-radius) * 0.7)" }}
-              />
-            )}
-
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-black" style={{ color: "var(--m-text)" }}>
-                {gone
-                  ? en
-                    ? "Item no longer available"
-                    : "صنف لم يعد متاحاً"
-                  : en && r.dish!.name_en
-                    ? r.dish!.name_en
-                    : r.dish!.name}
-              </p>
-              {r.labels.length > 0 && (
-                <p className="truncate text-xs" style={{ color: "var(--m-muted)" }}>
-                  {r.labels.join("، ")}
-                </p>
-              )}
-              <p
-                dir="ltr"
-                className="mt-0.5 text-sm font-black tabular-nums"
-                style={{ color: "var(--m-accent-ink, var(--m-accent))", textAlign: "start" }}
-              >
-                {formatPrice(r.total)} {en ? "SAR" : "ر.س"}
-              </p>
-            </div>
-
-            <div
-              className="flex shrink-0 items-center gap-0.5 rounded-full border"
-              style={{ borderColor: "var(--m-border)" }}
+      <ul className="m-o-lines flex flex-col gap-2">
+        {rows.map((r) => {
+          const gone = !r.dish;
+          return (
+            <li
+              key={`${r.line.dish_id}-${r.index}`}
+              className="m-o-card m-o-line flex items-center gap-3 px-3 py-2.5"
+              style={{ opacity: gone ? 0.6 : 1 }}
             >
-              {/* الكمية ١ ⇐ الزرّ سلّة مهملات لا «ناقص»: الإنقاص من واحد حذفٌ،
-                  وإظهاره كإنقاص يجعل الزبون يضغط ويتساءل ماذا حدث. */}
-              <button
-                onClick={() => cart.setQty(r.index, r.line.qty - 1)}
-                aria-label={r.line.qty === 1 ? (en ? "Remove" : "حذف") : en ? "Decrease" : "إنقاص"}
-                className="h-10 w-10 text-sm font-black"
-                style={{ color: r.line.qty === 1 ? "var(--m-muted)" : "var(--m-text)" }}
-              >
-                {r.line.qty === 1 ? "🗑" : "−"}
-              </button>
-              <span
-                className="w-5 text-center text-sm font-black tabular-nums"
-                style={{ color: "var(--m-text)" }}
-              >
-                {r.line.qty}
-              </span>
-              <button
-                onClick={() => cart.setQty(r.index, r.line.qty + 1)}
-                aria-label={en ? "Increase" : "زيادة"}
-                disabled={gone}
-                className="h-10 w-10 text-sm font-black disabled:opacity-40"
-                style={{ color: "var(--m-accent-ink, var(--m-accent))" }}
-              >
-                ＋
-              </button>
-            </div>
-          </div>
-        );
-      })}
+              {/* الصورة تجعل المراجعة بصرية: الزبون يتعرّف على ما طلبه بلمحة. */}
+              {r.dish?.image?.trim() ? (
+                <img src={r.dish.image} alt="" loading="lazy" className="m-o-thumb h-14 w-14 shrink-0 object-cover" />
+              ) : (
+                // نفس الصورة المولَّدة التي في المنيو: الزبون يرى ما رآه هناك،
+                // فلا تنقلب البطاقة إلى مربّع رمادي عند المراجعة.
+                <DishArtwork
+                  name={r.dish?.name ?? ""}
+                  emoji={r.dish?.emoji}
+                  glyphSize={24}
+                  className="m-o-thumb h-14 w-14 shrink-0"
+                />
+              )}
+
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-black" style={{ color: "var(--m-text)" }}>
+                  {gone
+                    ? en
+                      ? "Item no longer available"
+                      : "صنف لم يعد متاحاً"
+                    : en && r.dish!.name_en
+                      ? r.dish!.name_en
+                      : r.dish!.name}
+                </p>
+                {r.labels.length > 0 && (
+                  <p className="truncate text-xs" style={{ color: "var(--m-muted)" }}>
+                    {r.labels.join("، ")}
+                  </p>
+                )}
+                <p dir="ltr" className="m-o-num mt-0.5 text-sm font-bold" style={{ color: "var(--m-text)", textAlign: "start" }}>
+                  {formatPrice(r.total)} {sar}
+                </p>
+              </div>
+
+              <div className="m-o-step flex shrink-0 items-center">
+                {/* الكمية ١ ⇐ الزرّ سلّة مهملات لا «ناقص»: الإنقاص من واحد حذفٌ،
+                    وإظهاره كإنقاص يجعل الزبون يضغط ويتساءل ماذا حدث. */}
+                <button
+                  onClick={() => cart.setQty(r.index, r.line.qty - 1)}
+                  aria-label={r.line.qty === 1 ? (en ? "Remove" : "حذف") : en ? "Decrease" : "إنقاص"}
+                  className="flex h-10 w-10 items-center justify-center"
+                  style={{ color: r.line.qty === 1 ? "var(--m-muted)" : "var(--m-text)" }}
+                >
+                  <Icon name={r.line.qty === 1 ? "trash" : "minus"} size={16} />
+                </button>
+                <span className="m-o-num w-5 text-center text-sm font-black" style={{ color: "var(--m-text)" }}>
+                  {r.line.qty}
+                </span>
+                <button
+                  onClick={() => cart.setQty(r.index, r.line.qty + 1)}
+                  aria-label={en ? "Increase" : "زيادة"}
+                  disabled={gone}
+                  className="flex h-10 w-10 items-center justify-center disabled:opacity-40"
+                  style={{ color: "var(--m-text)" }}
+                >
+                  <Icon name="plus" size={16} />
+                </button>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
 
       {/* ── ملاحظة الطلب ──────────────────────────────────────────────
           مطويّة افتراضاً: أغلب الطلبات بلا ملاحظة، وحقلٌ فارغ دائم الظهور
           يُطيل الشاشة بلا مقابل. ومن يحتاجها يجدها بسطر واحد. */}
-      <div className="border px-3.5 py-2.5" style={card}>
+      <div className="m-o-card px-3.5 py-2.5">
         <button
           onClick={() => setNoteOpen((v) => !v)}
-          className="flex w-full items-center justify-between gap-2 text-start"
+          aria-expanded={noteOpen}
+          className="flex min-h-10 w-full items-center gap-2.5 text-start"
         >
-          <span className="min-w-0">
+          <span className="shrink-0" style={{ color: "var(--m-muted)" }}>
+            <Icon name="edit" size={16} />
+          </span>
+          <span className="min-w-0 flex-1">
             <span className="block text-sm font-bold" style={{ color: "var(--m-text)" }}>
-              📝 {en ? "Add a note" : "أضِف ملاحظة للطلب"}
+              {en ? "Add a note" : "أضِف ملاحظة للطلب"}
             </span>
             <span className="block truncate text-[11px]" style={{ color: "var(--m-muted)" }}>
               {note.trim()
@@ -367,7 +366,9 @@ export function CartReview({
                   : "حساسية، أو طلب خاص"}
             </span>
           </span>
-          <span style={{ color: "var(--m-muted)" }}>{noteOpen ? "▴" : "▾"}</span>
+          <span className="m-o-caret shrink-0" style={{ color: "var(--m-muted)" }}>
+            <Icon name="chevron" size={16} />
+          </span>
         </button>
         {noteOpen && (
           <textarea
@@ -376,8 +377,7 @@ export function CartReview({
             rows={2}
             autoFocus
             placeholder={en ? "e.g. no onions, extra spicy" : "مثلاً: بدون بصل، حار زيادة"}
-            className="mt-2 w-full resize-none rounded-xl border px-3 py-2 text-sm"
-            style={field}
+            className="m-o-field mt-2 w-full resize-none px-3 py-2 text-sm"
           />
         )}
       </div>
@@ -386,8 +386,8 @@ export function CartReview({
           «اختياري» في مطعم استلام مضلّل: الكاشير ينادي باسم، والمطعم يتصل
           حين يطول الانتظار. فالحقلان مطلوبان بلا نجمة تخيف — والنصّ يشرح
           لماذا بدل أن يأمر. */}
-      <div className="border px-3.5 py-3" style={card}>
-        <p className="text-sm font-black" style={{ color: "var(--m-text)", ...mFont }}>
+      <div className="m-o-card px-3.5 py-3">
+        <p className="m-o-title text-sm font-black" style={{ color: "var(--m-text)" }}>
           {dineIn ? (en ? "Who's ordering?" : "باسم من الطلب؟") : en ? "Who's picking up?" : "من سيستلم الطلب؟"}
         </p>
         <p className="mt-0.5 text-[11px]" style={{ color: "var(--m-muted)" }}>
@@ -404,59 +404,51 @@ export function CartReview({
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder={en ? "Your name" : "اسمك"}
+            aria-label={en ? "Your name" : "اسمك"}
             autoComplete="name"
-            className="min-h-11 rounded-xl border px-3.5 py-2.5 text-sm"
-            style={field}
+            className="m-o-field min-h-11 px-3.5 py-2.5 text-sm"
           />
           <input
             value={mobile}
             onChange={(e) => setMobile(e.target.value.replace(/[^\d+]/g, ""))}
             placeholder={en ? "Mobile" : "جوالك"}
+            aria-label={en ? "Mobile" : "جوالك"}
             dir="ltr"
             inputMode="tel"
             autoComplete="tel"
-            className="min-h-11 rounded-xl border px-3.5 py-2.5 text-sm"
-            style={field}
+            className="m-o-field min-h-11 px-3.5 py-2.5 text-sm"
           />
         </div>
-        {/* إشعار الجمع عند نقطة الجمع — نظام حماية البيانات يطلبه هنا لا في
-            صفحة بعيدة. والختم التلقائي (`mark_order_paid`) يُذكر صراحةً: إضافة
-            رقم الزبون إلى بطاقة ولاء بلا علمه معالجةٌ لم يُخبَر بها. */}
-        <p className="mt-2 text-[11px] leading-relaxed" style={{ color: "var(--m-muted)" }}>
-          {en
-            ? "Your name and mobile go to this restaurant to handle your order (and to the payment gateway if you pay online). If the restaurant runs a loyalty card, a paid order adds a stamp to your number. "
-            : "يصل اسمك وجوالك إلى هذا المطعم لتنفيذ طلبك (وإلى بوّابة الدفع إن دفعت إلكترونياً). وإن كان للمطعم بطاقة ولاء أُضيف ختمٌ لرقمك عند الدفع. "}
-          <Link to="/privacy" className="underline underline-offset-2">
-            {en ? "Privacy" : "الخصوصية"}
-          </Link>
-        </p>
       </div>
 
       {/* ── الفاتورة ──────────────────────────────────────────────────
-          سطر واحد «الإجمالي» كان يترك الزبون يسأل: هل الضريبة فوقه؟ فصار
-          الإفصاح جزءاً من الفاتورة لا هامشاً تحتها. */}
-      <div className="border px-3.5 py-3" style={card}>
-        <div className="flex items-center justify-between text-sm" style={{ color: "var(--m-muted)" }}>
-          <span>{en ? "Subtotal" : "الإجمالي الفرعي"}</span>
-          <span dir="ltr" className="tabular-nums">
-            {formatMoney(total, en)}
-          </span>
-        </div>
+          الإجمالي الفرعي **حين يختلف** عن الإجمالي وحده: كان يُعرض دائماً،
+          فيقرأ الزبون الرقم نفسه مرّتين ويسأل أين الفرق. والفرق الوحيد الممكن
+          ضريبةٌ تُضاف فوق أسعارٍ غير شاملة — فحين تُضاف يظهر السطران فوقها. */}
+      <div className="m-o-card m-o-bill px-3.5 py-3">
         {vatAdded > 0 && (
-          <div className="mt-1 flex items-center justify-between text-sm" style={{ color: "var(--m-muted)" }}>
-            <span>{en ? "VAT (15%)" : "ضريبة القيمة المضافة ١٥٪"}</span>
-            <span dir="ltr" className="tabular-nums">
-              {formatMoney(vatAdded, en)}
-            </span>
-          </div>
+          <>
+            <div className="flex items-center justify-between text-sm" style={{ color: "var(--m-muted)" }}>
+              <span>{en ? "Subtotal" : "الإجمالي الفرعي"}</span>
+              <span dir="ltr" className="m-o-num">
+                {formatMoney(total, en)}
+              </span>
+            </div>
+            <div className="mt-1 flex items-center justify-between text-sm" style={{ color: "var(--m-muted)" }}>
+              <span>{en ? "VAT (15%)" : "ضريبة القيمة المضافة ١٥٪"}</span>
+              <span dir="ltr" className="m-o-num">
+                {formatMoney(vatAdded, en)}
+              </span>
+            </div>
+          </>
         )}
         <div
-          className="mt-2 flex items-center justify-between border-t pt-2 text-base font-black"
-          style={{ borderColor: "var(--m-border)", color: "var(--m-text)", ...mFont }}
+          className={`m-o-total flex items-center justify-between text-base font-black ${vatAdded > 0 ? "mt-2 pt-2" : ""}`}
+          style={{ color: "var(--m-text)" }}
         >
-          <span>{en ? "Total" : "الإجمالي"}</span>
-          <span dir="ltr" className="tabular-nums" style={{ color: "var(--m-accent-ink, var(--m-accent))" }}>
-            {formatPrice(totals.total)} {en ? "SAR" : "ر.س"}
+          <span className="m-o-title">{en ? "Total" : "الإجمالي"}</span>
+          <span dir="ltr" className="m-o-num">
+            {formatPrice(totals.total)} {sar}
           </span>
         </div>
         {(!vatIncluded || isVatNumber(vatNumber)) && (
@@ -474,60 +466,39 @@ export function CartReview({
 
       {/* ── ما يمنع الإتمام، مشروحاً قبل الضغط لا بعده ─────────────── */}
       {!acceptingOrders && (
-        <p
-          className="border px-3.5 py-2.5 text-xs font-bold"
-          style={{ ...card, borderColor: "var(--m-accent)", color: "var(--m-accent-ink, var(--m-accent))" }}
-        >
+        <Notice>
           {en
             ? "The restaurant isn't accepting orders right now."
             : "المطعم لا يستقبل طلبات حالياً — جرّب لاحقاً."}
-        </p>
+        </Notice>
       )}
       {belowMin && (
-        <p
-          className="border px-3.5 py-2.5 text-xs font-bold"
-          style={{ ...card, borderColor: "var(--m-accent)", color: "var(--m-accent-ink, var(--m-accent))" }}
-        >
+        <Notice>
           {en
             ? `Minimum order is ${formatPrice(minOrder)} SAR — add ${formatPrice(minOrder - total)} more.`
             : `أقل مبلغ للطلب ${formatPrice(minOrder)} ر.س — أضِف ${formatPrice(minOrder - total)} ر.س.`}
-        </p>
+        </Notice>
       )}
       {missing && (
-        <p
-          className="border px-3.5 py-2.5 text-xs font-bold"
-          style={{ ...card, borderColor: "var(--m-accent)", color: "var(--m-accent-ink, var(--m-accent))" }}
-        >
+        <Notice>
           {en
             ? "An item is no longer available — remove it to continue."
             : "أحد الأصناف لم يعد متاحاً — احذفه لتُكمل."}
-        </p>
+        </Notice>
       )}
-      {error && (
-        <p
-          className="border px-3.5 py-2.5 text-xs font-bold"
-          style={{ ...card, borderColor: "var(--m-accent)", color: "var(--m-accent-ink, var(--m-accent))" }}
-        >
-          {error}
-        </p>
-      )}
+      {error && <Notice>{error}</Notice>}
 
       {/* ── الإتمام ───────────────────────────────────────────────────
           الزرّ يحمل **المبلغ**: من يضغط «الدفع الآن» وحدها يضغط على المجهول،
-          ومن يرى الرقم على الزرّ يضغط وهو مطمئن. */}
+          ومن يرى الرقم على الزرّ يضغط وهو مطمئن. وهو وحده بلون العلامة. */}
       {payOn && (
         <button
           onClick={pay}
           disabled={busy || blocked}
-          className="flex min-h-14 w-full items-center justify-between gap-3 px-5 text-sm font-black shadow-lg transition-transform enabled:active:scale-[.99] disabled:opacity-50"
-          style={{
-            background: "var(--m-accent)",
-            color: "var(--m-on-accent)",
-            borderRadius: "calc(var(--m-radius) * 1.2)",
-          }}
+          className="m-o-cta flex min-h-14 w-full items-center justify-between gap-3 px-5 text-sm font-black disabled:opacity-50"
         >
           <span className="flex items-center gap-2">
-            <Icon name="lock" size={15} />
+            <Icon name="lock" size={16} />
             {busy
               ? en
                 ? "Opening payment…"
@@ -536,8 +507,8 @@ export function CartReview({
                 ? "Pay & order for pickup"
                 : "ادفع واطلب للاستلام"}
           </span>
-          <span dir="ltr" className="tabular-nums">
-            {formatPrice(totals.total)} {en ? "SAR" : "ر.س"}
+          <span dir="ltr" className="m-o-num">
+            {formatPrice(totals.total)} {sar}
           </span>
         </button>
       )}
@@ -556,34 +527,35 @@ export function CartReview({
           rel="noopener noreferrer"
           aria-disabled={blocked}
           onClick={(e) => blocked && e.preventDefault()}
-          className="flex min-h-12 w-full items-center justify-center gap-2 py-3 text-sm font-black aria-disabled:opacity-50"
-          style={
-            payOn
-              ? {
-                  border: "1px solid var(--m-border)",
-                  color: "var(--m-text)",
-                  borderRadius: "calc(var(--m-radius) * 1.2)",
-                }
-              : {
-                  background: "var(--m-accent)",
-                  color: "var(--m-on-accent)",
-                  borderRadius: "calc(var(--m-radius) * 1.2)",
-                }
-          }
+          className={`${payOn ? "m-o-ghost min-h-12" : "m-o-cta min-h-14"} flex w-full items-center justify-center gap-2 py-3 text-sm font-black aria-disabled:opacity-50`}
         >
-          <Icon name="share" size={15} />
+          <Icon name="chat" size={16} />
           {en ? "Send order on WhatsApp" : "أرسل الطلب على واتساب"}
         </a>
       )}
 
-      {payOn && (
-        <p className="text-center text-[11px]" style={{ color: "var(--m-muted)" }}>
-          🔒{" "}
+      {/* ── هوامش الإتمام: سطران قصيران تحت الزرّ لا فقرةٌ وسط النموذج ──
+          إشعار الجمع عند نقطة الجمع — نظام حماية البيانات يطلبه هنا لا في
+          صفحة بعيدة، وهو يُقرأ قبل الضغط لأنه تحت الزرّ مباشرة. **المعنى نفسه
+          بلا نقص**: الاسم والجوال إلى المطعم لتنفيذ الطلب، وإلى بوّابة الدفع إن
+          دُفع إلكترونياً، والختم التلقائي (`mark_order_paid`) يُذكر صراحةً —
+          إضافة رقم الزبون إلى بطاقة ولاء بلا علمه معالجةٌ لم يُخبَر بها. */}
+      <div className="flex flex-col gap-1 px-1 text-center text-[11px] leading-relaxed" style={{ color: "var(--m-muted)" }}>
+        {payOn && (
+          <p className="flex items-center justify-center gap-1.5">
+            <Icon name="lock" size={12} />
+            {en ? "Card details go to the payment gateway only." : "بيانات بطاقتك في صفحة بوّابة الدفع وحدها."}
+          </p>
+        )}
+        <p>
           {en
-            ? "Card details are entered on the payment gateway — never on this page."
-            : "بيانات بطاقتك تُدخَل في صفحة بوّابة الدفع، ولا تمرّ بهذه الصفحة إطلاقاً."}
+            ? "Your name and mobile go to the restaurant for your order (and to the payment gateway if you pay online); if it runs a loyalty card, paying stamps your number. "
+            : "اسمك وجوالك للمطعم لتنفيذ طلبك (ولبوّابة الدفع إن دفعت إلكترونياً)، وإن كان للمطعم بطاقة ولاء خُتم لرقمك عند الدفع. "}
+          <Link to="/privacy" className="underline underline-offset-2" style={{ color: "var(--m-text)" }}>
+            {en ? "Privacy" : "الخصوصية"}
+          </Link>
         </p>
-      )}
+      </div>
     </div>
   );
 }

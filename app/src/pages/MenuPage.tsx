@@ -986,6 +986,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
               status={orderResult}
               en={en}
               vatNumber={restaurant.vat_number}
+              reviewUrl={primaryLinks.find((l) => l.icon === "star")?.url ?? null}
               onDismiss={() => setOrderResult(null)}
               onConfirmed={cart.clear}
             />

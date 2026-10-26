@@ -2,17 +2,20 @@
  * نافذة تفاصيل الطبق — **نقطة الإضافة الوحيدة التي تسمح باختيار الإضافات**.
  * زرّ «＋» على البطاقة يضيف الطبق أساسياً بلا إضافات، ومن أراد «حار» أو
  * «جبن زيادة» يفتح الطبق من هنا.
+ *
+ * والشكل بلغة الطابع (٢٠٢٦/١٠/٢٦): الخيارات والكمية وزرّ الإضافة يلبسون
+ * خطاطيف `m-o-*` نفسها التي تلبسها السلّة (`menu-skins.css`) — فالنافذة والسلّة
+ * من نسيجٍ واحد. ولون العلامة على زرّ الإضافة والخيار المختار وحدهما.
  */
 import { useEffect, useRef, useState } from "react";
 import { SafeImage } from "@/components/ui";
 import { DishArtwork } from "@/components/menu/DishArtwork";
 import { unitPrice, type Cart } from "@/components/menu/Cart";
-import { mFont } from "@/components/menu/chrome";
 import { parseOptions } from "@/lib/options";
 import { displayAllergens } from "@/lib/allergens";
 import { dishDesc, dishName } from "@/lib/menuText";
 import { formatPrice } from "@/lib/utils";
-import { Icon } from "@/lib/icons";
+import { Icon, type IconName } from "@/lib/icons";
 import type { Dish } from "@/lib/types";
 
 /**
@@ -58,15 +61,22 @@ export function DishModal({
   }, [onClose]);
 
   const options = parseOptions(dish.options);
+  /**
+   * نفد اليوم: التاجر أطفأ الطبق (`available === false`). يبقى ظاهراً ليعرف
+   * الزبون أنه موجود عادةً، لكن لا يُضاف — والزرّ يقول السبب بدل أن يختفي.
+   * `null` في الصفوف القديمة متاحٌ (كما يقرؤها الاستعلام العامّ).
+   */
+  const soldOut = dish.available === false;
   // طبق بلا سعر ترفضه دالة الحافة («بلا سعر»)، فلا نعرض له زرّ إضافة أصلاً.
-  const orderable = !!cart?.enabled && Number(dish.price ?? 0) > 0;
+  const sellable = !!cart?.enabled && Number(dish.price ?? 0) > 0;
+  const orderable = sellable && !soldOut;
   const allergens = displayAllergens(dish.allergens, en);
   const nutrition = [
-    dish.calories != null && { label: en ? "Calories" : "سعرات", value: dish.calories, icon: "🔥" },
-    dish.sodium_mg != null && { label: en ? "Sodium" : "صوديوم", value: `${dish.sodium_mg} ${en ? "mg" : "ملغم"}`, icon: "🧂" },
-    dish.caffeine_mg != null && { label: en ? "Caffeine" : "كافيين", value: `${dish.caffeine_mg} ${en ? "mg" : "ملغم"}`, icon: "☕" },
-    dish.burn_minutes != null && { label: en ? "Burn (walk)" : "دقائق حرق", value: `${dish.burn_minutes} ${en ? "min" : "د"}`, icon: "🚶" },
-  ].filter(Boolean) as { label: string; value: string | number; icon: string }[];
+    dish.calories != null && { label: en ? "Calories" : "سعرات", value: dish.calories, icon: "flame" },
+    dish.sodium_mg != null && { label: en ? "Sodium" : "صوديوم", value: `${dish.sodium_mg} ${en ? "mg" : "ملغم"}`, icon: "salt" },
+    dish.caffeine_mg != null && { label: en ? "Caffeine" : "كافيين", value: `${dish.caffeine_mg} ${en ? "mg" : "ملغم"}`, icon: "cup" },
+    dish.burn_minutes != null && { label: en ? "Burn (walk)" : "دقائق حرق", value: `${dish.burn_minutes} ${en ? "min" : "د"}`, icon: "clock" },
+  ].filter(Boolean) as { label: string; value: string | number; icon: IconName }[];
 
   return (
     <div
@@ -82,8 +92,10 @@ export function DishModal({
         onClick={(e) => e.stopPropagation()}
         className="m-sheet anim-fade-up relative outline-none max-h-[92dvh] w-full max-w-lg overflow-y-auto border"
         style={{
-          background: "var(--m-bg-2)",
-          borderColor: "var(--m-border)",
+          // ‏`backgroundColor` لا `background`: الاختصار المضمَّن يُعيد
+          // `background-image` إلى لا شيء فيغلب خامة الطابع (كرافت المحمصة).
+          backgroundColor: "var(--m-bg-2)",
+          borderColor: "var(--m-line, var(--m-border))",
           borderRadius: "calc(var(--m-radius) * 1.4)",
         }}
       >
@@ -91,6 +103,7 @@ export function DishModal({
           src={dish.image}
           alt=""
           className="h-56 w-full object-cover"
+          style={soldOut ? { filter: "grayscale(0.85)" } : undefined}
           fallback={
             <DishArtwork name={dish.name} emoji={dish.emoji} glyphSize={48} className="h-44 w-full" />
           }
@@ -102,26 +115,33 @@ export function DishModal({
         <button
           onClick={onClose}
           aria-label={en ? "Close" : "إغلاق"}
-          className="absolute end-3 top-3 flex h-11 w-11 items-center justify-center rounded-full text-sm font-black shadow-md"
+          className="absolute end-3 top-3 flex h-11 w-11 items-center justify-center rounded-full shadow-md"
           style={{ background: "var(--m-bg-2)", color: "var(--m-text)" }}
         >
-          ✕
+          <Icon name="close" size={16} />
         </button>
         <div className="p-5">
           <div className="flex items-start justify-between gap-3">
-            <h3 id="dish-modal-title" className="text-xl font-black" style={{ color: "var(--m-text)", ...mFont }}>
+            <h3 id="dish-modal-title" className="m-o-title text-xl font-black" style={{ color: "var(--m-text)" }}>
               {dishName(dish, en)}
               {popular && (
                 <span
-                  className="ms-2 inline-flex translate-y-[-2px] items-center gap-1 rounded-full px-2 py-0.5 align-middle text-[10px] font-black"
-                  style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}
+                  className="m-o-chip ms-2 inline-flex translate-y-[-2px] items-center gap-1 px-2 py-0.5 align-middle text-[10px] font-black"
+                  style={{ color: "var(--m-text)", fontFamily: "var(--m-font)" }}
                 >
-                  🔥 {en ? "Popular" : "الأكثر طلباً"}
+                  <span style={{ color: "var(--m-accent-ink, var(--m-accent))" }}>
+                    <Icon name="flame" size={12} />
+                  </span>
+                  {en ? "Popular" : "الأكثر طلباً"}
                 </span>
               )}
             </h3>
             {(dish.price ?? 0) > 0 && (
-              <span dir="ltr" className="shrink-0 text-lg font-black" style={{ color: "var(--m-accent-ink, var(--m-accent))" }}>
+              <span
+                dir="ltr"
+                className="m-o-num shrink-0 text-lg font-black"
+                style={{ color: soldOut ? "var(--m-muted)" : "var(--m-text)", textDecoration: soldOut ? "line-through" : undefined }}
+              >
                 {formatPrice(dish.price ?? 0)} {en ? "SAR" : "ر.س"}
               </span>
             )}
@@ -137,10 +157,15 @@ export function DishModal({
               {nutrition.map((n) => (
                 <div
                   key={n.label}
-                  className="flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-bold"
-                  style={{ borderColor: "var(--m-border)", background: "var(--m-surface)", color: "var(--m-text)" }}
+                  className="m-o-card m-o-fact flex items-center gap-2 px-3 py-2 text-xs font-bold"
+                  style={{ color: "var(--m-text)" }}
                 >
-                  <span>{n.icon}</span> {n.label}: {n.value}
+                  <span className="shrink-0" style={{ color: "var(--m-muted)" }}>
+                    <Icon name={n.icon} size={15} />
+                  </span>
+                  <span className="min-w-0">
+                    {n.label}: <span className="m-o-num">{n.value}</span>
+                  </span>
                 </div>
               ))}
             </div>
@@ -149,26 +174,22 @@ export function DishModal({
           {/* تنبيه الصوديوم المرتفع — عمود محسوب في قاعدة البيانات
               (sodium_mg > 600) لم يكن يُعرض للزبون إطلاقاً. */}
           {dish.is_high_sodium && (
-            <p
-              className="mt-3 rounded-xl border px-3 py-2 text-xs font-bold"
-              style={{ borderColor: "var(--m-border)", color: "var(--m-text)", background: "var(--m-surface)" }}
-            >
-              🧂 {en ? "High in sodium" : "غني بالصوديوم"}
+            <p className="m-o-card m-o-fact mt-2 flex items-center gap-2 px-3 py-2 text-xs font-bold" style={{ color: "var(--m-text)" }}>
+              <span className="shrink-0" style={{ color: "var(--m-accent-ink, var(--m-accent))" }}>
+                <Icon name="warn" size={15} />
+              </span>
+              {en ? "High in sodium" : "غني بالصوديوم"}
             </p>
           )}
 
           {allergens.length > 0 && (
             <div className="mt-3">
-              <p className="mb-1.5 text-xs font-bold" style={{ color: "var(--m-muted)" }}>
-                ⚠️ {en ? "Allergens" : "مسببات الحساسية"}
+              <p className="mb-1.5 flex items-center gap-1.5 text-xs font-bold" style={{ color: "var(--m-muted)" }}>
+                <Icon name="warn" size={13} /> {en ? "Allergens" : "مسببات الحساسية"}
               </p>
               <div className="flex flex-wrap gap-1.5">
                 {allergens.map((a) => (
-                  <span
-                    key={a.key}
-                    className="rounded-full border px-2.5 py-0.5 text-xs"
-                    style={{ borderColor: "var(--m-border)", color: "var(--m-text)" }}
-                  >
+                  <span key={a.key} className="m-o-chip px-2.5 py-0.5 text-xs" style={{ color: "var(--m-text)" }}>
                     {a.emoji} {a.label}
                   </span>
                 ))}
@@ -188,36 +209,33 @@ export function DishModal({
                   const on = picked.includes(id);
                   const row = (
                     <>
-                      <span>
+                      <span className="flex min-w-0 items-center gap-2.5">
+                        {/* المربّع مرسومٌ لا رمز نصّي («☐ ☑»): يرث حبر الطابع، والمختار
+                            يمتلئ بلون العلامة وعليه علامة بلونها المقروء. */}
                         {orderable && (
-                          <span aria-hidden="true" style={{ color: on ? "var(--m-accent)" : "var(--m-muted)" }}>
-                            {on ? "☑ " : "☐ "}
+                          <span aria-hidden="true" className="m-o-tick">
+                            {on && <Icon name="check" size={13} />}
                           </span>
                         )}
-                        {o.name}
+                        <span className="min-w-0">{o.name}</span>
                       </span>
                       <span className="flex shrink-0 items-center gap-2">
                         {/* سعرات الإضافة بجانبها — كما تطلب الهيئة للإضافات الجانبية. */}
                         {o.kcal != null && o.kcal > 0 && (
                           <span className="text-xs" style={{ color: "var(--m-muted)" }}>
-                            {o.kcal} {en ? "kcal" : "سعرة"}
+                            <span className="m-o-num">{o.kcal}</span> {en ? "kcal" : "سعرة"}
                           </span>
                         )}
                         {/* «+0 ر.س» ضجيج: إضافة بلا سعر (حار، بلا بصل) اسمها يكفي. */}
                         {o.price != null && o.price > 0 && (
-                          <span style={{ color: "var(--m-accent-ink, var(--m-accent))" }}>
+                          <span dir="ltr" className="m-o-num font-bold" style={{ color: "var(--m-text)" }}>
                             +{formatPrice(o.price)} {en ? "SAR" : "ر.س"}
                           </span>
                         )}
                       </span>
                     </>
                   );
-                  const cls =
-                    "flex min-h-11 items-center justify-between rounded-xl border px-3 py-2 text-start text-sm";
-                  const style = {
-                    borderColor: on ? "var(--m-accent)" : "var(--m-border)",
-                    color: "var(--m-text)",
-                  };
+                  const cls = "m-o-opt flex min-h-11 items-center justify-between gap-3 px-3 py-2 text-start text-sm";
                   return orderable ? (
                     <button
                       key={`${o.name}-${i}`}
@@ -226,12 +244,12 @@ export function DishModal({
                       }
                       aria-pressed={on}
                       className={cls}
-                      style={style}
+                      style={{ color: "var(--m-text)" }}
                     >
                       {row}
                     </button>
                   ) : (
-                    <div key={`${o.name}-${i}`} className={cls} style={style}>
+                    <div key={`${o.name}-${i}`} className={cls} style={{ color: "var(--m-text)" }}>
                       {row}
                     </div>
                   );
@@ -253,29 +271,27 @@ export function DishModal({
           )}
 
           {orderable ? (
-            <div className="mt-5 flex items-center gap-2">
-              <div
-                className="flex shrink-0 items-center rounded-xl border"
-                style={{ borderColor: "var(--m-border)" }}
-              >
+            <div className="m-o-dock mt-5 flex items-center gap-2">
+              <div className="m-o-step flex shrink-0 items-center">
                 <button
                   onClick={() => setQty((q) => Math.max(1, q - 1))}
                   aria-label={en ? "Decrease" : "إنقاص"}
-                  className="h-11 w-11 text-lg font-black"
-                  style={{ color: "var(--m-muted)" }}
+                  disabled={qty === 1}
+                  className="flex h-11 w-11 items-center justify-center disabled:opacity-40"
+                  style={{ color: "var(--m-text)" }}
                 >
-                  −
+                  <Icon name="minus" size={16} />
                 </button>
-                <span className="w-6 text-center text-sm font-black" style={{ color: "var(--m-text)" }}>
+                <span className="m-o-num w-6 text-center text-sm font-black" style={{ color: "var(--m-text)" }}>
                   {qty}
                 </span>
                 <button
                   onClick={() => setQty((q) => Math.min(99, q + 1))}
                   aria-label={en ? "Increase" : "زيادة"}
-                  className="h-11 w-11 text-lg font-black"
-                  style={{ color: "var(--m-accent-ink, var(--m-accent))" }}
+                  className="flex h-11 w-11 items-center justify-center"
+                  style={{ color: "var(--m-text)" }}
                 >
-                  ＋
+                  <Icon name="plus" size={16} />
                 </button>
               </div>
               <button
@@ -283,20 +299,29 @@ export function DishModal({
                   cart!.add(dish.id, picked, qty);
                   onClose();
                 }}
-                className="flex min-h-11 flex-1 items-center justify-between gap-2 rounded-xl px-4 py-2.5 text-sm font-black"
-                style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}
+                className="m-o-cta flex min-h-12 flex-1 items-center justify-between gap-2 px-4 py-2.5 text-sm font-black"
               >
                 <span>{en ? "Add to order" : "أضِف للطلب"}</span>
-                <span dir="ltr">
+                <span dir="ltr" className="m-o-num">
                   {formatPrice(unitPrice(dish, picked) * qty)} {en ? "SAR" : "ر.س"}
                 </span>
               </button>
             </div>
+          ) : soldOut ? (
+            // نفد: زرٌّ معطّل يقول السبب — لا زرّ يختفي فيظنّ الزبون أن الطلب
+            // متعطّل، ولا زرّ يضيف ثم ترفضه الدالّة عند الدفع.
+            <button
+              disabled
+              aria-disabled="true"
+              className="m-o-soldout mt-5 flex min-h-12 w-full items-center justify-center gap-2 py-2.5 text-sm font-black"
+            >
+              <Icon name="clock" size={16} />
+              {en ? "Sold out today" : "نفد اليوم"}
+            </button>
           ) : (
             <button
               onClick={onClose}
-              className="mt-5 min-h-11 w-full rounded-xl py-2.5 text-sm font-black"
-              style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}
+              className="m-o-ghost mt-5 min-h-12 w-full py-2.5 text-sm font-black"
             >
               {en ? "Close" : "إغلاق"}
             </button>

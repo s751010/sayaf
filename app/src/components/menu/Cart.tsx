@@ -128,7 +128,7 @@ export function AddToCartButton({
       className={`m-add absolute z-10 flex h-11 w-11 items-center justify-center rounded-full text-lg font-black shadow-md transition-transform hover:scale-110 active:scale-95 ${className}`}
       style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}
     >
-      ＋
+      <Icon name="plus" size={20} />
     </button>
   );
 }
@@ -205,7 +205,7 @@ export function CartBar({
             // عنوان القسم خلف الشريط يُقرأ فوق نصّه.
             background: "linear-gradient(var(--m-surface), var(--m-surface)), var(--m-bg)",
             color: "var(--m-muted)",
-            border: "1px solid var(--m-border)",
+            border: "1px solid var(--m-line, var(--m-border))",
             borderRadius: "calc(var(--m-radius) * 1.2)",
           }}
         >
@@ -224,7 +224,9 @@ export function CartBar({
         style={{
           background: empty ? "linear-gradient(var(--m-surface), var(--m-surface)), var(--m-bg)" : "var(--m-accent)",
           color: empty ? "var(--m-text)" : "var(--m-on-accent)",
-          border: empty ? "1px solid var(--m-accent)" : "1px solid transparent",
+          // فارغاً دعوةٌ لا زرّ إتمام: حدٌّ من حبر الطابع لا لون العلامة —
+          // العلامة لما يُضغط ليُتمّ (الشريط الممتلئ، وزرّ الدفع في السلّة).
+          border: empty ? "1px solid var(--m-line-strong, var(--m-border))" : "1px solid transparent",
           borderRadius: "calc(var(--m-radius) * 1.2)",
         }}
       >
@@ -250,7 +252,7 @@ export function CartBar({
               </span>
               {en ? "View order" : "مراجعة الطلب"}
             </span>
-            <span dir="ltr">
+            <span dir="ltr" className="m-o-num">
               {formatPrice(total)} {en ? "SAR" : "ر.س"}
             </span>
           </>
@@ -287,7 +289,7 @@ export function PickupBanner({
         className="m-pickup flex flex-wrap items-center gap-x-4 gap-y-1.5 px-4 py-3 text-[13px] font-bold"
         style={{
           background: "var(--m-surface)",
-          boxShadow: "inset 0 0 0 1px var(--m-border)",
+          boxShadow: "inset 0 0 0 1px var(--m-line, var(--m-border))",
           borderRadius: "var(--m-radius)",
           color: "var(--m-text)",
         }}
@@ -362,15 +364,16 @@ export function ActiveOrderStrip({ en }: { en: boolean }) {
       style={{
         background: ready ? "var(--m-accent)" : "var(--m-surface)",
         color: ready ? "var(--m-on-accent)" : "var(--m-text)",
-        border: `1px solid var(--m-accent)`,
+        // جاهزٌ ⇒ بلون العلامة (هو «المختار» الآن)، وقبلها خيطٌ محايد.
+        border: ready ? "1px solid transparent" : "1px solid var(--m-line, var(--m-border))",
         borderRadius: "var(--m-radius)",
       }}
     >
       <span
-        className="flex h-10 w-10 shrink-0 flex-col items-center justify-center rounded-xl text-lg font-black tabular-nums"
+        className="m-o-num flex h-10 w-10 shrink-0 flex-col items-center justify-center rounded-xl text-lg font-black"
         style={{
-          background: ready ? "var(--m-on-accent)" : "var(--m-accent)",
-          color: ready ? "var(--m-accent)" : "var(--m-on-accent)",
+          background: ready ? "var(--m-on-accent)" : "color-mix(in srgb, var(--m-text) 7%, transparent)",
+          color: ready ? "var(--m-accent)" : "var(--m-text)",
         }}
       >
         {order.view.code}
@@ -389,7 +392,10 @@ export function ActiveOrderStrip({ en }: { en: boolean }) {
           {en ? "Tap to track" : "اضغط للمتابعة"}
         </span>
       </span>
-      <span className="shrink-0 text-lg">‹</span>
+      {/* ‏`chevron` «رجوع» بطبعه (ينعكس مع العربية)؛ مقلوباً هو «إلى الأمام». */}
+      <span className="shrink-0" aria-hidden="true" style={{ rotate: "180deg" }}>
+        <Icon name="chevron" size={18} />
+      </span>
     </a>
   );
 }

@@ -117,13 +117,17 @@ export function MenuSheet({
         onClick={(e) => e.stopPropagation()}
         className="m-sheet anim-fade-up max-h-[88dvh] w-full max-w-lg overflow-y-auto border p-5"
         style={{
-          background: "var(--m-bg-2)",
-          borderColor: "var(--m-border)",
+          // ‏`backgroundColor` لا `background`: الاختصار المضمَّن يُعيد
+          // `background-image` إلى لا شيء فيغلب خامة الطابع (كرافت المحمصة).
+          // والحدّ من حبر الطابع لا من لون العلامة (`--m-line`، menu-skins.css).
+          backgroundColor: "var(--m-bg-2)",
+          borderColor: "var(--m-line, var(--m-border))",
           borderRadius: "calc(var(--m-radius) * 1.4)",
         }}
       >
         <div className="mb-4 flex items-center justify-between gap-4">
-          <h3 className="text-lg font-black" style={{ color: "var(--m-text)", ...mFont }}>
+          {/* بخطّ عناوين الطابع — عنوان النافذة صوت المنيو لا خطّ القراءة. */}
+          <h3 className="m-o-title text-lg font-black" style={{ color: "var(--m-text)" }}>
             {title}
           </h3>
           <button
