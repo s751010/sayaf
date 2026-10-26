@@ -162,6 +162,39 @@ function Calories({ dish, en, className, style }: { dish: Dish; en: boolean; cla
 }
 
 /**
+ * مقياس الكافيين — لـ«محمصة» وحدها، **وحين يكتب التاجر `caffeine_mg` فقط**.
+ *
+ * الحقل حقيقيّ (تكتبه الحاسبة، §26) وكان يُرى في نافذة الطبق وحدها. وصاحب
+ * الكافيه المختصّ يبيع الدقّة، فالرقم على السطر نفسه. والشُّرَط **ترسم الرقم لا
+ * تحكم عليه**: شرطةٌ لكل ٦٠ ملغم (إسبريسو ≈ ٦٤ ⇒ اثنتان) حتى خمس، والرقم بجانبها
+ * دائماً — فلا «قويّ» ولا «خفيف» يخترعه المنيو.
+ */
+const CAFFEINE_STEP = 60;
+function CaffeineGauge({ dish, en }: { dish: Dish; en: boolean }) {
+  const mg = dish.caffeine_mg;
+  if (mg == null) return null;
+  const bars = mg <= 0 ? 0 : Math.min(5, Math.ceil(mg / CAFFEINE_STEP));
+  const unit = en ? "mg" : "ملغم";
+  return (
+    <span
+      role="img"
+      aria-label={`${en ? "Caffeine" : "كافيين"} ${mg} ${unit}`}
+      className="m-caf inline-flex shrink-0 items-center gap-1.5 text-[11px] font-bold"
+      style={{ color: "var(--m-muted)" }}
+    >
+      <span aria-hidden="true" className="flex items-end gap-[2px]">
+        {[0, 1, 2, 3, 4].map((i) => (
+          <span key={i} className="m-caf-bar" data-on={i < bars ? "" : undefined} style={{ height: `${5 + i * 2}px` }} />
+        ))}
+      </span>
+      <span aria-hidden="true" className="m-mono" dir="ltr">
+        {mg} {unit}
+      </span>
+    </span>
+  );
+}
+
+/**
  * سطر التفاصيل الثانوية — **بارتفاع ثابت لا يتبع محتواه**.
  *
  * كان مع السعر في صفٍّ واحد، فبطاقة تحمل حساسية وسعرات معاً تفيض عن عرض
@@ -342,6 +375,7 @@ export function DishCard({
     borderRadius: "var(--m-radius)",
   };
   const radius = imageRadius(imageShape);
+  const caffeine = design.skin === "roastery" ? <CaffeineGauge dish={dish} en={en} /> : null;
 
   /* ── قائمة رأسية أنيقة ─────────────────────────────────────────────── */
   /*
@@ -399,9 +433,10 @@ export function DishCard({
               {desc(dish, en)}
             </span>
           )}
-          <span className={cn("mt-2 flex items-center gap-2", addSlot && !hasImage && "pe-12")}>
+          <span className={cn("mt-2 flex flex-wrap items-center gap-x-2 gap-y-1", addSlot && !hasImage && "pe-12")}>
             <Allergens dish={dish} en={en} />
             <Calories dish={dish} en={en} />
+            {caffeine}
           </span>
         </span>
         {/* الغلاف `m-thumb` لما لا تحمله `<img>` (إطار الصورة المدسوسة في لوحة الحروف). */}
@@ -475,6 +510,7 @@ export function DishCard({
           )}
           <div className="mt-auto flex items-center justify-between gap-3 pt-1">
             <span className="min-w-0 flex-1">{meta}</span>
+            {caffeine}
             <Price dish={dish} big style={priceStyle} en={en} />
           </div>
         </div>
@@ -531,7 +567,14 @@ export function DishCard({
             وحده على سطره أسهل مسحاً بالعين نزولاً في عمود واحد. */}
         <div className="mt-auto flex flex-col items-start gap-1.5 pt-2">
           {meta}
-          <Price dish={dish} style={priceStyle} en={en} />
+          {caffeine && dish.caffeine_mg != null ? (
+            <span className="flex w-full flex-wrap items-center justify-between gap-x-2 gap-y-1">
+              <Price dish={dish} style={priceStyle} en={en} />
+              {caffeine}
+            </span>
+          ) : (
+            <Price dish={dish} style={priceStyle} en={en} />
+          )}
         </div>
       </div>
     </button>

@@ -29,3 +29,5 @@
 | رموز الحساسية لا تُقصّ بصمت (+N) · ترويسة الصفحات العامّة على 320–399 | `DishCard.tsx` (`MetaRow`) · `site.tsx` | — | #28 |
 | عامل الخدمة لا يخزّن ردّاً فاشلاً ولا HTML مكان JS · مخابئ بإصدار | `public/sw.js` | `sw.test.ts` | #28 |
 | الخصوصية: نقل البيانات بلا ادّعاء ضمانات · وعد الحذف مطابق لإجراء مكتوب · إفصاح التحليلات · GA4 بلا `page_view` تلقائي · `deploy.yml` حُذف · `plausible.io` في CSP | `Legal.tsx` · `runbooks/account-deletion.md` · `track.ts` · `_headers` | — | #29 |
+| رفع الطوابع التسعة: ضغطٌ وأسعار مصفوفة ونافذة بحركة كل طابع · عيوب الجودة السبعة · «بيت طين نجدي» | `DishCard.tsx` · `menu-skins.css` · `SkinHeads.tsx` (`MudHead`) | `invariants.test.ts` (بصمة مجمّدة) | #30 |
+| طابع عاشر «محمصة» · المنتقي يرتّب حسب نوع النشاط بلا تطبيق · «نجدي» اسماً · «10 طوابع» في كل موضع | `themeSuggest.ts` · `ThemeSuggest.tsx` · `SkinHeads.tsx` (`BagHead`) | `theme-suggest.test.ts` · `invariants.test.ts` (`ADDED`) · e2e المنتقي | #31 |

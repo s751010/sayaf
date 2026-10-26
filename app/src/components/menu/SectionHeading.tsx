@@ -254,6 +254,44 @@ export function SectionHeading({
     );
   }
 
+  /* ── محمصة: بطاقة منشأ — رقم الدفعة، والاسم، ومسطرةٌ تمتلئ بعدد الأصناف ── */
+  if (style === "origin") {
+    // رقم الدفعة **ترتيب القسم** لا بيانٌ مختلَق، بأرقامٍ لاتينية كأرقام المجلّة.
+    const batch = `#${String(index + 1).padStart(2, "0")}`;
+    // المسطرة اثنتا عشرة شرطة، يُملأ منها بعدد أصناف القسم — مقياسٌ لا زينة.
+    const fill = Math.min(Math.max(count, 0), 12) / 12;
+    return (
+      <div className="m-h m-origin mb-5">
+        <div className="flex items-baseline gap-3">
+          <span aria-hidden="true" className="m-batch m-mono shrink-0 text-[13px] font-bold" style={{ color: ink }}>
+            {batch}
+          </span>
+          <h2 className="min-w-0 text-[1.35rem] font-extrabold leading-tight" style={{ ...dFont, ...text }}>
+            {name}
+          </h2>
+          {items && (
+            <span className="ms-auto shrink-0 text-[11px]" style={muted}>
+              {items}
+            </span>
+          )}
+        </div>
+        <span
+          aria-hidden="true"
+          className="m-ruler mt-2.5 block"
+          style={{ "--m-fill": fill } as CSSProperties}
+        />
+        {photo && (
+          <div className="m-origin-photo relative mt-4">
+            <CoverImg src={photo.src} onError={onError} className="aspect-[21/9]" />
+            <span aria-hidden="true" className="m-batch-tag m-mono absolute end-2 top-2 px-1.5 py-0.5 text-[11px] font-bold">
+              {batch}
+            </span>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   /* ── روشان: نافذةٌ قوسية (صورةٌ أو مشربية برمز القسم)، واللوحة المشطوفة على عتبتها ── */
   if (style === "cartouche") {
     return (

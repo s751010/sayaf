@@ -6,7 +6,7 @@
  * بلون العلامة، إلا الداكن المؤطَّر فغلافه داكنٌ مزخرف) — فما يختاره هنا هو ما
  * يراه زبونه. والطوابع ذات البنية الخاصّة (`design.skin`) لكلٍّ منها رسمها:
  * فاتورةٌ على طاولة، ولوحة حروفٍ على جدار، وملصقات، ولافتة على طوب، وصفحة
- * مجلّة، وأقواس.
+ * مجلّة، وأقواس، وبيت طين، وكيس بنّ.
  *
  * ⚠️ أشكالٌ لا نصوص: خطوط الطوابع لا تُحمَّل في اللوحة ولا في الهبوط، وحرفٌ
  * بخطٍّ احتياطي يكذب على التاجر في أوّل ما يراه من الطابع.
@@ -248,6 +248,44 @@ function NajdiMini({ v }: { v: Record<string, string> }) {
   );
 }
 
+/** محمصة: كيس كرافت بلحامٍ مخدّد وصمّام، ولاصقٌ أبيض بمنحنى تحميص، وسطورٌ تحته. */
+function RoasteryMini({ v }: { v: Record<string, string> }) {
+  return (
+    <div className="relative h-28 overflow-hidden" style={{ background: v["--m-bg"] }} aria-hidden="true">
+      <span
+        className="absolute inset-x-0 top-0 h-2"
+        style={{ background: `repeating-linear-gradient(90deg, ${v["--m-bg-2"]} 0 2px, ${v["--m-border"]} 2px 3px)` }}
+      />
+      <span
+        className="absolute end-2.5 top-3.5 h-4 w-4 rounded-full"
+        style={{ background: v["--m-bg-2"], boxShadow: `inset 0 0 0 1.5px ${v["--m-text"]}, inset 0 0 0 4px ${v["--m-bg-2"]}, inset 0 0 0 5px ${v["--m-muted"]}` }}
+      />
+      <span
+        className="absolute left-1/2 top-4 flex h-11 w-24 -translate-x-1/2 flex-col items-center justify-center gap-1"
+        style={{ background: v["--m-surface"], boxShadow: `0 0 0 1px ${v["--m-text"]}`, borderRadius: "3px" }}
+      >
+        <span className="block h-1.5 w-12 rounded-full" style={{ background: v["--m-text"], opacity: 0.85 }} />
+        <svg viewBox="0 0 60 12" className="h-3 w-16" fill="none">
+          <path d="M1 11 C8 11 10 4 16 5 S26 8 35 6 S50 2 59 1" stroke={v["--m-accent"]} strokeWidth="1.5" />
+        </svg>
+      </span>
+      <div className="absolute inset-x-2.5 bottom-2 flex flex-col gap-1.5">
+        {[0, 1].map((i) => (
+          <span key={i} className="flex items-center gap-1 border-b pb-1" style={{ borderColor: v["--m-border"] }}>
+            <span className="h-1.5 w-10 rounded-sm" style={{ background: v["--m-text"], opacity: 0.8 }} />
+            <span className="flex flex-1 items-end gap-[1.5px]">
+              {[2, 3, 4].map((h, k) => (
+                <span key={k} className="w-[2px]" style={{ height: `${h}px`, background: k < 2 ? v["--m-accent"] : v["--m-border"] }} />
+              ))}
+            </span>
+            <span className="h-1.5 w-4 rounded-sm" style={{ background: v["--m-accent"] }} />
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function StoreMini({ theme }: { theme: MenuTheme }) {
   const v = theme.vars;
   const { pattern, header, layout } = theme.design;
@@ -342,6 +380,8 @@ export function ThemePreview({ theme }: { theme: MenuTheme }) {
       return <RoshanMini theme={theme} />;
     case "najdi":
       return <NajdiMini v={v} />;
+    case "roastery":
+      return <RoasteryMini v={v} />;
     default:
       return <StoreMini theme={theme} />;
   }

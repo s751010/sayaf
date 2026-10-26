@@ -17,11 +17,12 @@ import type { PatternId } from "./patterns";
  * ترويساتٌ بنيتها مختلفة كلّياً — انظر `SkinHeads.tsx`:
  * `paper` رأس فاتورة · `letterboard` لوحة حروف معلّقة · `poster` ملصقٌ
  * بشريط أقسامٍ يجري · `sign` لافتة نيون على جدار طوب · `masthead` ترويسة
- * مجلّة · `arcade` أقواس روشان · `mud` بيت طينٍ نجديّ بشُرفاته وبابه.
+ * مجلّة · `arcade` أقواس روشان · `mud` بيت طينٍ نجديّ بشُرفاته وبابه · `bag`
+ * وجه كيس قهوةٍ مختصّة.
  */
 export type HeaderShape =
   | "arch" | "band" | "frame" | "soft"
-  | "paper" | "letterboard" | "poster" | "sign" | "masthead" | "arcade" | "mud";
+  | "paper" | "letterboard" | "poster" | "sign" | "masthead" | "arcade" | "mud" | "bag";
 /**
  * تخطيط الأطباق — هذا ما يجعل الفرق بين الطوابع يُرى لا يُقرأ.
  * `deck` بطاقاتٌ تُسحب أفقياً لكل قسم، تكبر حين تتوسّط الشاشة.
@@ -30,7 +31,7 @@ export type DishLayout = "grid" | "list" | "showcase" | "deck";
 export type HeadingStyle =
   | "ornament" | "rule" | "plain"
   | "stars" | "letters" | "poster" | "neon" | "numeral" | "cartouche"
-  | "plaque" | "sadu" | "bold";
+  | "plaque" | "sadu" | "bold" | "origin";
 /** شكل صورة الطبق — دائري للكافيهات، مربّع حادّ للمينيمال، وقوسُ نافذة للروشان. */
 export type ImageShape = "rounded" | "square" | "circle" | "arch";
 /**
@@ -40,7 +41,8 @@ export type ImageShape = "rounded" | "square" | "circle" | "arch";
  * اشتعال، ملصقاتٌ تُلصق، انفتاح رواشين، بابٌ نجديّ ينفتح). `store` واجهة
  * المتجر بلا شيء منها.
  */
-export type MenuSkin = "store" | "receipt" | "letterboard" | "sticker" | "neon" | "editorial" | "roshan" | "najdi";
+export type MenuSkin =
+  | "store" | "receipt" | "letterboard" | "sticker" | "neon" | "editorial" | "roshan" | "najdi" | "roastery";
 /** كيف يُقدَّم السعر: نصّاً، أو شارة ملوّنة، أو خطّاً منقّطاً يقود إليه. */
 export type PriceStyle = "plain" | "badge" | "leader";
 /** الفاصل بين صفوف القائمة الرأسية. */
@@ -94,8 +96,15 @@ export interface MenuDesign {
 export interface MenuTheme {
   id: string;
   name: string; // التسمية العربية في المُنتقي
-  /** سطر يشرح الطابع للتاجر وهو يختار. */
+  /** سطر يصف **ما يُرى** للتاجر وهو يختار — بلا «للـ…»: الجمهور في `suits`. */
   tagline: string;
+  /**
+   * أنواع النشاط التي يناسبها (≤ ٢) — **بمفردات `aliasType` حرفياً**
+   * (`lib/starterMenus.ts`)، لا تصنيفٌ ثانٍ يتباعد. يُعرض شاراتٍ تحت البطاقة،
+   * ويرتّب به المُنتقي (`lib/themeSuggest.ts`). **لا يطبّق شيئاً**. ولا يدخل
+   * البصمة (`invariants.test.ts` تجمع المعرّف والألوان وحدها).
+   */
+  suits?: readonly string[];
   vars: Record<string, string>;
   design: MenuDesign;
 }
@@ -200,7 +209,8 @@ export const DESIGN_THEMES: MenuTheme[] = [
   {
     id: "dark-gold",
     name: "فاخر",
-    tagline: "للمشاوي والمطاعم الراقية — أسود دافئ وذهب",
+    tagline: "أسود دافئ وذهب، وزخرفة جيري، وإطار مذهّب حول شعارك",
+    suits: ["مشويات", "مطعم"],
     // ⚠️ الألوان كما كانت حرفياً: هذا شكل المنتج لمن لم يختر (§18).
     vars: {
       "--m-bg": "#141210",
@@ -228,7 +238,8 @@ export const DESIGN_THEMES: MenuTheme[] = [
   {
     id: "receipt",
     name: "فاتورة",
-    tagline: "للمطاعم الشعبية والفود ترك — منيو يُطبع أمام زبونك كفاتورة",
+    tagline: "ورقة فاتورة تُطبع أسطرها وأنت تمرّر، وتنتهي بباركود",
+    suits: ["شعبي", "مطعم سريع"],
     vars: {
       // ‏`--m-page` الطاولة تحت الورقة: الوحيد الذي تختلف أرضيّته عن صفحته.
       "--m-page": "#24221f",
@@ -259,7 +270,8 @@ export const DESIGN_THEMES: MenuTheme[] = [
   {
     id: "neon",
     name: "نيون",
-    tagline: "للبرجر والسهر — لافتة نيون تشتعل باسم مطعمك",
+    tagline: "اسمك لافتة نيون على جدار طوب، والأطباق بطاقات تُسحب",
+    suits: ["مطعم سريع"],
     vars: {
       "--m-bg": "#0b0a10",
       "--m-bg-2": "#14121c",
@@ -287,7 +299,8 @@ export const DESIGN_THEMES: MenuTheme[] = [
   {
     id: "sticker",
     name: "ملصقات",
-    tagline: "لمحلات الشاي والكافيهات الشبابية — ملصقاتٌ جريئة بحدٍّ أسود وحركةٌ مرحة",
+    tagline: "ملصقات بحدّ أسود وظلّ مصمت، ولكلّ قسم ملصق بصورته",
+    suits: ["عصائر", "كافيه"],
     vars: {
       // ورقٌ زبديّ دافئ، وحبرٌ أسود لكلّ حدّ، وطماطميّ ونعناعيّ للملصقات.
       "--m-bg": "#fff4e2",
@@ -317,7 +330,8 @@ export const DESIGN_THEMES: MenuTheme[] = [
   {
     id: "letterboard",
     name: "لوحة حروف",
-    tagline: "للكافيهات والمخابز — لوحة الحروف المعلّقة فوق الكاونتر، باسمك وأسعارك",
+    tagline: "حروف بيضاء على لبّاد أسود بإطار خشب، فوق جدار بلاط",
+    suits: ["كافيه", "مخبز وحلويات"],
     vars: {
       // ‏`--m-page` جدار الكافيه (بلاطٌ أبيض)، و`--m-bg` لبّاد اللوحة نفسها.
       "--m-page": "#ebe7df",
@@ -349,7 +363,8 @@ export const DESIGN_THEMES: MenuTheme[] = [
   {
     id: "editorial",
     name: "مجلّة",
-    tagline: "للبرنش والحلويات — منيو بإخراج مجلّة فاخرة",
+    tagline: "ترويسة صحيفة بتاريخ اليوم، وأرقام أقسام كبيرة",
+    suits: ["مخبز وحلويات", "مطعم"],
     vars: {
       "--m-bg": "#f3efe6",
       "--m-bg-2": "#e8e2d5",
@@ -379,7 +394,8 @@ export const DESIGN_THEMES: MenuTheme[] = [
   {
     id: "roshan",
     name: "روشان",
-    tagline: "للمطبخ الحجازي والبحري — أقواس جدّة القديمة ورواشينها",
+    tagline: "مشربية تنفتح على أقواس، والصور نوافذ كالرواشين",
+    suits: ["بحري", "شعبي"],
     vars: {
       // حجر المنقبة الجيري، وأخضر الرواشين المدهونة، وطين القلل.
       "--m-bg": "#f6efe4",
@@ -407,8 +423,9 @@ export const DESIGN_THEMES: MenuTheme[] = [
   },
   {
     id: "najdi",
-    name: "تراثي",
-    tagline: "للمطبخ السعودي — طين نجد وفيروزي الأبواب ونسيج السدو",
+    name: "نجدي",
+    tagline: "بيت طين نجدي: باب يحمل شعارك، وشُرفات، وشريط سدو",
+    suits: ["شعبي", "مشويات"],
     vars: {
       // أرضية رملية فاتحة كجدران الطين، والفيروزي لون أبواب نجد ونوافذها.
       "--m-bg": "#f4e8d5",
@@ -442,7 +459,8 @@ export const DESIGN_THEMES: MenuTheme[] = [
   {
     id: "modern",
     name: "عصري",
-    tagline: "للكافيهات والمخابز — أبيض نظيف يُبرز صورك ولون علامتك",
+    tagline: "أبيض نظيف بلا زخرفة، يترك المكان لصورك ولونك",
+    suits: ["عصائر", "مطعم"],
     vars: {
       "--m-bg": "#ffffff",
       "--m-bg-2": "#f4f4f5",
@@ -459,6 +477,52 @@ export const DESIGN_THEMES: MenuTheme[] = [
     design: design({
       heading: "bold",
       depth: "raised", entrance: "fade", edge: "hairline",
+    }),
+  },
+  /*
+   * ═══ العاشر: «محمصة» (٢٠٢٦/١٠/٢٦) ═══
+   *
+   * الكافيه **المختصّ** بلا طابع منذ خرج `specialty` إلى «عصري» (٢١/١٠) — فراغٌ
+   * صنعناه نحن، والنمو قاسه: ثلاثة طوابع للكافيه ولا واحد للمختصّ. وليس «عصري»
+   * يُعاد بناؤه: إليه يُردّ أحد عشر معرّفاً محذوفاً، فتغيير هويّته يُلبس منيوهات
+   * قديمة أكياس قهوةٍ لم يخترها أصحابها.
+   *
+   * ⚠️ **المعرّف `roastery` لا `specialty`**: `getTheme` تقرأ `LEGACY` أوّلاً،
+   * و`specialty` هناك يُردّ إلى «عصري» — فطابعٌ بذلك الاسم لا يُبلَغ أبداً.
+   *
+   * وجه كيس قهوةٍ مختصّة: كرافت، ولحامٌ حراريّ، وصمّام تنفّس، ولاصقٌ عليه الاسم،
+   * ومنحنى تحميص. والأقسام «بطاقات منشأ» برقم دفعة ومسطرة. ومقياس الكافيين من
+   * `caffeine_mg` حين يكتبه التاجر — بيانٌ من الحاسبة لا زينة، ولا يُخترع.
+   * الخطّان كايرو وطجوال: **ثابتان في الحزمة، فصفر بايت خطوط**.
+   */
+  {
+    id: "roastery",
+    name: "محمصة",
+    tagline: "ورق كرافت وملصق كيس بنّ، وكلّ قسم بطاقة منشأ",
+    suits: ["كافيه"],
+    vars: {
+      // ورق الكيس (كرافت)، واللاصق الأبيض عليه، وحبرُ تحميصٍ غامق.
+      "--m-bg": "#ece1cd",
+      "--m-bg-2": "#e0d1b6",
+      "--m-surface": "#fbf7ef",
+      "--m-text": "#251a12",
+      "--m-muted": "#62503f",
+      // نحاس التحميص، وورق البنّ أخضرَ (أُغمق من #3f6f52 الذي كان 4.50 بالضبط).
+      "--m-accent": "#9a3b1c",
+      "--m-accent-2": "#38654a",
+      "--m-on-accent": "#ffffff",
+      "--m-border": "rgba(37,26,18,.22)",
+      "--m-font": FONT.tajawal,
+      "--m-display": FONT.cairo,
+      "--m-radius": "0.4rem",
+    },
+    design: design({
+      skin: "roastery",
+      header: "bag",
+      layout: "list",
+      heading: "origin",
+      imageShape: "rounded",
+      divider: "rule",
     }),
   },
 ];

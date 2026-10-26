@@ -163,7 +163,7 @@ export const STARTER_TYPES = Object.keys(STARTERS);
  * تطبيع نصّ عربي/لاتيني للمقارنة: تجريد التشكيل وتوحيد الألف والياء والتاء
  * المربوطة، وخفض اللاتيني. بدونه «كافيه » و«كافية» و«Cafe» ثلاثة أشياء.
  */
-function norm(v: string): string {
+export function norm(v: string): string {
   return v
     .trim()
     .toLowerCase()

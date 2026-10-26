@@ -206,7 +206,7 @@ export default function About() {
               icon="palette"
               title="العربية أصل لا ترجمة"
               promise="بُنيت الواجهة من اليمين إلى اليسار من أول سطر. والطوابع تحمل زخارف من هنا — نسيج السدو والمشربية ونجمة الجيري — لا قوالب عامّة مصبوغة بلون."
-              proof={`افتح /demo?theme=receipt ثم /demo?theme=neon: فاتورةٌ تُطبع ولافتةٌ تشتعل — يختلفان في البنية والملمس والحركة، لا في اللون وحده. و${THEMES_LABEL} كلّها كذلك — لكلّ نوع مطعم واحد.`}
+              proof={`افتح /demo?theme=receipt ثم /demo?theme=neon: فاتورةٌ تُطبع ولافتةٌ تشتعل — يختلفان في البنية والملمس والحركة، لا في اللون وحده. و${THEMES_LABEL} كلّها كذلك — بنيةٌ لكلّ مكان لا لونٌ لكلّ ذوق.`}
             />
             <Principle
               icon="eye"
@@ -227,7 +227,7 @@ export default function About() {
             بعد دقيقة من التسجيل.
           </p>
           <div className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <Stat value={String(THEME_COUNT)} label="طوابع — لكلّ نوع مطعم واحد" />
+            <Stat value={String(THEME_COUNT)} label="طوابع — كلٌّ بنيةٌ لا لون" />
             <Stat value={String(CARD_SIZE_COUNT)} label="قياسات بطاقة للطباعة" />
             <Stat value={String(PRINT_DPI)} label="DPI دقّة ملفّ الطباعة" />
             <Stat value="٠" label="تطبيقات يحمّلها زبونك" />

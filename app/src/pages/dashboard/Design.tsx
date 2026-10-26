@@ -26,6 +26,7 @@ import {
 import { PreviewMenuButton } from "@/components/site";
 import { ImageUploader } from "@/components/ImageUploader";
 import { ThemePreview } from "@/components/menu/ThemePreview";
+import { SuggestBadge, SuitsLine, ThemeOrderNote, useThemeOrder } from "@/components/ThemeSuggest";
 import { LAYOUT_OPTIONS, LayoutGlyph } from "@/components/LayoutOptions";
 import {
   applyThemeToAllMenus,
@@ -35,7 +36,6 @@ import {
   reportSilentFailure,
 } from "@/lib/data";
 import {
-  DESIGN_THEMES,
   getTheme,
   isHex,
   splitThemeId,
@@ -49,6 +49,8 @@ import { Icon } from "@/lib/icons";
 
 export default function Design() {
   const { restaurant, setRestaurant, menus, refreshMenus } = useDashboard();
+  // يرتّب المُنتقي حسب نوع النشاط ويعلّم المقترح — لا يطبّق شيئاً (`lib/themeSuggest.ts`).
+  const themeOrder = useThemeOrder(restaurant.type);
   const toast = useToast();
 
   const activeThemeId = menus?.find((m) => m.theme)?.theme ?? null;
@@ -140,8 +142,14 @@ export default function Design() {
         <p className="mt-1 text-sm text-dim">
           كل طابع تصميم كامل — زخرفة وترويسة وتخطيط أطباق وخطّ، لا لوناً فقط.
         </p>
+        <ThemeOrderNote
+          typeLabel={themeOrder.typeLabel}
+          isCafe={themeOrder.isCafe}
+          flavor={themeOrder.flavor}
+          setFlavor={themeOrder.setFlavor}
+        />
         <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {DESIGN_THEMES.map((t) => {
+          {themeOrder.ordered.map((t) => {
             const on = activeBase === t.id;
             const id = themeIdOf(t.id, useBrand ? brandHex : null, activeLayout);
             return (
@@ -155,10 +163,12 @@ export default function Design() {
                 >
                   <ThemePreview theme={getTheme(id)} />
                   <div className={cn("px-3 py-2", on ? "bg-gold/10" : "bg-panel")}>
+                    <SuggestBadge on={t.id === themeOrder.suggested} />
                     <p className={cn("text-xs font-bold", on ? "text-gold" : "text-ink")}>
                       {t.name} {on && "✓"}
                     </p>
                     <p className="mt-0.5 text-[11px] leading-snug text-faint">{t.tagline}</p>
+                    <SuitsLine theme={t} />
                   </div>
                 </button>
                 {/* معاينة كاملة قبل الالتزام: البطاقة المصغّرة تكفي للمفاضلة

@@ -60,7 +60,10 @@ describe("ثابت §18 — ألوان الطوابع", () => {
    * `ADDED` — فإضافة طابع لا تلمس بصمة التسعة أبداً.
    */
   const FROZEN = ["dark-gold", "receipt", "neon", "sticker", "letterboard", "editorial", "roshan", "najdi", "modern"];
-  const ADDED: Record<string, string> = {};
+  const ADDED: Record<string, string> = {
+    // «محمصة» (٢٠٢٦/١٠/٢٦) — الطابع العاشر، للكافيه المختصّ.
+    roastery: "4fc8ff26",
+  };
 
   it("بصمة التسعة المجمّدة لم تتغيّر", () => {
     // سجلّ هذا الرقم: «بحري» و«مجلس» (٢٠٢٦-٠٨-٢٠) · **٢١ ⇒ ٦** بقرار مكتوب
@@ -83,7 +86,8 @@ describe("ثابت §18 — ألوان الطوابع", () => {
   it("عدد الطوابع كما تعلنه الصفحات", () => {
     // `lib/facts.ts` يشتقّه من هنا، لكن الرقم يظهر للزائر — فلو نقص طابع
     // بحذف غير مقصود لتغيّر ما تَعِد به الصفحة بلا أن يلاحظ أحد.
-    expect(ALL_THEMES.length).toBe(9);
+    // ٩ ⇒ ١٠ (٢٠٢٦/١٠/٢٦): «محمصة» بقرار اجتماع الطوابع — تعديلٌ متعمَّد لا تعطيل.
+    expect(ALL_THEMES.length).toBe(10);
   });
 
   /**
@@ -276,7 +280,7 @@ describe("الطوابع الثلاث بعد الرفع — الضغط والس�
     expect(css).toMatch(/\.m-price \{\s*font-family: var\(--font-cairo\)/);
   });
 
-  it.each(["receipt", "neon", "sticker", "letterboard", "editorial", "roshan", "najdi"])(
+  it.each(["receipt", "neon", "sticker", "letterboard", "editorial", "roshan", "najdi", "roastery"])(
     "«%s» له حركة نافذةٍ خاصّة داخل `no-preference`",
     (skin) => {
       const block = css.split("@media (prefers-reduced-motion: no-preference)").slice(1).join("");

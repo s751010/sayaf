@@ -138,7 +138,7 @@ const html = `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-
     <div class="text">
       <span class="kicker"><i></i>للمطاعم والمقاهي السعودية</span>
       <h1>منيو يشبه مطعمك،<br><em>ويبيع عنك.</em></h1>
-      <p>باسمك وشعارك وألوانك — يطلب الزبون ويدفع من الطاولة، والسعرات محسوبة من وصفاتك. <span style="white-space: nowrap">9 طوابع.</span></p>
+      <p>باسمك وشعارك وألوانك — يطلب الزبون ويدفع من الطاولة، والسعرات محسوبة من وصفاتك. <span style="white-space: nowrap">10 طوابع.</span></p>
       <div class="foot">
         <div class="brand">
           <svg width="40" height="40" viewBox="0 0 48 48" aria-hidden="true"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f0c96a"/><stop offset="1" stop-color="#c99a2e"/></linearGradient></defs><path d="M13 30a7 7 0 0 1 .6-13.97A10 10 0 0 1 33 14a8 8 0 0 1 2 15.75V30H13Z" fill="url(#g)"/><rect x="16" y="33" width="16" height="2.6" rx="1.3" fill="url(#g)" opacity=".85"/><rect x="19" y="38" width="10" height="2.6" rx="1.3" fill="url(#g)" opacity=".55"/></svg>
