@@ -74,6 +74,7 @@ import Settings from "./Settings";
 import Billing from "./Billing";
 import Nutrition from "./Nutrition";
 import PrintMenu from "./PrintMenu";
+import ComplianceFile from "./ComplianceFile";
 import { Icon } from "@/lib/icons";
 
 /* ── السياق المشترك ───────────────────────────────────────────────── */
@@ -751,6 +752,7 @@ export default function Dashboard() {
             <Route path="menus" element={<Menus />} />
             <Route path="dishes" element={<Dishes />} />
             <Route path="nutrition" element={<Nutrition />} />
+            <Route path="nutrition/file" element={<ComplianceFile />} />
             <Route path="orders" element={<Orders />} />
             <Route path="design" element={<Design />} />
             <Route path="cards" element={<Cards />} />

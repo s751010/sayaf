@@ -174,7 +174,7 @@ test.describe("اللوحة على ٣٢٠px", () => {
    */
   test.use({ viewport: { width: 320, height: 640 } });
 
-  for (const path of ["/dashboard", "/dashboard/design", "/dashboard/dishes"]) {
+  for (const path of ["/dashboard", "/dashboard/design", "/dashboard/dishes", "/dashboard/qr"]) {
     test(`${path} بلا تمرير أفقي`, async ({ page }) => {
       const { crashes } = watch(page);
       await signedIn(page);
@@ -216,6 +216,34 @@ test("الطباعة: الورقة وحدها ظاهرة — وصفحةٌ أخر
   await expect(page.getByText("مطعم الديوان", { exact: false }).first()).toBeVisible();
 });
 
+test("ملفّ الامتثال: من شاشة الامتثال إلى ورقةٍ تُطبع — تقديرية، بلا حكم", async ({ page }) => {
+  /**
+   * اللاتيه بلا أرقام ⇒ «غير مُدخَل» في الورقة لا فراغ. والورقة **وحدها** في
+   * الطباعة (القاعدة نفسها في المنيو المطبوع). ولا كلمة حكم في نصّها المطبوع.
+   */
+  const { crashes } = watch(page);
+  await signedIn(page);
+  await page.goto("/dashboard/nutrition");
+  await page.getByRole("link", { name: /ملفّ الامتثال/ }).click();
+  await expect(page).toHaveURL(/\/dashboard\/nutrition\/file$/);
+
+  const sheet = page.locator("[data-compliance-file]");
+  await expect(sheet.getByText("مقهى الفحص").first()).toBeVisible();
+  await expect(sheet.locator("[data-estimate-note]")).toContainText("تقديرية");
+  await expect(sheet.getByRole("row").filter({ hasText: "لاتيه" })).toContainText("غير مُدخَل");
+  await expect(sheet.getByRole("row").filter({ hasText: "كرواسون" })).toContainText("310");
+  await expect(sheet).toContainText("2,000");
+
+  const text = (await sheet.innerText()).toLowerCase();
+  for (const w of ["ممتثل", "امتثال", "معتمد", "مطابق", "compliant", "approved"]) expect(text).not.toContain(w);
+
+  await page.emulateMedia({ media: "print" });
+  await expect(sheet.getByText("مقهى الفحص").first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: "ملفّ الامتثال" })).toBeHidden();
+
+  expect(crashes, crashes.join("\n")).toEqual([]);
+});
+
 /**
  * المُنتقي يرتّب حسب نوع النشاط **ولا يطبّق شيئاً** (قرار ٢٦/١٠).
  *
@@ -244,5 +272,49 @@ test("مُنتقي الطوابع: المقترح لنوع النشاط أوّل
 
   await page.waitForTimeout(800);
   expect(writes, "المُنتقي كتب طابعاً بلا ضغطة").toEqual([]);
+  expect(crashes, crashes.join("\n")).toEqual([]);
+});
+
+/**
+ * «اربط منيوك بقوقل ماب» في صفحة الأكواد.
+ *
+ * الخطر الذي يحرسه: الصفحة تعرض رابطاً يحمل `?table=` حين يُكتب رقم طاولة،
+ * ولو نسخته البطاقة لصار كل زائرٍ من الخرائط «جالساً على طاولة» في طلبه. فيُكتب
+ * رقمٌ أوّلاً، ثم يُفحص ما نُسخ فعلاً. والإخفاء يبقى بعد إعادة التحميل.
+ */
+test("بطاقة قوقل ماب: تنسخ الرابط العام لا رابط الطاولة، وتُخفى وتبقى مخفيّة", async ({ page }) => {
+  const { crashes } = watch(page);
+  await signedIn(page);
+  await page.addInitScript(() => {
+    const w = window as unknown as { __copied: string[] };
+    w.__copied = [];
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText: async (t: string) => void w.__copied.push(t) },
+    });
+  });
+  await page.goto("/dashboard/qr");
+
+  const tip = page.locator("section").filter({ has: page.getByRole("heading", { name: "اربط منيوك بقوقل ماب" }) });
+  await expect(tip).toBeVisible();
+  await expect(tip.getByRole("link", { name: "كيف؟" })).toHaveAttribute("href", "/blog/google-maps-menu-link");
+
+  await page.getByPlaceholder("مثال: 5").fill("5");
+  await expect(page.locator('input[dir="ltr"][readonly]')).toHaveValue(/table=5/);
+
+  await tip.getByRole("button", { name: /انسخ الرابط/ }).click();
+  await expect
+    .poll(() => page.evaluate(() => (window as unknown as { __copied: string[] }).__copied))
+    .toHaveLength(1);
+  const [copied] = await page.evaluate(() => (window as unknown as { __copied: string[] }).__copied);
+  expect(copied).toMatch(/\/e2e-cafe$/);
+  expect(copied).not.toContain("table");
+
+  await tip.getByRole("button", { name: "إخفاء بطاقة قوقل ماب" }).click();
+  await expect(tip).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "أكواد QR" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "اربط منيوك بقوقل ماب" })).toHaveCount(0);
+
   expect(crashes, crashes.join("\n")).toEqual([]);
 });

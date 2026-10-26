@@ -46,3 +46,6 @@ graphify-out/
 # نواتج فحص المتصفّح (Playwright) — تُولَّد عند كل تشغيل
 app/test-results/
 app/playwright-report/
+
+# أشجار عمل الوكلاء المعزولة — لا تُلتزَم
+.claude/worktrees/

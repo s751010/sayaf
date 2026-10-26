@@ -72,6 +72,91 @@
   box-shadow: 0 0 14px color-mix(in srgb, var(--m-glow, var(--m-accent)) 75%, transparent);
 }
 
+/* ══ «نفد اليوم» ══════════════════════════════════════════════════════════
+ * الطبق النافد يبقى في المنيو (`lib/soldOut.ts`): **صورته وحدها** تبهت،
+ * والاسم والسعر بتباينهما الكامل — بهتانُ البطاقة كلّها كان يُسقط نصّها تحت AA.
+ * والشارة شكلُ الطابع والكلام واحد. ألوانها أزواجٌ مضمونة التباين
+ * (`invariants.test.ts`: النصّ والخافت فوق الأرضية والسطح ≥ ٤٫٥) — ولا تُكتب
+ * بلون التمييز: التمييز في المنيو لغة «اطلب»، والنافد عكسها.
+ */
+[data-soldout] .m-img {
+  opacity: 0.42;
+  filter: grayscale(0.7);
+}
+/* الأساس — واجهة المتجر: حبّةٌ بلون النصّ معكوساً. */
+.m-soldout {
+  border-radius: 999px;
+  background: var(--m-text);
+  color: var(--m-bg);
+}
+/* الفاتورة: ختمُ حبرٍ مائل على الورق، كـ«ملغى» على إيصال. */
+.m-skin-receipt .m-soldout {
+  border-radius: 3px;
+  background: transparent;
+  color: var(--m-text);
+  box-shadow: inset 0 0 0 1.5px currentColor;
+  transform: rotate(-3deg);
+}
+/* لوحة الحروف: حروفٌ مدسوسة في اللبّاد بين خطّين، لا حبّة فوقها. */
+.m-skin-letterboard .m-soldout {
+  border-radius: 0;
+  background: transparent;
+  color: var(--m-text);
+  border-block: 1px solid color-mix(in srgb, var(--m-text) 55%, transparent);
+  text-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.65),
+    0 2px 4px rgba(0, 0, 0, 0.4);
+}
+/* الملصقات: ملصقٌ آخر بحدّه الأسود وظلّه، مائلٌ عكس شارة «الأكثر طلباً». */
+.m-skin-sticker .m-soldout {
+  background: var(--m-surface);
+  color: var(--m-text);
+  border: 2px solid var(--m-text);
+  box-shadow: 2px 2px 0 var(--m-text);
+  transform: rotate(3deg);
+}
+/* النيون: أنبوبٌ **مطفأ** — حدٌّ خافت بلا توهّج، على أرضيّة الجدار. */
+.m-skin-neon .m-soldout {
+  background: var(--m-bg);
+  color: var(--m-muted);
+  box-shadow: inset 0 0 0 1.5px var(--m-muted);
+  text-shadow: none;
+}
+/* المجلّة: سطرٌ بين خطّين كعنوانٍ صغير في عمود، بلا حبّة. */
+.m-skin-editorial .m-soldout {
+  border-radius: 0;
+  background: transparent;
+  color: var(--m-text);
+  border-block: 1.5px solid var(--m-text);
+  padding-inline: 0.125rem;
+}
+/* الروشان: لوحةٌ حجازية مشطوفة كعنوان قسمه (`.m-cartouche`). */
+.m-skin-roshan .m-soldout {
+  border-radius: 0;
+  padding-inline: 0.875rem;
+  clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 8px 100%, 0 50%);
+}
+/* نجدي: لوحٌ بحدٍّ مزدوج كإطار الباب النجدي. */
+.m-skin-najdi .m-soldout {
+  border-radius: 2px;
+  background: var(--m-surface);
+  color: var(--m-text);
+  border: 3px double var(--m-text);
+}
+/* المحمصة: ختمٌ متقطّع على كيس البنّ — «نفدت دفعة اليوم» بالشكل لا بالكلام. */
+.m-skin-roastery .m-soldout {
+  border-radius: 2px;
+  background: transparent;
+  color: var(--m-text);
+  border: 1.5px dashed var(--m-text);
+  transform: rotate(-2deg);
+}
+/* الشفّافة منها فوق الصورة (التاجر بدّل تخطيط طابعٍ قائميّ إلى شبكة): الصورة
+   باهتة لا ورق، فتأخذ سطح الطابع تحت حبرها كي لا يُقرأ النصّ على صورة. */
+:is(.m-skin-receipt, .m-skin-letterboard, .m-skin-editorial, .m-skin-roastery) .m-soldout[data-over] {
+  background: var(--m-surface);
+}
+
 /* ══ عناوين الأقسام بأغلفتها ═════════════════════════════════════════════
  * لكلّ طابعٍ عنوانه (`SectionHeading.tsx`)، ولأكثرها صورةٌ من أطباق القسم.
  * والحركة **حركة الطابع نفسه** حين يدخل القسم: الفاخر يقترب كلقطةٍ سينمائية،

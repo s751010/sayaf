@@ -10,6 +10,7 @@ import { useDashboard } from "./Dashboard";
 import { PrintTabs } from "./Tabs";
 import { Icon } from "@/lib/icons";
 import { menuUrl } from "@/lib/menuUrl";
+import { GoogleMapsTip } from "@/components/GoogleMapsTip";
 
 function download(href: string, filename: string) {
   const a = document.createElement("a");
@@ -258,6 +259,9 @@ export default function Qr() {
           )}
         </Card>
       </div>
+
+      {/* الرابط العام لا رابط الطاولة المعروض فوق — `slug` لا `url`. */}
+      <GoogleMapsTip slug={slug} />
 
       <Card className="mt-5 flex flex-wrap items-end justify-between gap-4">
         <Field label="أكواد كل الطاولات دفعة واحدة" hint="صفحة طباعة جاهزة — اطبعها وقصّها" className="flex-1">

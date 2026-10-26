@@ -101,11 +101,22 @@ export default function Nutrition() {
 
   return (
     <div className="grid gap-6">
-      <div>
-        <h1 className="font-display text-2xl font-black text-ink">الامتثال الغذائي</h1>
-        <p className="mt-1 text-sm text-dim">
-          أرقام هيئة الغذاء لكل طبق: السعرات والصوديوم والكافيين ومسبّبات الحساسية — محسوبةٌ من الوصفة.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="font-display text-2xl font-black text-ink">الامتثال الغذائي</h1>
+          <p className="mt-1 text-sm text-dim">
+            أرقام هيئة الغذاء لكل طبق: السعرات والصوديوم والكافيين ومسبّبات الحساسية — محسوبةٌ من الوصفة.
+          </p>
+        </div>
+        {/* الورقة التي تُوضع أمام المفتّش — متاحةٌ ولو نقصت أرقام: «غير مُدخَل»
+            فيها صادقة، وحجبُها حتى يكتمل كل طبق يحرم التاجر منها يوم التفتيش. */}
+        {total > 0 && (
+          <Link to="/dashboard/nutrition/file">
+            <Button variant="outline">
+              <Icon name="printer" size={16} /> ملفّ الامتثال (PDF)
+            </Button>
+          </Link>
+        )}
       </div>
 
       {/* الرأس: نسبة الجاهزية — رقمٌ واحد كبير وشريطٌ مقسوم بحالاته. */}
