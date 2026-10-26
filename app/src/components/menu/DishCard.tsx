@@ -14,6 +14,10 @@
  *
  * رموز مسببات الحساسية والسعرات موجودة في التخطيطات الثلاثة: ميزة قائمة لا
  * يجوز أن تختفي لأن التاجر بدّل شكل منيوه.
+ *
+ * والطبق **النافد** (`available === false`) يُرسم في التخطيطات كلّها: شارة
+ * «نفد اليوم» بشكل الطابع (`.m-soldout`)، وصورته وحدها باهتة (`[data-soldout]
+ * .m-img`) — الاسم والسعر بتباينهما الكامل، فالباهت كلّه كان سيُسقطهما تحت AA.
  */
 import { useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { SafeImage } from "@/components/ui";
@@ -22,6 +26,7 @@ import type { ImageShape, MenuDesign, PriceStyle } from "@/lib/themes";
 import type { Dish } from "@/lib/types";
 import { cn, formatPrice } from "@/lib/utils";
 import { Icon } from "@/lib/icons";
+import { isSoldOut, soldOutLabel } from "@/lib/soldOut";
 import { DishArtwork } from "./DishArtwork";
 // ⚠️ يُستورد لا يُكتب: كان معرَّفاً هنا نسخةً ثانية من ثابت `chrome.tsx` نفسه.
 import { nameFont } from "./chrome";
@@ -301,6 +306,32 @@ function MetaRow({ dish, en, reserve }: { dish: Dish; en: boolean; reserve: bool
 }
 
 /**
+ * شارة «نفد اليوم» — **شكلها من الطابع لا من هنا**.
+ *
+ * لا لون مضمَّن عمداً: المضمَّن يغلب `menu-skins.css`، فكانت ستُرسم حبّةً واحدة
+ * في الطوابع التسعة. الأساس (واجهة المتجر) حبّةٌ بلون النصّ معكوساً، والفاتورة
+ * ختمُ حبر، والنيون أنبوبٌ مطفأ، والملصقات ملصقٌ مائل… كلّها بأزواج `--m-*` التي
+ * يضمن `invariants.test.ts` تباينها (نصّ وخافت فوق الأرضية والسطح ≥ ٤٫٥).
+ *
+ * `over`: فوق الصورة (الشبكة والعرض والسحب)، وإلا ففي سطر التفاصيل (القائمة —
+ * حيث قد لا تكون صورة أصلاً).
+ */
+function SoldOutTag({ en, over }: { en: boolean; over: boolean }) {
+  return (
+    <span
+      data-soldout-tag=""
+      data-over={over ? "" : undefined}
+      className={cn(
+        "m-soldout inline-flex w-fit shrink-0 items-center whitespace-nowrap px-2 py-0.5 text-[11px] font-black leading-4",
+        over && "pointer-events-none absolute start-2 top-2 z-[1]"
+      )}
+    >
+      {soldOutLabel(en)}
+    </span>
+  );
+}
+
+/**
  * ارتفاعات محجوزة — سببها انضباط الشبكة لا التجميل.
  *
  * البطاقات في الصف الواحد تتساوى تلقائياً (grid + `h-full`)، لكن **الصفوف
@@ -347,6 +378,14 @@ export function DishCard({
   onOpen: () => void;
 }) {
   const { layout, imageShape, priceStyle, divider } = design;
+  /**
+   * النافد لا يحمل «الأكثر طلباً»: الشارتان في الركن نفسه، و«اطلبه، الكلّ
+   * يطلبه» فوق طبقٍ لا يُطلب دعوةٌ بلا باب. وتسقط معها نجمة «مميّز» للسبب نفسه.
+   */
+  const soldOut = isSoldOut(dish);
+  const star = !!dish.featured && !popular && !soldOut;
+  /** على جذر البطاقة: منه تبهت الصورة وحدها في CSS، ويجده الفحص. */
+  const outAttr = soldOut ? { "data-soldout": "" } : {};
 
   /**
    * شارة «الأكثر طلباً».
@@ -355,7 +394,7 @@ export function DishCard({
    * طلباً» حكمُ الزبائن، وعرضهما معاً على بطاقة واحدة يُفقد الثانية معناها —
    * فالأولى تُصبح ادّعاءً بجانب دليل. فحين يجتمعان يظهر الدليل وحده.
    */
-  const badge = popular ? (
+  const badge = popular && !soldOut ? (
     <span
       className="m-badge pointer-events-none absolute z-[1] inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-black shadow-sm"
       style={{
@@ -396,6 +435,7 @@ export function DishCard({
           divider === "dots" && "border-b border-dashed"
         )}
         style={{ borderColor: "var(--m-border)", position: "relative" }}
+        {...outAttr}
       >
         {badge}
         {/* ‏`@container`: السطر يقيس عموده لا الشاشة. وحين يضيق العمود (صورةٌ في
@@ -408,7 +448,7 @@ export function DishCard({
               className="m-name min-w-0 text-base font-bold leading-snug @max-[16rem]:basis-full"
               style={{ color: "var(--m-text)", ...nameFont }}
             >
-              <NameText dish={dish} en={en} star={!!dish.featured && !popular} className="ms-1 inline-block align-[-1px]" />
+              <NameText dish={dish} en={en} star={star} className="ms-1 inline-block align-[-1px]" />
             </span>
             {/* الخط النقطي يقود العين من الاسم إلى السعر — تقليد المنيوهات الراقية.
                 ولونه من `--m-muted` لا `--m-border`: الحدود على الطوابع الداكنة
@@ -434,6 +474,7 @@ export function DishCard({
             </span>
           )}
           <span className={cn("mt-2 flex flex-wrap items-center gap-x-2 gap-y-1", addSlot && !hasImage && "pe-12")}>
+            {soldOut && <SoldOutTag en={en} over={false} />}
             <Allergens dish={dish} en={en} />
             <Calories dish={dish} en={en} />
             {caffeine}
@@ -474,8 +515,10 @@ export function DishCard({
         onClick={onOpen}
         className="m-card m-surface group relative flex h-full w-full flex-col overflow-hidden border text-start transition-transform hover:-translate-y-0.5"
         style={surface}
+        {...outAttr}
       >
         {badge}
+        {soldOut && <SoldOutTag en={en} over />}
         {/* الصورة العريضة لا تأخذ `imageShape`: قصّها دائرةً يقطع الطبق نفسه،
             وهذا التخطيط قائم على الصورة الكبيرة. */}
         <SafeImage
@@ -501,7 +544,7 @@ export function DishCard({
             className={cn(NAME_2_LINES, "m-name text-base font-bold leading-snug")}
             style={{ color: "var(--m-text)", ...nameFont }}
           >
-            <NameText dish={dish} en={en} star={!!dish.featured && !popular} className="ms-0.5 mb-0.5 inline-block align-middle" />
+            <NameText dish={dish} en={en} star={star} className="ms-0.5 mb-0.5 inline-block align-middle" />
           </p>
           {showDesc && (
             <p className={cn(DESC_2_LINES, "m-desc text-xs leading-relaxed")} style={{ color: "var(--m-muted)" }}>
@@ -527,8 +570,10 @@ export function DishCard({
       onClick={onOpen}
       className="m-card m-surface group relative flex h-full w-full flex-col overflow-hidden border text-start transition-transform hover:-translate-y-0.5"
       style={surface}
+      {...outAttr}
     >
       {badge}
+      {soldOut && <SoldOutTag en={en} over />}
       {/* نسبةٌ واحدة لكل الصور (٤:٣): صور التجّار تأتي بأبعاد شتّى، و`object-cover`
           يجعلها كلها بحجم واحد. وكانت مربّعاً فتطول البطاقة على الجوال حتى لا
           يُرى منها في الشاشة إلا صفّان. و`circle` تحتاج حشوةً وإلا لامست الحافّة. */}
@@ -555,7 +600,7 @@ export function DishCard({
           className={cn(NAME_2_LINES, "m-name text-sm font-bold leading-snug")}
           style={{ color: "var(--m-text)", ...nameFont }}
         >
-          <NameText dish={dish} en={en} star={!!dish.featured && !popular} className="ms-0.5 mb-0.5 inline-block align-middle" />
+          <NameText dish={dish} en={en} star={star} className="ms-0.5 mb-0.5 inline-block align-middle" />
         </p>
         {showDesc && (
           <p className={cn(DESC_2_LINES, "m-desc text-xs leading-relaxed")} style={{ color: "var(--m-muted)" }}>
