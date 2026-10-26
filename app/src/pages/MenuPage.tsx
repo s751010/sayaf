@@ -32,6 +32,7 @@ import { allergenLabel, buildAllergenIndex, dishName, restaurantTypeLabel } from
 import { Chip, LangToggle, LAYOUT_CLASS, MenuSheet, sectionReserve } from "@/components/menu/chrome";
 import { SectionHeading, sectionCover } from "@/components/menu/SectionHeading";
 import { normalizeAr } from "@/lib/arabic";
+import { isSoldOut, orderableById, soldOutLast } from "@/lib/soldOut";
 import { isVatNumber } from "@/lib/legal";
 import { DishModal } from "@/components/menu/DishModal";
 import { LoyaltyCard } from "@/components/menu/LoyaltyCard";
@@ -531,8 +532,17 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
       ),
     [state]
   );
+  /**
+   * ما **يُطلب** وحده — للسلّة لا للعرض. `dishById` يبقى كاملاً كي يفتح رابط
+   * `?dish=` طبقاً نافداً (يُرى ولا يُطلب)، وهذه تُخرج النافد فيظهر سطره
+   * المحفوظ في السلّة «لم يعد متاحاً» ويُحجب الإرسال (انظر `lib/soldOut.ts`).
+   */
+  const orderable = useMemo(
+    () => orderableById(state.status === "ready" ? state.dishes : []),
+    [state]
+  );
   const cartTotal = cart.lines.reduce((sum, l) => {
-    const dish = dishById.get(l.dish_id);
+    const dish = orderable.get(l.dish_id);
     return dish ? sum + unitPrice(dish, l.option_ids) * l.qty : sum;
   }, 0);
 
@@ -596,13 +606,17 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
       const cat = d.category?.trim() || (en ? "Other" : "أخرى");
       byCat.set(cat, [...(byCat.get(cat) ?? []), d]);
     }
+    // النافد إلى آخر قسمه، والباقي بترتيب التاجر — بعد البحث والاستبعاد لا
+    // قبلهما، فالنافد يُبحث عنه ويُستبعد بحساسيته كأيّ طبق (يُرى ولا يُطلب).
+    for (const [cat, list] of byCat) byCat.set(cat, soldOutLast(list));
     // ترتيب التاجر لا ترتيب أول ظهور لطبق (كان «الحلويات» قد تسبق «المقبلات»
     // لمجرّد أن أول طبق مضاف كان حلوى).
     const order = parseCategoryOrder(state.restaurant.category_order);
     // كلّ الأقسام لا الظاهرة منها: شريط الملصقات الجاري لا يتقلّص والزبون يبحث.
     const all = new Set(state.dishes.map((d) => d.category?.trim() || (en ? "Other" : "أخرى")));
     return {
-      featured: q || avoid.size > 0 ? [] : visible.filter((d) => d.featured),
+      // «طبق اليوم» دعوةٌ للطلب — فلا يكونها طبقٌ نفد، ويتقدّم المميّز التالي.
+      featured: q || avoid.size > 0 ? [] : visible.filter((d) => d.featured && !isSoldOut(d)),
       categories: sortCategories([...byCat.keys()], order).map((name) => ({
         name,
         dishes: byCat.get(name)!,
@@ -840,6 +854,13 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
   const ordersOpen = acceptingOrders && withinHours;
   /** سبب الإغلاق بلغة الزبون — نفس نصّ الترويسة فلا يتناقض الاثنان. */
   const closedLabel = !acceptingOrders ? null : (live?.label ?? null);
+  /**
+   * زرّ الإضافة — شرطٌ واحد لبطاقة الطبق وزرّها ونافذته، كي لا يتباعد ثلاثتها.
+   * ⚠️ `ordersOpen` لا `cartOn` وحده: زرُّ إضافةٍ على منيو مغلق يملأ سلّةً لا
+   * مخرج لها. والنافد لا زرّ له: شارته في مكانه (`DishCard`).
+   */
+  const canAdd = (d: Dish) =>
+    cartOn && ordersOpen && Number(d.price ?? 0) > 0 && !isSoldOut(d);
 
   /**
    * شريحةٌ واحدة لكل ما تحت الاسم — كانت خمسة أشكال (شريحة · زرّان ممتلئان
@@ -1203,12 +1224,10 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
                         design={design}
                         reserve={sectionReserve(cat.dishes, en)}
                         popular={popularIds.has(d.id)}
-                        addSlot={cartOn && ordersOpen && Number(d.price ?? 0) > 0}
+                        addSlot={canAdd(d)}
                         onOpen={() => openDishView(d)}
                       />
-                      {/* ⚠️ `ordersOpen` لا `cartOn` وحده: زرُّ إضافةٍ على منيو مغلق
-                          يملأ سلّةً لا مخرج لها — والشريط أسفلها يقول «يفتح ١٣:٠٠». */}
-                      {cartOn && ordersOpen && Number(d.price ?? 0) > 0 && (
+                      {canAdd(d) && (
                         <AddToCartButton
                           label={en ? `Add ${dishName(d, en)}` : `أضِف ${d.name}`}
                           onAdd={() => cart.add(d.id)}
@@ -1451,7 +1470,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
         <MenuSheet title={en ? "Your order" : "طلبك"} onClose={() => setCartOpen(false)}>
           <CartReview
             cart={cart}
-            dishById={dishById}
+            dishById={orderable}
             en={en}
             restaurantId={restaurant.id}
             restaurantName={restaurant.name}
@@ -1472,7 +1491,8 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
         <DishModal
           dish={openDish}
           en={en}
-          cart={cartOn && ordersOpen ? cart : null}
+          // النافد يُفتح ليُقرأ (مكوّناته وحساسيته) ولا يُطلب: بلا سلّة لا زرّ إضافة.
+          cart={cartOn && ordersOpen && !isSoldOut(openDish) ? cart : null}
           popular={popularIds.has(openDish.id)}
           onClose={closeDishView}
         />

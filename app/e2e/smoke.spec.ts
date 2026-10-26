@@ -94,3 +94,42 @@ test("رابط منيو لا وجود له لا ينهار", async ({ page }) =>
   await page.waitForTimeout(1500);
   expect(crashes, crashes.join("\n")).toEqual([]);
 });
+
+test("المنيو التجريبي: «نفد اليوم» يُرى في آخر قسمه ولا يُطلب", async ({ page }) => {
+  /**
+   * الكنافة نافدة في بيانات الديمو (`Demo.tsx`)، والتمر بعدها في القائمة. والديمو
+   * يفتح الطلب على واتساب، فلكلّ طبقٍ متاح زرّ «أضِف» — والنافد وحده بلا زرّ.
+   * ويُثبت الفحص أولاً أنه وجد ما يفحصه: زرّ التمر موجود، فغياب زرّ الكنافة ليس
+   * لأن الأزرار كلّها غابت.
+   */
+  const { crashes } = watch(page);
+  await page.goto("/demo");
+  await page.getByText("مطعم الديوان", { exact: false }).first().waitFor();
+
+  const card = page.locator("[data-soldout]");
+  await expect(card).toHaveCount(1);
+  await expect(card).toContainText("كنافة بالقشطة");
+  await expect(card).toContainText("نفد اليوم");
+
+  await expect(page.getByRole("button", { name: "أضِف تمر مع جبن قشقوان" })).toHaveCount(1);
+  await expect(page.getByRole("button", { name: "أضِف كنافة بالقشطة" })).toHaveCount(0);
+
+  // آخر قسمه: بعد التمر في ترتيب الصفحة، وإن سبقه في القائمة.
+  const order = await page.locator("section[data-cat='الحلويات'] .m-name").allInnerTexts();
+  expect(order.map((t) => t.trim())).toEqual(["تمر مع جبن قشقوان", "كنافة بالقشطة"]);
+
+  // الصورة باهتة والاسم بتباينه الكامل.
+  const imgOpacity = await card.locator(".m-img").first().evaluate((el) => getComputedStyle(el).opacity);
+  expect(Number(imgOpacity)).toBeLessThan(0.6);
+  const nameOpacity = await card.locator(".m-name").evaluate((el) => getComputedStyle(el).opacity);
+  expect(Number(nameOpacity)).toBe(1);
+
+  // نافذته تُفتح لتُقرأ، وبلا «أضِف للطلب».
+  await card.click();
+  const dialog = page.getByRole("dialog").first();
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByText("كنافة بالقشطة").first()).toBeVisible();
+  await expect(dialog.getByRole("button", { name: /أضِف للطلب/ })).toHaveCount(0);
+
+  expect(crashes, crashes.join("\n")).toEqual([]);
+});
