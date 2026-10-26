@@ -80,6 +80,7 @@ app/src/
     Legal.tsx           الخصوصية والشروط (فيها `IDENTITY_TODO` — انظر LAUNCH.md)
     dashboard/          Dashboard(shell) Overview Dishes Menus Orders Design Cards Qr
                         Analytics Loyalty Billing Settings Tabs
+                        Kitchen (شاشة الكاشير `/dashboard/kitchen` — بلا غلاف، لوح الكاونتر)
                         Nutrition (الامتثال، §26) · PrintMenu (المنيو المطبوع A4 + CSV، §26)
     founder/            Founder(shell+بوابة) Overview Merchants MerchantDetail
                         BillingConsole (وحدة الاستلام، §21)
@@ -126,6 +127,7 @@ app/src/
     HoursEditor.tsx     ساعات العمل يوماً بيوم
     SupportBox.tsx      الدعم الفني ← لوحة المؤسس
     AnnouncementBar.tsx إعلانات المؤسس داخل لوحة التاجر (§11)
+    OrderAlerts.tsx     جرس الطلبات للّوحة كلّها: استطلاع · شارة «الطلبات» · عنوان التبويب · رنّة · إشعار النظام
     PaymentSettingsCard.tsx ربط بوابة PayLink للتاجر — المفتاح كتابةً فقط (§13)
     ApiKeysCard.tsx     مفاتيح API للتاجر — السرّ يُعرض مرة واحدة (§14)
     WebhooksCard.tsx    وجهات الويبهوك + سجل التسليم (§16)
@@ -151,6 +153,10 @@ app/src/
     import.ts           محلّل النص/CSV → DishPayload
     insights.ts         التوصيات من التحليلات
     nextStep.ts         سلّم «خطوتك التالية» فوق insights (§19)
+    orderAlerts.ts      منطق «طلب جديد»: رنّة واحدة لكل طلب · شارة حتى يُرى — دالّة خالصة (`reconcile`)
+    orderFlow.ts        حالات الطلب وأزرارها — **جدول واحد** للطلبات وشاشة الكاشير، مطابق لمراحل الزبون
+    poll.ts             `usePolling`: كل ٢٠ث والتبويب ظاهر، وتراجعٌ عند الفشل حتى ٥ دقائق
+    chime.ts            الرنّة بلا ملفّ صوت — سياق صوت واحد يفتحه زرّ «شغّل صوت الطلبات»
     starterMenus.ts     قوائم البداية حسب نوع المطعم
     founder.ts          استعلامات لوحة المؤسس + سجل التدقيق (rest() لا founderAdmin)
     storage.ts          مفاتيح localStorage/sessionStorage الموحّدة (K)
@@ -419,6 +425,8 @@ cd app && npm run typecheck
 | `cm2_loyalty_<id>` | localStorage | بطاقة ولاء الزبون محلياً |
 | `cm2_recipe_<id>` | localStorage | نصّ وصفة الطبق في الحاسبة — **على هذا الجهاز وحده** (§26) |
 | `cm2_pixel_consent` | localStorage | موافقة زبون المنيو على بكسلات التاجر — `yes`/`no` |
+| `cm2_order_sound` | localStorage | صوت الطلبات في اللوحة — `on`/`off` (تفضيل جهاز) |
+| `cm2_order_alerts_<id>` | localStorage | معرّفات طلبات رُنّ لها/رُئيت — بلا اسم ولا جوال (`lib/orderAlerts.ts`) |
 
 ---
 

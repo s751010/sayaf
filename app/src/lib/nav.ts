@@ -13,6 +13,7 @@
  * ودالّةٌ خالصة يحرسها فحص تجعل تكرار ذلك مستحيلاً بالبناء لا بالانتباه.
  */
 import type { IconName } from "@/lib/icons";
+import { badgeText } from "@/lib/orderAlerts";
 
 export type NavItem = {
   to: string;
@@ -20,6 +21,8 @@ export type NavItem = {
   icon: IconName;
   /** مطابقة تامّة للمسار (للرئيسية وحدها، وإلا بقيت نشطة في كل الأقسام). */
   end?: boolean;
+  /** شارة عدد على العنصر («3» · «9+») — `undefined` = لا شارة. */
+  badge?: string;
 };
 
 /**
@@ -65,10 +68,17 @@ export function buildDashboardNav(opts: {
   ordersOn: boolean;
   /** `null` = لم يُحسم بعد؛ فلا نومض بالعنصر ثم نخفيه. */
   founder: boolean | null;
+  /**
+   * طلبات جديدة لم يرها التاجر (`OrderAlertsProvider`). الشارة على «الطلبات»
+   * وحدها، فتظهر أينما كان في اللوحة — والصفر لا يرسم شيئاً.
+   */
+  newOrders?: number;
 }): NavItem[] {
+  const badge = badgeText(opts.newOrders ?? 0) ?? undefined;
+  const orders: NavItem = badge ? { ...ORDERS_ITEM, badge } : ORDERS_ITEM;
   const items = opts.ordersOn
     ? DASHBOARD_NAV.flatMap((n) =>
-        n.to === "/dashboard/analytics" ? [n, ORDERS_ITEM] : [n]
+        n.to === "/dashboard/analytics" ? [n, orders] : [n]
       )
     : [...DASHBOARD_NAV];
   return opts.founder === true ? [...items, FOUNDER_ITEM] : items;
