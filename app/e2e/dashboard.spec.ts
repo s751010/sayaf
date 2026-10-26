@@ -215,3 +215,34 @@ test("الطباعة: الورقة وحدها ظاهرة — وصفحةٌ أخر
   await page.goto("/demo");
   await expect(page.getByText("مطعم الديوان", { exact: false }).first()).toBeVisible();
 });
+
+/**
+ * المُنتقي يرتّب حسب نوع النشاط **ولا يطبّق شيئاً** (قرار ٢٦/١٠).
+ *
+ * المطعم هنا «مقهى» بلا وصف ⇒ مختصّ ⇒ «محمصة» أوّلاً وعليها الشارة وحدها. وعدم
+ * التطبيق يُقاس بالشبكة: صفر طلب كتابةٍ إلى `menus` من فتح الصفحة — اقتراحٌ
+ * صامت يكتب الطابع كان سيغيّر منيو التاجر أمام زبائنه وهو يتصفّح فقط.
+ */
+test("مُنتقي الطوابع: المقترح لنوع النشاط أوّلاً بشارته، ولا كتابة", async ({ page }) => {
+  const { crashes } = watch(page);
+  const writes: string[] = [];
+  page.on("request", (r) => {
+    if (r.url().includes("/rest/v1/menus") && r.method() !== "GET" && r.method() !== "HEAD") writes.push(r.method());
+  });
+  await signedIn(page);
+  await page.goto("/dashboard/design");
+
+  const section = page.locator("section").filter({ has: page.getByRole("heading", { name: "طابع منيوك" }) });
+  const first = section.locator(".grid > div").first();
+  await expect(first.getByText("محمصة", { exact: true })).toBeVisible();
+  await expect(first.getByText("يناسب نوع نشاطك")).toBeVisible();
+  await expect(section.getByText("يناسب نوع نشاطك")).toHaveCount(1);
+
+  // «شعبي» يعيد الترتيب ولا يحفظ: «نجدي» أوّلاً.
+  await section.getByRole("button", { name: "شعبي", exact: true }).click();
+  await expect(section.locator(".grid > div").first().getByText("نجدي", { exact: true })).toBeVisible();
+
+  await page.waitForTimeout(800);
+  expect(writes, "المُنتقي كتب طابعاً بلا ضغطة").toEqual([]);
+  expect(crashes, crashes.join("\n")).toEqual([]);
+});

@@ -14,6 +14,7 @@
  * - `MastheadHead` ترويسة مجلّة: خطّان، وتاريخ اليوم، والاسم بالأميري كبيراً.
  * - `ArcadeHead`   أقواس روشان: الغلاف جدارٌ تنفتح أسفله أقواس، والشعار نافذة.
  * - `MudHead`      بيت طين نجدي: جدارٌ بشُرفاته وطِرمته، وبابٌ يحمل الشعار ينفتح.
+ * - `BagHead`      وجه كيس قهوةٍ مختصّة: كرافت، وصمّام، ولاصقٌ بالاسم ومنحنى تحميص.
  *
  * والحركة كلّها في `styles/menu-skins.css` — CSS خالص، ولا تعمل إلا لمن يقبل الحركة.
  * وكلّ ما هنا يُلوَّن بـ`--m-*`، فيلبس لون علامة التاجر كما تلبسه واجهة المتجر.
@@ -506,6 +507,68 @@ export function MudHead({ restaurant, theme, corner, children }: HeadProps) {
         )}
         <Chips className="mt-4">{children}</Chips>
       </div>
+    </header>
+  );
+}
+
+/* ══ محمصة — وجه كيس قهوةٍ مختصّة ═════════════════════════════════════ */
+
+/**
+ * منحنى التحميص — حرارة الحبّة عبر الدقائق كما يرسمه برنامج المحمصة: صعودٌ
+ * سريع، ثم «نقطة الانعطاف»، ثم صعودٌ هادئ حتى «الكسر الأوّل». زخرفةٌ لا بيان:
+ * لا رقم عليه ولا محور يُقرأ، فلا يدّعي تحميصاً لم يحدث.
+ */
+const ROAST_PATH = "M2 30 C14 30 18 12 30 13 S52 21 70 16 S102 7 118 4";
+
+/**
+ * وجه الكيس: كرافت بأليافه، ولحامٌ حراريّ مخدّد في أعلاه، وصمّام التنفّس
+ * الدائري في زاويته، ولاصقٌ أبيض في وسطه بالشعار والاسم ومنحنى التحميص. وإن
+ * رفع التاجر صورة غلاف ظهرت **نافذةً في الكيس** — كأكياس البنّ التي تُري حبّها.
+ */
+export function BagHead({ restaurant, corner, children }: HeadProps) {
+  const typeLabel = restaurantTypeLabel(restaurant.type);
+  const banner = restaurant.banner_image?.trim();
+  return (
+    <header className="m-head m-head-bag relative">
+      <Corner>{corner}</Corner>
+      <div className="m-bag relative px-4 pb-6 pt-16">
+        <span aria-hidden="true" className="m-seal" />
+        <span aria-hidden="true" className="m-valve" />
+        <div className="m-label relative mx-auto max-w-sm px-5 pb-4 pt-5 text-center">
+          <LogoMark
+            restaurant={restaurant}
+            size="mx-auto h-14 w-14"
+            style={{ borderRadius: "9999px", background: "var(--m-bg)", boxShadow: "0 0 0 1px var(--m-text)" }}
+            fallbackStyle={{ color: "var(--m-text)" }}
+            letterSize="1.75rem"
+          />
+          <h1 className="m-title mt-3 text-[1.75rem] font-extrabold leading-tight" style={display}>
+            {restaurant.name}
+          </h1>
+          {typeLabel && (
+            <p className="mt-0.5 text-[13px]" style={muted}>
+              {typeLabel}
+            </p>
+          )}
+          <svg aria-hidden="true" viewBox="0 0 120 34" className="m-roast mx-auto mt-3 h-8 w-40" fill="none">
+            <path d="M2 32H118" stroke="var(--m-border)" strokeWidth="1" />
+            <path d={ROAST_PATH} stroke={ink} strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        </div>
+        {banner && (
+          <div className="m-bag-window mx-auto mt-4 max-w-sm overflow-hidden">
+            <SafeImage
+              src={banner}
+              alt=""
+              loading="eager"
+              className="h-28 w-full object-cover"
+              wrapperClassName="h-28 w-full"
+              fallback={<span />}
+            />
+          </div>
+        )}
+      </div>
+      <Chips className="mt-4 px-4">{children}</Chips>
     </header>
   );
 }

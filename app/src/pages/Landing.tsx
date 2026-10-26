@@ -6,7 +6,7 @@
  *   ١. البطل: الوعد، وتحته **منيو الزائر نفسه** — يكتب اسم مطعمه ويرفع شعاره
  *      ويختار لونه وطابعه، فيتبدّل المنيو الحقيقي في الجوّال أمامه.
  *   ٢. لماذا يبيع: أربع نتائج لا أربع مزايا.
- *   ٣. كيف يعمل: ثلاث خطوات.   ٤. الطوابع الستّة: لكلّ نوع مطعم واحد.
+ *   ٣. كيف يعمل: ثلاث خطوات.   ٤. الطوابع: اختر ما يشبه مكانك.
  *   ٥. الحاسبة: «سعراتك محسوبة، لا مكتوبة».   ٦. وفوقها.
  *   ٧. السعر.  ٨. الأسئلة.  ٩. الدعوة الأخيرة.
  *
@@ -84,7 +84,7 @@ const OUTCOMES: { icon: IconName; title: string; desc: string }[] = [
 /** ثلاث خطوات — كلٌّ منها يفعله المنتج اليوم: قراءة الصورة، والطوابع، والنشر. */
 const STEPS: { icon: IconName; title: string; desc: string }[] = [
   { icon: "image", title: "صوّر منيوك الحالي", desc: "نقرأ الأقسام والأصناف والأسعار من الصورة، وتراجعها قبل الحفظ." },
-  { icon: "palette", title: "اختر طابعك وارفع شعارك", desc: `${THEMES_LABEL}، لكلّ نوع مطعم واحد — بلون علامتك.` },
+  { icon: "palette", title: "اختر طابعك وارفع شعارك", desc: `${THEMES_LABEL}، اختر منها ما يشبه مكانك — بلون علامتك.` },
   { icon: "qr", title: "اطبع كود الطاولة", desc: "كود QR لكل طاولة، وورقة A4 بالأرقام نفسها، وملف لتطبيقات التوصيل." },
 ];
 
@@ -302,12 +302,12 @@ export default function Landing() {
         </ol>
       </section>
 
-      {/* ٤. الطوابع — لكلّ نوع مطعم واحد، بلون علامتك. */}
+      {/* ٤. الطوابع — اختر ما يشبه مكانك، بلون علامتك. */}
       <section className="border-y border-line bg-panel/60">
         <div className="mx-auto max-w-6xl px-5 py-20">
           <SectionHead
-            title={`${THEMES_LABEL} — لكلّ نوع مطعم واحد`}
-            sub="كلٌّ منها تصميمٌ كامل يلبس شعارك ولون علامتك. اضغط أيّها لتراه على منيوك أعلاه."
+            title={`${THEMES_LABEL} — اختر ما يشبه مكانك`}
+            sub="كلٌّ منها تصميمٌ كامل يلبس شعارك ولون علامتك، وتحته الأماكن التي يناسبها. اضغط أيّها لتراه على منيوك أعلاه."
           />
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {ALL_THEMES.map((t, i) => (
@@ -325,6 +325,10 @@ export default function Landing() {
                     <div className="min-w-0">
                       <p className="font-bold text-ink">{t.name}</p>
                       <p className="mt-1 text-sm leading-relaxed text-dim">{t.tagline}</p>
+                      {/* «وتحته الأماكن التي يناسبها» وعدٌ في عنوان القسم — فيُرى هنا. */}
+                      {!!t.suits?.length && (
+                        <p className="mt-1.5 text-xs font-bold text-dim">يناسب: {t.suits.join(" · ")}</p>
+                      )}
                     </div>
                     <span className="mt-0.5 shrink-0 text-xs font-bold text-gold group-hover:underline">جرّبه ↑</span>
                   </div>

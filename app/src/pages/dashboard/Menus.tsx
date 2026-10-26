@@ -26,7 +26,6 @@ import {
   reportSilentFailure,
 } from "@/lib/data";
 import {
-  DESIGN_THEMES,
   getTheme,
   isHex,
   splitThemeId,
@@ -34,6 +33,7 @@ import {
   themeIdOf,
 } from "@/lib/themes";
 import { ThemePreview } from "@/components/menu/ThemePreview";
+import { SuggestBadge, SuitsLine, ThemeOrderNote, useThemeOrder } from "@/components/ThemeSuggest";
 import { LAYOUT_OPTIONS, LayoutGlyph } from "@/components/LayoutOptions";
 import { cn } from "@/lib/utils";
 import type { Menu } from "@/lib/types";
@@ -43,6 +43,8 @@ import { Icon } from "@/lib/icons";
 
 export default function Menus() {
   const { user, restaurant, setRestaurant, menus, refreshMenus, ent } = useDashboard();
+  // يرتّب المُنتقي حسب نوع النشاط ويعلّم المقترح — لا يطبّق شيئاً (`lib/themeSuggest.ts`).
+  const themeOrder = useThemeOrder(restaurant.type);
   const toast = useToast();
   const [adding, setAdding] = useState(false);
   const [scheduling, setScheduling] = useState<Menu | null>(null);
@@ -291,12 +293,18 @@ export default function Menus() {
             <p className="mt-1 text-sm text-dim">
               كل طابع تصميم كامل — زخرفة وترويسة وتخطيط أطباق، لا لوناً فقط.
             </p>
+        <ThemeOrderNote
+          typeLabel={themeOrder.typeLabel}
+          isCafe={themeOrder.isCafe}
+          flavor={themeOrder.flavor}
+          setFlavor={themeOrder.setFlavor}
+        />
           </div>
           <PreviewMenuButton slug={restaurant.slug} label="عاين النتيجة" />
         </div>
 
         <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {DESIGN_THEMES.map((t) => {
+          {themeOrder.ordered.map((t) => {
             const on = activeBase === t.id;
             return (
               <button
@@ -313,10 +321,12 @@ export default function Menus() {
                   theme={getTheme(themeIdOf(t.id, useBrand ? brandHex : null, activeLayout))}
                 />
                 <div className={cn("px-3 py-2", on ? "bg-gold/10" : "bg-panel")}>
+                  <SuggestBadge on={t.id === themeOrder.suggested} />
                   <p className={cn("text-xs font-bold", on ? "text-gold" : "text-ink")}>
                     {t.name} {on && "✓"}
                   </p>
                   <p className="mt-0.5 text-[11px] leading-snug text-faint">{t.tagline}</p>
+                  <SuitsLine theme={t} />
                 </div>
               </button>
             );
