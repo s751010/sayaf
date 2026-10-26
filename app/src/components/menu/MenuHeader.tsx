@@ -18,7 +18,7 @@ import { isDarkTheme, type HeaderShape, type MenuTheme } from "@/lib/themes";
 import { restaurantTypeLabel } from "@/lib/menuText";
 import type { Restaurant } from "@/lib/types";
 import { LogoMark } from "./LogoMark";
-import { ArcadeHead, Corner, LetterboardHead, MastheadHead, PaperHead, PosterHead, SignHead, type HeadProps } from "./SkinHeads";
+import { ArcadeHead, Corner, LetterboardHead, MastheadHead, MudHead, PaperHead, PosterHead, SignHead, type HeadProps } from "./SkinHeads";
 
 /** الترويسات التي بنيتها غير واجهة المتجر — لكلٍّ طابعه (`SkinHeads.tsx`). */
 const SKIN_HEADS: Partial<Record<HeaderShape, ComponentType<HeadProps>>> = {
@@ -28,6 +28,7 @@ const SKIN_HEADS: Partial<Record<HeaderShape, ComponentType<HeadProps>>> = {
   sign: SignHead,
   masthead: MastheadHead,
   arcade: ArcadeHead,
+  mud: MudHead,
 };
 
 /** قوس الروشان — لطابعٍ قديم قد يكون مخزَّناً بشكل `arch`. */

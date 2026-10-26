@@ -349,10 +349,8 @@
 .m-skin-receipt {
   --m-price: var(--m-text);
 }
-.m-skin-receipt .m-price,
-.m-skin-receipt .m-name {
-  letter-spacing: 0.01em;
-}
+/* لا `letter-spacing` هنا: كان ‎.01em على `.m-name` — أسماء أطباقٍ عربية يفصل
+   التباعدُ حروفها المتّصلة (الدرس ١٢). والسعر أحاديّ العرض فلا يحتاجه. */
 .m-skin-receipt .m-price {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   font-variant-numeric: tabular-nums;
@@ -1076,5 +1074,469 @@
   }
   to {
     clip-path: inset(-40px -40px -40px -40px);
+  }
+}
+
+/* ══ لكلّ الطوابع: السعر والضغط ونافذة الطبق (٢٠٢٦/١٠/٢٦) ══════════════════
+ * قياسٌ قبلها: الأسعار مصفوفةٌ في «فاتورة» وحدها، والضغط له ردٌّ في «ملصقات»
+ * وحدها (والجوّال بلا `hover` — أكثر فعلٍ في المنيو كان بلا جواب في ثمانية)،
+ * ونافذة الطبق حركةٌ واحدة للتسعة (‎0.6 ث). الآن لكلّ طابعٍ لغته في الثلاثة.
+ */
+
+/* ── السعر: أرقامٌ مصفوفة تُمسح عموداً ──
+ * ⚠️ `tabular-nums` وحدها **لا تفعل شيئاً** هنا: طجوال (خطّ المنيو) والمراعي
+ * بلا خاصية `tnum` — قيس «1111» 20.7px مقابل «8888» 29.6px قبلها وبعدها سواء.
+ * فالأرقام بكايرو: أرقامه بعرضٍ واحد أصلاً (35.5 = 35.5)، وهو ثابتٌ في الحزمة
+ * فلا يكلّف بايتاً. والفاتورة أحاديّة العرض، والمجلّة بالأميري (أرقامه متساوية
+ * في وزن 700) — كلٌّ يغلب هذا بانتقائيّه. */
+.m-price {
+  font-family: var(--font-cairo), var(--m-font);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+/* فاخر (الحافّة المذهّبة): خيطٌ ذهبيّ قصير فوق السعر — لوحةُ سعرٍ لا رقمٌ عارٍ. */
+.m-edge-gilded .m-card .m-price:not(.m-shine),
+.m-edge-gilded .m-feature .m-price {
+  padding-top: 4px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--m-accent) 75%, transparent)) 100% 0 / 1.75rem
+    1px no-repeat;
+}
+[dir="ltr"] .m-edge-gilded .m-card .m-price:not(.m-shine),
+[dir="ltr"] .m-edge-gilded .m-feature .m-price {
+  background-image: linear-gradient(90deg, color-mix(in srgb, var(--m-accent) 75%, transparent), transparent);
+  background-position: 0 0;
+}
+/* عصري (واجهة متجرٍ بخيطٍ شعري): الرقم بالحبر والعملة بالخافت — هدوء المتجر. */
+.m-skin-store.m-edge-hairline .m-price:not(.m-shine) > span {
+  color: var(--m-muted);
+}
+/* مجلّة: السعر بخطّ العناوين — رقمُ صفحةٍ في مجلّة لا رقمُ تطبيق. */
+.m-skin-editorial .m-price {
+  font-family: var(--m-display, var(--m-font));
+  font-weight: 700;
+}
+/* روشان: معيّنٌ صغير بالطين قبل السعر — زخرفةٌ لا حرف، فلا يقرؤه قارئ الشاشة. */
+.m-skin-roshan .m-price:not(.m-shine)::before {
+  content: "";
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  margin-inline-end: 6px;
+  vertical-align: 0.2em;
+  background: var(--m-accent-2);
+  rotate: 45deg;
+}
+
+/* ── الضغط ──
+ * حالةٌ قبل أن تكون حركة: ما لا يتحرّك (ظلٌّ ينطفئ، خلفيّةٌ تُظلَّل، حافّةٌ تضيء)
+ * يُرى مع «تقليل الحركة» أيضاً؛ والتحويل وحده داخل `no-preference`. */
+.m-card,
+.m-feature {
+  -webkit-tap-highlight-color: transparent;
+}
+.m-card.m-surface:active,
+.m-feature:active {
+  --m-shadow-2: 0 0 transparent;
+}
+.m-row:active {
+  background-color: color-mix(in srgb, var(--m-text) 5%, transparent);
+}
+/* فاخر: الحافّة المذهّبة تضيء تحت الإصبع. */
+.m-edge-gilded .m-card.m-surface:active,
+.m-edge-gilded .m-feature:active {
+  --m-hairline: inset 0 0 0 1px color-mix(in srgb, var(--m-accent) 65%, transparent);
+}
+/* فاتورة: الإطار المتقطّع يُختم مصمتاً. */
+.m-skin-receipt .m-card.m-surface:active,
+.m-skin-receipt .m-feature:active {
+  border-style: solid;
+}
+/* نيون: الأنبوب يشتدّ — توهّجٌ أعلى لا وميض. */
+.m-skin-neon .m-card.m-surface:active,
+.m-skin-neon .m-feature:active {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--m-glow, var(--m-accent)) 55%, transparent),
+    0 0 34px -4px color-mix(in srgb, var(--m-glow, var(--m-accent)) 85%, transparent),
+    inset 0 0 26px -10px color-mix(in srgb, var(--m-glow, var(--m-accent)) 75%, transparent);
+}
+/* لوحة حروف: الحروف تُضغط في اللبّاد فيقصر ظلّها — لا خلفيّة تُظلَّل على لبّادٍ أسود. */
+.m-skin-letterboard .m-row:active {
+  background-color: transparent;
+}
+.m-skin-letterboard .m-card:active :is(.m-name, .m-price) {
+  text-shadow: 0 0.5px 0 rgba(0, 0, 0, 0.6);
+}
+/* مجلّة: الاسم يُسطَّر كرابطٍ في صفحة، والخيط حول الصورة يضيق. */
+.m-skin-editorial .m-row:active {
+  background-color: transparent;
+}
+.m-skin-editorial .m-card:active .m-name {
+  text-decoration: underline 1px;
+  text-underline-offset: 0.3em;
+}
+.m-skin-editorial .m-card:active .m-img {
+  outline-offset: 0;
+}
+/* روشان: النافذة يُسدَل عليها ظلّ — كدرفةٍ تُوارب. */
+.m-skin-roshan .m-card:active .m-img {
+  filter: brightness(0.9);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .m-card.m-surface,
+  .m-feature {
+    transition:
+      transform 0.16s cubic-bezier(0.2, 0.8, 0.2, 1),
+      translate 0.16s ease,
+      box-shadow 0.16s ease;
+  }
+  .m-row {
+    transition:
+      opacity 0.15s ease,
+      background-color 0.12s ease,
+      transform 0.16s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .m-card.m-surface:active,
+  .m-feature:active {
+    transform: scale(0.98);
+  }
+  .m-chips > :active {
+    transform: scale(0.96);
+  }
+  /* الفاتورة ولوحة الحروف والروشان تنزل ولا تصغر: ورقٌ يُضغط، وحرفٌ يُدسّ،
+     ونافذةٌ تُوارب. */
+  .m-skin-receipt .m-card:active,
+  .m-skin-letterboard .m-card:active {
+    transform: translateY(1px);
+  }
+  .m-skin-roshan .m-card.m-surface:active {
+    transform: translateY(2px);
+  }
+  .m-skin-roshan .m-card .m-img {
+    transition: filter 0.16s ease;
+  }
+}
+
+/* ── نافذة الطبق: تنفتح بحركة طابعها، ≤ ‎320ms ──
+ * ‏`backwards` لا `both`: بعد انتهائها لا يبقى قصٌّ ولا تحويلٌ على نافذةٍ تُمرَّر
+ * وتُركَّز. والانتقائيّ `.m-sheet.anim-fade-up` يغلب `.anim-fade-up` العامّ
+ * (‎0.6 ث) أيّاً كان ترتيب الملفّين. */
+@media (prefers-reduced-motion: no-preference) {
+  .m-sheet.anim-fade-up {
+    animation: m-sheet-rise 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  }
+  .m-edge-gilded .m-sheet.anim-fade-up {
+    animation: m-sheet-gild 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  }
+  .m-skin-receipt .m-sheet.anim-fade-up {
+    animation: m-print 0.3s steps(6, end) backwards;
+  }
+  .m-skin-neon .m-sheet.anim-fade-up {
+    /* الأنبوب يعلق: سطوعٌ يصعد بدرجاتٍ ولا يهبط — صعودٌ لا وميض. */
+    animation: m-sheet-power 0.26s steps(4, jump-none) backwards;
+  }
+  .m-skin-sticker .m-sheet.anim-fade-up {
+    animation: m-sheet-slap 0.3s cubic-bezier(0.3, 1.5, 0.5, 1) backwards;
+  }
+  .m-skin-letterboard .m-sheet.anim-fade-up {
+    animation: m-sheet-slot 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  }
+  .m-skin-letterboard[dir="ltr"] .m-sheet.anim-fade-up {
+    animation-name: m-sheet-slot-ltr;
+  }
+  .m-skin-editorial .m-sheet.anim-fade-up {
+    animation: m-unveil 0.3s cubic-bezier(0.6, 0, 0.2, 1) backwards;
+  }
+  .m-skin-roshan .m-sheet.anim-fade-up {
+    animation: m-shutter 0.3s cubic-bezier(0.6, 0, 0.2, 1) backwards;
+  }
+  .m-skin-najdi .m-sheet.anim-fade-up {
+    transform-origin: right center;
+    animation: m-sheet-door 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  }
+  .m-skin-najdi[dir="ltr"] .m-sheet.anim-fade-up {
+    transform-origin: left center;
+    animation-name: m-sheet-door-ltr;
+  }
+}
+
+@keyframes m-sheet-rise {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+@keyframes m-sheet-gild {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.985);
+  }
+}
+@keyframes m-sheet-power {
+  from {
+    opacity: 0.15;
+    transform: scale(0.97);
+  }
+}
+@keyframes m-sheet-slap {
+  from {
+    opacity: 0;
+    transform: scale(1.06) rotate(-2deg);
+  }
+}
+@keyframes m-sheet-slot {
+  from {
+    opacity: 0;
+    transform: translateX(-28px);
+  }
+}
+@keyframes m-sheet-slot-ltr {
+  from {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+}
+/* مصراعٌ على مفصّله في أوّل السطر — الباب النجديّ نفسه الذي في الترويسة. */
+@keyframes m-sheet-door {
+  from {
+    opacity: 0;
+    transform: perspective(1000px) rotateY(-14deg);
+  }
+}
+@keyframes m-sheet-door-ltr {
+  from {
+    opacity: 0;
+    transform: perspective(1000px) rotateY(14deg);
+  }
+}
+
+/* ══ تراثي — بيت طين نجدي (٢٠٢٦/١٠/٢٦) ════════════════════════════════════
+ * كان واجهة متجرٍ بشريط سدو، وأوّل شاشته تطابق «عصري». الآن **بيتٌ**: جدارُ طينٍ
+ * بلِياسته وتبنه، وشُرفاتٌ مدرّجة على حافّته، وصفّ «طِرمة» (فتحات تهوية مثلّثة)،
+ * وبابٌ نجديّ بلون العلامة ينفتح مصراعاه عن الشعار، والسدو عتبة. وفي المنيو:
+ * بطاقاتٌ ألواحُ لِياسة، وعناوين أقسامٍ تحت طِرمةٍ تُبنى، وصورُ أقسامٍ بشُرفات.
+ *
+ * ⚠️ **لا لون جديد**: الطين `--m-bg-2` مخلوطاً بـ`--m-text`، والخشب عكسه، والحبيبة
+ * ضوءٌ وظلّ بلا صبغة. وقيم الطابع نفسها لم تُمسّ (بصمة التسعة المجمّدة).
+ */
+.m-skin-najdi {
+  --m-mud: color-mix(in srgb, var(--m-bg-2) 80%, var(--m-text));
+  --m-wood: color-mix(in srgb, var(--m-text) 72%, var(--m-bg-2));
+  /* حبيبة اللِّياسة: ضجيجٌ أسود بشفافية — يُعتم ولا يصبغ. */
+  --m-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.32'/%3E%3C/svg%3E");
+  /* شُرفةٌ مدرّجة: ثلاث درجاتٍ إلى قمّة — كما تُبنى على سطوح الطين في نجد. */
+  --m-crenel-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='14'%3E%3Cpath d='M3 14V10H7V6H11V2H17V6H21V10H25V14Z'/%3E%3C/svg%3E");
+  /* الطِّرمة: مثلّثٌ قائم — فتحة التهوية في الجدار. */
+  --m-vent-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Cpath d='M1 12L6 1L11 12Z'/%3E%3C/svg%3E");
+}
+
+/* الجدار */
+.m-mud {
+  background-color: var(--m-mud);
+  background-image:
+    var(--m-grain),
+    repeating-linear-gradient(97deg, transparent 0 13px, rgba(255, 255, 255, 0.07) 13px 14px, transparent 14px 31px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1), transparent 45%, rgba(0, 0, 0, 0.12));
+  background-size: 180px 180px, auto, auto;
+}
+/* الشُّرفات فوق الجدار — بلونه وحبيبته، على سماء الصفحة. */
+.m-crenel {
+  position: absolute;
+  inset-inline: 0;
+  bottom: calc(100% - 1px);
+  height: 14px;
+  background-color: var(--m-mud);
+  background-image: var(--m-grain);
+  -webkit-mask: var(--m-crenel-mask) 50% 100% / 28px 14px repeat-x;
+  mask: var(--m-crenel-mask) 50% 100% / 28px 14px repeat-x;
+}
+/* الطِّرمة: صفّ فتحاتٍ داكنة. على الجدار أعلاه، وفي عناوين الأقسام فوق السدو. */
+.m-skin-najdi .m-vents {
+  display: block;
+  height: 12px;
+  background-color: color-mix(in srgb, var(--m-text) 62%, var(--m-bg-2));
+  -webkit-mask: var(--m-vent-mask) 50% 0 / 12px 12px space no-repeat;
+  mask: var(--m-vent-mask) 50% 0 / 12px 12px space no-repeat;
+}
+.m-skin-najdi .m-h .m-vents {
+  width: min(13rem, 70%);
+  margin: 0 auto 8px;
+}
+.m-vents-wall {
+  position: absolute;
+  top: 16px;
+  inset-inline: 5%;
+}
+@media (min-width: 640px) {
+  .m-vents-wall {
+    inset-inline: 14%;
+  }
+}
+/* على الجدار تنقطع الطِّرمة عند الباب (فجوةٌ بعرضه وإطاره) — لا تمرّ خلف المثلّث فوقه. */
+.m-skin-najdi .m-vents-wall {
+  background-color: color-mix(in srgb, var(--m-text) 78%, var(--m-mud));
+  -webkit-mask:
+    var(--m-vent-mask) 50% 0 / 12px 12px space no-repeat,
+    linear-gradient(90deg, #000 calc(50% - 5.25rem), transparent 0 calc(50% + 5.25rem), #000 0);
+  -webkit-mask-composite: source-in;
+  mask:
+    var(--m-vent-mask) 50% 0 / 12px 12px space no-repeat,
+    linear-gradient(90deg, #000 calc(50% - 5.25rem), transparent 0 calc(50% + 5.25rem), #000 0);
+  mask-composite: intersect;
+}
+
+/* الباب: إطارُ خشبٍ ومثلّثٌ فوقه، والمدخل داكنٌ يظهر فيه الشعار. */
+.m-door {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  translate: -50% 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  width: 7rem;
+  height: 8.5rem;
+  padding-top: 1.25rem;
+  background: color-mix(in srgb, var(--m-text) 88%, #000);
+  border-radius: 3px 3px 0 0;
+  box-shadow:
+    0 0 0 6px var(--m-wood),
+    0 0 0 7px color-mix(in srgb, var(--m-text) 85%, transparent);
+  perspective: 520px;
+}
+.m-door::before {
+  content: "";
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: -10px;
+  right: -10px;
+  height: 20px;
+  background: var(--m-wood);
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+@media (min-width: 640px) {
+  .m-door {
+    width: 8rem;
+    height: 10rem;
+    padding-top: 1.75rem;
+  }
+}
+/* المصراعان: مفتوحان في الحالة الساكنة — من لا يقبل الحركة يرى الباب مفتوحاً
+   والشعار فيه، لا باباً مغلقاً ينتظر. */
+.m-leaf {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50%;
+  box-shadow:
+    inset 0 0 0 2px color-mix(in srgb, var(--m-text) 35%, transparent),
+    inset 0 0 0 6px color-mix(in srgb, #fff 10%, transparent);
+  backface-visibility: visible;
+}
+.m-leaf-start {
+  right: 0;
+  transform-origin: right center;
+  transform: rotateY(74deg);
+}
+.m-leaf-end {
+  left: 0;
+  transform-origin: left center;
+  transform: rotateY(-74deg);
+}
+
+/* البطاقات ألواحُ لِياسة: الحبيبة تحت المحتوى (`isolation` + طبقةٌ سالبة) — لا
+   فوق الصورة، ولا مكان `background` المضمَّن الذي يحمل لون السطح. */
+.m-skin-najdi .m-card.m-surface,
+.m-skin-najdi .m-feature {
+  isolation: isolate;
+}
+.m-skin-najdi .m-card.m-surface::before,
+.m-skin-najdi .m-feature::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: var(--m-grain);
+  background-size: 180px 180px;
+  opacity: 0.45;
+}
+.m-skin-najdi .m-feature {
+  position: relative;
+}
+/* حافّة الطين: ضوءٌ على الحافّة العليا وثِقلٌ في السفلى — لوحٌ مُلَيَّس لا بطاقة تطبيق. */
+.m-skin-najdi.m-edge-hairline {
+  --m-hairline: inset 0 1px 0 rgba(255, 255, 255, 0.65), inset 0 -2px 0 color-mix(in srgb, var(--m-text) 8%, transparent);
+}
+.m-skin-najdi .m-card.m-surface:active,
+.m-skin-najdi .m-feature:active {
+  --m-hairline: inset 0 2px 7px color-mix(in srgb, var(--m-text) 18%, transparent);
+}
+/* السعر على عتبةٍ بلون الباب. */
+.m-skin-najdi .m-price:not(.m-shine) {
+  /* ‏`fit-content`: سعر «طبق اليوم» فقرةٌ لا سطر، فكانت العتبة تمتدّ بعرض البطاقة. */
+  width: fit-content;
+  padding-bottom: 3px;
+  background: linear-gradient(var(--m-accent), var(--m-accent)) 0 100% / 100% 2px no-repeat;
+}
+/* الشرائح ألواحٌ صغيرة بزوايا يد البنّاء، لا أقراص تطبيق. */
+.m-skin-najdi .m-chips > * {
+  border-radius: 0.55rem;
+}
+.m-skin-najdi .m-tab {
+  border-radius: 0.5rem;
+}
+/* صورة القسم بشُرفاتٍ على حافّتها العليا: البيت يطلّ على الصورة. */
+.m-skin-najdi .m-h .m-img {
+  -webkit-mask:
+    var(--m-crenel-mask) 50% 0 / 28px 14px repeat-x,
+    linear-gradient(#000 0 0) 0 13px / 100% calc(100% - 13px) no-repeat;
+  mask:
+    var(--m-crenel-mask) 50% 0 / 28px 14px repeat-x,
+    linear-gradient(#000 0 0) 0 13px / 100% calc(100% - 13px) no-repeat;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* الشُّرفات تُبنى مدماكاً مدماكاً، ثم ينفتح الباب عن الشعار، ثم يصعد الاسم. */
+  .m-skin-najdi .m-crenel {
+    animation: m-build 0.6s steps(4, end) 0.05s both;
+  }
+  .m-skin-najdi .m-leaf-start {
+    animation: m-door-start 1s cubic-bezier(0.6, 0, 0.2, 1) 0.35s both;
+  }
+  .m-skin-najdi .m-leaf-end {
+    animation: m-door-end 1s cubic-bezier(0.6, 0, 0.2, 1) 0.35s both;
+  }
+  .m-skin-najdi .m-head-mud .m-title {
+    animation: m-rise 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) 0.55s both;
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    /* طِرمة القسم تُبنى حين يدخل — بدرجاتٍ كالمداميك، لا انسياباً. */
+    .m-skin-najdi .m-h .m-vents {
+      animation: m-build steps(3, end) both;
+      animation-timeline: view();
+      animation-range: entry 20% cover 30%;
+    }
+  }
+}
+
+@keyframes m-build {
+  from {
+    clip-path: inset(100% 0 0 0);
+  }
+  to {
+    clip-path: inset(0);
+  }
+}
+@keyframes m-door-start {
+  from {
+    transform: rotateY(0deg);
+  }
+}
+@keyframes m-door-end {
+  from {
+    transform: rotateY(0deg);
   }
 }

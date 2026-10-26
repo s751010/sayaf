@@ -12,7 +12,16 @@ import { ThemeToggle } from "@/components/ui";
 import { SupportWhatsAppButton } from "@/components/SupportWhatsApp";
 import { Icon } from "@/lib/icons";
 
-export function Logo({ compact }: { compact?: boolean }) {
+/**
+ * شعار المنصّة.
+ *
+ * `tone="menu"` لتوقيع ذيل المنيو: هناك يعيش الشعار فوق طابع التاجر لا فوق
+ * لوحة المنصّة، فيأخذ لونه من `--m-*`. كان `text-ink` (حبر المنصّة الفاتحة)
+ * فيختفي «كلاود» على الطوابع الداكنة (تباين 1.01 على «فاخر»).
+ * ولا `tracking-tight`: تباعد الأحرف — موجباً أو سالباً — ممنوعٌ على العربي.
+ */
+export function Logo({ compact, tone = "site" }: { compact?: boolean; tone?: "site" | "menu" }) {
+  const menu = tone === "menu";
   return (
     <span className="inline-flex select-none items-center gap-2">
       <svg viewBox="0 0 48 48" className="h-9 w-9" aria-hidden="true">
@@ -30,8 +39,18 @@ export function Logo({ compact }: { compact?: boolean }) {
         <rect x="19" y="38" width="10" height="2.6" rx="1.3" fill="url(#lg)" opacity=".55" />
       </svg>
       {!compact && (
-        <span className="font-display text-lg font-black tracking-tight text-ink">
-          كلاود<span className="text-gold"> منيو</span>
+        <span
+          className={cn("font-display text-lg font-black", !menu && "text-ink")}
+          style={menu ? { color: "var(--m-text)" } : undefined}
+        >
+          كلاود
+          <span
+            className={menu ? undefined : "text-gold"}
+            style={menu ? { color: "var(--m-accent-ink, var(--m-accent))" } : undefined}
+          >
+            {" "}
+            منيو
+          </span>
         </span>
       )}
     </span>

@@ -13,6 +13,7 @@
  * - `SignHead`        لافتة نيون على جدار طوب: الاسم أنبوبٌ يشتعل.
  * - `MastheadHead` ترويسة مجلّة: خطّان، وتاريخ اليوم، والاسم بالأميري كبيراً.
  * - `ArcadeHead`   أقواس روشان: الغلاف جدارٌ تنفتح أسفله أقواس، والشعار نافذة.
+ * - `MudHead`      بيت طين نجدي: جدارٌ بشُرفاته وطِرمته، وبابٌ يحمل الشعار ينفتح.
  *
  * والحركة كلّها في `styles/menu-skins.css` — CSS خالص، ولا تعمل إلا لمن يقبل الحركة.
  * وكلّ ما هنا يُلوَّن بـ`--m-*`، فيلبس لون علامة التاجر كما تلبسه واجهة المتجر.
@@ -417,6 +418,85 @@ export function ArcadeHead({ restaurant, theme, corner, children }: HeadProps) {
           />
         </div>
         <h1 className="m-title mt-4 text-[2.1rem] font-bold leading-tight sm:text-[2.6rem]" style={display}>
+          {restaurant.name}
+        </h1>
+        {typeLabel && (
+          <p className="mt-1 text-sm" style={muted}>
+            {typeLabel}
+          </p>
+        )}
+        <Chips className="mt-4">{children}</Chips>
+      </div>
+    </header>
+  );
+}
+
+/* ══ تراثي — بيت طين نجدي ══════════════════════════════════════════════ */
+
+/**
+ * جدار طينٍ نجديّ: لِياسةٌ بحبيبتها، وشُرفاتٌ مدرّجة على حافّته العليا، وصفّ
+ * «طِرمة» (فتحات التهوية المثلّثة)، وفي وسطه **بابٌ نجديّ بلون العلامة** يحمل
+ * الشعار في مدخله — ينفتح مصراعاه مرّةً عند الفتح. والسدو عتبةٌ تحت الجدار.
+ *
+ * الطين والخشب **مشتقّان** في CSS من `--m-bg-2` و`--m-text` (`color-mix`)، فلا
+ * لون جديد؛ والباب وحده بلون التمييز — لون التاجر إن اختاره.
+ */
+export function MudHead({ restaurant, theme, corner, children }: HeadProps) {
+  const typeLabel = restaurantTypeLabel(restaurant.type);
+  const banner = restaurant.banner_image?.trim();
+  const accent = theme.vars["--m-accent"] ?? "#1f7a72";
+  const onAccent = theme.vars["--m-on-accent"] ?? "#ffffff";
+  // نقش المصراعين: مثلّثات السدو بلون الكتابة على التمييز، خفيفةً كالدهان القديم.
+  const leaf: CSSProperties = {
+    backgroundColor: "var(--m-accent)",
+    backgroundImage: patternImage("sadu", onAccent, 0.22),
+    backgroundSize: "26px 26px",
+  };
+  return (
+    <header className="m-head m-head-mud relative pt-3.5">
+      <Corner>{corner}</Corner>
+      <div className="m-cover m-mud relative h-44 w-full sm:h-56">
+        {banner && (
+          <SafeImage
+            src={banner}
+            alt=""
+            loading="eager"
+            className="h-full w-full object-cover"
+            wrapperClassName="absolute inset-0"
+            fallback={<span />}
+          />
+        )}
+        <span aria-hidden="true" className="m-crenel" />
+        <span aria-hidden="true" className="m-vents m-vents-wall" />
+        <div className="m-door">
+          <LogoMark
+            restaurant={restaurant}
+            size="relative z-[1] h-[4.25rem] w-[4.25rem]"
+            style={{
+              borderRadius: "9999px",
+              background: "var(--m-bg-2)",
+              boxShadow: "0 0 0 3px var(--m-accent), 0 10px 20px -8px rgba(0,0,0,.6)",
+            }}
+            fallbackStyle={{ background: "linear-gradient(var(--m-surface), var(--m-surface)), var(--m-bg)", color: ink }}
+            letterSize="2.25rem"
+          />
+          <span aria-hidden="true" className="m-leaf m-leaf-start" style={leaf} />
+          <span aria-hidden="true" className="m-leaf m-leaf-end" style={leaf} />
+        </div>
+      </div>
+      <div
+        aria-hidden="true"
+        className="m-threshold h-5"
+        style={{
+          backgroundColor: "var(--m-bg-2)",
+          backgroundImage: patternImage("sadu", accent, 1),
+          backgroundSize: "44px 44px",
+          backgroundPosition: "center",
+          borderBlock: "2px solid var(--m-accent)",
+        }}
+      />
+      <div className="mx-auto max-w-3xl px-4 text-center">
+        <h1 className="m-title mt-5 text-[1.9rem] font-bold leading-tight sm:text-[2.3rem]" style={display}>
           {restaurant.name}
         </h1>
         {typeLabel && (

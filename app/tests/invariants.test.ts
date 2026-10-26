@@ -14,6 +14,7 @@ import { checkPassword, MIN_PASSWORD } from "@/lib/password";
 import { burnMinutes, isHighSodium, isSfdaCompliant } from "@/lib/nutrition";
 import { aliasType } from "@/lib/starterMenus";
 import { itemsLabel, sectionCover } from "@/components/menu/SectionHeading";
+import { monogramOf } from "@/components/menu/LogoMark";
 
 /** تباين WCAG بين لونين سداسيّين. */
 function ratio(a: string, b: string): number {
@@ -37,26 +38,46 @@ describe("ثابت §18 — ألوان الطوابع", () => {
    * اللقطة **مجموع تجزئة** لا قائمة: قائمةٌ بمئة قيمة تُقرأ ولا تُراجَع، أما
    * رقم واحد يتغيّر فيوقف الدفعة ويجبر على السؤال «هل قصدتَ هذا؟».
    */
-  function fingerprint(): string {
+  function fingerprint(themes: { id: string; vars: Record<string, string> }[]): string {
     let h = 0;
-    for (const t of ALL_THEMES) {
+    for (const t of themes) {
       const line = t.id + "|" + Object.entries(t.vars).sort().map(([k, v]) => `${k}=${v}`).join(",");
       for (let i = 0; i < line.length; i++) h = (Math.imul(31, h) + line.charCodeAt(i)) | 0;
     }
     return (h >>> 0).toString(16);
   }
 
-  it("بصمة الألوان لم تتغيّر", () => {
-    // عند تغيير طابع **عن قصد**: شغّل الفحص، خذ الرقم الجديد من رسالة الفشل،
-    // وحدّثه هنا في نفس الدفعة — فيبقى التغيير مرئياً في المراجعة.
-    // حُدّثت مع إضافة «بحري» و«مجلس» (٢٠٢٦-٠٨-٢٠) — إضافة طابعين جديدين،
-    // لا تغيير قيمة في أي طابع قائم.
-    // ثم ٢٠٢٦-١٠-٢١: **٢١ ⇒ ٦ بقرار مكتوب** (docs/design.md §18). `dark-gold`
-    // بقيمه حرفياً، والمحذوف يُردّ إلى أقرب باقٍ بلونه (الفحص التالي).
-    // ثم اليوم نفسه: **٦ ⇒ ٨** — خمسة طوابع بنيتها جديدة (فاتورة · نيون ·
-    // سبّورة · مجلّة · روشان) مكان ثلاثة كانت ألواناً. `dark-gold` بقيمه حرفياً.
-    // ثم **٨ ⇒ ٩**: السبّورة صارت «لوحة حروف»، وجاء «ملصقات» لمحلّ الشاي.
-    expect(fingerprint()).toBe("54082e2b");
+  /**
+   * ═══ بصمتان لا بصمة واحدة (٢٠٢٦/١٠/٢٦) ═══
+   *
+   * كانت مجموعاً متدحرجاً على `ALL_THEMES` كلّها، فإضافة طابعٍ **توجب** إعادة
+   * الأساس — وفي الدفعة نفسها يختبئ تغييرٌ غير مقصود لقيمةٍ قائمة، لأن الرقم
+   * الجديد يُنسخ من رسالة الفشل بلا سؤال.
+   *
+   * الآن: التسعة **مجمّدة** بترتيبها وبصمتها التاريخية نفسها (`54082e2b` —
+   * القيمة التي حملها هذا الفحص منذ «٨ ⇒ ٩»، بلا تغيير)، ولا يُحدَّث هذا الرقم
+   * إلا بقرار مالكٍ مكتوب. وكلّ طابعٍ يُضاف بعدها له **بصمته وحده** في
+   * `ADDED` — فإضافة طابع لا تلمس بصمة التسعة أبداً.
+   */
+  const FROZEN = ["dark-gold", "receipt", "neon", "sticker", "letterboard", "editorial", "roshan", "najdi", "modern"];
+  const ADDED: Record<string, string> = {};
+
+  it("بصمة التسعة المجمّدة لم تتغيّر", () => {
+    // سجلّ هذا الرقم: «بحري» و«مجلس» (٢٠٢٦-٠٨-٢٠) · **٢١ ⇒ ٦** بقرار مكتوب
+    // (docs/design.md §18) · **٦ ⇒ ٨** · **٨ ⇒ ٩** (٢٠٢٦-١٠-٢١). وفي كلّها
+    // `dark-gold` بقيمه حرفياً، والمحذوف يُردّ إلى أقرب باقٍ بلونه.
+    const nine = FROZEN.map((id) => ALL_THEMES.find((t) => t.id === id));
+    expect(nine.every(Boolean), "طابعٌ من التسعة اختفى").toBe(true);
+    expect(fingerprint(nine as typeof ALL_THEMES)).toBe("54082e2b");
+  });
+
+  it("كلّ طابعٍ بعد التسعة له بصمته وحده", () => {
+    // طابعٌ جديد: شغّل الفحص، وأضف سطره إلى `ADDED` من رسالة الفشل — سطرٌ
+    // جديد في المراجعة، لا رقمٌ قديم تغيّر.
+    for (const t of ALL_THEMES.filter((x) => !FROZEN.includes(x.id))) {
+      expect(fingerprint([t]), `«${t.id}» بلا بصمة في ADDED`).toBe(ADDED[t.id]);
+    }
+    expect(Object.keys(ADDED).every((id) => ALL_THEMES.some((t) => t.id === id))).toBe(true);
   });
 
   it("عدد الطوابع كما تعلنه الصفحات", () => {
@@ -228,6 +249,58 @@ describe("خامات الطوابع — البنية والـCSS معاً", () =
     expect(splitThemeId("neon:#ff3d81:deck").layout).toBe("deck");
     expect(getTheme("modern:deck").design.layout).toBe("deck");
     expect(getTheme("neon").design.layout).toBe("deck");
+  });
+});
+
+describe("حرف الشعار — لا يلتقط واو العطف", () => {
+  // «مطبخ ومشويات الديوان» كانت تعطي «و» وتُقرأ «9» في ثلاثة طوابع (الجودة ٢٦/١٠).
+  it.each([
+    ["مطعم الديوان", "د"],
+    ["مطبخ ومشويات الديوان للمأكولات الشعبية", "د"],
+    ["مطعم وكافيه الورد", "و"],
+    ["مشويات والديوان", "د"],
+    // واوٌ تبدأ اسماً حقيقياً تبقى: «وليد» ليست «و» + «ليد».
+    ["مطعم وليد", "و"],
+    ["ورد", "و"],
+    ["The Kitchen", "T"],
+  ])("«%s» ⇒ «%s»", (name, ch) => {
+    expect(monogramOf(name)).toBe(ch);
+  });
+});
+
+describe("الطوابع الثلاث بعد الرفع — الضغط والسعر والنافذة (٢٠٢٦/١٠/٢٦)", () => {
+  const css = readFileSync(fileURLToPath(new URL("../src/styles/menu-skins.css", import.meta.url)), "utf8");
+
+  it("أرقام السعر من خطٍّ أرقامه بعرضٍ واحد — لا `tabular-nums` على خطٍّ بلا `tnum`", () => {
+    // طجوال والمراعي بلا `tnum`: الخاصية وحدها لا تصفّ رقماً (قيس 20.7 مقابل 29.6).
+    expect(css).toMatch(/\.m-price \{\s*font-family: var\(--font-cairo\)/);
+  });
+
+  it.each(["receipt", "neon", "sticker", "letterboard", "editorial", "roshan", "najdi"])(
+    "«%s» له حركة نافذةٍ خاصّة داخل `no-preference`",
+    (skin) => {
+      const block = css.split("@media (prefers-reduced-motion: no-preference)").slice(1).join("");
+      expect(block).toContain(`.m-skin-${skin} .m-sheet.anim-fade-up`);
+    }
+  );
+
+  it("مدّة كل حركة نافذة ≤ 320ms", () => {
+    const ms = [...css.matchAll(/\.m-sheet\.anim-fade-up \{[^}]*animation:\s*[\w-]+ ([\d.]+)s/g)].map((m) => Number(m[1]) * 1000);
+    expect(ms.length).toBeGreaterThanOrEqual(9);
+    for (const v of ms) expect(v).toBeLessThanOrEqual(320);
+  });
+
+  it("الضغط: التحويل داخل `no-preference` وحده", () => {
+    // خارجها: ظلٌّ وخلفيّةٌ وحافّة — حالةٌ تُرى مع «تقليل الحركة» بلا حركة.
+    const start = css.indexOf("── الضغط ──");
+    expect(start).toBeGreaterThan(0);
+    const before = css.slice(start, css.indexOf("@media (prefers-reduced-motion: no-preference)", start));
+    expect(before).toContain(":active");
+    expect(before).not.toMatch(/:active[^{]*\{[^}]*transform:/);
+  });
+
+  it("لا `letter-spacing` على اسم الطبق", () => {
+    expect(css).not.toMatch(/\.m-name[^{]*\{[^}]*letter-spacing/);
   });
 });
 

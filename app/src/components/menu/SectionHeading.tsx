@@ -351,6 +351,10 @@ export function SectionHeading({
             style={{ borderRadius: "var(--m-radius) var(--m-radius) 0 0" }}
           />
         )}
+        {/* «طِرمة»: صفّ فتحات التهوية المثلّثة في جدار الطين النجدي فوق الشريط —
+            خطافٌ يرسمه `menu-skins.css` (`.m-skin-najdi .m-vents`)، وبالصورة
+            تحلّ محلّه الشُّرفات على حافّتها العليا. */}
+        {!photo && <span aria-hidden="true" className="m-vents" />}
         <div
           className="m-sadu-band flex items-center justify-center py-2"
           style={{
@@ -422,7 +426,7 @@ export function SectionHeading({
     return (
       <div className="mb-4 flex items-center gap-3">
         <span className="h-px flex-1" style={{ background: "var(--m-border)" }} />
-        <h2 className="text-lg font-black tracking-wide" style={{ ...dFont, ...text }}>
+        <h2 className="text-lg font-black" style={{ ...dFont, ...text }}>
           {name}
         </h2>
         <span className="h-px flex-1" style={{ background: "var(--m-border)" }} />

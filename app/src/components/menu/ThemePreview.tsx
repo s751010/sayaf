@@ -211,6 +211,43 @@ function RoshanMini({ theme }: { theme: MenuTheme }) {
   );
 }
 
+/** تراثي: جدار طينٍ بشُرفاته، وبابٌ بلون العلامة في وسطه، والسدو عتبة. */
+function NajdiMini({ v }: { v: Record<string, string> }) {
+  const mud = `color-mix(in srgb, ${v["--m-bg-2"]} 80%, ${v["--m-text"]})`;
+  const crenel =
+    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='7'%3E%3Cpath d='M1 7V5H3V3H5V1H9V3H11V5H13V7Z'/%3E%3C/svg%3E\") 0 0 / 14px 7px repeat-x";
+  const card: CSSProperties = {
+    background: v["--m-surface"],
+    boxShadow: `inset 0 0 0 1px ${v["--m-border"]}`,
+    borderRadius: "4px",
+  };
+  return (
+    <div className="relative h-28 overflow-hidden" style={{ background: v["--m-bg"] }} aria-hidden="true">
+      <span className="absolute inset-x-0 top-1 h-[7px]" style={{ background: mud, WebkitMask: crenel, mask: crenel }} />
+      <div className="absolute inset-x-0 top-2 h-10" style={{ background: mud }}>
+        <span
+          className="absolute bottom-0 left-1/2 h-7 w-6 -translate-x-1/2"
+          style={{ background: v["--m-accent"], boxShadow: `0 0 0 2px color-mix(in srgb, ${v["--m-text"]} 55%, ${v["--m-bg-2"]})` }}
+        />
+      </div>
+      <span
+        className="absolute inset-x-0 top-12 h-2"
+        style={{
+          backgroundColor: v["--m-bg-2"],
+          backgroundImage: patternImage("sadu", v["--m-accent"], 1),
+          backgroundSize: "20px 20px",
+          borderBlock: `1px solid ${v["--m-accent"]}`,
+        }}
+      />
+      <span className="absolute left-1/2 top-[3.9rem] h-1.5 w-14 -translate-x-1/2 rounded-full" style={{ background: v["--m-text"], opacity: 0.8 }} />
+      <span className="absolute inset-x-2.5 bottom-2 flex gap-1.5">
+        <span className="h-7 flex-1" style={card} />
+        <span className="h-7 flex-1" style={card} />
+      </span>
+    </div>
+  );
+}
+
 function StoreMini({ theme }: { theme: MenuTheme }) {
   const v = theme.vars;
   const { pattern, header, layout } = theme.design;
@@ -303,6 +340,8 @@ export function ThemePreview({ theme }: { theme: MenuTheme }) {
       return <EditorialMini v={v} />;
     case "roshan":
       return <RoshanMini theme={theme} />;
+    case "najdi":
+      return <NajdiMini v={v} />;
     default:
       return <StoreMini theme={theme} />;
   }
