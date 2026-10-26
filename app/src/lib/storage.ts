@@ -43,6 +43,12 @@ export const K = {
    * يدفع إلى «قبول» لا يُقصد، وتلك ليست موافقة.
    */
   PIXEL_CONSENT: "cm2_pixel_consent",
+  /**
+   * أخفى التاجر بطاقة «اربط منيوك بقوقل ماب» في صفحة الأكواد — localStorage،
+   * القيمة `1`. محلي عمداً كإخفاء الإعلانات: نصيحةٌ لا حالة حساب، ولا تستحقّ
+   * عموداً ولا نداءً.
+   */
+  MAPS_TIP_DISMISSED: "cm2_maps_tip",
 } as const;
 
 function store(session: boolean): Storage | null {
