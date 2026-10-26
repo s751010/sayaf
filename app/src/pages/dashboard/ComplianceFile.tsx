@@ -22,6 +22,7 @@ import {
   buildComplianceFile,
   ESTIMATE_NOTE,
   FILE_TITLE,
+  NOT_ENTERED_NOTE,
   fileDate,
   NOT_ENTERED,
   type ComplianceDish,
@@ -47,7 +48,9 @@ export default function ComplianceFile() {
   }, [restaurant.id]);
 
   useEffect(() => {
-    document.title = "ملفّ الامتثال — كلاود منيو";
+    // Chrome يقترح عنوان الصفحة اسماً لملفّ PDF — فلا «امتثال» ولا اسمنا في
+    // ملفٍّ يسلّمه التاجر للمفتّش (مراجعة الأمن).
+    document.title = `${FILE_TITLE} — ${restaurant.name}`;
     load();
   }, [load]);
 
@@ -84,7 +87,7 @@ export default function ComplianceFile() {
           <h1 className="mt-1 font-display text-2xl font-black text-ink">ملفّ الامتثال</h1>
           <p className="mt-1 max-w-xl text-sm text-dim">
             جدولٌ بأرقام كل طبق في قوائمك المفعّلة، لمفتّش الهيئة — اطبعه أو احفظه PDF. ما لم تُدخله
-            يظهر «غير مُدخَل»، والورقة تقول إن الأرقام تقديرية راجعتَها بنفسك.
+            يظهر «غير مُدخَل»، والورقة تقول إن الأرقام تقديرية ويُقرّ بمراجعتها من يوقّعها.
           </p>
         </div>
         <Button onClick={() => window.print()} disabled={!file?.total}>
@@ -130,6 +133,7 @@ export default function ComplianceFile() {
             >
               {ESTIMATE_NOTE}
             </p>
+            <p style={{ marginTop: "1.6mm", color: MUTED }}>{NOT_ENTERED_NOTE}</p>
 
             <p style={{ marginTop: "3mm", color: MUTED, fontVariantNumeric: "tabular-nums" }}>
               عدد الأطباق: <b style={{ color: INK }}>{file.total}</b> · بسعراتٍ مُدخَلة:{" "}
@@ -178,7 +182,6 @@ export default function ComplianceFile() {
                   {t}
                 </p>
               ))}
-              <p style={{ color: MUTED }}>«غير مُدخَل»: لم يُدخل التاجر هذه القيمة بعد — وليس معناها صفراً ولا خلوّاً.</p>
               <div style={{ display: "flex", gap: "10mm", marginTop: "6mm", color: MUTED }}>
                 <p style={{ flex: 1, borderTop: `0.3mm solid ${MUTED}`, paddingTop: "1.2mm" }}>اسم المراجِع من المنشأة</p>
                 <p style={{ flex: 1, borderTop: `0.3mm solid ${MUTED}`, paddingTop: "1.2mm" }}>التوقيع</p>

@@ -17,6 +17,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildComplianceFile,
   ESTIMATE_NOTE,
+  NOT_ENTERED_NOTE,
   FILE_TITLE,
   fileDate,
   NOT_ENTERED,
@@ -66,10 +67,24 @@ describe("لا حكم على الأطباق — والإقرار حاضر", () =
     }
   );
 
-  it("الإقرار يقول إنها تقديرية راجعها التاجر", () => {
+  it("الإقرار يقول إنها تقديرية، والمراجعة يُقرّ بها الموقّع لا نحن عنه", () => {
     expect(ESTIMATE_NOTE).toContain("تقديرية");
-    expect(ESTIMATE_NOTE).toContain("راجعها");
     expect(ESTIMATE_NOTE).toContain("على المنشأة");
+    expect(ESTIMATE_NOTE).toContain("يُقرّ بمراجعتها الموقّع");
+    // مراجعة الأمن: «وراجعها» كانت تشهد نيابةً عن التاجر بما لا نعرفه.
+    expect(ESTIMATE_NOTE).not.toContain("وراجعها");
+    expect(NOT_ENTERED_NOTE).toContain("ليس معناها صفراً");
+    expect(NOT_ENTERED_NOTE).toContain("مسبّبات الحساسية");
+  });
+
+  it("اسم ملفّ PDF المقترح بلا «امتثال» ولا اسم المنصّة", () => {
+    const page = readFileSync(
+      fileURLToPath(new URL("../src/pages/dashboard/ComplianceFile.tsx", import.meta.url)),
+      "utf8",
+    );
+    const title = page.match(/document\.title = ([^;]+);/)?.[1] ?? "";
+    expect(title).toContain("FILE_TITLE");
+    expect(title).not.toMatch(/امتثال|كلاود/);
   });
 
   it("الصفحة نفسها تطبع الإقرار والعنوان من المصدر لا نسخةً بيد", () => {
