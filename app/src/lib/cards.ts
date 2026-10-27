@@ -29,14 +29,17 @@
  *    تأكل منطقة الهدوء وتُفشل المسح — ولهذا علامات الأركان خارج اللوح لا داخله.
  */
 import { qrDataUrl, loadImage } from "./qr";
-import { bestOnAccent, getTheme, isHex, normalizeHex } from "./themes";
+import { bestOnAccent, isHex, normalizeHex } from "./themes";
 import { patternImage, PATTERN_MM, type PatternId } from "./patterns";
 import { loadThemeFont } from "./fonts";
 import { iconNameOf, paintIcon } from "./icons";
+import { kitPalette } from "./printKit";
+import { paintMotif } from "./printMotifs";
+import type { MenuSkin } from "./themes";
 
 /* ── القياسات ──────────────────────────────────────────────────────── */
 
-export type CardSizeId = "counter" | "tent" | "card" | "sticker" | "a5" | "window";
+export type CardSizeId = "counter" | "tent" | "card" | "sticker" | "a5" | "window" | "tent-a5";
 
 export interface CardSize {
   id: CardSizeId;
@@ -88,6 +91,22 @@ export const CARD_SIZES: CardSize[] = [
   size("window", "ملصق واجهة", [150, 150], "كبير — على زجاج المدخل يُقرأ من الشارع"),
   size("a5", "بوستر A5", [148, 210], "على الجدار أو ستاند المدخل"),
 ];
+
+/**
+ * قياساتٌ لعدّة الطباعة وحدها (`lib/printKit.ts`) — **خارج** `CARD_SIZES` عمداً:
+ * الاستوديو يعرض تلك القائمة، والهبوط يعدّها («٦ قياسات» في `facts.ts`).
+ *
+ * `tent-a5`: ورقة A5 تُطوى فتقف بوجهين أفقيين بقياس A6 (١٤٨×١٠٥مم) — والوجه
+ * الأفقي يأخذ تخطيط الكرت (`paintRow`): الكود في جهة والاسم في الأخرى.
+ */
+export const KIT_SIZES: CardSize[] = [
+  size("tent-a5", "ستاند طاولة A5", [148, 210], "ورقة A5 تُطوى فتقف بوجهين A6"),
+];
+
+/** قياسٌ يُطوى من منتصفه إلى وجهين متعاكسين. */
+export function isFolded(id: CardSizeId): boolean {
+  return id === "tent" || id === "tent-a5";
+}
 
 /* ── الأنماط ───────────────────────────────────────────────────────── */
 
@@ -167,7 +186,7 @@ export function mmToPx(mm: number, dpi = DPI): number {
 }
 
 export function sizeOf(id: CardSizeId): CardSize {
-  return CARD_SIZES.find((s) => s.id === id) ?? CARD_SIZES[0];
+  return CARD_SIZES.find((s) => s.id === id) ?? KIT_SIZES.find((s) => s.id === id) ?? CARD_SIZES[0];
 }
 
 /* ── لوحة الألوان ──────────────────────────────────────────────────── */
@@ -192,6 +211,38 @@ interface Palette {
    * سبب وجوده. فتصير الكتل عنده إطاراً بخطّ رفيع بدل مساحة مصمتة.
    */
   frugal: boolean;
+  /** خطّ اسم المطعم ووزنه — خطّ عرض الطابع في «ألوان منيوك»، و`font` لغيره. */
+  display: string;
+  displayWeight: string;
+  /** متغيّرات الخطّ كما في الطابع (`var(--font-x)`) — تُحمَّل قبل الرسم. */
+  fontVars: string[];
+  /** التمييز **نصّاً** على الأرضية (العرض الترويجي). */
+  accentInk: string;
+  /** التمييز **كتلةً** يُكتب عليها بـ`onAccent` (شارة، شريط، قرص الشعار). */
+  accentBlock: string;
+  /** خامة الطابع — لحافّته المطبوعة في العدّة (`printMotifs.ts`). */
+  skin: MenuSkin | null;
+  /** شفافية سطر «Powered by» — ١ حيث وُعد بالتباين على كلّ نصّ. */
+  footerAlpha: number;
+}
+
+type BasePalette = Omit<
+  Palette,
+  "display" | "displayWeight" | "fontVars" | "accentInk" | "accentBlock" | "skin" | "footerAlpha"
+>;
+
+/** الأنماط الثابتة كما كانت حرفاً — الحقول الجديدة تساوي القديم فيها. */
+function plain(b: BasePalette, fontVar?: string): Palette {
+  return {
+    ...b,
+    display: b.font,
+    displayWeight: "900",
+    fontVars: fontVar ? [fontVar] : [],
+    accentInk: b.accent,
+    accentBlock: b.accent,
+    skin: null,
+    footerAlpha: b.frugal ? 0.8 : 0.72,
+  };
 }
 
 const FALLBACK_FONT = '"Cairo Variable", "Segoe UI", system-ui, sans-serif';
@@ -225,81 +276,91 @@ function paletteFor(
   const brand = style === "brand" || useBrand ? raw : null;
 
   if (style === "brand") {
-    // ألوان طابع منيو التاجر — فتخرج البطاقة أخت منيوه لا غريبة عنه.
-    // `getTheme` لا بحثٌ بالمعرّف: يفهم الطوابع المحذوفة وصيغة `طابع:#لون`، فبطاقة
-    // مطعمٍ على «royal» تخرج بلونه لا بأوّل طابع في القائمة.
-    const theme = getTheme(themeId);
-    const v = theme.vars;
-    const accent = brand ?? v["--m-accent"] ?? "#c9a227";
+    /**
+     * ألوان طابع منيو التاجر — فتخرج البطاقة أخت منيوه لا غريبة عنه.
+     *
+     * ⚠️ **من `kitPalette` لا من قيم الطابع خاماً** (٢٠٢٦/١٠/٢٧): الطابع صُمّم
+     * لشاشة، والبطاقة نصٌّ على تدرّجٍ وزخرفة — خافت «نجدي» كان يُطبع ‎3.57:1
+     * فوق السدو. والحلّ اشتقاقٌ على البطاقة لا مسٌّ لقيمة في الطابع (§١٨).
+     * و`getTheme` تحتها يفهم المحذوف (`LEGACY`) وصيغة `طابع:#لون`.
+     */
+    const k = kitPalette(themeId, brand);
     return {
-      bg: v["--m-bg"] ?? "#141210",
-      bg2: v["--m-bg-2"] ?? v["--m-bg"] ?? "#141210",
-      text: v["--m-text"] ?? "#f6f1e6",
-      muted: v["--m-muted"] ?? "#9a8f7c",
-      accent,
-      onAccent: bestOnAccent(accent),
-      qrLight: "#ffffff",
-      qrDark: "#141210",
-      pattern: theme.design.pattern,
-      patternOpacity: theme.design.patternOpacity + 0.02,
-      font: resolveFont(v["--m-font"]),
+      bg: k.bg,
+      bg2: k.bg2,
+      text: k.text,
+      muted: k.muted,
+      accent: k.accent,
+      onAccent: k.onAccent,
+      qrLight: k.qrLight,
+      qrDark: k.qrDark,
+      pattern: k.pattern,
+      patternOpacity: k.patternOpacity,
+      font: resolveFont(k.fontVar),
       frugal: false,
+      display: resolveFont(k.displayVar),
+      displayWeight: k.displayWeight,
+      fontVars: [k.fontVar, k.displayVar],
+      accentInk: k.accentInk,
+      accentBlock: k.accentBlock,
+      skin: k.skin,
+      footerAlpha: 1,
     };
   }
 
   if (style === "light") {
     const accent = brand ?? "#b98a1e";
-    return {
+    return plain({
       bg: "#faf7f0", bg2: "#f1ebdd", text: "#1a1613", muted: "#7b7264",
       accent, onAccent: bestOnAccent(accent),
       qrLight: "#ffffff", qrDark: "#141210",
       pattern: "mashrabiya", patternOpacity: 0.035,
       font: FALLBACK_FONT, frugal: false,
-    };
+    });
   }
 
   if (style === "mono") {
     // بلا لون علامة ولو طُلب: النمط كله «حبر واحد»، وإدخال لون ثانٍ يُبطله.
-    return {
+    return plain({
       bg: "#ffffff", bg2: "#ffffff", text: "#000000", muted: "#4a4a4a",
       accent: "#000000", onAccent: "#ffffff",
       qrLight: "#ffffff", qrDark: "#000000",
       pattern: "none", patternOpacity: 0,
       font: FALLBACK_FONT, frugal: true,
-    };
+    });
   }
 
   if (style === "night") {
     const accent = brand ?? "#5b93ff";
-    return {
+    return plain({
       bg: "#090c13", bg2: "#141b2b", text: "#e9eef8", muted: "#8794ab",
       accent, onAccent: bestOnAccent(accent),
       qrLight: "#ffffff", qrDark: "#0a0d14",
       pattern: "najma", patternOpacity: 0.05,
       font: FALLBACK_FONT, frugal: false,
-    };
+    });
   }
 
   if (style === "heritage") {
     const accent = brand ?? "#1f7a72";
-    return {
+    return plain({
       bg: "#f4e8d5", bg2: "#e9d9be", text: "#33261a", muted: "#8a745a",
       accent, onAccent: bestOnAccent(accent),
       qrLight: "#fffaf1", qrDark: "#33261a",
       pattern: "sadu", patternOpacity: 0.085,
       font: resolveFont("var(--font-reem)"), frugal: false,
-    };
+    }, "var(--font-reem)");
   }
 
   // dark — أسود عميق وذهب، بنسيج جيري خافت جداً.
   const accent = brand ?? "#d4a843";
-  return {
+  return plain({
     bg: "#111010", bg2: "#1c1916", text: "#f7f2e7", muted: "#9a8f7c",
     accent, onAccent: bestOnAccent(accent),
     qrLight: "#ffffff", qrDark: "#141210",
     pattern: "girih", patternOpacity: 0.03,
     font: FALLBACK_FONT, frugal: false,
-  };
+  });
 }
 
 /* ── أدوات نصّ ─────────────────────────────────────────────────────── */
@@ -461,12 +522,53 @@ export interface CardInput {
   useBrand?: boolean;
   /** حدود قصّ ٣مم + علامات قصّ، كما تطلب المطابع. */
   bleed?: boolean;
+  /**
+   * قطعةٌ من عدّة الطباعة (`lib/printKit.ts`): تلبس حافّة الطابع، وحاشيتها
+   * أوسع (`KIT_PAD`) ليسكن الحافّةَ حزامٌ لا يمسّ نصّاً ولا كوداً.
+   */
+  kit?: boolean;
+}
+
+/**
+ * حاشية العدّة أوسع بـ٣٥٪: حافّة الطابع تسكن بين ٢٢٪ و٥٢٪ من الحاشية
+ * (`motifBox`)، وأقرب نصٍّ إلى القصّ (التذييل) عند ٦٢٪ منها.
+ */
+const KIT_PAD = 1.35;
+
+/**
+ * حاشية لوح الكود البيضاء — نسبةٌ من ضلع الكود.
+ *
+ * ⚠️ `qrDataUrl` تولّد بهامش وحدتين والمواصفة (ISO/IEC 18004) تطلب أربعاً،
+ * والفرق على اللوح. و٥٪ لا تسدّه: كودٌ من ٢٩ وحدة (+٤ هامش) يعطي ٠٫٠٥×٣٣ ≈
+ * ١٫٦٥ وحدة ⇐ هدوءٌ ٣٫٦٥ وحدة. والعدّة تَعِد بالمواصفة فتأخذ ٨٪: أصغر كود
+ * (٢١ وحدة) ⇐ ٠٫٠٨×٢٥ = وحدتان بالضبط، وكلّ كودٍ أكبر يزيد. مقيسٌ بالبكسل
+ * في `e2e/print-kit.spec.ts`. والاستوديو باقٍ على ٥٪ كما فُحص (§١٧).
+ */
+function panelPad(input: CardInput): number {
+  return input.kit ? 0.08 : 0.05;
+}
+
+/**
+ * حاشية الوجه — **مصدر واحد** للتخطيطين ولحزام الحافّة.
+ *
+ * ⚠️ `px/mm` من **العرض** دائماً: الوجه في الستاند المطويّ نصفُ الارتفاع، فكان
+ * `H / mm[1]` يعطيه نصف الكثافة الحقيقية.
+ */
+function facePad(W: number, H: number, input: CardInput): number {
+  const pxPerMm = W / sizeOf(input.size).mm[0];
+  const k = input.kit ? KIT_PAD : 1;
+  return W > H ? Math.max(H * 0.085, pxPerMm * 4) * k : Math.max(W * 0.075, pxPerMm * 5) * k;
 }
 
 const DEFAULT_HEADLINE = "امسح وتصفّح المنيو";
 const FOOTER = "Powered by CloudMenu";
 /** أصغر كود يُمسح بثقة من مسافة ذراع — ٢٤مم. */
 const QR_MIN_MM = 24;
+/**
+ * في العدّة الكودُ هو القطعة: أرضيّته ٤٢٪ من عرض الوجه لا ٢٤مم. على ملصق ٨٠مم
+ * كان الاسم الطويل بخطّ العرض يأخذ نصف الوجه والكود عند حدّه الأدنى (رُصد).
+ */
+const KIT_QR_SHARE = 0.42;
 
 /**
  * يرسم البطاقة على canvas معطى.
@@ -483,7 +585,19 @@ export async function renderCard(
   const p = paletteFor(input.style, input.themeId, input.brandHex, input.useBrand === true);
 
   // ⚠️ الترتيب مقصود — انظر رأس الملف (المزلق ١).
+  // `loadThemeFont` تفهم `var(--font-x)` لا المكدّس المحلول: كان يُمرَّر لها
+  // `p.font` محلولاً («"Almarai", …») فتعود بلا تحميل، وتُرسم بطاقة «ألوان
+  // منيوك» بخطّ احتياطي ما لم يكن الطابع قد حُمّل في الصفحة صدفةً.
   await loadThemeFont(p.font);
+  for (const f of p.fontVars) await loadThemeFont(f);
+  // ووزن خطّ العرض بعينه: `loadThemeFont` تطلب ٤٠٠ و٧٠٠ فقط، والاسم يُرسم
+  // بـ٨٠٠ في المراعي ونوتو كوفي.
+  if (document.fonts?.load) {
+    await Promise.all([
+      document.fonts.load(`${p.displayWeight} 32px ${p.display}`, input.name || "بسم"),
+      document.fonts.load(`500 32px ${p.font}`, "امسح"),
+    ]).catch(() => undefined);
+  }
   if (document.fonts?.ready) await document.fonts.ready;
 
   const bleed = input.bleed ? Math.round(mmToPx(BLEED_MM) * scale) : 0;
@@ -505,7 +619,7 @@ export async function renderCard(
   ctx.save();
   ctx.translate(bleed, bleed);
 
-  if (input.size === "tent") {
+  if (isFolded(input.size)) {
     /**
      * الستاند المثلث: الورقة تُطوى من المنتصف فتقف كـ`Λ`.
      *
@@ -612,6 +726,17 @@ async function paintFace(
     await paintPattern(ctx, W, H, p.pattern, p.accent, p.patternOpacity, tile);
   }
 
+  // حافّة الطابع — بعد الأرضية والزخرفة وقبل المحتوى، في حزامٍ لا يبلغه نصّ.
+  if (input.kit && p.skin) {
+    const pad = facePad(W, H, input);
+    paintMotif(
+      ctx,
+      p.skin,
+      { W, H, mm: W / sizeOf(input.size).mm[0], outer: pad * 0.22, reach: pad * 0.52 },
+      { accent: p.accent, text: p.text, muted: p.muted, bg: p.bg }
+    );
+  }
+
   if (W > H) await paintRow(ctx, W, H, p, input);
   else await paintStack(ctx, W, H, p, input);
 
@@ -628,8 +753,8 @@ async function paintLogo(
   input: CardInput,
   invert = false
 ): Promise<void> {
-  const disc = invert ? p.onAccent : p.accent;
-  const glyph = invert ? p.accent : p.onAccent;
+  const disc = invert ? p.onAccent : p.accentBlock;
+  const glyph = invert ? p.accentBlock : p.onAccent;
   ctx.save();
   ctx.fillStyle = disc;
   ctx.beginPath();
@@ -699,7 +824,7 @@ async function paintQr(
   input: CardInput,
   brackets = true
 ): Promise<void> {
-  const pad = s * 0.05;
+  const pad = s * panelPad(input);
   ctx.save();
   ctx.fillStyle = p.qrLight;
   ctx.beginPath();
@@ -725,7 +850,13 @@ async function paintQr(
   }
 
   try {
-    const px = Math.max(320, Math.round(s));
+    /**
+     * ⚠️ **بمقاس اللوح لا أكبر** (٢٠٢٦/١٠/٢٧): كان `Math.max(320, s)`، فأيّ لوحٍ
+     * دون ٣٢٠ بكسل يُرسم فوقه كودٌ أعرض منه يفيض خارج حافّته — في المعاينة
+     * المصغّرة للملصق، وفي ملفّ الطباعة نفسه حين يبلغ الكود حدّه الأدنى (٢٤مم =
+     * ٢٨٣ بكسل). والكود يُولَّد بالمقاس الذي يُرسم به، فيبقى ١:١ بلا إعادة عيّنات.
+     */
+    const px = Math.round(s);
     const uri = await qrDataUrl(input.url, input.logo, px, { dark: p.qrDark, light: p.qrLight });
     const img = await loadImage(uri);
     /**
@@ -759,7 +890,7 @@ function paintTable(
   ctx.save();
   ctx.font = `800 ${Math.round(h * 0.54)}px ${font}`;
   const w = ctx.measureText(label).width + h * 1.05;
-  ctx.fillStyle = onBar ? p.onAccent : p.accent;
+  ctx.fillStyle = onBar ? p.onAccent : p.accentBlock;
   ctx.beginPath();
   ctx.roundRect(cx - w / 2, y, w, h, h / 2);
   if (p.frugal) {
@@ -769,7 +900,7 @@ function paintTable(
     ctx.fillStyle = p.text;
   } else {
     ctx.fill();
-    ctx.fillStyle = onBar ? p.accent : p.onAccent;
+    ctx.fillStyle = onBar ? p.accentBlock : p.onAccent;
   }
   ctx.textBaseline = "middle";
   ctx.fillText(label, cx, y + h / 2);
@@ -824,9 +955,11 @@ function planStack(
 ): StackPlan {
   const cardW = sizeOf(input.size).mm[0];
   const pxPerMm = W / cardW;
-  const pad = Math.max(W * 0.075, pxPerMm * 5);
+  const pad = facePad(W, H, input);
   const inner = W - pad * 2;
-  const qrMin = Math.min(inner, QR_MIN_MM * pxPerMm);
+  const qrMin = input.kit
+    ? Math.min(inner / 1.25, Math.max(QR_MIN_MM, cardW * KIT_QR_SHARE) * pxPerMm)
+    : Math.min(inner, QR_MIN_MM * pxPerMm);
   const headline = input.headline?.trim() || DEFAULT_HEADLINE;
   const split = input.layout === "split";
   const banner = input.layout === "banner";
@@ -845,7 +978,7 @@ function planStack(
     const name = fitLines(
       ctx, input.name, innerFrame,
       s.display, Math.max(s.caption, W * 0.038),
-      "900", p.font, maxLines
+      p.displayWeight, p.display, maxLines
     );
     const hSize = withHeadline ? s.body : 0;
     const tableH = input.table ? s.title * 1.15 : 0;
@@ -881,7 +1014,10 @@ function planStack(
     }
 
     const room = H - used - below;
-    const qrBox = Math.min(innerFrame, room / 1.1); // ١٫١ ← حاشية اللوح ٥٪ من كل جهة
+    // ١٫١ ← حاشية اللوح ٥٪ من كل جهة. وفي العدّة ١٫٢ على العرض: اللوح وأقواس
+    // أركانه يبقيان داخل الحاشية فلا يدخلان حزام الحافّة.
+    const panel = 1 + panelPad(input) * 2;
+    const qrBox = Math.min(innerFrame / (input.kit ? 1.25 : 1), room / panel);
     if (qrBox >= qrMin || last) {
       return {
         k, logoR, name,
@@ -912,7 +1048,7 @@ async function paintStack(
   if (L === "split") {
     /* كتلة ملوّنة تحمل الشعار والاسم — أقوى تمييز بصري بين التخطيطات. */
     ctx.save();
-    ctx.fillStyle = p.frugal ? p.bg : p.accent;
+    ctx.fillStyle = p.frugal ? p.bg : p.accentBlock;
     ctx.fillRect(0, 0, W, plan.headerH);
     if (p.frugal) {
       ctx.strokeStyle = p.text;
@@ -930,7 +1066,7 @@ async function paintStack(
     ctx.fillStyle = p.frugal ? p.text : p.onAccent;
     ctx.textBaseline = "top";
     for (const line of plan.name.lines) {
-      ctx.font = `900 ${plan.name.size}px ${p.font}`;
+      ctx.font = `${p.displayWeight} ${plan.name.size}px ${p.display}`;
       ctx.fillText(line, W / 2, hy);
       hy += plan.name.size * LINE;
     }
@@ -941,7 +1077,7 @@ async function paintStack(
     ctx.fillStyle = p.text;
     ctx.textBaseline = "top";
     for (const line of plan.name.lines) {
-      ctx.font = `900 ${plan.name.size}px ${p.font}`;
+      ctx.font = `${p.displayWeight} ${plan.name.size}px ${p.display}`;
       ctx.fillText(line, W / 2, y);
       y += plan.name.size * LINE;
     }
@@ -957,7 +1093,7 @@ async function paintStack(
   }
 
   /* الكود — أكبر عنصر، فهو سبب وجود البطاقة كلها. */
-  const qrPad = plan.qr * 0.05;
+  const qrPad = plan.qr * panelPad(input);
   await paintQr(ctx, (W - plan.qr) / 2, y + qrPad, plan.qr, p, input, L !== "framed");
   y += plan.qr + qrPad * 2 + gap;
 
@@ -965,7 +1101,7 @@ async function paintStack(
     /* شريط سفلي ملوّن يحمل الاسم والطاولة والعرض والتذييل. */
     const top = H - plan.barH;
     ctx.save();
-    ctx.fillStyle = p.frugal ? p.bg : p.accent;
+    ctx.fillStyle = p.frugal ? p.bg : p.accentBlock;
     ctx.fillRect(0, top, W, plan.barH);
     if (p.frugal) {
       ctx.strokeStyle = p.text;
@@ -985,7 +1121,7 @@ async function paintStack(
     ctx.fillStyle = p.frugal ? p.text : p.onAccent;
     ctx.textBaseline = "top";
     for (const line of plan.name.lines) {
-      ctx.font = `900 ${plan.name.size}px ${p.font}`;
+      ctx.font = `${p.displayWeight} ${plan.name.size}px ${p.display}`;
       ctx.fillText(line, W / 2, by);
       by += plan.name.size * LINE;
     }
@@ -1012,7 +1148,7 @@ async function paintStack(
     ctx.textBaseline = "top";
   }
   if (plan.promoSize && input.promo) {
-    ctx.fillStyle = p.accent;
+    ctx.fillStyle = p.accentInk;
     ctx.textBaseline = "top";
     fitText(ctx, input.promo, inner, plan.promoSize, plan.promoSize * 0.6, "700", p.font);
     ctx.fillText(input.promo, W / 2, y);
@@ -1039,7 +1175,7 @@ function paintFooter(
 ): void {
   ctx.save();
   ctx.fillStyle = color;
-  ctx.globalAlpha = p.frugal ? 0.8 : 0.72;
+  ctx.globalAlpha = p.footerAlpha;
   ctx.textBaseline = "top";
   ctx.font = `500 ${Math.round(fs)}px ${FALLBACK_FONT}`;
   ctx.direction = "ltr";
@@ -1109,18 +1245,24 @@ async function paintRow(
   input: CardInput
 ): Promise<void> {
   const L = input.layout;
-  const pxPerMm = H / sizeOf(input.size).mm[1];
-  const pad = Math.max(H * 0.085, pxPerMm * 4);
+  const pad = facePad(W, H, input);
   if (L === "framed") paintFrame(ctx, W, H, p, pad * 0.5);
 
   const frameInset = L === "framed" ? pad * 0.8 : 0;
   const barH = L === "banner" ? H * 0.16 : 0;
   const availH = H - pad * 2 - frameInset - barH;
-  const qr = Math.round((availH * 0.98) / 1.1);
-  const qrPad = qr * 0.05;
+  // في العدّة سقفٌ بنصف العرض: الوجه الأفقي للستاند (١٤٨×١٠٥) كان يعطي الكود
+  // ٥٩مم ويترك للاسم عموداً يقصّه بـ«…» (رُصد في أوّل لقطة).
+  const panelK = 1 + panelPad(input) * 2;
+  const qr = Math.round(
+    Math.min((availH * 0.98) / panelK, input.kit ? ((W - pad * 3) * 0.5) / panelK : Infinity)
+  );
+  const qrPad = qr * panelPad(input);
   // الكود في اليمين: العين العربية تبدأ من اليمين، والكود هو الفعل المطلوب.
   const qrX = W - pad - frameInset - qrPad - qr;
-  await paintQr(ctx, qrX, pad + frameInset + qrPad, qr, p, input, L !== "framed");
+  // متوسّطٌ رأسياً حين يقصر عن الارتفاع (سقف العدّة) — وإلا فمن الحافّة كما كان.
+  const qrY = (input.kit ? Math.max(pad, (H - qr * panelK) / 2) : pad + frameInset) + qrPad;
+  await paintQr(ctx, qrX, qrY, qr, p, input, L !== "framed");
 
   const textW = qrX - qrPad - pad * 2 - frameInset;
   const cx = pad + frameInset + textW / 2;
@@ -1129,7 +1271,9 @@ async function paintRow(
   ctx.textBaseline = "top";
 
   const r = H * 0.085;
-  const name = fitLines(ctx, input.name, textW, s.display * 1.15, H * 0.052, "900", p.font);
+  const name = fitLines(
+    ctx, input.name, textW, s.display * 1.15, H * 0.052, p.displayWeight, p.display, input.kit ? 3 : 2
+  );
   const headline = input.headline?.trim() || DEFAULT_HEADLINE;
   const hSize = fitText(ctx, headline, textW, s.body * 1.05, H * 0.035, "500", p.font);
   const tableH = input.table && L !== "banner" ? s.title * 1.05 : 0;
@@ -1150,7 +1294,7 @@ async function paintRow(
   ctx.fillStyle = p.text;
   ctx.textBaseline = "top";
   for (const line of name.lines) {
-    ctx.font = `900 ${name.size}px ${p.font}`;
+    ctx.font = `${p.displayWeight} ${name.size}px ${p.display}`;
     ctx.fillText(line, cx, y);
     y += name.size * LINE;
   }
@@ -1169,7 +1313,7 @@ async function paintRow(
   }
   if (promoSize && input.promo) {
     y += gap * 0.5;
-    ctx.fillStyle = p.accent;
+    ctx.fillStyle = p.accentInk;
     fitText(ctx, input.promo, textW, promoSize, promoSize * 0.6, "700", p.font);
     ctx.fillText(input.promo, cx, y);
   }
@@ -1177,7 +1321,7 @@ async function paintRow(
   if (L === "banner") {
     const top = H - barH;
     ctx.save();
-    ctx.fillStyle = p.frugal ? p.bg : p.accent;
+    ctx.fillStyle = p.frugal ? p.bg : p.accentBlock;
     ctx.fillRect(0, top, W, barH);
     if (p.frugal) {
       ctx.strokeStyle = p.text;

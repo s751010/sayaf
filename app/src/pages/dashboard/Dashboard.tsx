@@ -69,6 +69,7 @@ import Kitchen from "./Kitchen";
 import Design from "./Design";
 import Qr from "./Qr";
 import Cards from "./Cards";
+import PrintKit from "./PrintKit";
 import Analytics from "./Analytics";
 import Loyalty from "./Loyalty";
 import Settings from "./Settings";
@@ -758,6 +759,7 @@ export default function Dashboard() {
             <Route path="orders" element={<Orders />} />
             <Route path="design" element={<Design />} />
             <Route path="cards" element={<Cards />} />
+            <Route path="kit" element={<PrintKit />} />
             <Route path="qr" element={<Qr />} />
             <Route path="print" element={<PrintMenu />} />
             <Route path="analytics" element={<Analytics />} />
