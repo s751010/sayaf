@@ -18,6 +18,7 @@ import {
   useSearchParams,
 } from "react-router-dom";
 import { AnnouncementBar } from "@/components/AnnouncementBar";
+import { OrderAlertsProvider, useOrderAlerts } from "@/components/OrderAlerts";
 import { TrialBar } from "@/components/TrialBar";
 import { Logo, PreviewMenuButton } from "@/components/site";
 import {
@@ -54,6 +55,7 @@ import { menuUrl, slugError, urlAffixes } from "@/lib/menuUrl";
 import { getRestaurantById, logAudit } from "@/lib/founder";
 import { STARTER_TYPES } from "@/lib/starterMenus";
 import { buildDashboardNav } from "@/lib/nav";
+import { badgeText } from "@/lib/orderAlerts";
 import { cn } from "@/lib/utils";
 import type { Menu, Restaurant } from "@/lib/types";
 import type { SessionUser } from "@/lib/session";
@@ -62,6 +64,7 @@ import Overview from "./Overview";
 import Menus from "./Menus";
 import Dishes from "./Dishes";
 import Orders from "./Orders";
+import Kitchen from "./Kitchen";
 import Design from "./Design";
 import Qr from "./Qr";
 import Cards from "./Cards";
@@ -357,6 +360,7 @@ function planShortLabel(ent: Entitlements): string {
 function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode }) {
   const { logout } = useAuth();
   const navigate = useNavigate();
+  const { unseen } = useOrderAlerts();
   /**
    * `null` = لم يُحسم بعد (قاعدة «لا تكسر حالات التحميل»): لا نومض بعنصر
    * «لوحة المؤسس» ثم نخفيه، ولا نُظهره لتاجر بالخطأ. القرار من القاعدة.
@@ -375,6 +379,7 @@ function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode
   const nav = buildDashboardNav({
     ordersOn: ctx.restaurant?.online_payment_enabled === true,
     founder,
+    newOrders: unseen,
   });
 
   const links = (compact: boolean) =>
@@ -390,8 +395,8 @@ function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode
             // — أي تمريراً أفقياً لعنصر أو عنصرين، وهو ما كانت تداريه ضمادة
             // التدرّج على الحافة.
             compact
-              ? "press flex shrink-0 flex-col items-center gap-0.5 rounded-[10px] px-2 py-2 text-[9px] font-semibold"
-              : "press flex items-center gap-3 rounded-[10px] px-3.5 py-2.5 text-sm font-semibold",
+              ? "press relative flex shrink-0 flex-col items-center gap-0.5 rounded-[10px] px-2 py-2 text-[9px] font-semibold"
+              : "press relative flex items-center gap-3 rounded-[10px] px-3.5 py-2.5 text-sm font-semibold",
             // النشط حبرٌ مقلوب — كصفّ «السعرات» في الملصق: أسود يحمل الأهمّ.
             isActive ? "bg-ink text-page" : "text-dim hover:bg-ink/5 hover:text-ink"
           )
@@ -399,6 +404,21 @@ function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode
       >
         <Icon name={n.icon} size={compact ? 19 : 18} />
         {n.label}
+        {/* شارة الطلبات الجديدة — مطلقة الموضع على الجوال كي لا تمدّ الشريط
+            (مقيسٌ على ٣٢٠)، وفي آخر السطر على الشريط الجانبي. والعدد يُقرأ
+            لقارئ الشاشة جملةً لا رقماً معلّقاً. ولون الرقم `text-page` لا
+            الأبيض: أحمر الوضع الداكن فاتح (#f87171) والأبيض عليه ٢٫٨:١. */}
+        {n.badge && (
+          <span
+            className={cn(
+              "rounded-full bg-bad px-1.5 text-[10px] font-black leading-[18px] text-page tabular-nums",
+              compact ? "absolute -top-0.5 end-0.5 min-w-[18px] text-center" : "ms-auto"
+            )}
+          >
+            <span aria-hidden="true">{n.badge}</span>
+            <span className="sr-only">{`، ${n.badge} طلب جديد`}</span>
+          </span>
+        )}
       </NavLink>
     ));
 
@@ -502,6 +522,20 @@ function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode
           <ScrollRow className="gap-1 px-3 pb-2" itemCount={nav.length}>
             {links(true)}
           </ScrollRow>
+          {/* ⚠️ الشارة وحدها لا تكفي الجوال: على ٣٢٠–٣٨٩ «الطلبات» خارج الشريط
+              الظاهر (يمرَّر إليها)، فشارتها لا تُرى أصلاً. فشريطٌ بعرض الترويسة
+              — لا زرٌّ في سطرها المقيس — يظهر ما دام هناك طلبٌ لم يُرَ، ويختفي
+              وحده حين تُفتح الطلبات. */}
+          {unseen > 0 && (
+            <Link
+              to="/dashboard/orders"
+              className="flex min-h-11 items-center justify-center gap-2 bg-gold px-4 text-sm font-black text-on-gold"
+            >
+              <Icon name="bell" size={16} />
+              {unseen === 1 ? "طلب جديد ينتظرك" : `طلبات جديدة تنتظرك (${badgeText(unseen)})`}
+              <span aria-hidden="true">←</span>
+            </Link>
+          )}
         </header>
 
         <main className="dash-main mx-auto w-full max-w-4xl flex-1 px-4 py-7 sm:px-6">
@@ -685,8 +719,27 @@ export default function Dashboard() {
     readOnly: viewAs,
   };
 
+  /**
+   * شاشة الكاشير **بلا غلاف**: لوح على الكاونتر يُقرأ من مترين، والشريط
+   * الجانبي والترويسة وسطر الحساب تأكل ثلث عرضه ولا يحتاجها الكاشير. والمسار
+   * يبقى داخل `/dashboard` فيرث الجلسة والمطعم والجرس معاً.
+   */
+  const kitchen = location.pathname.replace(/\/+$/, "") === "/dashboard/kitchen";
+
   return (
     <Ctx.Provider value={ctx}>
+      {/* الجرس فوق الغلاف وشاشة الكاشير معاً: يرنّ أينما كان التاجر. */}
+      <OrderAlertsProvider
+        restaurantId={restaurant.id}
+        pollEnabled={restaurant.online_payment_enabled === true}
+        disabled={viewAs}
+      >
+      {kitchen ? (
+        // حارس القراءة-فقط نفسه الذي في الغلاف (انظر `Shell`).
+        <fieldset disabled={viewAs} className="m-0 min-w-0 border-0 p-0">
+          <Kitchen />
+        </fieldset>
+      ) : (
       <Shell ctx={ctx}>
         {/* المسارات كلها تبقى كما هي وإن خرج بعضها من القائمة: التجّار يحفظون
             روابط، والتوصيات والإعلانات ترسل إلى `/dashboard/menus` و`/loyalty`
@@ -713,6 +766,8 @@ export default function Dashboard() {
           </Routes>
         </div>
       </Shell>
+      )}
+      </OrderAlertsProvider>
     </Ctx.Provider>
   );
 }

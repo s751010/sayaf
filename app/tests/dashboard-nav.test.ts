@@ -76,3 +76,30 @@ describe("لوحة المؤسّس", () => {
     expect(p.length).toBe(DASHBOARD_NAV.length + 2);
   });
 });
+
+describe("شارة الطلبات الجديدة", () => {
+  const ordersItem = (ordersOn: boolean, newOrders?: number) =>
+    buildDashboardNav({ ordersOn, founder: false, newOrders }).find(
+      (n) => n.to === ORDERS_ITEM.to
+    );
+
+  it("تظهر على «الطلبات» بعدد ما لم يُرَ — وعليها وحدها", () => {
+    const items = buildDashboardNav({ ordersOn: true, founder: false, newOrders: 3 });
+    expect(items.find((n) => n.to === ORDERS_ITEM.to)?.badge).toBe("3");
+    expect(items.filter((n) => n.badge)).toHaveLength(1);
+  });
+
+  it("لا شارة للصفر ولا قبل أن يُحسب العدد", () => {
+    expect(ordersItem(true, 0)?.badge).toBeUndefined();
+    expect(ordersItem(true)?.badge).toBeUndefined();
+  });
+
+  it("«9+» فوق التسعة — الشارة تُلمح ولا تمدّ الشريط", () => {
+    expect(ordersItem(true, 40)?.badge).toBe("9+");
+  });
+
+  it("لا تُعدّل العنصر المشترك نفسه (نسخةٌ لا تحوير)", () => {
+    ordersItem(true, 5);
+    expect(ORDERS_ITEM.badge).toBeUndefined();
+  });
+});

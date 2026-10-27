@@ -1076,6 +1076,25 @@ export async function listOrders(restaurantId: string): Promise<MerchantOrder[]>
   }));
 }
 
+/** طلبٌ ينتظر — ما يحتاجه الجرس وحده: معرّفٌ يُطابَق ورقمٌ يُقال. */
+export type NewOrderPing = { id: string; code: number };
+
+/**
+ * الطلبات الجديدة وحدها — **استطلاع الجرس** من أي شاشة في اللوحة.
+ *
+ * ليس `listOrders`: تلك تجلب ٢٠٠ طلب بأصنافها لتُرسم، وهذه تُنادى كل عشرين
+ * ثانية والتاجر في صفحة الأطباق — فلا تحمل إلا ما ينتظر الآن، وعمودين من
+ * أعمدة `listOrders` نفسها (لا عمود جديد ولا منح جديد؛ RLS نفسها تقصرها على
+ * صاحب المطعم).
+ */
+export async function listNewOrders(restaurantId: string): Promise<NewOrderPing[]> {
+  const rows = await rest<{ id: string; code: number }[]>(
+    `orders?restaurant_id=eq.${restaurantId}&status=eq.new` +
+      `&select=id,code&order=created_at.asc&limit=200`
+  );
+  return rows.map((r) => ({ id: String(r.id), code: Number(r.code) }));
+}
+
 /**
  * الأطباق الأكثر طلباً — دليل اجتماعي في صفحة المنيو.
  *
