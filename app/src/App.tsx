@@ -1,5 +1,5 @@
 import { Suspense, lazy } from "react";
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "@/lib/auth";
 import { ToastProvider, Spinner } from "@/components/ui";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -91,10 +91,9 @@ export default function App() {
                 <Route path="/help" element={<Help />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/restaurants" element={<Restaurants />} />
-                {/* مقطعان لا يلتقطهما `/:slug` أصلاً؛ و`/for` وحدها محجوزة في
-                    `RESERVED_PATHS` وتعود إلى الهبوط بدل «مطعم غير موجود». */}
+                {/* مقطعان لا يلتقطهما `/:slug` أصلاً. و`/for` وحدها تبقى لمسار
+                    المنيو كما كانت — لم تُحجز (`menu-url` في القائمة الحمراء). */}
                 <Route path="/for/:segment" element={<Segment />} />
-                <Route path="/for" element={<Navigate to="/" replace />} />
                 <Route path="/docs/api" element={<ApiDocs />} />
                 <Route path="/privacy" element={<Privacy />} />
                 <Route path="/terms" element={<Terms />} />

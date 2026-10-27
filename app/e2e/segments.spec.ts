@@ -52,12 +52,10 @@ for (const s of SEGMENTS) {
   });
 }
 
-test("شريحة مجهولة تعرض «غير موجودة»، و`/for` وحدها تعود إلى الهبوط", async ({ page }) => {
+test("شريحة مجهولة تعرض «غير موجودة»", async ({ page }) => {
   const { crashes } = watch(page);
   await page.goto("/for/nope");
   await expect(page.getByRole("heading", { name: "الصفحة غير موجودة" })).toBeVisible();
-  await page.goto("/for");
-  await expect(page).toHaveURL(/\/$/);
   expect(crashes, crashes.join("\n")).toEqual([]);
 });
 

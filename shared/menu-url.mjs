@@ -84,8 +84,6 @@ export const RESERVED_PATHS = new Set([
   "restaurants",
   // روابط يخمّنها الزائر فتُحوَّل في `_redirects` — مطعمٌ يحملها لا يُفتح منيوه.
   "pricing", "contact", "faq",
-  // صفحات الشرائح `/for/<slug>` (٢٠٢٦/١٠/٢٧) — و`/for` نفسها تعود إلى الهبوط.
-  "for",
 ]);
 
 /**

@@ -4,7 +4,7 @@
  * - كل ميزةٍ تَعِد بها الصفحة تحمل دليلاً (ملفّ + نصّ) يُفتح هنا ويُبحث فيه:
  *   حُذفت الميزة أو أُعيدت تسميتها ⇐ يسقط الفحص قبل أن يقرأ التاجر وعداً ميتاً.
  * - الطوابع من `SUGGESTED` نفسها التي يرتّب بها المُنتقي — لا نسخة بيد.
- * - `for` محجوزة كي لا يأخذها تاجر، ومسار الشريحة ليس منيواً عند الحافة.
+ * - `/for` وحدها **ليست** محجوزة (`shared/menu-url.mjs` في القائمة الحمراء): تبقى لمسار المنيو كما كانت، ومسار الشريحة ذو المقطعين ليس منيواً عند الحافة.
  * - الخريطتان (المولِّد والاحتياطية) تعرفان كل صفحة.
  */
 import { readFileSync } from "node:fs";
@@ -78,13 +78,13 @@ describe("الشرائح — المحتوى والروابط", () => {
 });
 
 describe("`/for` لا يصطدم برابط منيو", () => {
-  it("`for` محجوزة: لا يأخذها تاجر رابطاً", () => {
-    expect(RESERVED.has("for")).toBe(true);
-    expect(slugError("for")).toBe("هذا الاسم محجوز — اختر غيره.");
+  it("`/for` وحدها تبقى لمسار المنيو: لا مسار يعترضها ولا حجز في `menu-url`", () => {
+    expect(RESERVED.has("for")).toBe(false);
+    expect(slugError("for")).toBeNull();
+    expect(src("App.tsx")).not.toContain('path="/for"');
   });
 
   it("مسار الشريحة ليس منيواً عند الحافة ولا في المتصفّح", () => {
-    expect(slugFromRequest("example.netlify.app", "/for")).toBeNull();
     for (const l of SEGMENT_LINKS) {
       expect(slugFromRequest("example.netlify.app", segmentPath(l.slug))).toBeNull();
     }
