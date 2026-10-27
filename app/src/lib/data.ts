@@ -1144,6 +1144,24 @@ export async function getOrdersToday(restaurantId: string): Promise<OrdersToday>
 }
 
 /**
+ * طلباتٌ منذ لحظة — للتقرير الأسبوعي (`lib/weeklyReport.ts`).
+ *
+ * ثلاثة أعمدة من أعمدة `listOrders` نفسها (لا منح جديد)، و`pending_payment`
+ * مستبعدة كما هناك. والحدّ ٢٠٠٠ صفّ لأسبوعين يتجاوز أضخم مطعم استلام بكثير؛
+ * والتقرير يعدّ ما وصله، فلو بلغه أحدٌ يوماً ما فالعدد أدنى لا أعلى.
+ */
+export async function getOrdersSince(
+  restaurantId: string,
+  sinceIso: string
+): Promise<{ status: OrderStatus; total: number; created_at: string }[]> {
+  return rest<{ status: OrderStatus; total: number; created_at: string }[]>(
+    `orders?restaurant_id=eq.${restaurantId}` +
+      `&status=neq.pending_payment&created_at=gte.${encodeURIComponent(sinceIso)}` +
+      `&select=status,total,created_at&order=created_at.asc&limit=2000`
+  );
+}
+
+/**
  * نقل حالة الطلب.
  *
  * ⚠️ المنح على مستوى العمود يقصر ما يستطيع التاجر تغييره على الحالة وطوابعها
