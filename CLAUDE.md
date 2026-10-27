@@ -71,6 +71,9 @@ app/src/
     Landing.tsx         صفحة الهبوط (الأقسام والحركة)
     MenuPage.tsx        المنيو العام /:slug — أهم صفحة في المنتج
     Restaurants.tsx     دليل المطاعم العام /restaurants
+    Segment.tsx         صفحات الشرائح /for/<slug> (كافيه مختصّ · شعبي · عربات) — المحتوى
+                        في `lib/segments.ts` ولكل وعدٍ دليلٌ في الشيفرة (`segments.test.ts`)،
+                        والأسماء وحدها في `lib/segmentLinks.ts` (يقرؤها الذيل)؛ و`/for` وحدها **غير** محجوزة — تبقى لمسار المنيو
     OrderStatus.tsx     متابعة الطلب /o/:id
     Demo.tsx            منيو تجريبي حي /demo (بيانات محلية، بدون شبكة)
     Login.tsx  ResetPassword.tsx  Stamp.tsx (وضع الكاشير العام)

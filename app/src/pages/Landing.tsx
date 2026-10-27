@@ -32,6 +32,7 @@ import { Icon, type IconName } from "@/lib/icons";
 import { ALL_THEMES } from "@/lib/themes";
 import { CTA_PRIMARY, CTA_SECONDARY, PRINT_DPI, THEMES_LABEL } from "@/lib/facts";
 import { absoluteUrl, useJsonLd, useSeo } from "@/lib/seo";
+import { SEGMENT_LINKS, segmentPath } from "@/lib/segmentLinks";
 
 /**
  * الحاسبة كسولةٌ عمداً: تحمل `motion` ومحرّك الوصفة وجدول المكوّنات، وهي قسمٌ
@@ -336,6 +337,18 @@ export default function Landing() {
               </Reveal>
             ))}
           </div>
+          {/* صفحة لكل شريحة — سطرٌ لا قسم: الهبوط يبقى فكرةً واحدة (§27). */}
+          <p className="mt-8 text-center text-sm text-dim">
+            منيو لنوع مكانك:{" "}
+            {SEGMENT_LINKS.map((l, i) => (
+              <Fragment key={l.slug}>
+                {i > 0 && " · "}
+                <Link to={segmentPath(l.slug)} className="inline-flex min-h-9 items-center font-bold text-ink underline-offset-4 hover:underline">
+                  {l.label}
+                </Link>
+              </Fragment>
+            ))}
+          </p>
         </div>
       </section>
 
