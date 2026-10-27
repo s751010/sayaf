@@ -15,6 +15,8 @@
  * - `ArcadeHead`   أقواس روشان: الغلاف جدارٌ تنفتح أسفله أقواس، والشعار نافذة.
  * - `MudHead`      بيت طين نجدي: جدارٌ بشُرفاته وطِرمته، وبابٌ يحمل الشعار ينفتح.
  * - `BagHead`      وجه كيس قهوةٍ مختصّة: كرافت، وصمّام، ولاصقٌ بالاسم ومنحنى تحميص.
+ * - `FolioHead`    دفتر منيو من جلد (فاخر): خيطٌ ذهبيّ مخيط، والاسم مختومٌ بالذهب.
+ * - `GridHead`     شبكةٌ طباعيّة (عصري): شريطٌ أسود، وخليّة الشعار، ومسطرةٌ مقيسة.
  * - `DukkanHead` · `AsirHead` — في ملفّيهما (`heads/`) كي لا يتزاحم طابعان على ملفّ.
  *
  * والحركة كلّها في `styles/menu-skins.css` — CSS خالص، ولا تعمل إلا لمن يقبل الحركة.
@@ -577,3 +579,147 @@ export function BagHead({ restaurant, corner, children }: HeadProps) {
 /* ══ دكّان · عسير — كلٌّ في ملفّه (`heads/`) ══════════════════════════════ */
 export { DukkanHead } from "./heads/DukkanHead";
 export { AsirHead } from "./heads/AsirHead";
+
+/* ══ فاخر — دفتر جلدٍ بخيطٍ ذهبيّ ══════════════════════════════════════ */
+
+/**
+ * دفتر المنيو كما يُقدَّم في المطعم الراقي: جلدٌ داكن بحبيبته، وخيطٌ ذهبيّ
+ * **مخيطٌ** على حافّته (غرزٌ متقطّعة وخيطٌ مصمت خارجها)، والشعار في حلقةٍ
+ * مذهّبة، والاسم **مختومٌ بالذهب** (تدرّجٌ من نسخة التمييز المقروءة إلى أفتح منها
+ * — فلا يقلّ تباين أيّ نقطةٍ فيه عن `--m-accent-ink`). وصورة الغلاف إن رُفعت
+ * تُطبع على الجلد تحت تعتيمٍ يذوب فيه، فيبقى الاسم مقروءاً فوقها.
+ *
+ * هادئٌ عمداً: هذا الطابع الافتراضي لكلّ تاجرٍ لم يختر — مشويات أو مقهى أو بحري
+ * (و`LEGACY` يردّ إليه أحد عشر لوناً قديماً). فلا لمعةٌ تدور ولا حركةٌ تتكرّر:
+ * الخيط يُخاط مرّةً عند الفتح، والاسم يصعد، ثم يسكن كلّ شيء.
+ */
+export function FolioHead({ restaurant, theme, corner, children }: HeadProps) {
+  const typeLabel = restaurantTypeLabel(restaurant.type);
+  const banner = restaurant.banner_image?.trim();
+  const { pattern, patternOpacity } = theme.design;
+  const accent = theme.vars["--m-accent"] ?? "#d4a843";
+  const motif = patternImage(pattern, accent, Math.min(patternOpacity + 0.05, 0.1));
+  const leather: CSSProperties = {
+    backgroundColor: "var(--m-bg-2)",
+    ...(motif !== "none" ? { backgroundImage: motif, backgroundSize: PATTERN_SIZE[pattern] } : {}),
+  };
+  return (
+    <header className="m-head m-head-folio relative px-3 pt-3">
+      {/* داخل الغرز لا عليها: الخيط على ١٠ بكسل من حافّة الدفتر. */}
+      <Corner className="end-7 top-7">{corner}</Corner>
+      <div className="m-cover m-folio relative mx-auto max-w-3xl overflow-hidden px-6 pb-9 pt-16 text-center" style={leather}>
+        {banner && (
+          <>
+            <SafeImage
+              src={banner}
+              alt=""
+              loading="eager"
+              className="absolute inset-0 h-full w-full object-cover"
+              wrapperClassName="hidden"
+              fallback={<span />}
+            />
+            <span aria-hidden="true" className="m-folio-veil absolute inset-0" />
+          </>
+        )}
+        <span aria-hidden="true" className="m-stitch" />
+        <div className="relative">
+          <LogoMark
+            restaurant={restaurant}
+            size="mx-auto h-[4.75rem] w-[4.75rem]"
+            style={{
+              borderRadius: "9999px",
+              background: "var(--m-bg)",
+              boxShadow:
+                "0 0 0 1.5px var(--m-accent), 0 0 0 5px var(--m-bg-2), 0 0 0 6px color-mix(in srgb, var(--m-accent) 45%, transparent), 0 18px 34px -14px rgba(0,0,0,.75)",
+            }}
+            fallbackStyle={{ background: "var(--m-bg)", color: ink }}
+            letterSize="2.25rem"
+          />
+          <h1 className="m-title m-foil mt-6 text-[clamp(1.7rem,8vw,2.75rem)] font-bold leading-[1.25]" style={display}>
+            {restaurant.name}
+          </h1>
+          <div aria-hidden="true" className="m-thread mt-4">
+            <span />
+          </div>
+          {typeLabel && (
+            <p className="mt-3 text-[13px]" style={muted}>
+              {typeLabel}
+            </p>
+          )}
+        </div>
+      </div>
+      <Chips className="mx-auto mt-5 max-w-3xl px-1">{children}</Chips>
+    </header>
+  );
+}
+
+/* ══ عصري — شبكةٌ طباعيّة ════════════════════════════════════════════ */
+
+/** «٦ أقسام» بقاعدة العدد العربية — كـ`itemsLabel` في عنوان القسم. */
+function sectionsLabel(n: number, en: boolean): string {
+  if (en) return n === 1 ? "1 section" : `${n} sections`;
+  if (n === 1) return "قسم واحد";
+  if (n === 2) return "قسمان";
+  if (n <= 10) return `${n} أقسام`;
+  return `${n} قسماً`;
+}
+
+/**
+ * ترويسةٌ على شبكة — كصفحة منيو صمّمها مكتبٌ طباعيّ لا قالبُ تطبيق: شريطٌ أسود
+ * بعرض العمود، وتحته **خليّة الشعار** مربّعةً بلون العلامة (الشعار، أو حرف الاسم
+ * بلونه المقروء عليها)، وبجانبها سطرا البيانات: «المنيو» وعدد الأقسام ونوع
+ * النشاط. ثم الاسم **بعرض العمود كلّه** وبأثقل وزن، ثم مسطرةٌ مقيسة — شرطةٌ كل
+ * ٨ بكسل وأطول كل ٤٠ — يبدأ منها المنيو. والصورة إن وُجدت لوحةٌ بزوايا مقيسة.
+ *
+ * أبيض وأسود كما كان «عصري» دائماً، واللون الوحيد لون العلامة في الخليّة
+ * ورقم القسم — فـ«يترك المكان لصورك ولونك» يصدق الآن بلا لونٍ مختار أيضاً.
+ */
+export function GridHead({ restaurant, en, tags = [], corner, children }: HeadProps) {
+  const typeLabel = restaurantTypeLabel(restaurant.type);
+  const banner = restaurant.banner_image?.trim();
+  const meta = [tags.length > 0 ? sectionsLabel(tags.length, en) : null, typeLabel].filter(Boolean).join(" · ");
+  return (
+    <header className="m-head m-head-grid relative mx-auto max-w-3xl px-4 pt-4">
+      <div aria-hidden="true" className="m-grid-bar" />
+      <div className="mt-3 flex items-start gap-3">
+        <LogoMark
+          restaurant={restaurant}
+          size="h-14 w-14 shrink-0"
+          style={{ borderRadius: "calc(var(--m-radius) * .35)", background: "var(--m-accent)" }}
+          fallbackStyle={{ color: "var(--m-on-accent)" }}
+          letterSize="1.75rem"
+        />
+        <div className={cn("min-w-0 flex-1 pt-0.5", !!corner && "pe-1")}>
+          <p className="text-[13px] font-black leading-tight" style={{ color: "var(--m-text)" }}>
+            {en ? "Menu" : "المنيو"}
+          </p>
+          {meta && (
+            <p className="mt-1 text-[12px] leading-snug" style={muted}>
+              {meta}
+            </p>
+          )}
+        </div>
+        {corner && <div className="m-corner shrink-0">{corner}</div>}
+      </div>
+      <h1
+        className="m-title mt-4 text-[2.15rem] font-black leading-[1.08] [overflow-wrap:anywhere] sm:text-[3rem]"
+        style={{ ...display, color: "var(--m-text)" }}
+      >
+        {restaurant.name}
+      </h1>
+      <div aria-hidden="true" className="m-ruler mt-4" />
+      {banner && (
+        <SafeImage
+          src={banner}
+          alt=""
+          loading="eager"
+          className="m-img mt-4 aspect-[16/7] w-full object-cover"
+          wrapperClassName="hidden"
+          style={{ borderRadius: "calc(var(--m-radius) * .5)" }}
+          fallback={<span />}
+        />
+      )}
+      <Chips className="mt-4 justify-start">{children}</Chips>
+    </header>
+  );
+}
