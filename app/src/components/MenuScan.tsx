@@ -23,9 +23,20 @@ import { Button, ErrorNote } from "@/components/ui";
 import { scanMenuImage, type ScannedItem } from "@/lib/data";
 import { compress, imageFileError } from "@/lib/image";
 import { normalizeCategory, suggestIcon, type ParsedRow } from "@/lib/import";
+import { imageKey, scanFailure } from "@/lib/scan";
 import { Icon, DishGlyph } from "@/lib/icons";
 
 type Phase = "idle" | "reading" | "done" | "error";
+
+/**
+ * حصيلة كل صورة قُرئت في هذه الجلسة — بمفتاح بصمتها (`imageKey`).
+ *
+ * ⚠️ **كل قراءة نداءٌ مدفوع.** من رجع خطوةً أو أعاد اختيار الملفّ نفسه كان
+ * يدفع ثمن الصورة ثانيةً ليرى الحصيلة نفسها. والذاكرة على مستوى الوحدة لا
+ * المكوّن: تبقى بين نافذة الاستيراد ومسار الإعداد وتنقّلات اللوحة، وتزول
+ * بإغلاق الصفحة (والمسوّدة المحفوظة في مسار الإعداد تغطّي ما بعد ذلك).
+ */
+const SCANNED = new Map<string, ScannedItem[]>();
 
 export function MenuScan({
   restaurantId,
@@ -41,24 +52,53 @@ export function MenuScan({
   const [preview, setPreview] = useState<string | null>(null);
   const [found, setFound] = useState<ScannedItem[]>([]);
   const [error, setError] = useState("");
+  /** آخر صورة فشلت قراءتها لعطلٍ عابر — يعيدها زرّ «أعد المحاولة» بلا اختيار جديد. */
+  const [retryFile, setRetryFile] = useState<File | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const timer = useRef<number | null>(null);
+  /** راية «يقرأ الآن» — ضغطتان سريعتان لا تصيران نداءين مدفوعين. */
+  const inFlight = useRef(false);
 
   // معاينة الصورة تعيش في الذاكرة — تُحرَّر كي لا تتراكم عبر محاولات.
   useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
   useEffect(() => () => { if (timer.current) window.clearInterval(timer.current); }, []);
 
+  /** تظهر واحداً بعد واحد — التاجر يرى القراءة تُبنى لا تهبط. */
+  const reveal = useCallback((items: ScannedItem[]) => {
+    if (!items.length) {
+      setError("لم نتعرّف على أي صنف. صوّر المنيو كاملاً بإضاءة جيدة وبلا انعكاس.");
+      setPhase("error");
+      return;
+    }
+    setPhase("done");
+    items.forEach((it, i) =>
+      window.setTimeout(() => setFound((f) => [...f, it]), Math.min(i * 55, 1800)),
+    );
+  }, []);
+
   const run = useCallback(
     async (file: File) => {
+      if (inFlight.current) return;
       const bad = imageFileError(file);
-      if (bad) { setError(bad); setPhase("error"); return; }
+      if (bad) { setError(bad); setRetryFile(null); setPhase("error"); return; }
+
+      setFound([]);
+      setError("");
+      setRetryFile(null);
+
+      // الصورة نفسها قُرئت من قبل لهذا المطعم ⇒ حصيلتها بلا نداء.
+      const key = `${restaurantId}|${imageKey(file)}`;
+      const cached = SCANNED.get(key);
+      if (cached) {
+        reveal(cached);
+        return;
+      }
 
       if (preview) URL.revokeObjectURL(preview);
       setPreview(URL.createObjectURL(file));
-      setFound([]);
-      setError("");
       setPhase("reading");
       setElapsed(0);
+      inFlight.current = true;
       timer.current = window.setInterval(() => setElapsed((e) => e + 1), 1000);
 
       try {
@@ -66,26 +106,22 @@ export function MenuScan({
         const blob = await compress(file, "wide");
         const items = await scanMenuImage(restaurantId, blob);
         if (timer.current) window.clearInterval(timer.current);
-
-        if (!items.length) {
-          setError("لم نتعرّف على أي صنف. صوّر المنيو كاملاً بإضاءة جيدة وبلا انعكاس.");
-          setPhase("error");
-          return;
-        }
-        // تظهر واحداً بعد واحد — التاجر يرى القراءة تُبنى لا تهبط.
-        setPhase("done");
-        items.forEach((it, i) =>
-          window.setTimeout(() => setFound((f) => [...f, it]), Math.min(i * 55, 1800)),
-        );
+        // الحصيلة الفارغة تُحفظ أيضاً: الصورة نفسها ستعطي الفراغ نفسه بثمنٍ ثانٍ.
+        SCANNED.set(key, items);
+        reveal(items);
       } catch (e) {
         if (timer.current) window.clearInterval(timer.current);
-        setError(
-          e instanceof Error && e.message ? e.message : "تعذّرت القراءة. حاول مجدداً.",
-        );
+        // عربيٌّ دائماً، ومعه قرار الإعادة (`lib/scan.ts`): كان التاجر يقرأ
+        // «Failed to fetch» ولا طريق إلا اختيار الصورة من جديد.
+        const why = scanFailure(e);
+        setError(why.message);
+        setRetryFile(why.retry ? file : null);
         setPhase("error");
+      } finally {
+        inFlight.current = false;
       }
     },
-    [preview, restaurantId],
+    [preview, restaurantId, reveal],
   );
 
   /** يحوّل مخرَج النموذج إلى صفوف المراجعة — بنفس تطبيع التصنيفات. */
@@ -216,7 +252,16 @@ export function MenuScan({
         </div>
       ) : null}
 
-      {error ? <ErrorNote>{error}</ErrorNote> : null}
+      {error ? (
+        <div role="alert" className="flex flex-col gap-2">
+          <ErrorNote>{error}</ErrorNote>
+          {retryFile && (
+            <Button variant="outline" onClick={() => void run(retryFile)}>
+              ↻ أعد المحاولة بالصورة نفسها
+            </Button>
+          )}
+        </div>
+      ) : null}
     </div>
   );
 }
