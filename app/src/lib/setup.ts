@@ -67,7 +67,7 @@ export const SETUP_STEPS: readonly SetupStep[] = [
     id: "brand",
     label: "الشعار",
     title: "شعارك ولونك",
-    hint: "اختياري — يظهر أعلى منيوك. تقدر تتخطّاه وتضيفه لاحقاً من «التصميم».",
+    hint: "يظهر أعلى منيوك. تقدر تتخطّاه وتضيفه لاحقاً من «التصميم».",
     optional: true,
   },
   {

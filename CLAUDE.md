@@ -81,6 +81,8 @@ app/src/
     dashboard/          Dashboard(shell) Overview Dishes Menus Orders Design Cards Qr
                         Analytics Loyalty Billing Settings Tabs
                         Kitchen (شاشة الكاشير `/dashboard/kitchen` — بلا غلاف، لوح الكاونتر)
+                        Setup + setup/ («إعداد منيوك» `/dashboard/setup` بعد إنشاء المطعم:
+                        أصناف ⇐ طابع ⇐ شعار ⇐ نشر — المنطق خالص في `lib/setup.ts`)
                         Nutrition (الامتثال، §26) · PrintMenu (المنيو المطبوع A4 + CSV، §26)
     founder/            Founder(shell+بوابة) Overview Merchants MerchantDetail
                         BillingConsole (وحدة الاستلام، §21)
@@ -153,6 +155,8 @@ app/src/
     import.ts           محلّل النص/CSV → DishPayload
     insights.ts         التوصيات من التحليلات
     nextStep.ts         سلّم «خطوتك التالية» فوق insights (§19)
+    setup.ts            «إعداد منيوك»: الخطوات والاستئناف والتخطّي ومراجعة الأصناف — دوالّ خالصة
+    scan.ts             قبل `menu-scan` وبعده: بصمة الصورة (لا قراءة ثانية لها) وفشلٌ عربيٌّ بقرار الإعادة
     orderAlerts.ts      منطق «طلب جديد»: رنّة واحدة لكل طلب · شارة حتى يُرى — دالّة خالصة (`reconcile`)
     orderFlow.ts        حالات الطلب وأزرارها — **جدول واحد** للطلبات وشاشة الكاشير، مطابق لمراحل الزبون
     poll.ts             `usePolling`: كل ٢٠ث والتبويب ظاهر، وتراجعٌ عند الفشل حتى ٥ دقائق
@@ -427,6 +431,8 @@ cd app && npm run typecheck
 | `cm2_pixel_consent` | localStorage | موافقة زبون المنيو على بكسلات التاجر — `yes`/`no` |
 | `cm2_order_sound` | localStorage | صوت الطلبات في اللوحة — `on`/`off` (تفضيل جهاز) |
 | `cm2_order_alerts_<id>` | localStorage | معرّفات طلبات رُنّ لها/رُئيت — بلا اسم ولا جوال (`lib/orderAlerts.ts`) |
+| `cm2_setup_<id>` | localStorage | أين توقّف التاجر في «إعداد منيوك» (`lib/setup.ts`) — كل خطوة تكتب نتيجتها في القاعدة فوراً، فالمحلّي «أين كنت» وحده |
+| `cm2_setup_rows_<id>` | localStorage | مسوّدة الأصناف قبل حفظها — حصيلة `menu-scan` المدفوعة لا تضيع بالمغادرة؛ تُمسح عند الحفظ |
 
 ---
 

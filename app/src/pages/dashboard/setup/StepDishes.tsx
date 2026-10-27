@@ -90,8 +90,11 @@ export function StepDishes({
     setError("");
   }
 
-  const edit = (i: number, patch: Partial<ReviewRow>) =>
+  // التعديل يمحو رسالة المنع: «بلا سعر» لا تبقى تحت صنفٍ كُتب سعره للتوّ.
+  const edit = (i: number, patch: Partial<ReviewRow>) => {
+    setError("");
     setDraft((d) => (d ? { ...d, rows: d.rows.map((r, x) => (x === i ? { ...r, ...patch } : r)) } : d));
+  };
 
   async function save() {
     if (!draft || !check) return;
