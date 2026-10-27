@@ -21,6 +21,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { isSoldOut, orderableById, soldOutLabel, soldOutLast } from "@/lib/soldOut";
 import { ALL_THEMES, getTheme, type DishLayout } from "@/lib/themes";
 import type { Dish } from "@/lib/types";
+import { menuSkinsCss } from "./skin-css";
 
 const calls: string[] = [];
 vi.mock("@/lib/api", () => ({
@@ -219,7 +220,8 @@ describe("`MenuPage`: السلّة ونافذة الطبق وطبق اليوم",
 });
 
 describe("لكلّ طابعٍ شارته في `menu-skins.css`", () => {
-  const css = readFileSync(fileURLToPath(new URL("../src/styles/menu-skins.css", import.meta.url)), "utf8");
+  // بملفّات `skins/<id>.css` في مواضع استيرادها (دكّان · عسير).
+  const css = menuSkinsCss();
   const skins = [...new Set(ALL_THEMES.map((t) => t.design.skin))].filter((s) => s !== "store");
 
   it("الأساس والصورة الباهتة معرّفان", () => {

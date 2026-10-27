@@ -18,11 +18,13 @@ import type { PatternId } from "./patterns";
  * `paper` رأس فاتورة · `letterboard` لوحة حروف معلّقة · `poster` ملصقٌ
  * بشريط أقسامٍ يجري · `sign` لافتة نيون على جدار طوب · `masthead` ترويسة
  * مجلّة · `arcade` أقواس روشان · `mud` بيت طينٍ نجديّ بشُرفاته وبابه · `bag`
- * وجه كيس قهوةٍ مختصّة.
+ * وجه كيس قهوةٍ مختصّة · `tin` لوحة صفيحٍ مدهونة باليد فوق دكّان الحارة ·
+ * `mural` جدارٌ مرسومٌ بالقطّ العسيري (مثلّثات وأشرطة).
  */
 export type HeaderShape =
   | "arch" | "band" | "frame" | "soft"
-  | "paper" | "letterboard" | "poster" | "sign" | "masthead" | "arcade" | "mud" | "bag";
+  | "paper" | "letterboard" | "poster" | "sign" | "masthead" | "arcade" | "mud" | "bag"
+  | "tin" | "mural";
 /**
  * تخطيط الأطباق — هذا ما يجعل الفرق بين الطوابع يُرى لا يُقرأ.
  * `deck` بطاقاتٌ تُسحب أفقياً لكل قسم، تكبر حين تتوسّط الشاشة.
@@ -31,7 +33,7 @@ export type DishLayout = "grid" | "list" | "showcase" | "deck";
 export type HeadingStyle =
   | "ornament" | "rule" | "plain"
   | "stars" | "letters" | "poster" | "neon" | "numeral" | "cartouche"
-  | "plaque" | "sadu" | "bold" | "origin";
+  | "plaque" | "sadu" | "bold" | "origin" | "shelf" | "frieze";
 /** شكل صورة الطبق — دائري للكافيهات، مربّع حادّ للمينيمال، وقوسُ نافذة للروشان. */
 export type ImageShape = "rounded" | "square" | "circle" | "arch";
 /**
@@ -42,7 +44,8 @@ export type ImageShape = "rounded" | "square" | "circle" | "arch";
  * المتجر بلا شيء منها.
  */
 export type MenuSkin =
-  | "store" | "receipt" | "letterboard" | "sticker" | "neon" | "editorial" | "roshan" | "najdi" | "roastery";
+  | "store" | "receipt" | "letterboard" | "sticker" | "neon" | "editorial" | "roshan" | "najdi" | "roastery"
+  | "dukkan" | "asir";
 /** كيف يُقدَّم السعر: نصّاً، أو شارة ملوّنة، أو خطّاً منقّطاً يقود إليه. */
 export type PriceStyle = "plain" | "badge" | "leader";
 /** الفاصل بين صفوف القائمة الرأسية. */
@@ -239,7 +242,8 @@ export const DESIGN_THEMES: MenuTheme[] = [
     id: "receipt",
     name: "فاتورة",
     tagline: "ورقة فاتورة تُطبع أسطرها وأنت تمرّر، وتنتهي بباركود",
-    suits: ["شعبي", "مطعم سريع"],
+    // «شعبي» خرج إلى «دكّان» و«عسير» (٢٧/١٠) — انظر `SUGGESTED`.
+    suits: ["مطعم سريع"],
     vars: {
       // ‏`--m-page` الطاولة تحت الورقة: الوحيد الذي تختلف أرضيّته عن صفحته.
       "--m-page": "#24221f",
@@ -395,7 +399,8 @@ export const DESIGN_THEMES: MenuTheme[] = [
     id: "roshan",
     name: "روشان",
     tagline: "مشربية تنفتح على أقواس، والصور نوافذ كالرواشين",
-    suits: ["بحري", "شعبي"],
+    // «شعبي» خرج إلى «دكّان» و«عسير» (٢٧/١٠) — انظر `SUGGESTED`.
+    suits: ["بحري"],
     vars: {
       // حجر المنقبة الجيري، وأخضر الرواشين المدهونة، وطين القلل.
       "--m-bg": "#f6efe4",
@@ -523,6 +528,95 @@ export const DESIGN_THEMES: MenuTheme[] = [
       heading: "origin",
       imageShape: "rounded",
       divider: "rule",
+    }),
+  },
+  /*
+   * ═══ الحادي عشر والثاني عشر: «دكّان» و«عسير» (٢٠٢٦/١٠/٢٧) ═══
+   *
+   * خطّة المالك (الموجة ٢، البند ٧) — اختارهما بالاسم. والمطعم الشعبي كان له
+   * طابعٌ واحد بُني له («نجدي»)، والجنوب والحارة بلا شيء.
+   *
+   * ⚠️ **المعرّفان `dukkan` و`asir` ليسا في `LEGACY`** (الدرس ٤٣) — و`qatt` هناك
+   * يُردّ إلى «عصري»، فطابعٌ باسم `qatt` لا يُبلَغ أبداً. لذلك `asir`.
+   *
+   * الخامة والترويسة وعنوان القسم في ملفّاتٍ مستقلّة: `styles/skins/<id>.css` و
+   * `components/menu/heads/<Name>Head.tsx`.
+   */
+  /*
+   * «دكّان» — بقالة الحارة القديمة: لوحة صفيحٍ مدهونة باليد معلّقةٌ بسلكين،
+   * والأقسام رفوفٌ خشب، والأسعار بالطباشير على لوحٍ أسود صغير. الجدار جصٌّ
+   * دافئ، والحبر كحليّ دهان اللوحات، والتمييز أزرق المينا.
+   * الخطّان: عارف رقعة (خطّ خطّاط اللوحات — للعناوين وحدها) وطجوال للقراءة.
+   */
+  {
+    id: "dukkan",
+    name: "دكّان",
+    tagline: "لوحة صفيح مدهونة باليد، ورفوف، وأسعار بالطباشير",
+    suits: ["شعبي", "مطعم سريع"],
+    vars: {
+      // جصٌّ دافئ، ولوحة الصفيح أزرقَ مينا، والشريط اللاصق أصفر.
+      "--m-bg": "#f3e8d2",
+      "--m-bg-2": "#e8d9bb",
+      "--m-surface": "#fffaf0",
+      "--m-text": "#1b2230",
+      "--m-muted": "#53596a",
+      "--m-accent": "#1d4e9e",
+      "--m-accent-2": "#e0a526",
+      "--m-on-accent": "#ffffff",
+      "--m-border": "rgba(27,34,48,.18)",
+      "--m-font": FONT.tajawal,
+      "--m-display": FONT.ruqaa,
+      "--m-radius": "0.35rem",
+    },
+    design: design({
+      skin: "dukkan",
+      header: "tin",
+      layout: "grid",
+      heading: "shelf",
+      imageShape: "rounded",
+      divider: "none",
+      entrance: "rise",
+    }),
+  },
+  /*
+   * «عسير» — القطّ العسيري: جدارٌ أبيض تُرسم عليه أشرطةٌ ومثلّثات بألوانٍ صريحة
+   * وحدٍّ أسود. الأحمر هو التمييز (لون التاجر إن اختاره)، والأصفر والأزرق
+   * خامةٌ لا تتبع العلامة (`--m-q-*` في `skins/asir.css`). والزخرفة `qatt`
+   * من `lib/patterns.ts` نفسها.
+   * الخطّان: ريم كوفي (هندسيٌّ كالمثلّثات — للعناوين) والمراعي للقراءة.
+   */
+  {
+    id: "asir",
+    name: "عسير",
+    tagline: "مثلّثات وأشرطة القطّ العسيري بألوانه على جدار أبيض",
+    suits: ["شعبي", "مشويات"],
+    vars: {
+      // جصٌّ أبيض، وحبرٌ أسود للحدود، وأحمر الطين وأخضر الحقول.
+      "--m-bg": "#fbf6ec",
+      "--m-bg-2": "#f2e8d5",
+      "--m-surface": "#ffffff",
+      "--m-text": "#1d1a17",
+      "--m-muted": "#5f564b",
+      // أُغمق من ‎#c0391f و‎#1a7a50 (الاحتياط): ذانك ‎4.49 و‎4.38 على `--m-bg-2` —
+      // أرضية النوافذ حيث يُكتب السعر.
+      "--m-accent": "#b5321a",
+      "--m-accent-2": "#17704a",
+      "--m-on-accent": "#ffffff",
+      "--m-border": "rgba(29,26,23,.16)",
+      "--m-font": FONT.almarai,
+      "--m-display": FONT.reem,
+      "--m-radius": "0.25rem",
+    },
+    design: design({
+      skin: "asir",
+      pattern: "qatt",
+      patternOpacity: 0.03,
+      header: "mural",
+      layout: "list",
+      heading: "frieze",
+      imageShape: "square",
+      divider: "none",
+      entrance: "rise",
     }),
   },
 ];
