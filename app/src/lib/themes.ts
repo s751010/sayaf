@@ -934,9 +934,36 @@ export function readableOn(hex: string, ground: string, min = 4.5): string {
   return c;
 }
 
+/** السطح كما تراه العين: `rgba` مركّباً فوق الأرضية — وإلا السطح نفسه إن كان مصمتاً. */
+function surfaceOver(surface: string | undefined, ground: string): string | null {
+  if (!surface) return null;
+  if (isHex(surface)) return normalizeHex(surface);
+  const m = surface.match(/rgba?\(([^)]+)\)/);
+  if (!m || !isHex(ground)) return null;
+  const [r, g, b, a = "1"] = m[1].split(",").map((s) => s.trim());
+  const [R, G, B] = rgb(ground);
+  const al = Number(a);
+  const ch = (top: number, under: number) => Math.round(top * al + under * (1 - al)).toString(16).padStart(2, "0");
+  return `#${ch(Number(r), R)}${ch(Number(g), G)}${ch(Number(b), B)}`;
+}
+
+/**
+ * ⚠️ **على كلّ أرضيةٍ يُكتب عليها، لا على الأرضية وحدها** (٢٠٢٦/١٠/٢٧، الدرس ٥٤).
+ *
+ * السعر يُكتب على البطاقة (السطح فوق الأرضية) وفي النافذة (`--m-bg-2`) أكثر ممّا
+ * يُكتب على الأرضية نفسها. وكان يُحلّ على الأرضية وحدها: «فاخر» بلون المرجاني
+ * القديم (`crimson` ⇐ `dark-gold:#e0533d`) يكتب أسعار بطاقاته ‎4.37:1 — يمرّ على
+ * الأرضية (4.87) ويسقط حيث يُقرأ فعلاً. فيُحلّ على الثلاث بالتتابع: الاتّجاه واحد
+ * (نحو الأبيض في الداكن، ونحو الأسود في الفاتح) فلا يُفسد حلٌّ ما قبله. ولونٌ مقروءٌ
+ * على الثلاث أصلاً **لا يُمسّ** (ذهب «فاخر» يبقى ‎#d4a843).
+ */
 function withInk(theme: MenuTheme): MenuTheme {
   const v = theme.vars;
-  const ink = readableOn(v["--m-accent"] ?? "", v["--m-bg"] ?? "");
+  const bg = v["--m-bg"] ?? "";
+  let ink = readableOn(v["--m-accent"] ?? "", bg);
+  for (const ground of [surfaceOver(v["--m-surface"], bg), v["--m-bg-2"]]) {
+    if (ground && isHex(ground) && luminance(ground) < 0.4 === luminance(bg) < 0.4) ink = readableOn(ink, ground);
+  }
   return { ...theme, vars: { ...v, "--m-accent-ink": ink } };
 }
 

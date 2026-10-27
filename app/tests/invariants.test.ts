@@ -241,6 +241,37 @@ describe("ثابت §18 — ألوان الطوابع", () => {
   it("لونٌ مقروء أصلاً لا يُمسّ", () => {
     expect(getTheme("dark-gold").vars["--m-accent-ink"]).toBe("#d4a843");
     expect(getTheme("modern:#1d4ed8").vars["--m-accent-ink"]).toBe("#1d4ed8");
+    expect(getTheme("modern").vars["--m-accent-ink"]).toBe("#111113");
+  });
+
+  /**
+   * نصّ التمييز (السعر) ≥ ٤٫٥ **حيث يُكتب**: الأرضية، والبطاقة (السطح مركّباً
+   * فوقها)، والنافذة (`--m-bg-2`) — لكلّ طابع، ولكلّ لونٍ قديم يُردّ إلى «فاخر» أو
+   * «عصري»، ولألوان علامةٍ صعبة. كان يُحلّ على الأرضية وحدها، فـ`crimson` (فاخر
+   * بالمرجاني) يكتب أسعار بطاقاته ‎4.37:1 (قياس رفع عصري وفاخر ٢٧/١٠).
+   */
+  it.each([
+    ...ALL_THEMES.map((t) => t.id),
+    "royal", "emerald", "hijazi", "oud", "crimson", "ocean", "coffee", "majlis", "purple", "red", "blue", "brown",
+    "qatt", "bahri", "sahra", "lulu", "light-luxe", "specialty", "cream",
+    "dark-gold:#111113", "dark-gold:#e0533d", "modern:#f2d16b", "modern:#e0a526", "modern:#ffd400",
+  ])("«%s»: نصّ التمييز ≥ 4.5 على الأرضية والبطاقة والنافذة", (id) => {
+    const v = getTheme(id).vars;
+    const parse = (c: string) => {
+      const m = c.match(/rgba?\(([^)]+)\)/);
+      return m ? m[1].split(",").map((s) => Number(s.trim())) : null;
+    };
+    const p = parse(v["--m-surface"]);
+    const card = p
+      ? mixHex(
+          `#${p.slice(0, 3).map((n) => n.toString(16).padStart(2, "0")).join("")}`,
+          v["--m-bg"],
+          p[3] ?? 1
+        )
+      : v["--m-surface"];
+    for (const ground of [v["--m-bg"], card, v["--m-bg-2"]]) {
+      expect(ratio(v["--m-accent-ink"], ground), `${v["--m-accent-ink"]} فوق ${ground}`).toBeGreaterThanOrEqual(4.5);
+    }
   });
 
   it("الافتراضي dark-gold وتخطيطه grid", () => {

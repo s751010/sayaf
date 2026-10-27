@@ -158,6 +158,19 @@
   border: 1.5px dashed var(--m-text);
   transform: rotate(-2deg);
 }
+/* فاخر: لوحةٌ على الجلد بخيطٍ ذهبيّ — لا ختمٌ صارخ على منيوٍ هادئ. والحبر
+   `--m-text` على `--m-bg-2` (‎16.4:1)، والأرضية مصمتة فتصحّ فوق الصورة أيضاً. */
+.m-skin-gold .m-soldout {
+  background: var(--m-bg-2);
+  color: var(--m-text);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--m-accent) 55%, transparent),
+    0 0 0 3px color-mix(in srgb, var(--m-bg-2) 70%, transparent);
+}
+/* عصري: وسمٌ مطبوع بزوايا الشبكة — الحبر معكوساً كالأساس، والحبّة صارت مستطيلاً. */
+.m-skin-modern .m-soldout {
+  border-radius: 2px;
+}
 /* الشفّافة منها فوق الصورة (التاجر بدّل تخطيط طابعٍ قائميّ إلى شبكة): الصورة
    باهتة لا ورق، فتأخذ سطح الطابع تحت حبرها كي لا يُقرأ النصّ على صورة. */
 :is(.m-skin-receipt, .m-skin-letterboard, .m-skin-editorial, .m-skin-roastery) .m-soldout[data-over] {
