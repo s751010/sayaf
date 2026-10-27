@@ -352,7 +352,12 @@ export function SectionHeading({
               <span aria-hidden="true" className="block text-sm" style={{ color: ink }}>
                 ❖
               </span>
-              <h2 className="mt-1 text-[1.75rem] font-bold leading-tight text-white" style={dFont}>
+              <h2
+                className="mt-1 text-[1.75rem] font-bold leading-tight text-white"
+                // تعتيمٌ ثانٍ تحت الحروف نفسها: الأبيض على صورةٍ فاتحة كان يُقرأ
+                // بالتدرّج وحده (ملاحظة الجودة ٢٦/١٠).
+                style={{ ...dFont, textShadow: "0 1px 2px rgba(0,0,0,.55), 0 2px 18px rgba(0,0,0,.6)" }}
+              >
                 {name}
               </h2>
               {items && <p className="mt-0.5 text-xs text-white/75">{items}</p>}
@@ -423,40 +428,39 @@ export function SectionHeading({
     );
   }
 
-  /* ── عصري: عنوانٌ عريض بعدّاد — أو بطاقة صورةٍ كبيرة والعنوان عليها ── */
+  /* ── عصري: عنوانٌ طباعيّ على الشبكة — خطٌّ مقيس، ورقم القسم، ومسطرة ──
+   *
+   * كان «عنواناً عريضاً بعدّاد» أو بطاقة صورةٍ والعنوان أبيض عليها — الشكل الذي
+   * في كلّ تطبيق، والأبيض على صورةٍ فاتحة يُقرأ بالتعتيم وحده. الآن كما يُصفّ
+   * عنوان بابٍ في منيو مطبوع: خطٌّ أسود بعرض العمود، وتحته رقم القسم في خليّةٍ
+   * بلون العلامة ومسطرةٌ تمتدّ إلى العدد، ثم الاسم بأثقل وزن، **والصورة تحته لا
+   * تحته الاسم** — فلا نصّ فوق صورةٍ أصلاً. */
   if (style === "bold") {
-    const chip = (light: boolean) =>
-      items && (
-        <span
-          className="shrink-0 rounded-full px-2.5 py-1 text-xs font-bold"
-          style={light ? { background: "rgba(255,255,255,.92)", color: "#111113" } : { background: "var(--m-bg-2)", color: "var(--m-muted)" }}
-        >
-          {items}
-        </span>
-      );
+    const no = String(index + 1).padStart(2, "0");
     return (
-      <div className="m-h mb-4">
-        {photo ? (
-          <div className="m-bold-photo relative overflow-hidden" style={{ borderRadius: "calc(var(--m-radius) * 1.25)" }}>
+      <div className="m-h m-h-type mb-5">
+        <div className="m-type-rule flex items-start gap-3">
+          <span
+            aria-hidden="true"
+            className="m-type-no m-o-num inline-flex h-6 min-w-[2rem] shrink-0 items-center justify-center px-1.5 text-xs font-black"
+            style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}
+            dir="ltr"
+          >
+            {no}
+          </span>
+          <span aria-hidden="true" className="m-ticks mt-0 flex-1" />
+          {items && (
+            <span className="shrink-0 pt-1 text-xs font-bold" style={muted}>
+              {items}
+            </span>
+          )}
+        </div>
+        <h2 className="mt-2 text-[1.75rem] font-black leading-[1.15]" style={{ ...dFont, ...text }}>
+          {name}
+        </h2>
+        {photo && (
+          <div className="m-bold-photo mt-3 overflow-hidden" style={{ borderRadius: "calc(var(--m-radius) * .5)" }}>
             <CoverImg src={photo.src} onError={onError} className="aspect-[16/9]" />
-            <span
-              aria-hidden="true"
-              className="absolute inset-0"
-              style={{ background: "linear-gradient(180deg, transparent 45%, rgba(0,0,0,.66))" }}
-            />
-            <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-4">
-              <h2 className="text-[1.6rem] font-black leading-tight text-white" style={dFont}>
-                {name}
-              </h2>
-              {chip(true)}
-            </div>
-          </div>
-        ) : (
-          <div className="flex items-end justify-between gap-3">
-            <h2 className="text-[1.6rem] font-black leading-tight" style={{ ...dFont, ...text }}>
-              {name}
-            </h2>
-            {chip(false)}
           </div>
         )}
       </div>

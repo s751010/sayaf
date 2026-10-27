@@ -18,11 +18,13 @@ import type { PatternId } from "./patterns";
  * `paper` رأس فاتورة · `letterboard` لوحة حروف معلّقة · `poster` ملصقٌ
  * بشريط أقسامٍ يجري · `sign` لافتة نيون على جدار طوب · `masthead` ترويسة
  * مجلّة · `arcade` أقواس روشان · `mud` بيت طينٍ نجديّ بشُرفاته وبابه · `bag`
- * وجه كيس قهوةٍ مختصّة.
+ * وجه كيس قهوةٍ مختصّة · `folio` دفترُ جلدٍ بخيطٍ ذهبيّ (فاخر) · `grid` شبكةٌ
+ * طباعيّة بمسطرة (عصري).
  */
 export type HeaderShape =
   | "arch" | "band" | "frame" | "soft"
-  | "paper" | "letterboard" | "poster" | "sign" | "masthead" | "arcade" | "mud" | "bag";
+  | "paper" | "letterboard" | "poster" | "sign" | "masthead" | "arcade" | "mud" | "bag"
+  | "folio" | "grid";
 /**
  * تخطيط الأطباق — هذا ما يجعل الفرق بين الطوابع يُرى لا يُقرأ.
  * `deck` بطاقاتٌ تُسحب أفقياً لكل قسم، تكبر حين تتوسّط الشاشة.
@@ -38,11 +40,13 @@ export type ImageShape = "rounded" | "square" | "circle" | "arch";
  * **الخامة الكاملة** للطابع — صنفٌ على جذر المنيو (`m-skin-*`) يقرؤه
  * `styles/menu-skins.css`: الملمس (ورق، لبّاد، طوب، بلاط)، والحواف (فاتورة
  * ممزّقة، إطار خشب، ملصقٌ بحدٍّ أسود)، والحركة الخاصّة بالطابع (طباعة،
- * اشتعال، ملصقاتٌ تُلصق، انفتاح رواشين، بابٌ نجديّ ينفتح). `store` واجهة
- * المتجر بلا شيء منها.
+ * اشتعال، ملصقاتٌ تُلصق، انفتاح رواشين، بابٌ نجديّ ينفتح، دفترُ جلدٍ يُخاط،
+ * شبكةٌ تُسطَّر). `store` واجهة المتجر بلا شيء منها — بقيت لـ«لون علامتي»
+ * (`buildCustomTheme`) وحده.
  */
 export type MenuSkin =
-  | "store" | "receipt" | "letterboard" | "sticker" | "neon" | "editorial" | "roshan" | "najdi" | "roastery";
+  | "store" | "receipt" | "letterboard" | "sticker" | "neon" | "editorial" | "roshan" | "najdi" | "roastery"
+  | "gold" | "modern";
 /** كيف يُقدَّم السعر: نصّاً، أو شارة ملوّنة، أو خطّاً منقّطاً يقود إليه. */
 export type PriceStyle = "plain" | "badge" | "leader";
 /** الفاصل بين صفوف القائمة الرأسية. */
@@ -209,7 +213,7 @@ export const DESIGN_THEMES: MenuTheme[] = [
   {
     id: "dark-gold",
     name: "فاخر",
-    tagline: "أسود دافئ وذهب، وزخرفة جيري، وإطار مذهّب حول شعارك",
+    tagline: "دفتر جلدٍ داكن بخيطٍ ذهبيّ، واسمك مختومٌ بالذهب",
     suits: ["مشويات", "مطعم"],
     // ⚠️ الألوان كما كانت حرفياً: هذا شكل المنتج لمن لم يختر (§18).
     vars: {
@@ -225,10 +229,15 @@ export const DESIGN_THEMES: MenuTheme[] = [
       "--m-font": FONT.kufi,
       "--m-radius": "1rem",
     },
+    // ═══ «دفتر جلدٍ بخيطٍ ذهبيّ» (٢٠٢٦/١٠/٢٧) ═══ كان واجهة متجرٍ داكنة بلا خامة
+    // (قياس الجودة ٧٢ من ٩٠). صار **دفترَ منيو** كالذي يُقدَّم في المطاعم الراقية:
+    // جلدٌ بحبيبته، وخيطٌ ذهبيّ مخيطٌ على حافّته، والاسم مختومٌ بالذهب. هادئٌ عمداً:
+    // هذا الافتراضي لكلّ من لم يختر، مشوايّاً كان أو مقهى. **ولم تُمسّ قيمة لون.**
     design: design({
+      skin: "gold",
       pattern: "girih",
       patternOpacity: 0.03,
-      header: "frame",
+      header: "folio",
       heading: "plaque",
       density: "airy",
       imageShape: "rounded",
@@ -459,7 +468,7 @@ export const DESIGN_THEMES: MenuTheme[] = [
   {
     id: "modern",
     name: "عصري",
-    tagline: "أبيض نظيف بلا زخرفة، يترك المكان لصورك ولونك",
+    tagline: "أبيض وأسود على شبكةٍ مقيسة، يترك المكان لصورك ولونك",
     suits: ["عصائر", "مطعم"],
     vars: {
       "--m-bg": "#ffffff",
@@ -474,7 +483,14 @@ export const DESIGN_THEMES: MenuTheme[] = [
       "--m-font": FONT.cairo,
       "--m-radius": "1rem",
     },
+    // ═══ «شبكةٌ طباعيّة» (٢٠٢٦/١٠/٢٧) ═══ كان واجهة متجرٍ بيضاء بلا خامة، يبدو
+    // قالباً (قياس الجودة ٦٦ من ٩٠). صار منيواً **مُصمَّماً على شبكة**: ورقٌ بنقاط
+    // قياس، وشريطٌ أسود ومسطرةٌ في الترويسة، وعناوين أقسامٍ مرقّمة تحت خطٍّ مقيس.
+    // **الهويّة نفسها** — أبيض وأسود نظيف — لأن أحد عشر معرّفاً محذوفاً يُردّ إليه
+    // (`LEGACY`): بنيةٌ أدقّ لا شخصيّةٌ أخرى. ولم تُمسّ قيمة لون.
     design: design({
+      skin: "modern",
+      header: "grid",
       heading: "bold",
       depth: "raised", entrance: "fade", edge: "hairline",
     }),

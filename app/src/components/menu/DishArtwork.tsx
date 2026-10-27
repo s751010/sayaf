@@ -83,7 +83,9 @@ export function DishArtwork({
 
   return (
     <span
-      className={className}
+      // ‏`m-art` خطافٌ للطابع: يعيد رسم الأرضية والصحن عبر `--m-art-*` (ورق شبكةٍ
+      // في «عصري»، حلقةٌ مذهّبة في «فاخر») — القيمة المضمَّنة تغلب أيّ قاعدة.
+      className={className ? `m-art ${className}` : "m-art"}
       style={{
         position: "relative",
         display: "flex",
@@ -91,8 +93,8 @@ export function DishArtwork({
         justifyContent: "center",
         overflow: "hidden",
         background:
-          `radial-gradient(70% 60% at 50% 42%, color-mix(in srgb, var(--m-accent) 16%, transparent) 0%, transparent 70%), ` +
-          `linear-gradient(${angle}deg, color-mix(in srgb, var(--m-accent) 10%, var(--m-bg-2)) 0%, var(--m-bg-2) 100%)`,
+          `var(--m-art-bg, radial-gradient(70% 60% at 50% 42%, color-mix(in srgb, var(--m-accent) 16%, transparent) 0%, transparent 70%), ` +
+          `linear-gradient(${angle}deg, color-mix(in srgb, var(--m-accent) 10%, var(--m-bg-2)) 0%, var(--m-bg-2) 100%))`,
         ...style,
       }}
       aria-hidden="true"
@@ -107,8 +109,8 @@ export function DishArtwork({
           width: glyphSize * 2.1,
           height: glyphSize * 2.1,
           borderRadius: "9999px",
-          background: "color-mix(in srgb, var(--m-accent) 10%, var(--m-bg))",
-          boxShadow: "inset 0 0 0 1px color-mix(in srgb, var(--m-accent) 22%, transparent)",
+          background: "var(--m-art-plate, color-mix(in srgb, var(--m-accent) 10%, var(--m-bg)))",
+          boxShadow: "var(--m-art-ring, inset 0 0 0 1px color-mix(in srgb, var(--m-accent) 22%, transparent))",
           color: "var(--m-accent-ink, var(--m-accent))",
         }}
       >
