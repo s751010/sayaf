@@ -81,6 +81,7 @@ app/src/
     dashboard/          Dashboard(shell) Overview Dishes Menus Orders Design Cards Qr
                         Analytics Loyalty Billing Settings Tabs
                         Kitchen (شاشة الكاشير `/dashboard/kitchen` — بلا غلاف، لوح الكاونتر)
+                        PrintKit («عدّة الطباعة» `/dashboard/kit`: ستاند A5 · ملصقات QR · كاونتر بطابع المنيو — **التنزيل والطباعة مطفآن قبل النطاق**، §17)
                         Setup + setup/ («إعداد منيوك» `/dashboard/setup` بعد إنشاء المطعم:
                         أصناف ⇐ طابع ⇐ شعار ⇐ نشر — المنطق خالص في `lib/setup.ts`)
                         Nutrition (الامتثال، §26) · PrintMenu (المنيو المطبوع A4 + CSV، §26)
@@ -173,6 +174,8 @@ app/src/
     legal.ts            هويّة المنشأة (`LEGAL`) وجملة الضريبة وخصم السنوي — **مصدر واحد** لكل نصّ نظامي
     arabic.ts           `normalizeAr` — توحيد الكتابة للبحث (قهوه=قهوة · حمّص=حمص)
     cards.ts            رسم بطاقات الكاشير (§17) — حزمة مستقلّة، لا تُستورد في الهبوط
+    printKit.ts         عدّة الطباعة: `printGate` (لا طباعة قبل النطاق) · `kitPalette` (الطابع محلولَ التباين على أرضية الورق) · القطع — خالص
+    printMotifs.ts      «حافّة» كلّ طابع على الورق (دفتر جلد · فاتورة · نيون · شُرفات نجدية…) — في حزامٍ لا يبلغه نصّ
     qr.ts               توليد كود QR (مشترك بين الاستوديو وصفحة الأكواد)
     facts.ts            أرقام المنتج المعروضة (طوابع · قياسات · DPI)
     nav.ts              عناصر قائمة اللوحة

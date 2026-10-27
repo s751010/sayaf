@@ -174,7 +174,8 @@ test.describe("اللوحة على ٣٢٠px", () => {
    */
   test.use({ viewport: { width: 320, height: 640 } });
 
-  for (const path of ["/dashboard", "/dashboard/design", "/dashboard/dishes", "/dashboard/qr"]) {
+  // `/dashboard/kit`: تبويبات الطباعة صارت أربعاً — الرابع كان سيمدّ الصفحة.
+  for (const path of ["/dashboard", "/dashboard/design", "/dashboard/dishes", "/dashboard/qr", "/dashboard/kit"]) {
     test(`${path} بلا تمرير أفقي`, async ({ page }) => {
       const { crashes } = watch(page);
       await signedIn(page);
@@ -317,4 +318,98 @@ test("بطاقة قوقل ماب: تنسخ الرابط العام لا رابط
   await expect(page.getByRole("heading", { name: "اربط منيوك بقوقل ماب" })).toHaveCount(0);
 
   expect(crashes, crashes.join("\n")).toEqual([]);
+});
+
+/**
+ * عدّة الطباعة بالطابع (`/dashboard/kit`) — **تُبنى وتُعايَن، ولا تُطبع قبل النطاق**.
+ *
+ * قرار المالك (٢٠٢٦/١٠/٢٥): الكود المطبوع لا يُحدَّث، و`MENU_DOMAIN` فارغ اليوم.
+ * فالوعد «لا يطبع» يُقاس بما يحدث فعلاً (الدرس ٤٨): صفر تنزيل وصفر نافذة طباعة
+ * حتى مع ضغطٍ قسري على الزرّين — لا بخاصية `disabled` وحدها.
+ */
+test("عدّة الطباعة: ثلاث قطع تُعايَن، والتنزيل والطباعة مطفآن قبل النطاق", async ({ page }) => {
+  const { crashes } = watch(page);
+  await signedIn(page);
+  await page.addInitScript(() => {
+    const w = window as unknown as { __opened: number; open: typeof window.open };
+    w.__opened = 0;
+    w.open = (() => {
+      w.__opened++;
+      return null;
+    }) as typeof window.open;
+  });
+  const downloads: string[] = [];
+  page.on("download", (d) => downloads.push(d.suggestedFilename()));
+  await page.goto("/dashboard/kit");
+
+  await expect(page.getByRole("heading", { name: "عدّة الطباعة" })).toBeVisible();
+  const pieces = page.locator("[data-kit-piece]");
+  await expect(pieces).toHaveCount(3);
+  for (const id of ["tent", "stickers", "counter"]) {
+    const piece = page.locator(`[data-kit-piece="${id}"]`);
+    // المعاينة رُسمت فعلاً (لوحةٌ بأبعاد) — بالمحرّك نفسه الذي يُطبع به.
+    await expect.poll(() => piece.locator("canvas").evaluate((c: HTMLCanvasElement) => c.width)).toBeGreaterThan(100);
+    for (const name of [/نزّل PNG/, /اطبع/]) {
+      const btn = piece.getByRole("button", { name });
+      await expect(btn).toBeDisabled();
+      await expect(btn).toHaveAttribute("aria-describedby", "kit-gate-note");
+      await btn.click({ force: true });
+    }
+  }
+  const note = page.locator("#kit-gate-note");
+  await expect(note).toContainText("النطاق");
+  await expect(note).toContainText("لا يُحدَّث");
+
+  await page.waitForTimeout(800);
+  expect(downloads, "نُزّل ملفّ قبل النطاق").toEqual([]);
+  expect(await page.evaluate(() => (window as unknown as { __opened: number }).__opened), "فُتحت نافذة طباعة").toBe(0);
+  expect(crashes, crashes.join("\n")).toEqual([]);
+});
+
+/**
+ * كود كلّ قطعة **يُقرأ** — للطوابع الاثني عشر، بالمحرّك الحقيقي وبدقّة ٣٠٠.
+ *
+ * لا فاكّ QR في `node_modules`، فالمسبار (`e2e/qr-probe.ts`) أقسى من الفكّ:
+ * يطابق مركز **كلّ وحدة** بالمصفوفة المتوقَّعة من الرابط (صفر مخالفة — الفاكّ
+ * يتسامح مع ١٥٪)، ويقيس منطقة الهدوء بالوحدات على الجهات الأربع (المواصفة ٤)،
+ * وتباين الحبر الفعلي (٧:١). والستاند بوجهيه، والعلوي مقلوب.
+ */
+test("عدّة الطباعة: كود كلّ قطعة يطابق مصفوفته وحدةً وحدة — الطوابع الاثنا عشر", async ({ page }, info) => {
+  test.skip(info.project.name !== "chromium", "رسمٌ بدقّة الطباعة — مرّةً واحدة تكفي");
+  test.setTimeout(240_000);
+  await page.goto("/about");
+  const themes = ["dark-gold", "receipt", "neon", "sticker", "letterboard", "editorial", "roshan", "najdi", "modern", "roastery", "dukkan", "asir"];
+  const origin = new URL(page.url()).origin;
+  const faces = await page.evaluate(
+    async ({ themes, origin }) => {
+      // `import()` عبر `Function`: محوّل Playwright قد يحوّل `import()` في جسم
+      // الدالّة إلى `require` — والدالّة تُنفَّذ في المتصفّح حيث vite يخدم الملفّ.
+      const load = new Function("p", "return import(p)") as (p: string) => Promise<typeof import("./qr-probe")>;
+      const m = await load("/e2e/qr-probe.ts");
+      const out: { key: string; mismatches: number; modules: number; quiet: number; contrast: number; moduleMm: number }[] = [];
+      for (const theme of themes) {
+        for (const size of ["tent-a5", "sticker", "counter"] as const) {
+          const faces = await m.probe({
+            size, layout: "centered", style: "brand", kit: true,
+            name: "مطعم مشراق للمأكولات الشعبية", logo: null, emoji: "☕",
+            themeId: theme, brandHex: null, url: `${origin}/mishraq`,
+          });
+          faces.forEach((f, i) =>
+            out.push({ key: `${theme}/${size}/${i}`, mismatches: f.mismatches, modules: f.modules, quiet: Math.min(...f.quiet), contrast: f.contrast, moduleMm: f.moduleMm })
+          );
+        }
+      }
+      return out;
+    },
+    { themes, origin }
+  );
+  // ١٢ طابعاً × (وجها الستاند + الملصق + الكاونتر).
+  expect(faces).toHaveLength(48);
+  for (const f of faces) {
+    expect(f.modules, f.key).toBeGreaterThan(400); // يثبت أنه وجد كوداً
+    expect(f.mismatches, f.key).toBe(0);
+    expect(f.quiet, `${f.key} منطقة الهدوء`).toBeGreaterThanOrEqual(4);
+    expect(f.contrast, `${f.key} تباين الحبر`).toBeGreaterThanOrEqual(7);
+    expect(f.moduleMm, `${f.key} مقاس الوحدة`).toBeGreaterThanOrEqual(0.8);
+  }
 });
