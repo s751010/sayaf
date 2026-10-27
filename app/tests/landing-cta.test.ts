@@ -33,6 +33,8 @@ const SURFACES: [string, string][] = [
   ["Landing.tsx", "../src/pages/Landing.tsx"],
   ["site.tsx", "../src/components/site.tsx"],
   ["HeroCalculator.tsx", "../src/components/landing/HeroCalculator.tsx"],
+  // صفحات الشرائح: نداءٌ واحد (التسجيل) بالثابت نفسه.
+  ["Segment.tsx", "../src/pages/Segment.tsx"],
 ];
 
 /** ⚠️ ألفاظ عاشت في الصفحة فعلاً ثم تقاعدت — لا قائمة متخيَّلة. */

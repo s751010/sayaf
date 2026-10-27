@@ -1,5 +1,5 @@
 import { Suspense, lazy } from "react";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "@/lib/auth";
 import { ToastProvider, Spinner } from "@/components/ui";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -34,6 +34,8 @@ const ApiDocs = lazy(() => import("@/pages/ApiDocs"));
 const About = lazy(() => import("@/pages/About"));
 /** دليل المطاعم — صفحة فهرس عامة تنمو مع كل تاجر جديد. */
 const Restaurants = lazy(() => import("@/pages/Restaurants"));
+/** صفحات الشرائح `/for/<slug>` — كسولة: لا تزيد حزمة المنيو ولا قطعة الهبوط. */
+const Segment = lazy(() => import("@/pages/Segment"));
 
 const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 const Stamp = lazy(() => import("@/pages/Stamp"));
@@ -89,6 +91,10 @@ export default function App() {
                 <Route path="/help" element={<Help />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/restaurants" element={<Restaurants />} />
+                {/* مقطعان لا يلتقطهما `/:slug` أصلاً؛ و`/for` وحدها محجوزة في
+                    `RESERVED_PATHS` وتعود إلى الهبوط بدل «مطعم غير موجود». */}
+                <Route path="/for/:segment" element={<Segment />} />
+                <Route path="/for" element={<Navigate to="/" replace />} />
                 <Route path="/docs/api" element={<ApiDocs />} />
                 <Route path="/privacy" element={<Privacy />} />
                 <Route path="/terms" element={<Terms />} />

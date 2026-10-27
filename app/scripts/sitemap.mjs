@@ -89,6 +89,11 @@ const MIN_DISHES = 2;
 const STATIC = [
   { loc: "/", priority: "1.0", changefreq: "weekly" },
   { loc: "/demo", priority: "0.9", changefreq: "monthly" },
+  // صفحات الشرائح (`src/lib/segmentLinks.ts`) — سكربت Node لا يستورد TS، فتُكتب
+  // هنا و`segments.test.ts` يُسقط الفحص إن تباعدت القائمتان.
+  { loc: "/for/specialty-coffee", priority: "0.8", changefreq: "monthly" },
+  { loc: "/for/traditional-restaurants", priority: "0.8", changefreq: "monthly" },
+  { loc: "/for/food-trucks", priority: "0.8", changefreq: "monthly" },
   // الدليل يتغيّر بتغيّر المطاعم لا بتحرير نصّه — لذلك `weekly` كالمنيوهات.
   { loc: "/restaurants", priority: "0.8", changefreq: "weekly" },
   { loc: "/about", priority: "0.7", changefreq: "monthly" },
