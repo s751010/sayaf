@@ -28,6 +28,7 @@ import {
   type CardStyleId,
 } from "@/lib/cards";
 import { splitThemeId } from "@/lib/themes";
+import { sheetHtml } from "@/lib/printKit";
 import { getMyMenus } from "@/lib/data";
 import { cn } from "@/lib/utils";
 import { useDashboard, FeatureGate } from "./Dashboard";
@@ -165,16 +166,8 @@ function CardsInner() {
       const png = canvas.toDataURL("image/png");
       const w = window.open("", "_blank");
       if (!w) throw new Error("popup");
-      const copies = [...Array(meta.perSheet)]
-        .map(() => `<img src="${png}" alt="">`)
-        .join("");
-      w.document.write(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8">
-<title>بطاقات للطباعة</title><style>
-  @page{size:A4;margin:8mm}
-  body{margin:0;display:flex;flex-wrap:wrap;gap:6mm;align-content:flex-start;justify-content:center}
-  img{width:${meta.mm[0]}mm;height:${meta.mm[1]}mm;object-fit:contain;
-      outline:1px dashed #ccc;outline-offset:2mm;break-inside:avoid}
-</style></head><body>${copies}</body></html>`);
+      // الصفحة نفسها لعدّة الطباعة — `sheetHtml` مصدرٌ واحد لقياس الورقة.
+      w.document.write(sheetHtml(png, meta.mm, meta.perSheet));
       w.document.close();
       w.focus();
       setTimeout(() => w.print(), 500);

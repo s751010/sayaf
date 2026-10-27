@@ -22,7 +22,9 @@ export interface Tab {
 
 export function Tabs({ tabs }: { tabs: Tab[] }) {
   return (
-    <div className="mt-5 inline-flex rounded-xl border border-line bg-panel p-1">
+    // `flex-wrap`: تبويبات الطباعة صارت أربعاً (عدّة الطباعة، ٢٠٢٦/١٠/٢٧)، والرابع
+    // يمدّ الصفحة على 320 — فتنزل التبويبات سطراً ثانياً بدل أن تفيض.
+    <div className="mt-5 inline-flex max-w-full flex-wrap rounded-xl border border-line bg-panel p-1">
       {tabs.map((t) => (
         <NavLink
           key={t.to}
@@ -52,6 +54,7 @@ export function PrintTabs() {
     <Tabs
       tabs={[
         { to: "/dashboard/print", label: "المنيو المطبوع", icon: "doc" },
+        { to: "/dashboard/kit", label: "عدّة الطباعة", icon: "printer" },
         { to: "/dashboard/cards", label: "بطاقات الكاشير", icon: "card" },
         { to: "/dashboard/qr", label: "أكواد QR", icon: "qr" },
       ]}
