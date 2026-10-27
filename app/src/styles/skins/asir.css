@@ -1,0 +1,312 @@
+/*
+ * ══ عسير — القطّ العسيري (٢٠٢٦/١٠/٢٧) ════════════════════════════════════════
+ * الطابع الثاني عشر. جدارٌ أبيض تُرسم عليه أشرطةٌ أفقية يفصلها خطٌّ أسود،
+ * وصفوفُ مثلّثات تتدلّى منها أو تقوم عليها، بألوانٍ صريحة. والسطور يفصلها خطٌّ
+ * متعرّج مرسوم، والصور مؤطّرةٌ بأشرطة.
+ * الترويسة وعنوان القسم في `components/menu/heads/AsirHead.tsx`.
+ *
+ * ⚠️ **الملفّ يُستورد من رأس `menu-skins.css`** (انظر `skins/dukkan.css`) —
+ * فكلّ انتقائيٍّ هنا يبدأ بـ`.m-skin-asir` ليغلب نظيره العامّ بالخصوصية.
+ *
+ * الألوان: الأحمر **لون التمييز** (لون التاجر إن اختاره)؛ والأصفر والأخضر
+ * والأزرق خامةُ القطّ (`--m-q-*`) لا تتبع العلامة، كالطوب في «نيون». **ولا نصّ
+ * يقع على شريطٍ ملوّن** — المثلّثات والأشرطة زخرفةٌ `aria-hidden` كلّها.
+ */
+.m-skin-asir {
+  display: flow-root;
+  --m-q-yellow: #e8b51f;
+  --m-q-green: #17704a;
+  --m-q-blue: #2b5a9e;
+  --q-down: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 14' preserveAspectRatio='none'%3E%3Cpath d='M0 0H24L12 14Z'/%3E%3C/svg%3E");
+  --q-up: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 14' preserveAspectRatio='none'%3E%3Cpath d='M0 14L12 0L24 14Z'/%3E%3C/svg%3E");
+}
+
+/* ── صفّ المثلّثات ── */
+.m-skin-asir .m-q-teeth {
+  --q-w: 24px;
+  --q-h: 14px;
+  height: var(--q-h);
+  /* مثلّثٌ لكلّ لون: أحمر · أصفر · أخضر · أزرق. ⚠️ يُكتب هنا لا في متغيّرٍ على
+     الجذر: `var(--q-w)` داخل متغيّرٍ يُحلّ حيث عُرّف، و`--q-w` لا يوجد على الجذر
+     فيبطل المتغيّر كلّه — وتختفي المثلّثات بلا خطأ (أوّل لقطة). */
+  background: repeating-linear-gradient(
+    90deg,
+    var(--m-accent) 0 var(--q-w),
+    var(--m-q-yellow) var(--q-w) calc(var(--q-w) * 2),
+    var(--m-q-green) calc(var(--q-w) * 2) calc(var(--q-w) * 3),
+    var(--m-q-blue) calc(var(--q-w) * 3) calc(var(--q-w) * 4)
+  );
+  /* كلّ قسمٍ يبدأ بلونٍ آخر (`--q-shift` من ترتيبه) — جدرانٌ لا تتكرّر. */
+  background-position: calc(var(--q-shift, 0) * var(--q-w)) 0;
+  -webkit-mask: var(--q-mask) 0 0 / var(--q-w) var(--q-h) repeat-x;
+  mask: var(--q-mask) 0 0 / var(--q-w) var(--q-h) repeat-x;
+}
+.m-skin-asir .m-q-down {
+  --q-mask: var(--q-down);
+}
+.m-skin-asir .m-q-up {
+  --q-mask: var(--q-up);
+}
+.m-skin-asir .m-q-teeth.m-q-sm {
+  --q-w: 14px;
+  --q-h: 9px;
+}
+
+/* ── الأشرطة: لونٌ بين خطّين أسودين، كما تُرسم باليد ── */
+.m-skin-asir .m-q-stripes {
+  height: 22px;
+  background: linear-gradient(
+    180deg,
+    var(--m-text) 0 2px,
+    var(--m-q-yellow) 2px 7px,
+    var(--m-text) 7px 9px,
+    var(--m-q-green) 9px 13px,
+    var(--m-text) 13px 15px,
+    var(--m-accent) 15px 20px,
+    var(--m-text) 20px 22px
+  );
+}
+.m-skin-asir .m-q-flip {
+  transform: scaleY(-1);
+}
+.m-skin-asir .m-q-stripes.m-q-sm {
+  height: 9px;
+  background: linear-gradient(
+    180deg,
+    var(--m-text) 0 1.5px,
+    var(--m-q-yellow) 1.5px 4.5px,
+    var(--m-text) 4.5px 5.5px,
+    var(--m-accent) 5.5px 7.5px,
+    var(--m-text) 7.5px 9px
+  );
+}
+
+/* الجدار المرسوم: جصٌّ أفتح من الصفحة. */
+.m-skin-asir .m-mural {
+  background-color: var(--m-surface);
+  border-bottom: 1px solid var(--m-line);
+}
+/* صورة الغلاف نافذةٌ في الجدار، بإطارٍ من أشرطته. */
+.m-skin-asir .m-q-window {
+  border-radius: 2px;
+  box-shadow:
+    0 0 0 3px var(--m-surface),
+    0 0 0 6px var(--m-accent),
+    0 0 0 9px var(--m-q-yellow),
+    0 0 0 10.5px var(--m-text);
+}
+
+/* ── عنوان القسم: معيّنٌ قبل الاسم، والصورة بإطارٍ مرسوم ── */
+.m-skin-asir .m-q-diamond {
+  width: 11px;
+  height: 11px;
+  margin-inline: 4px;
+  background: var(--m-accent);
+  rotate: 45deg;
+  box-shadow:
+    0 0 0 2px var(--m-bg),
+    0 0 0 3.5px var(--m-text);
+}
+.m-skin-asir .m-q-frame {
+  padding-inline: 9px;
+}
+.m-skin-asir .m-q-frame .m-img {
+  box-shadow:
+    0 0 0 3px var(--m-surface),
+    0 0 0 6px var(--m-q-yellow),
+    0 0 0 7.5px var(--m-text);
+}
+
+/* ── السطور: خطٌّ متعرّج مرسوم بينها، والصورة بإطارٍ أصفر وحبر ── */
+.m-skin-asir .m-row::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: -1px;
+  height: 6px;
+  background: color-mix(in srgb, var(--m-text) 32%, transparent);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='6'%3E%3Cpath d='M0 5L6 1L12 5' fill='none' stroke='black' stroke-width='1.5'/%3E%3C/svg%3E")
+    0 0 / 12px 6px repeat-x;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='6'%3E%3Cpath d='M0 5L6 1L12 5' fill='none' stroke='black' stroke-width='1.5'/%3E%3C/svg%3E")
+    0 0 / 12px 6px repeat-x;
+  pointer-events: none;
+}
+.m-skin-asir .m-thumb {
+  box-shadow:
+    0 0 0 2px var(--m-surface),
+    0 0 0 4px var(--m-q-yellow),
+    0 0 0 5.5px var(--m-text);
+}
+/* الشبكة (إن اختارها التاجر): البطاقة لوحٌ بحدّ حبرٍ مرسوم. */
+.m-skin-asir .m-card,
+.m-skin-asir .m-feature {
+  --m-border: color-mix(in srgb, var(--m-text) 70%, transparent);
+}
+/* السعر: مثلّثٌ أخضر صغير قبله — زخرفةٌ لا حرف، فلا يقرؤه قارئ الشاشة. */
+.m-skin-asir .m-price:not(.m-shine)::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 6px;
+  margin-inline-end: 5px;
+  vertical-align: 0.15em;
+  background: var(--m-q-green);
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+.m-skin-asir .m-chips > *,
+.m-skin-asir .m-tab {
+  border-radius: 3px;
+}
+
+/* الضغط: الإطار «يُعاد دهانه» بالأحمر — حالةٌ تُرى مع تقليل الحركة أيضاً. */
+.m-skin-asir .m-card:active .m-thumb {
+  box-shadow:
+    0 0 0 2px var(--m-surface),
+    0 0 0 4px var(--m-accent),
+    0 0 0 5.5px var(--m-text);
+}
+
+/* ── «نفد اليوم»: رقعةٌ طُليت بالجصّ فوق الرسم — خطوطٌ مائلة وحدّ حبر ── */
+.m-skin-asir .m-soldout {
+  border-radius: 0;
+  background-color: var(--m-surface);
+  background-image: repeating-linear-gradient(
+    -45deg,
+    color-mix(in srgb, var(--m-text) 12%, transparent) 0 2px,
+    transparent 2px 6px
+  );
+  color: var(--m-text);
+  box-shadow: inset 0 0 0 1.5px var(--m-text);
+}
+
+/* ── شاشات الطلب: بطاقاتٌ بحدّ حبر، وزرّ الإتمام فوق شريطين مرسومين ── */
+.m-skin-asir .m-sheet::before {
+  --q-w: 20px;
+  --q-h: 12px;
+  content: "";
+  display: block;
+  height: var(--q-h);
+  background: repeating-linear-gradient(
+    90deg,
+    var(--m-accent) 0 var(--q-w),
+    var(--m-q-yellow) var(--q-w) calc(var(--q-w) * 2),
+    var(--m-q-green) calc(var(--q-w) * 2) calc(var(--q-w) * 3),
+    var(--m-q-blue) calc(var(--q-w) * 3) calc(var(--q-w) * 4)
+  );
+  -webkit-mask: var(--q-down) 0 0 / var(--q-w) var(--q-h) repeat-x;
+  mask: var(--q-down) 0 0 / var(--q-w) var(--q-h) repeat-x;
+}
+/* اللوح المنسدل (السلّة) بحشوة ‎1.25rem: الإفريز يمتدّ إلى حافّتيه. ونافذة الطبق
+   بلا حشوة، فالإفريز فوق صورتها كما هو. */
+.m-skin-asir .m-sheet.p-5::before {
+  margin: -1.25rem -1.25rem 1rem;
+}
+.m-skin-asir .m-o-card {
+  border: 1.5px solid var(--m-text);
+  border-radius: 2px;
+}
+.m-skin-asir .m-o-cta {
+  border-radius: 3px;
+  box-shadow:
+    0 3px 0 var(--m-q-yellow),
+    0 5px 0 var(--m-text);
+}
+.m-skin-asir .m-o-field {
+  background-color: var(--m-surface);
+  border-radius: 2px;
+}
+.m-skin-asir .m-o-ghost,
+.m-skin-asir .m-o-opt,
+.m-skin-asir .m-o-soldout,
+.m-skin-asir .m-o-step,
+.m-skin-asir .m-o-chip {
+  border-radius: 3px;
+}
+.m-skin-asir .m-o-thumb {
+  border-radius: 0;
+  box-shadow:
+    0 0 0 2px var(--m-surface),
+    0 0 0 3.5px var(--m-text);
+}
+.m-skin-asir .m-o-total:not(:first-child) {
+  border-top: 2px solid var(--m-text);
+}
+.m-skin-asir .m-o-tear > .m-o-card {
+  border: 1.5px solid var(--m-text);
+}
+.m-skin-asir .m-o-tear > .m-o-tail {
+  border-top: 2px dashed var(--m-text);
+}
+
+/* ── الحركة: المثلّثات تُرسم واحداً بعد واحد، والنافذة تنزل بحافّةٍ مسنّنة ── */
+@media (prefers-reduced-motion: no-preference) {
+  .m-skin-asir .m-head-mural .m-q-teeth {
+    animation: m-q-paint 0.9s steps(14, end) 0.25s both;
+  }
+  .m-skin-asir[dir="ltr"] .m-head-mural .m-q-teeth {
+    animation-name: m-q-paint-ltr;
+  }
+  .m-skin-asir .m-head-mural .m-q-stripes {
+    animation: m-q-paint 0.6s cubic-bezier(0.5, 0, 0.2, 1) both;
+  }
+  .m-skin-asir[dir="ltr"] .m-head-mural .m-q-stripes {
+    animation-name: m-q-paint-ltr;
+  }
+  /* حلقات الشعار تُدار إليه مرّةً كما يُدار الفرشاة على الجدار. */
+  .m-skin-asir .m-head-mural .m-logo {
+    animation: m-q-ring 0.55s cubic-bezier(0.3, 1.4, 0.5, 1) 0.35s both;
+  }
+  .m-skin-asir .m-sheet.anim-fade-up {
+    animation: m-q-sheet 0.32s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+  }
+  .m-skin-asir .m-card:active {
+    transform: translateY(1px);
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    /* مثلّثات الإفريز تُرسم حين يدخل القسم. */
+    .m-skin-asir .m-frieze .m-q-teeth {
+      animation: m-q-paint linear both;
+      animation-timeline: view();
+      animation-range: entry 20% cover 30%;
+    }
+    .m-skin-asir[dir="ltr"] .m-frieze .m-q-teeth {
+      animation-name: m-q-paint-ltr;
+    }
+  }
+}
+
+/* من أوّل السطر: من اليمين بالعربية. */
+@keyframes m-q-paint {
+  from {
+    clip-path: inset(0 0 0 100%);
+  }
+  to {
+    clip-path: inset(0);
+  }
+}
+@keyframes m-q-paint-ltr {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0);
+  }
+}
+@keyframes m-q-ring {
+  from {
+    opacity: 0;
+    transform: scale(0.6) rotate(-30deg);
+  }
+}
+/* النافذة تنزل بحافّةٍ من ثمانية مثلّثات. */
+@keyframes m-q-sheet {
+  from {
+    clip-path: polygon(0 0, 100% 0, 100% -14px, 93.75% 0px, 87.5% -14px, 81.25% 0px, 75% -14px, 68.75% 0px, 62.5% -14px, 56.25% 0px, 50% -14px, 43.75% 0px, 37.5% -14px, 31.25% 0px, 25% -14px, 18.75% 0px, 12.5% -14px, 6.25% 0px, 0% -14px);
+  }
+  to {
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 93.75% calc(100% + 14px), 87.5% 100%, 81.25% calc(100% + 14px), 75% 100%, 68.75% calc(100% + 14px), 62.5% 100%, 56.25% calc(100% + 14px), 50% 100%, 43.75% calc(100% + 14px), 37.5% 100%, 31.25% calc(100% + 14px), 25% 100%, 18.75% calc(100% + 14px), 12.5% 100%, 6.25% calc(100% + 14px), 0% 100%);
+  }
+}

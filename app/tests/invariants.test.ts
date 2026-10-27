@@ -4,8 +4,6 @@
  * ويعطي طمأنينة كاذبة.
  */
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
 
 import { ALL_THEMES, getTheme, splitThemeId, themeBaseOf, bestOnAccent, isHex, normalizeHex } from "@/lib/themes";
 import { canonOf, matchKnownCategory, sortCategories } from "@/lib/categories";
@@ -15,6 +13,7 @@ import { burnMinutes, isHighSodium, isSfdaCompliant } from "@/lib/nutrition";
 import { aliasType } from "@/lib/starterMenus";
 import { itemsLabel, sectionCover } from "@/components/menu/SectionHeading";
 import { monogramOf } from "@/components/menu/LogoMark";
+import { menuSkinsCss } from "./skin-css";
 
 /** تباين WCAG بين لونين سداسيّين. */
 function ratio(a: string, b: string): number {
@@ -63,6 +62,9 @@ describe("ثابت §18 — ألوان الطوابع", () => {
   const ADDED: Record<string, string> = {
     // «محمصة» (٢٠٢٦/١٠/٢٦) — الطابع العاشر، للكافيه المختصّ.
     roastery: "4fc8ff26",
+    // «دكّان» و«عسير» (٢٠٢٦/١٠/٢٧) — خطّة المالك، الموجة ٢ البند ٧.
+    dukkan: "131b99f1",
+    asir: "36df99e3",
   };
 
   it("بصمة التسعة المجمّدة لم تتغيّر", () => {
@@ -87,7 +89,8 @@ describe("ثابت §18 — ألوان الطوابع", () => {
     // `lib/facts.ts` يشتقّه من هنا، لكن الرقم يظهر للزائر — فلو نقص طابع
     // بحذف غير مقصود لتغيّر ما تَعِد به الصفحة بلا أن يلاحظ أحد.
     // ٩ ⇒ ١٠ (٢٠٢٦/١٠/٢٦): «محمصة» بقرار اجتماع الطوابع — تعديلٌ متعمَّد لا تعطيل.
-    expect(ALL_THEMES.length).toBe(10);
+    // ١٠ ⇒ ١٢ (٢٠٢٦/١٠/٢٧): «دكّان» و«عسير» باختيار المالك (خطّة الموجة ٢).
+    expect(ALL_THEMES.length).toBe(12);
   });
 
   /**
@@ -175,6 +178,24 @@ describe("ثابت §18 — ألوان الطوابع", () => {
     expect(ratio(t.vars["--m-accent-ink"], t.vars["--m-bg"])).toBeGreaterThanOrEqual(4.5);
   });
 
+  /**
+   * الطوابع المضافة بعد التسعة بحدٍّ أعلى، **وعلى `--m-bg-2` أيضاً**: النوافذ كلّها
+   * (الطبق · السلّة · التذكرة) على `bg-2`، والفحص أعلاه لا يقيسها — فخافت «نجدي»
+   * كان ‎3.98:1 في كلّ نافذةٍ منذ وُلد (الدرس ٥٤). النصّ ≥ ٧ والخافت ≥ ٤٫٥، ونصّ
+   * التمييز (السعر) ≥ ٤٫٥ على الثلاث.
+   */
+  it.each(Object.keys(ADDED))("«%s» (مضاف): النصّ ≥ 7 والخافت والسعر ≥ 4.5 على الأرضيات الثلاث", (id) => {
+    const t = getTheme(id);
+    const v = t.vars;
+    expect(isHex(v["--m-surface"]), "سطحٌ مُصمت يُقاس كما هو").toBe(true);
+    for (const ground of [v["--m-bg"], v["--m-bg-2"], v["--m-surface"]]) {
+      expect(ratio(v["--m-text"], ground), `نصّ فوق ${ground}`).toBeGreaterThanOrEqual(7);
+      expect(ratio(v["--m-muted"], ground), `خافت فوق ${ground}`).toBeGreaterThanOrEqual(4.5);
+      expect(ratio(v["--m-accent-ink"], ground), `سعرٌ فوق ${ground}`).toBeGreaterThanOrEqual(4.5);
+    }
+    expect(v["--m-on-accent"]).toBe(bestOnAccent(v["--m-accent"]));
+  });
+
   it("لونٌ مقروء أصلاً لا يُمسّ", () => {
     expect(getTheme("dark-gold").vars["--m-accent-ink"]).toBe("#d4a843");
     expect(getTheme("modern:#1d4ed8").vars["--m-accent-ink"]).toBe("#1d4ed8");
@@ -229,7 +250,8 @@ describe("splitThemeId — المقاطع بأي ترتيب", () => {
 /* ══ §18 · الطوابع ذات البنية الخاصّة ══════════════════════════════════ */
 
 describe("خامات الطوابع — البنية والـCSS معاً", () => {
-  const css = readFileSync(fileURLToPath(new URL("../src/styles/menu-skins.css", import.meta.url)), "utf8");
+  // بملفّات `skins/<id>.css` في مواضع استيرادها — كما يبنيها Vite.
+  const css = menuSkinsCss();
   const special = ALL_THEMES.filter((t) => t.design.skin !== "store");
 
   /**
@@ -273,14 +295,15 @@ describe("حرف الشعار — لا يلتقط واو العطف", () => {
 });
 
 describe("الطوابع الثلاث بعد الرفع — الضغط والسعر والنافذة (٢٠٢٦/١٠/٢٦)", () => {
-  const css = readFileSync(fileURLToPath(new URL("../src/styles/menu-skins.css", import.meta.url)), "utf8");
+  // بملفّات `skins/<id>.css` في مواضع استيرادها — كما يبنيها Vite.
+  const css = menuSkinsCss();
 
   it("أرقام السعر من خطٍّ أرقامه بعرضٍ واحد — لا `tabular-nums` على خطٍّ بلا `tnum`", () => {
     // طجوال والمراعي بلا `tnum`: الخاصية وحدها لا تصفّ رقماً (قيس 20.7 مقابل 29.6).
     expect(css).toMatch(/\.m-price \{\s*font-family: var\(--font-cairo\)/);
   });
 
-  it.each(["receipt", "neon", "sticker", "letterboard", "editorial", "roshan", "najdi", "roastery"])(
+  it.each(["receipt", "neon", "sticker", "letterboard", "editorial", "roshan", "najdi", "roastery", "dukkan", "asir"])(
     "«%s» له حركة نافذةٍ خاصّة داخل `no-preference`",
     (skin) => {
       const block = css.split("@media (prefers-reduced-motion: no-preference)").slice(1).join("");

@@ -15,6 +15,7 @@
  * - `ArcadeHead`   أقواس روشان: الغلاف جدارٌ تنفتح أسفله أقواس، والشعار نافذة.
  * - `MudHead`      بيت طين نجدي: جدارٌ بشُرفاته وطِرمته، وبابٌ يحمل الشعار ينفتح.
  * - `BagHead`      وجه كيس قهوةٍ مختصّة: كرافت، وصمّام، ولاصقٌ بالاسم ومنحنى تحميص.
+ * - `DukkanHead` · `AsirHead` — في ملفّيهما (`heads/`) كي لا يتزاحم طابعان على ملفّ.
  *
  * والحركة كلّها في `styles/menu-skins.css` — CSS خالص، ولا تعمل إلا لمن يقبل الحركة.
  * وكلّ ما هنا يُلوَّن بـ`--m-*`، فيلبس لون علامة التاجر كما تلبسه واجهة المتجر.
@@ -572,3 +573,7 @@ export function BagHead({ restaurant, corner, children }: HeadProps) {
     </header>
   );
 }
+
+/* ══ دكّان · عسير — كلٌّ في ملفّه (`heads/`) ══════════════════════════════ */
+export { DukkanHead } from "./heads/DukkanHead";
+export { AsirHead } from "./heads/AsirHead";

@@ -1,0 +1,321 @@
+/*
+ * ══ دكّان — بقالة الحارة القديمة (٢٠٢٦/١٠/٢٧) ═══════════════════════════════
+ * الطابع الحادي عشر. لوحة صفيحٍ مدهونة باليد معلّقةٌ بسلكين، والأقسام رفوفٌ
+ * خشب، والأسعار بالطباشير على لوحٍ أسود صغير، والجدار جصٌّ دافئ.
+ * الترويسة وعنوان القسم في `components/menu/heads/DukkanHead.tsx`.
+ *
+ * ⚠️ **الملفّ يُستورد من رأس `menu-skins.css`** لا من ذيله: `@import` بعد أيّ
+ * قاعدة يُسقطه postcss بتحذيرٍ ويخرج البناء بلا الملفّ (قيس ٢٧/١٠). فهو يسبق
+ * قواعد الملفّ الكبير في الترتيب — **فكلّ انتقائيٍّ هنا يبدأ بـ`.m-skin-dukkan`**
+ * ليغلب نظيره العامّ بالخصوصية لا بالترتيب.
+ *
+ * الألوان: اللوحة لون التمييز (لون التاجر إن اختاره) والكتابة عليها
+ * `--m-on-accent` (`bestOnAccent`). وما لا يتبع العلامة خامةٌ لا لون: الخشب،
+ * ولوح الطباشير (الطباشير عليه ‎11.2:1)، ومسامير الصفيح.
+ */
+.m-skin-dukkan {
+  display: flow-root;
+  --m-wood: #9a6a3c;
+  --m-wood-dark: #5e3c1f;
+  --m-slate: #263029;
+  --m-chalk: #f3e8d2;
+  /* جصّ الجدار: حبيبةٌ ضوءٌ وظلّ بلا صبغة. */
+  --m-plaster: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23p)' opacity='.13'/%3E%3C/svg%3E");
+  /* السعر بالطباشير — يمرّ بمتغيّر لأن لون السعر مضمَّن في `DishCard`. */
+  --m-price: var(--m-chalk);
+  background-image: var(--m-plaster);
+  background-size: 200px 200px;
+}
+
+/* ── لوحة الصفيح ── */
+.m-skin-dukkan .m-tin {
+  border-radius: 6px;
+  background-color: var(--m-accent);
+  /* لمعة الصفيح المدهون: ضوءٌ من أعلاه، وظلٌّ في أسفله. */
+  background-image: linear-gradient(165deg, rgba(255, 255, 255, 0.16), transparent 42%, rgba(0, 0, 0, 0.16));
+  /* إطاران مدهونان باليد داخل الحافّة، وحافّةٌ مثنيّة، وظلٌّ على الجدار. */
+  box-shadow:
+    inset 0 0 0 6px var(--m-accent),
+    inset 0 0 0 8px color-mix(in srgb, var(--m-on-accent) 72%, transparent),
+    inset 0 0 0 11px var(--m-accent),
+    inset 0 0 0 12px color-mix(in srgb, var(--m-on-accent) 38%, transparent),
+    0 0 0 1.5px color-mix(in srgb, var(--m-accent) 55%, #000),
+    0 16px 24px -14px rgba(0, 0, 0, 0.6);
+}
+/* المسامير الأربعة — فوق الإطار المدهون لا تحته. */
+.m-skin-dukkan .m-tin::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  --rv: radial-gradient(circle, color-mix(in srgb, var(--m-on-accent) 60%, var(--m-accent)) 0 2.2px, rgba(0, 0, 0, 0.35) 2.6px, transparent 3.2px);
+  background:
+    var(--rv) 3px 3px / 12px 12px no-repeat,
+    var(--rv) calc(100% - 3px) 3px / 12px 12px no-repeat,
+    var(--rv) 3px calc(100% - 3px) / 12px 12px no-repeat,
+    var(--rv) calc(100% - 3px) calc(100% - 3px) / 12px 12px no-repeat;
+}
+/* سلكان من أعلى الترويسة إلى عروتَي اللوحة. */
+.m-skin-dukkan .m-wire {
+  position: absolute;
+  top: -3.5rem;
+  height: calc(3.5rem + 6px);
+  width: 1.5px;
+  background: color-mix(in srgb, var(--m-text) 55%, transparent);
+}
+.m-skin-dukkan .m-wire::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: -3.5px;
+  width: 8.5px;
+  height: 8.5px;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--m-text) 65%, transparent);
+}
+.m-skin-dukkan .m-wire-start {
+  inset-inline-start: 24%;
+}
+.m-skin-dukkan .m-wire-end {
+  inset-inline-end: 24%;
+}
+
+/* ── الرفّ: وجهٌ مضاء وحافّةٌ وظلّ، وحمّالتان تحته ── */
+.m-skin-dukkan .m-plank {
+  position: relative;
+  height: 12px;
+  border-radius: 2px;
+  background:
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.06) 0 1px, transparent 1px 27px),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--m-wood) 62%, #fff) 0 3px,
+      var(--m-wood) 3px 9px,
+      var(--m-wood-dark) 9px 12px
+    );
+  box-shadow: 0 9px 10px -8px rgba(0, 0, 0, 0.55);
+}
+.m-skin-dukkan .m-plank::before,
+.m-skin-dukkan .m-plank::after {
+  content: "";
+  position: absolute;
+  top: 12px;
+  width: 11px;
+  height: 11px;
+  background: var(--m-wood-dark);
+}
+.m-skin-dukkan .m-plank::before {
+  inset-inline-start: 12%;
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+}
+.m-skin-dukkan .m-plank::after {
+  inset-inline-end: 12%;
+  clip-path: polygon(0 0, 100% 0, 100% 100%);
+}
+[dir="ltr"].m-skin-dukkan .m-plank::before {
+  clip-path: polygon(0 0, 100% 0, 100% 100%);
+}
+[dir="ltr"].m-skin-dukkan .m-plank::after {
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+}
+
+/* صورة الغلاف: واجهة الدكّان الزجاجية بإطار خشب. */
+.m-skin-dukkan .m-dk-window {
+  border-radius: 4px;
+  box-shadow:
+    0 0 0 4px var(--m-wood),
+    0 0 0 5px var(--m-wood-dark),
+    0 12px 18px -12px rgba(0, 0, 0, 0.5);
+}
+/* صورة القسم موضوعةٌ على الرفّ. */
+.m-skin-dukkan .m-dk-photo .m-img {
+  border-radius: 4px 4px 0 0;
+}
+
+/* ── لوح الطباشير: السعر وعدد أصناف القسم ── */
+.m-skin-dukkan .m-chalk,
+.m-skin-dukkan .m-card .m-price:not(.m-shine),
+.m-skin-dukkan .m-feature .m-price {
+  display: inline-block;
+  width: fit-content;
+  border-radius: 3px;
+  background-color: var(--m-slate);
+  /* مسحة طباشير قديمة على اللوح. */
+  background-image: radial-gradient(ellipse at 28% 40%, rgba(255, 255, 255, 0.09), transparent 62%);
+  color: var(--m-chalk);
+  box-shadow:
+    0 0 0 2px var(--m-wood),
+    0 2px 4px 1px rgba(0, 0, 0, 0.25);
+  text-shadow: 0 0 1px rgba(243, 232, 210, 0.5);
+}
+.m-skin-dukkan .m-card .m-price:not(.m-shine),
+.m-skin-dukkan .m-feature .m-price {
+  margin: 2px;
+  padding: 1px 8px;
+}
+
+/* ── البطاقة: سلعةٌ على رفّ — حافّة خشبٍ تحتها، وحدٌّ من حبر الطابع ── */
+/* ‏`--m-border` يُعاد تعريفه على البطاقة: الحدّ المضمَّن يقرؤه، و`tintTheme`
+   يصبغه بلون العلامة — فالحدّ هنا حبرٌ أيّاً كانت العلامة. */
+.m-skin-dukkan .m-card,
+.m-skin-dukkan .m-feature {
+  --m-border: color-mix(in srgb, var(--m-text) 18%, transparent);
+}
+.m-skin-dukkan .m-card.m-surface,
+.m-skin-dukkan .m-feature {
+  box-shadow:
+    0 5px 0 -1px var(--m-wood),
+    0 10px 10px -7px rgba(0, 0, 0, 0.45);
+}
+.m-skin-dukkan .m-card.m-surface:active,
+.m-skin-dukkan .m-feature:active {
+  box-shadow:
+    0 3px 0 -1px var(--m-wood),
+    0 5px 6px -5px rgba(0, 0, 0, 0.4);
+}
+.m-skin-dukkan .m-chips > *,
+.m-skin-dukkan .m-tab {
+  border-radius: 4px;
+}
+
+/* ── «نفد اليوم»: ورقةٌ بخطّ اليد مثبّتة بشريطٍ لاصق ── */
+.m-skin-dukkan .m-soldout {
+  border-radius: 1px;
+  background: var(--m-surface);
+  color: var(--m-text);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  transform: rotate(-2deg);
+}
+/* فوق الصورة هي `absolute` أصلاً؛ في سطر التفاصيل تحتاج مرجعاً للشريط. */
+.m-skin-dukkan .m-soldout:not([data-over]) {
+  position: relative;
+  margin-top: 4px;
+}
+.m-skin-dukkan .m-soldout::before {
+  content: "";
+  position: absolute;
+  top: -5px;
+  inset-inline-start: calc(50% - 10px);
+  width: 20px;
+  height: 8px;
+  background: color-mix(in srgb, var(--m-accent-2) 62%, transparent);
+  transform: rotate(4deg);
+}
+
+/* ── شاشات الطلب: ورقٌ على الجدار، وزرّ الإتمام لوحةُ صفيحٍ بإطارها ── */
+.m-skin-dukkan .m-sheet {
+  background-image: var(--m-plaster);
+  background-size: 200px 200px;
+}
+.m-skin-dukkan .m-o-card {
+  border-radius: 3px;
+  box-shadow: 0 4px 0 -1px var(--m-wood), 0 8px 10px -8px rgba(0, 0, 0, 0.4);
+}
+.m-skin-dukkan .m-o-cta {
+  border-radius: 5px;
+  box-shadow:
+    inset 0 0 0 3px var(--m-accent),
+    inset 0 0 0 4.5px color-mix(in srgb, var(--m-on-accent) 60%, transparent),
+    0 10px 18px -12px rgba(0, 0, 0, 0.6);
+}
+.m-skin-dukkan .m-o-field {
+  background-color: var(--m-surface);
+  border-radius: 3px;
+}
+.m-skin-dukkan .m-o-ghost,
+.m-skin-dukkan .m-o-opt,
+.m-skin-dukkan .m-o-soldout,
+.m-skin-dukkan .m-o-step,
+.m-skin-dukkan .m-o-chip {
+  border-radius: 4px;
+}
+.m-skin-dukkan .m-o-thumb {
+  border-radius: 3px;
+}
+/* الإجمالي على لوح الطباشير — كما يُكتب الحساب على اللوح فوق الكاونتر. */
+.m-skin-dukkan .m-o-total > .m-o-num {
+  border-radius: 3px;
+  padding: 1px 9px;
+  background-color: var(--m-slate);
+  color: var(--m-chalk);
+  box-shadow: 0 0 0 2px var(--m-wood);
+}
+.m-skin-dukkan .m-o-tear > .m-o-tail {
+  border-top-color: color-mix(in srgb, var(--m-text) 55%, transparent);
+}
+
+/* ── الحركة: اللوحة تتأرجح على سلكيها مرّة، والنافذة تنفتح كباب الصاج ── */
+@media (prefers-reduced-motion: no-preference) {
+  .m-skin-dukkan .m-tin-hang {
+    transform-origin: 50% -3.5rem;
+    animation: m-dk-swing 1.3s cubic-bezier(0.3, 0, 0.3, 1) 0.15s both;
+  }
+  .m-skin-dukkan .m-sheet.anim-fade-up {
+    animation: m-dk-shutter 0.3s cubic-bezier(0.5, 0, 0.2, 1) backwards;
+  }
+  /* البطاقة تنزل على رفّها تحت الإصبع. */
+  .m-skin-dukkan .m-card.m-surface:active,
+  .m-skin-dukkan .m-feature:active {
+    transform: translateY(2px);
+  }
+  .m-skin-dukkan .m-row:active {
+    transform: translateY(1px);
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    /* الرفّ يُمدّ حين يدخل القسم — من أوّل السطر. */
+    .m-skin-dukkan .m-shelf-h .m-plank {
+      animation: m-dk-shelf linear both;
+      animation-timeline: view();
+      animation-range: entry 20% cover 30%;
+    }
+    [dir="ltr"].m-skin-dukkan .m-shelf-h .m-plank {
+      animation-name: m-dk-shelf-ltr;
+    }
+  }
+}
+
+@keyframes m-dk-swing {
+  0% {
+    transform: rotate(-4.5deg);
+  }
+  30% {
+    transform: rotate(3deg);
+  }
+  55% {
+    transform: rotate(-1.6deg);
+  }
+  78% {
+    transform: rotate(0.7deg);
+  }
+  100% {
+    transform: none;
+  }
+}
+/* باب الصاج يُرفع: يظهر ما تحته من أسفله إلى أعلاه. */
+@keyframes m-dk-shutter {
+  from {
+    clip-path: inset(100% 0 0 0);
+  }
+  to {
+    clip-path: inset(0);
+  }
+}
+@keyframes m-dk-shelf {
+  from {
+    clip-path: inset(-4px -4px -16px 100%);
+  }
+  to {
+    clip-path: inset(-4px -4px -16px 0);
+  }
+}
+@keyframes m-dk-shelf-ltr {
+  from {
+    clip-path: inset(-4px 100% -16px -4px);
+  }
+  to {
+    clip-path: inset(-4px 0 -16px -4px);
+  }
+}
