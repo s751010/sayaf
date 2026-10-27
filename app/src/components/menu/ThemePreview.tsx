@@ -6,7 +6,7 @@
  * بلون العلامة، إلا الداكن المؤطَّر فغلافه داكنٌ مزخرف) — فما يختاره هنا هو ما
  * يراه زبونه. والطوابع ذات البنية الخاصّة (`design.skin`) لكلٍّ منها رسمها:
  * فاتورةٌ على طاولة، ولوحة حروفٍ على جدار، وملصقات، ولافتة على طوب، وصفحة
- * مجلّة، وأقواس، وبيت طين، وكيس بنّ.
+ * مجلّة، وأقواس، وبيت طين، وكيس بنّ، ولوحة دكّان على رفّ، وجدارٌ بالقطّ العسيري.
  *
  * ⚠️ أشكالٌ لا نصوص: خطوط الطوابع لا تُحمَّل في اللوحة ولا في الهبوط، وحرفٌ
  * بخطٍّ احتياطي يكذب على التاجر في أوّل ما يراه من الطابع.
@@ -286,6 +286,71 @@ function RoasteryMini({ v }: { v: Record<string, string> }) {
   );
 }
 
+/** دكّان: لوحة صفيحٍ بلون التمييز معلّقةٌ بسلكين، وتحتها رفٌّ عليه سلعتان بسعرٍ على لوح طباشير. */
+function DukkanMini({ v }: { v: Record<string, string> }) {
+  const wood = "#9a6a3c";
+  const item: CSSProperties = {
+    background: v["--m-surface"],
+    boxShadow: `inset 0 0 0 1px color-mix(in srgb, ${v["--m-text"]} 18%, transparent)`,
+    borderRadius: "3px",
+  };
+  return (
+    <div className="relative h-28 overflow-hidden" style={{ background: v["--m-bg"] }} aria-hidden="true">
+      <span className="absolute start-[34%] top-0 h-3 w-px" style={{ background: v["--m-muted"] }} />
+      <span className="absolute end-[34%] top-0 h-3 w-px" style={{ background: v["--m-muted"] }} />
+      <span
+        className="absolute left-1/2 top-3 flex h-10 w-28 -translate-x-1/2 items-center justify-center rounded-[3px]"
+        style={{
+          background: v["--m-accent"],
+          boxShadow: `inset 0 0 0 3px ${v["--m-accent"]}, inset 0 0 0 4px ${v["--m-on-accent"]}`,
+        }}
+      >
+        <span className="block h-1.5 w-14 rounded-full" style={{ background: v["--m-on-accent"] }} />
+      </span>
+      <div className="absolute inset-x-3 bottom-[18px] flex justify-center gap-3">
+        {[0, 1].map((i) => (
+          <span key={i} className="relative block h-8 w-[38%]" style={item}>
+            <span className="absolute bottom-1 start-1 h-2 w-5 rounded-[1px]" style={{ background: "#263029", boxShadow: `0 0 0 1px ${wood}` }} />
+          </span>
+        ))}
+      </div>
+      <span className="absolute inset-x-2 bottom-3 h-1.5 rounded-[1px]" style={{ background: wood }} />
+    </div>
+  );
+}
+
+/** عسير: شريطٌ ومثلّثات بألوان القطّ، والشعار في حلقات، وسطران بخطٍّ متعرّج. */
+function AsirMini({ v }: { v: Record<string, string> }) {
+  const band = `repeating-linear-gradient(90deg, ${v["--m-accent"]} 0 12px, #e8b51f 12px 24px, #17704a 24px 36px, #2b5a9e 36px 48px)`;
+  const tri =
+    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 7' preserveAspectRatio='none'%3E%3Cpath d='M0 0H12L6 7Z'/%3E%3C/svg%3E\") 0 0 / 12px 7px repeat-x";
+  const ink = v["--m-text"];
+  return (
+    <div className="relative h-28 overflow-hidden" style={{ background: v["--m-bg"] }} aria-hidden="true">
+      <span
+        className="absolute inset-x-0 top-0 h-2.5"
+        style={{ background: `linear-gradient(${ink} 0 1px, #e8b51f 1px 4px, ${ink} 4px 5px, ${v["--m-accent"]} 5px 9px, ${ink} 9px 10px)` }}
+      />
+      <span className="absolute inset-x-0 top-2.5 h-[7px]" style={{ background: band, mask: tri, WebkitMask: tri }} />
+      <span
+        className="absolute left-1/2 top-7 h-6 w-6 -translate-x-1/2 rounded-full"
+        style={{ background: v["--m-surface"], boxShadow: `0 0 0 2px ${v["--m-accent"]}, 0 0 0 4px #e8b51f, 0 0 0 5px ${ink}` }}
+      />
+      <span className="absolute left-1/2 top-[3.6rem] h-1.5 w-14 -translate-x-1/2 rounded-full" style={{ background: ink, opacity: 0.85 }} />
+      <div className="absolute inset-x-3 bottom-2 flex flex-col gap-1.5">
+        {[0, 1].map((i) => (
+          <span key={i} className="flex items-center gap-1.5 pb-1" style={{ borderBottom: `1px dashed color-mix(in srgb, ${ink} 35%, transparent)` }}>
+            <span className="h-1.5 w-12 rounded-sm" style={{ background: ink, opacity: 0.8 }} />
+            <span className="flex-1" />
+            <span className="h-1.5 w-4 rounded-sm" style={{ background: v["--m-accent"] }} />
+            <span className="h-4 w-4" style={{ background: v["--m-bg-2"], boxShadow: `0 0 0 1.5px #e8b51f, 0 0 0 2.5px ${ink}` }} />
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function StoreMini({ theme }: { theme: MenuTheme }) {
   const v = theme.vars;
   const { pattern, header, layout } = theme.design;
@@ -382,6 +447,10 @@ export function ThemePreview({ theme }: { theme: MenuTheme }) {
       return <NajdiMini v={v} />;
     case "roastery":
       return <RoasteryMini v={v} />;
+    case "dukkan":
+      return <DukkanMini v={v} />;
+    case "asir":
+      return <AsirMini v={v} />;
     default:
       return <StoreMini theme={theme} />;
   }

@@ -9,7 +9,7 @@ tools: Read, Bash, Grep, Glob, Write, Edit
 ## الفحص اليومي السريع
 1. `cd app && npm run typecheck && npm test` — سجّل العدد.
 2. خادم: `npx vite --port 4420 --strictPort --host 127.0.0.1` في الخلفية (أوقفه بالـPID لا بـ`pkill -f`).
-3. Playwright من `/home/user/sayaf/app/node_modules/playwright/index.mjs` بـ`executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome'`. افحص `/demo?embed=1&theme=<id>` للطوابع العشرة (`lib/themes.ts`) على 320 و390 بالعربي و`&lang=en`: تمرير أفقي (`scrollWidth > innerWidth`)، نصّ مقصوص، أخطاء console، عناصر متراكبة. ثم `/` و`/help` و`/login` على 320 و1440.
+3. Playwright من `/home/user/sayaf/app/node_modules/playwright/index.mjs` بـ`executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome'`. افحص `/demo?embed=1&theme=<id>` للطوابع الاثني عشر (`lib/themes.ts`) على 320 و390 بالعربي و`&lang=en`: تمرير أفقي (`scrollWidth > innerWidth`)، نصّ مقصوص، أخطاء console، عناصر متراكبة. ثم `/` و`/help` و`/login` على 320 و1440.
 4. الشبكة إلى Supabase تُحاكى (`page.route(/supabase\.co/, …)`) — لا تطلب القاعدة الحقيقية.
 5. احفظ اللقطات في `/tmp` تحت مجلّد الجلسة المؤقّت، واذكر المسارات.
 
