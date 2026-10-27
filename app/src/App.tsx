@@ -34,6 +34,8 @@ const ApiDocs = lazy(() => import("@/pages/ApiDocs"));
 const About = lazy(() => import("@/pages/About"));
 /** دليل المطاعم — صفحة فهرس عامة تنمو مع كل تاجر جديد. */
 const Restaurants = lazy(() => import("@/pages/Restaurants"));
+/** صفحات الشرائح `/for/<slug>` — كسولة: لا تزيد حزمة المنيو ولا قطعة الهبوط. */
+const Segment = lazy(() => import("@/pages/Segment"));
 
 const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 const Stamp = lazy(() => import("@/pages/Stamp"));
@@ -89,6 +91,9 @@ export default function App() {
                 <Route path="/help" element={<Help />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/restaurants" element={<Restaurants />} />
+                {/* مقطعان لا يلتقطهما `/:slug` أصلاً. و`/for` وحدها تبقى لمسار
+                    المنيو كما كانت — لم تُحجز (`menu-url` في القائمة الحمراء). */}
+                <Route path="/for/:segment" element={<Segment />} />
                 <Route path="/docs/api" element={<ApiDocs />} />
                 <Route path="/privacy" element={<Privacy />} />
                 <Route path="/terms" element={<Terms />} />

@@ -8,6 +8,7 @@ import { LEGAL } from "@/lib/legal";
 import { menuUrl } from "@/lib/menuUrl";
 import { cn } from "@/lib/utils";
 import { CTA_PRIMARY } from "@/lib/facts";
+import { SEGMENT_LINKS, segmentPath } from "@/lib/segmentLinks";
 import { ThemeToggle } from "@/components/ui";
 import { SupportWhatsAppButton } from "@/components/SupportWhatsApp";
 import { Icon } from "@/lib/icons";
@@ -296,6 +297,18 @@ export function Footer() {
             <li><Link to="/help" className="inline-flex min-h-9 items-center hover:text-gold">المساعدة والأسئلة</Link></li>
             <li><Link to="/blog" className="inline-flex min-h-9 items-center hover:text-gold">المدونة</Link></li>
             <li><Link to="/login" className="inline-flex min-h-9 items-center hover:text-gold">دخول التجّار</Link></li>
+          </ul>
+          {/* صفحات الشرائح — أسماءٌ بلا محتوى (`segmentLinks.ts`) كي لا يسحب
+              الذيل محتواها إلى الحزمة الرئيسية. */}
+          <p className="mb-2 mt-5 text-xs font-bold text-faint">حسب نشاطك</p>
+          <ul className="flex flex-col text-sm text-dim">
+            {SEGMENT_LINKS.map((l) => (
+              <li key={l.slug}>
+                <Link to={segmentPath(l.slug)} className="inline-flex min-h-9 items-center hover:text-gold">
+                  {l.label}
+                </Link>
+              </li>
+            ))}
           </ul>
         </div>
         <div>
