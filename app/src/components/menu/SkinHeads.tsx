@@ -635,7 +635,7 @@ export function FolioHead({ restaurant, theme, corner, children }: HeadProps) {
             fallbackStyle={{ background: "var(--m-bg)", color: ink }}
             letterSize="2.25rem"
           />
-          <h1 className="m-title m-foil mt-6 text-[2.1rem] font-bold leading-[1.25] sm:text-[2.75rem]" style={display}>
+          <h1 className="m-title m-foil mt-6 text-[clamp(1.7rem,8vw,2.75rem)] font-bold leading-[1.25]" style={display}>
             {restaurant.name}
           </h1>
           <div aria-hidden="true" className="m-thread mt-4">

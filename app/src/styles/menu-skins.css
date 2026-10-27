@@ -1978,8 +1978,8 @@
 .m-skin-gold .m-art {
   --m-art-ring:
     inset 0 0 0 1px color-mix(in srgb, var(--m-accent) 50%, transparent),
-    0 0 0 5px color-mix(in srgb, var(--m-accent) 5%, transparent),
-    0 0 0 6px color-mix(in srgb, var(--m-accent) 24%, transparent);
+    0 0 0 4px color-mix(in srgb, var(--m-accent) 8%, var(--m-bg-2)),
+    0 0 0 5px color-mix(in srgb, var(--m-accent) 32%, transparent);
 }
 /* شريط الأقسام: خيطٌ ذهبيّ خافت تحته. */
 .m-skin-gold .m-nav {
@@ -2098,9 +2098,10 @@
 }
 /* الطبق بلا صورة: ورقة شبكةٍ برمزه في دائرةٍ بالحبر — لا مربّعٌ رماديّ فارغ. */
 .m-skin-modern .m-art {
+  --m-art-ink: color-mix(in srgb, var(--m-text) 8%, transparent);
   --m-art-bg:
-    linear-gradient(var(--m-grid-ink) 1px, transparent 1px) 50% 50% / 12px 12px,
-    linear-gradient(90deg, var(--m-grid-ink) 1px, transparent 1px) 50% 50% / 12px 12px,
+    linear-gradient(var(--m-art-ink) 1px, transparent 1px) 50% 50% / 12px 12px,
+    linear-gradient(90deg, var(--m-art-ink) 1px, transparent 1px) 50% 50% / 12px 12px,
     var(--m-bg);
   --m-art-plate: var(--m-bg);
   --m-art-ring: inset 0 0 0 1.5px var(--m-text), 0 0 0 6px var(--m-bg);

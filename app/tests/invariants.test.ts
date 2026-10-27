@@ -26,6 +26,14 @@ function ratio(a: string, b: string): number {
   return (x + 0.05) / (y + 0.05);
 }
 
+/** خلط `color-mix(in srgb, a p, b)` كما يحسبه المتصفّح (قناةً قناة). */
+function mixHex(a: string, b: string, p: number): string {
+  const ch = (h: string, i: number) => parseInt(h.slice(i, i + 2), 16);
+  return `#${[1, 3, 5]
+    .map((i) => Math.round(ch(a, i) * p + ch(b, i) * (1 - p)).toString(16).padStart(2, "0"))
+    .join("")}`;
+}
+
 /* ══ §18 · ألوان الطوابع لا تتغيّر ═════════════════════════════════════ */
 
 describe("ثابت §18 — ألوان الطوابع", () => {
@@ -160,6 +168,40 @@ describe("ثابت §18 — ألوان الطوابع", () => {
   });
 
   /**
+   * ═══ و`--m-bg-2` لكلّ الطوابع (٢٠٢٦/١٠/٢٧، الدرس ٥٤) ═══
+   *
+   * النوافذ كلّها (الطبق · السلّة · التذكرة · ساعات العمل) على `--m-bg-2`، والفحص
+   * أعلاه يقيس الأرضية والسطح وحدهما — فخافت «نجدي» كان ‎3.98:1 في كلّ نافذة منذ
+   * وُلد ولم يمسكه شيء. وفحص المضافة أدناه يقيسها للثلاثة الجديدة وحدها؛ وهذا
+   * للاثني عشر **بالحدّ الذي وُلدت عليه** (٤٫٥ لا ٧)، فلا تُمسّ قيمة في التسعة.
+   *
+   * والخافت يُقاس **كما يُرسم في النافذة**: طابعٌ يخلط خافته بحبره داخل `.m-sheet`
+   * (نجدي — بلا مسّ قيمته) يُحسب بالخلط نفسه المكتوب في CSS، فإن حُذفت القاعدة
+   * سقط الفحص.
+   */
+  it.each(ALL_THEMES.map((t) => [t.id, t] as const))("«%s»: النصّ والخافت ≥ 4.5 فوق `--m-bg-2` (أرضية النوافذ)", (_, t) => {
+    const v = t.vars;
+    const css = menuSkinsCss();
+    const bg2 = v["--m-bg-2"];
+    expect(isHex(bg2), "‏`bg-2` مُصمت").toBe(true);
+    expect(ratio(v["--m-text"], bg2), `نصّ فوق ${bg2}`).toBeGreaterThanOrEqual(4.5);
+    // ‏`.m-skin-<skin> .m-sheet { --m-muted: color-mix(in srgb, var(--m-muted-root) N%, var(--m-text)) }`
+    const rule = new RegExp(
+      `\\.m-skin-${t.design.skin} \\.m-sheet \\{\\s*--m-muted: color-mix\\(in srgb, var\\(--m-muted-root\\) (\\d+)%, var\\(--m-text\\)\\)`
+    ).exec(css);
+    const muted = rule ? mixHex(v["--m-muted"], v["--m-text"], Number(rule[1]) / 100) : v["--m-muted"];
+    expect(ratio(muted, bg2), `خافتٌ ${rule ? "(مخلوطٌ في النافذة) " : ""}فوق ${bg2}`).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it("«نجدي» وحده يحتاج خلط الخافت في النافذة — والفحص يجد قاعدته", () => {
+    // الفحص أعلاه يثبت أوّلاً أنه وجد ما يفحصه (الدرس ٤٧): بلا القاعدة كان سيقيس
+    // ‎3.98 ويسقط، لا ينجح صامتاً.
+    const v = getTheme("najdi").vars;
+    expect(ratio(v["--m-muted"], v["--m-bg-2"])).toBeLessThan(4.5);
+    expect(menuSkinsCss()).toMatch(/\.m-skin-najdi \.m-sheet \{\s*--m-muted: color-mix\(in srgb, var\(--m-muted-root\) \d+%/);
+  });
+
+  /**
    * ⚠️ لون العلامة يأتي من التاجر: أصفرٌ على «عصري» الأبيض كان يكتب الأسعار
    * بتباين 2.2:1، وأحمرُ داكن على «سبّورة» 2.9:1. `--m-accent-ink` نسخة
    * التمييز التي يُكتب بها النصّ، ولا تنزل عن 4.5 أيّاً كان لون التاجر.
@@ -271,6 +313,30 @@ describe("خامات الطوابع — البنية والـCSS معاً", () =
     }
   });
 
+  /**
+   * «عصري» و«فاخر» صارا خامتين (٢٠٢٦/١٠/٢٧) — ولكلٍّ منهما ألوانٌ قديمة تُردّ
+   * إليه (`LEGACY`). المردود يلبس **البنية نفسها** بلونه، لا واجهة المتجر العارية.
+   * و`store` بقيت لـ«لون علامتي» (`custom:`) وحده.
+   */
+  it.each([
+    ["dark-gold", "gold", "folio"],
+    ["royal", "gold", "folio"],
+    ["crimson", "gold", "folio"],
+    [null, "gold", "folio"],
+    ["modern", "modern", "grid"],
+    ["qatt", "modern", "grid"],
+    ["specialty", "modern", "grid"],
+    ["minimal", "modern", "grid"],
+  ])("«%s» ⇒ خامة %s وترويسة %s", (id, skin, header) => {
+    const t = getTheme(id);
+    expect(t.design.skin).toBe(skin);
+    expect(t.design.header).toBe(header);
+  });
+
+  it("«لون علامتي» القديم (`custom:`) يبقى واجهة متجر محايدة", () => {
+    expect(getTheme("custom:#2fa8a0").design.skin).toBe("store");
+  });
+
   it("`deck` شكل عرضٍ يُحفظ ويُقرأ كأخواته", () => {
     expect(splitThemeId("neon:#ff3d81:deck").layout).toBe("deck");
     expect(getTheme("modern:deck").design.layout).toBe("deck");
@@ -303,7 +369,7 @@ describe("الطوابع الثلاث بعد الرفع — الضغط والس�
     expect(css).toMatch(/\.m-price \{\s*font-family: var\(--font-cairo\)/);
   });
 
-  it.each(["receipt", "neon", "sticker", "letterboard", "editorial", "roshan", "najdi", "roastery", "dukkan", "asir"])(
+  it.each(["receipt", "neon", "sticker", "letterboard", "editorial", "roshan", "najdi", "roastery", "dukkan", "asir", "gold", "modern"])(
     "«%s» له حركة نافذةٍ خاصّة داخل `no-preference`",
     (skin) => {
       const block = css.split("@media (prefers-reduced-motion: no-preference)").slice(1).join("");
