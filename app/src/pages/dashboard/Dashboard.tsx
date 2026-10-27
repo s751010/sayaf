@@ -61,6 +61,7 @@ import type { Menu, Restaurant } from "@/lib/types";
 import type { SessionUser } from "@/lib/session";
 
 import Overview from "./Overview";
+import Setup from "./Setup";
 import Menus from "./Menus";
 import Dishes from "./Dishes";
 import Orders from "./Orders";
@@ -693,16 +694,16 @@ export default function Dashboard() {
         onDone={(r) => {
           setRestaurant(r);
           /**
-           * **دائماً** إلى الأطباق — الشاشة الفارغة بعد التسجيل هي أكثر نقطة
-           * يؤجّل عندها التاجر «لبكرة» ولا يعود (١٣ من ١٩ توقّفوا عندها).
+           * **دائماً** إلى «إعداد منيوك» — الشاشة الفارغة بعد التسجيل هي أكثر
+           * نقطة يؤجّل عندها التاجر «لبكرة» ولا يعود (١٣ من ١٩ توقّفوا عندها).
+           * والمسار يرتّب له ما كان في خمس صفحات: أصناف ⇐ طابع ⇐ شعار ⇐ نشر،
+           * وكلّه قابلٌ للتخطّي فمن عنده منيو جاهز لا يُحبس فيه.
            *
            * ⚠️ كان الشرط `hasStarter(r.type)`، و`type` عمود نصّ حرّ حمل في
            * الإنتاج `general` لأربعة عشر مطعماً — فلم يتحقّق الشرط ولم يحدث
-           * تحويل أصلاً. ولا فتحَ نافذةٍ تلقائياً بعد الآن: صفحة الأطباق
-           * الفارغة تعرض المسارات الثلاثة متساوية، فمن عنده منيو جاهز لا
-           * يبدأ بإغلاق نافذة لا يريدها.
+           * تحويل أصلاً. فلا شرط هنا.
            */
-          navigate("/dashboard/dishes", { replace: true });
+          navigate("/dashboard/setup", { replace: true });
         }}
       />
     );
@@ -749,6 +750,7 @@ export default function Dashboard() {
         <div key={location.pathname} className="page-enter">
           <Routes>
             <Route index element={<Overview />} />
+            <Route path="setup" element={<Setup />} />
             <Route path="menus" element={<Menus />} />
             <Route path="dishes" element={<Dishes />} />
             <Route path="nutrition" element={<Nutrition />} />
