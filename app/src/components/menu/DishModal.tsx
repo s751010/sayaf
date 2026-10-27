@@ -17,6 +17,7 @@ import { dishDesc, dishName } from "@/lib/menuText";
 import { formatPrice } from "@/lib/utils";
 import { Icon, type IconName } from "@/lib/icons";
 import type { Dish } from "@/lib/types";
+import { isSoldOut, soldOutLabel } from "@/lib/soldOut";
 
 /**
  * هذه هي نقطة الإضافة الوحيدة التي تسمح باختيار الإضافات — زرّ «＋» على البطاقة
@@ -64,9 +65,9 @@ export function DishModal({
   /**
    * نفد اليوم: التاجر أطفأ الطبق (`available === false`). يبقى ظاهراً ليعرف
    * الزبون أنه موجود عادةً، لكن لا يُضاف — والزرّ يقول السبب بدل أن يختفي.
-   * `null` في الصفوف القديمة متاحٌ (كما يقرؤها الاستعلام العامّ).
+   * والحكم من `isSoldOut` (`false` الصريحة وحدها — `null` صفٌّ قديم متاح).
    */
-  const soldOut = dish.available === false;
+  const soldOut = isSoldOut(dish);
   // طبق بلا سعر ترفضه دالة الحافة («بلا سعر»)، فلا نعرض له زرّ إضافة أصلاً.
   const sellable = !!cart?.enabled && Number(dish.price ?? 0) > 0;
   const orderable = sellable && !soldOut;
@@ -316,7 +317,7 @@ export function DishModal({
               className="m-o-soldout mt-5 flex min-h-12 w-full items-center justify-center gap-2 py-2.5 text-sm font-black"
             >
               <Icon name="clock" size={16} />
-              {en ? "Sold out today" : "نفد اليوم"}
+              {soldOutLabel(en)}
             </button>
           ) : (
             <button

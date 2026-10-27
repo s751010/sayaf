@@ -88,13 +88,13 @@ describe("السلّة — لون العلامة على الإتمام والم�
 describe("نافذة الطبق — «نفد اليوم»", () => {
   const src = code(read("components/menu/DishModal.tsx"));
 
-  it("النفاد من `available === false` وحده — لا من السلّة (المنيو يمرّر `cart=null` للنافد)", () => {
-    expect(src).toMatch(/const soldOut = dish\.available === false;/);
+  it("النفاد من `isSoldOut` وحده — لا من السلّة (المنيو يمرّر `cart=null` للنافد)", () => {
+    expect(src).toMatch(/const soldOut = isSoldOut\(dish\);/);
     expect(src).toMatch(/const orderable = sellable && !soldOut;/);
     // الزرّ المعطّل يظهر للنافد سواءٌ وُجدت سلّة أم لا.
     expect(src).toMatch(/\) : soldOut \? \(/);
-    expect(src).toContain('"نفد اليوم"');
-    expect(src).toContain('"Sold out today"');
+    // النصّ من المصدر الواحد (`lib/soldOut.ts`) — لا نسخة ثانية تتباعد.
+    expect(src).toContain("{soldOutLabel(en)}");
   });
 });
 
