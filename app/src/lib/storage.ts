@@ -63,6 +63,18 @@ export const K = {
    * زبون؛ والشكل والمنطق في `lib/orderAlerts.ts`.
    */
   ORDER_ALERTS: "cm2_order_alerts",
+  /**
+   * أين توقّف التاجر في مسار «إعداد منيوك» — localStorage، ويُلحق به معرّف
+   * المطعم (`cm2_setup_<id>`). الشكل في `lib/setup.ts`. محلّيٌّ لأن لا هجرة،
+   * وكلّ خطوةٍ تكتب نتيجتها في القاعدة فور الضغط: الضائع «أين كنت» وحده.
+   */
+  SETUP: "cm2_setup",
+  /**
+   * مسوّدة الأصناف قبل حفظها في مسار الإعداد — localStorage، ويُلحق بها معرّف
+   * المطعم (`cm2_setup_rows_<id>`). حصيلة قراءة الصورة المدفوعة لا تضيع
+   * بمغادرة الصفحة فتُدفع ثانيةً. تُمسح عند الحفظ أو «ابدأ من جديد».
+   */
+  SETUP_ROWS: "cm2_setup_rows",
 } as const;
 
 function store(session: boolean): Storage | null {

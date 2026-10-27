@@ -1,5 +1,5 @@
 /**
- * قياس القمع — ستة أحداث عند نقاط القرار وحدها.
+ * قياس القمع — أحداثٌ عند نقاط القرار وحدها: ستّة للرحلة، وستّة لمسار الإعداد.
  *
  * ═══ المشكلة التي يحلّها ═══
  *
@@ -26,14 +26,25 @@
  */
 import { getSiteSetting } from "./data";
 
-/** نقاط القرار الستّ في رحلة التاجر — من أول زيارة إلى أول ريال. */
+/** نقاط القرار في رحلة التاجر — من أول زيارة إلى أول ريال. */
 export type TrackEvent =
   | "signup_started"
   | "restaurant_created"
   | "first_dish_added"
   | "qr_downloaded"
   | "checkout_started"
-  | "subscription_paid";
+  | "subscription_paid"
+  /**
+   * مسار «إعداد منيوك» (`lib/setup.ts`) — خطوةً خطوة، لنعرف **أين** يسقط
+   * التاجر الجديد بين التسجيل والمنيو المنشور. مجرّدةٌ كأخواتها: الخطوة وحدها،
+   * بلا مطعم ولا عدد أصناف.
+   */
+  | "setup_started"
+  | "setup_dishes_done"
+  | "setup_look_done"
+  | "setup_brand_done"
+  | "setup_published"
+  | "setup_skipped";
 
 type AnalyticsConfig = {
   /**

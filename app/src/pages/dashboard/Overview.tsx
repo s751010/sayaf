@@ -19,12 +19,26 @@ import { useDashboard } from "./Dashboard";
 import { DishGlyph } from "@/lib/icons";
 import { Icon } from "@/lib/icons";
 import { menuUrl, urlAffixes } from "@/lib/menuUrl";
+import {
+  SETUP_STEPS,
+  dismissSetup,
+  parseProgress,
+  progressPercent,
+  setupKey,
+  setupPending,
+  type SetupProgress,
+} from "@/lib/setup";
+import { getJSON, setJSON } from "@/lib/storage";
 
 export default function Overview() {
   const { user, restaurant, menus, ent } = useDashboard();
   const [dishes, setDishes] = useState<Dish[] | null>(null);
   const [rows, setRows] = useState<AnalyticsRow[] | null>(null);
   const [today, setToday] = useState<OrdersToday | null>(null);
+  /** تقدّم «إعداد منيوك» على هذا الجهاز — `null` = لم يبدأه هنا. */
+  const [setup, setSetup] = useState<SetupProgress | null>(() =>
+    parseProgress(getJSON(setupKey(restaurant.id)))
+  );
 
   useEffect(() => {
     document.title = "لوحة التحكم — كلاود منيو";
@@ -112,6 +126,48 @@ export default function Overview() {
         )}
       </Card>
 
+      {/* «أكمل إعداد منيوك» — لمن خرج من المسار قبل آخره. وتُقرأ من الجهاز
+          بلا شبكة، فلا تومض ولا تنتظر. والإخفاء نهائي لهذا المطعم. */}
+      {setupPending(setup) && setup && (
+        <Card className="mt-5 border-line-gold">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="font-display text-base font-black text-ink">أكمل إعداد منيوك</p>
+              <p className="mt-0.5 text-sm text-dim">
+                توقّفت عند «{SETUP_STEPS.find((s) => s.id === setup.step)?.title}» — كل ما فعلته محفوظ.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                const next = dismissSetup(setup);
+                setJSON(setupKey(restaurant.id), next);
+                setSetup(next);
+              }}
+              aria-label="إخفاء بطاقة الإعداد"
+              className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-dim hover:bg-ink/5 hover:text-ink"
+            >
+              <Icon name="close" size={16} />
+            </button>
+          </div>
+          <div
+            className="mt-3 h-2 overflow-hidden rounded-full bg-ink/8"
+            role="progressbar"
+            aria-label="تقدّم الإعداد"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={progressPercent(setup)}
+          >
+            <div className="h-full rounded-full bg-gold" style={{ width: `${progressPercent(setup)}%` }} />
+          </div>
+          <Link
+            to="/dashboard/setup"
+            className="mt-3 inline-flex min-h-11 items-center rounded-[10px] bg-gold px-4 text-sm font-bold text-on-gold hover:bg-gold2"
+          >
+            أكمل من حيث توقّفت ←
+          </Link>
+        </Card>
+      )}
 
       {/**
         * بطاقة واحدة تجيب «وش أسوي الحين؟».
