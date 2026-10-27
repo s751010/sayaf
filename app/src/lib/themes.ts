@@ -19,12 +19,14 @@ import type { PatternId } from "./patterns";
  * بشريط أقسامٍ يجري · `sign` لافتة نيون على جدار طوب · `masthead` ترويسة
  * مجلّة · `arcade` أقواس روشان · `mud` بيت طينٍ نجديّ بشُرفاته وبابه · `bag`
  * وجه كيس قهوةٍ مختصّة · `tin` لوحة صفيحٍ مدهونة باليد فوق دكّان الحارة ·
- * `mural` جدارٌ مرسومٌ بالقطّ العسيري (مثلّثات وأشرطة).
+ * `mural` جدارٌ مرسومٌ بالقطّ العسيري (مثلّثات وأشرطة) · `folio` دفترُ جلدٍ
+ * بخيطٍ ذهبيّ (فاخر) · `grid` شبكةٌ طباعيّة بمسطرة (عصري).
  */
 export type HeaderShape =
   | "arch" | "band" | "frame" | "soft"
   | "paper" | "letterboard" | "poster" | "sign" | "masthead" | "arcade" | "mud" | "bag"
-  | "tin" | "mural";
+  | "tin" | "mural"
+  | "folio" | "grid";
 /**
  * تخطيط الأطباق — هذا ما يجعل الفرق بين الطوابع يُرى لا يُقرأ.
  * `deck` بطاقاتٌ تُسحب أفقياً لكل قسم، تكبر حين تتوسّط الشاشة.
@@ -40,12 +42,14 @@ export type ImageShape = "rounded" | "square" | "circle" | "arch";
  * **الخامة الكاملة** للطابع — صنفٌ على جذر المنيو (`m-skin-*`) يقرؤه
  * `styles/menu-skins.css`: الملمس (ورق، لبّاد، طوب، بلاط)، والحواف (فاتورة
  * ممزّقة، إطار خشب، ملصقٌ بحدٍّ أسود)، والحركة الخاصّة بالطابع (طباعة،
- * اشتعال، ملصقاتٌ تُلصق، انفتاح رواشين، بابٌ نجديّ ينفتح). `store` واجهة
- * المتجر بلا شيء منها.
+ * اشتعال، ملصقاتٌ تُلصق، انفتاح رواشين، بابٌ نجديّ ينفتح، دفترُ جلدٍ يُخاط،
+ * شبكةٌ تُسطَّر). `store` واجهة المتجر بلا شيء منها — بقيت لـ«لون علامتي»
+ * (`buildCustomTheme`) وحده.
  */
 export type MenuSkin =
   | "store" | "receipt" | "letterboard" | "sticker" | "neon" | "editorial" | "roshan" | "najdi" | "roastery"
-  | "dukkan" | "asir";
+  | "dukkan" | "asir"
+  | "gold" | "modern";
 /** كيف يُقدَّم السعر: نصّاً، أو شارة ملوّنة، أو خطّاً منقّطاً يقود إليه. */
 export type PriceStyle = "plain" | "badge" | "leader";
 /** الفاصل بين صفوف القائمة الرأسية. */
@@ -212,7 +216,7 @@ export const DESIGN_THEMES: MenuTheme[] = [
   {
     id: "dark-gold",
     name: "فاخر",
-    tagline: "أسود دافئ وذهب، وزخرفة جيري، وإطار مذهّب حول شعارك",
+    tagline: "دفتر جلدٍ داكن بخيطٍ ذهبيّ، واسمك مختومٌ بالذهب",
     suits: ["مشويات", "مطعم"],
     // ⚠️ الألوان كما كانت حرفياً: هذا شكل المنتج لمن لم يختر (§18).
     vars: {
@@ -228,10 +232,15 @@ export const DESIGN_THEMES: MenuTheme[] = [
       "--m-font": FONT.kufi,
       "--m-radius": "1rem",
     },
+    // ═══ «دفتر جلدٍ بخيطٍ ذهبيّ» (٢٠٢٦/١٠/٢٧) ═══ كان واجهة متجرٍ داكنة بلا خامة
+    // (قياس الجودة ٧٢ من ٩٠). صار **دفترَ منيو** كالذي يُقدَّم في المطاعم الراقية:
+    // جلدٌ بحبيبته، وخيطٌ ذهبيّ مخيطٌ على حافّته، والاسم مختومٌ بالذهب. هادئٌ عمداً:
+    // هذا الافتراضي لكلّ من لم يختر، مشوايّاً كان أو مقهى. **ولم تُمسّ قيمة لون.**
     design: design({
+      skin: "gold",
       pattern: "girih",
       patternOpacity: 0.03,
-      header: "frame",
+      header: "folio",
       heading: "plaque",
       density: "airy",
       imageShape: "rounded",
@@ -464,7 +473,7 @@ export const DESIGN_THEMES: MenuTheme[] = [
   {
     id: "modern",
     name: "عصري",
-    tagline: "أبيض نظيف بلا زخرفة، يترك المكان لصورك ولونك",
+    tagline: "أبيض وأسود على شبكةٍ مقيسة، يترك المكان لصورك ولونك",
     suits: ["عصائر", "مطعم"],
     vars: {
       "--m-bg": "#ffffff",
@@ -479,7 +488,14 @@ export const DESIGN_THEMES: MenuTheme[] = [
       "--m-font": FONT.cairo,
       "--m-radius": "1rem",
     },
+    // ═══ «شبكةٌ طباعيّة» (٢٠٢٦/١٠/٢٧) ═══ كان واجهة متجرٍ بيضاء بلا خامة، يبدو
+    // قالباً (قياس الجودة ٦٦ من ٩٠). صار منيواً **مُصمَّماً على شبكة**: ورقٌ بنقاط
+    // قياس، وشريطٌ أسود ومسطرةٌ في الترويسة، وعناوين أقسامٍ مرقّمة تحت خطٍّ مقيس.
+    // **الهويّة نفسها** — أبيض وأسود نظيف — لأن أحد عشر معرّفاً محذوفاً يُردّ إليه
+    // (`LEGACY`): بنيةٌ أدقّ لا شخصيّةٌ أخرى. ولم تُمسّ قيمة لون.
     design: design({
+      skin: "modern",
+      header: "grid",
       heading: "bold",
       depth: "raised", entrance: "fade", edge: "hairline",
     }),
@@ -918,9 +934,36 @@ export function readableOn(hex: string, ground: string, min = 4.5): string {
   return c;
 }
 
+/** السطح كما تراه العين: `rgba` مركّباً فوق الأرضية — وإلا السطح نفسه إن كان مصمتاً. */
+function surfaceOver(surface: string | undefined, ground: string): string | null {
+  if (!surface) return null;
+  if (isHex(surface)) return normalizeHex(surface);
+  const m = surface.match(/rgba?\(([^)]+)\)/);
+  if (!m || !isHex(ground)) return null;
+  const [r, g, b, a = "1"] = m[1].split(",").map((s) => s.trim());
+  const [R, G, B] = rgb(ground);
+  const al = Number(a);
+  const ch = (top: number, under: number) => Math.round(top * al + under * (1 - al)).toString(16).padStart(2, "0");
+  return `#${ch(Number(r), R)}${ch(Number(g), G)}${ch(Number(b), B)}`;
+}
+
+/**
+ * ⚠️ **على كلّ أرضيةٍ يُكتب عليها، لا على الأرضية وحدها** (٢٠٢٦/١٠/٢٧، الدرس ٥٤).
+ *
+ * السعر يُكتب على البطاقة (السطح فوق الأرضية) وفي النافذة (`--m-bg-2`) أكثر ممّا
+ * يُكتب على الأرضية نفسها. وكان يُحلّ على الأرضية وحدها: «فاخر» بلون المرجاني
+ * القديم (`crimson` ⇐ `dark-gold:#e0533d`) يكتب أسعار بطاقاته ‎4.38:1 — يمرّ على
+ * الأرضية (4.87) ويسقط حيث يُقرأ فعلاً. فيُحلّ على الثلاث بالتتابع: الاتّجاه واحد
+ * (نحو الأبيض في الداكن، ونحو الأسود في الفاتح) فلا يُفسد حلٌّ ما قبله. ولونٌ مقروءٌ
+ * على الثلاث أصلاً **لا يُمسّ** (ذهب «فاخر» يبقى ‎#d4a843).
+ */
 function withInk(theme: MenuTheme): MenuTheme {
   const v = theme.vars;
-  const ink = readableOn(v["--m-accent"] ?? "", v["--m-bg"] ?? "");
+  const bg = v["--m-bg"] ?? "";
+  let ink = readableOn(v["--m-accent"] ?? "", bg);
+  for (const ground of [surfaceOver(v["--m-surface"], bg), v["--m-bg-2"]]) {
+    if (ground && isHex(ground) && luminance(ground) < 0.4 === luminance(bg) < 0.4) ink = readableOn(ink, ground);
+  }
   return { ...theme, vars: { ...v, "--m-accent-ink": ink } };
 }
 

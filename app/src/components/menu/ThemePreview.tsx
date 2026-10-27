@@ -6,7 +6,8 @@
  * بلون العلامة، إلا الداكن المؤطَّر فغلافه داكنٌ مزخرف) — فما يختاره هنا هو ما
  * يراه زبونه. والطوابع ذات البنية الخاصّة (`design.skin`) لكلٍّ منها رسمها:
  * فاتورةٌ على طاولة، ولوحة حروفٍ على جدار، وملصقات، ولافتة على طوب، وصفحة
- * مجلّة، وأقواس، وبيت طين، وكيس بنّ، ولوحة دكّان على رفّ، وجدارٌ بالقطّ العسيري.
+ * مجلّة، وأقواس، وبيت طين، وكيس بنّ، ولوحة دكّان على رفّ، وجدارٌ بالقطّ العسيري،
+ * ودفتر جلدٍ بخيطٍ ذهبيّ (فاخر)، وورق شبكةٍ بمسطرة (عصري).
  *
  * ⚠️ أشكالٌ لا نصوص: خطوط الطوابع لا تُحمَّل في اللوحة ولا في الهبوط، وحرفٌ
  * بخطٍّ احتياطي يكذب على التاجر في أوّل ما يراه من الطابع.
@@ -351,6 +352,78 @@ function AsirMini({ v }: { v: Record<string, string> }) {
   );
 }
 
+/** فاخر: دفتر جلدٍ بغرزٍ ذهبية، والشعار في حلقةٍ مذهّبة، والاسم ذهبٌ فوق خيطٍ بمعيّن. */
+function GoldMini({ theme }: { theme: MenuTheme }) {
+  const v = theme.vars;
+  const accent = v["--m-accent"];
+  const { pattern } = theme.design;
+  return (
+    <div className="relative h-28 overflow-hidden" style={{ backgroundColor: v["--m-bg"] }} aria-hidden="true">
+      <div
+        className="absolute inset-x-2 top-2 flex h-[4.4rem] flex-col items-center rounded-md pt-3"
+        style={{
+          backgroundColor: v["--m-bg-2"],
+          backgroundImage: patternImage(pattern, accent, 0.1),
+          backgroundSize: PATTERN_SIZE[pattern],
+          boxShadow: `inset 0 1px 0 ${accent}40`,
+        }}
+      >
+        <span className="absolute inset-[4px] rounded-[4px] border border-dashed" style={{ borderColor: `${accent}99` }} />
+        <span className="h-5 w-5 rounded-full" style={{ background: v["--m-bg"], boxShadow: `0 0 0 1.5px ${accent}` }} />
+        <span className="mt-1.5 h-1.5 w-14 rounded-full" style={{ background: accent }} />
+        <span className="mt-1.5 flex items-center gap-1">
+          <span className="h-px w-5" style={{ background: `linear-gradient(90deg, transparent, ${accent})` }} />
+          <span className="h-1 w-1 rotate-45" style={{ background: accent }} />
+          <span className="h-px w-5" style={{ background: `linear-gradient(90deg, ${accent}, transparent)` }} />
+        </span>
+      </div>
+      <span className="absolute inset-x-2 bottom-2 flex gap-1.5">
+        {[0, 1].map((i) => (
+          <span key={i} className="h-5 flex-1 rounded" style={{ background: "rgba(255,255,255,.05)", boxShadow: `inset 0 1px 0 ${accent}66` }} />
+        ))}
+      </span>
+    </div>
+  );
+}
+
+/** عصري: ورق شبكة، وشريطٌ أسود، وخليّة الشعار بلون العلامة، والاسم عريضاً فوق مسطرة. */
+function ModernMini({ v }: { v: Vars }) {
+  const ink = v["--m-text"];
+  return (
+    <div
+      className="relative h-28 overflow-hidden px-2.5 pt-2"
+      style={{
+        backgroundColor: v["--m-bg"],
+        backgroundImage: `radial-gradient(circle, ${ink}2e 0.6px, transparent 1px)`,
+        backgroundSize: "8px 8px",
+      }}
+      aria-hidden="true"
+    >
+      <span className="block h-[3px]" style={{ background: ink }} />
+      <span className="mt-1.5 flex items-center gap-1.5">
+        <span className="h-5 w-5 rounded-[2px]" style={{ background: v["--m-accent"] }} />
+        <span className="flex flex-col gap-1">
+          <span className="h-1 w-7 rounded-[1px]" style={{ background: ink }} />
+          <span className="h-1 w-10 rounded-[1px]" style={{ background: v["--m-muted"] }} />
+        </span>
+      </span>
+      <span className="mt-1.5 block h-2.5 w-20 rounded-[1px]" style={{ background: ink }} />
+      <span
+        className="mt-1.5 block h-1.5"
+        style={{
+          borderBottom: `1px solid ${ink}`,
+          backgroundImage: `repeating-linear-gradient(90deg, ${ink}80 0 1px, transparent 1px 5px)`,
+        }}
+      />
+      <span className="absolute inset-x-2.5 bottom-2 flex gap-1.5">
+        {[0, 1].map((i) => (
+          <span key={i} className="h-5 flex-1 rounded-[3px]" style={{ background: v["--m-surface"], boxShadow: `inset 0 0 0 1px ${ink}22` }} />
+        ))}
+      </span>
+    </div>
+  );
+}
+
 function StoreMini({ theme }: { theme: MenuTheme }) {
   const v = theme.vars;
   const { pattern, header, layout } = theme.design;
@@ -451,6 +524,10 @@ export function ThemePreview({ theme }: { theme: MenuTheme }) {
       return <DukkanMini v={v} />;
     case "asir":
       return <AsirMini v={v} />;
+    case "gold":
+      return <GoldMini theme={theme} />;
+    case "modern":
+      return <ModernMini v={v} />;
     default:
       return <StoreMini theme={theme} />;
   }

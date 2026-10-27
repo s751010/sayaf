@@ -9,7 +9,7 @@
  * - `deck`     البطاقة نفسها بصورتها الكبيرة، في صفٍّ يُسحب أفقياً لكل قسم
  *              (العرض والتمركز في `menu-skins.css`).
  *
- * والأصناف `m-card` · `m-img` · `m-name` · `m-desc` · `m-price` **خطاطيف
+ * والأصناف `m-card` · `m-img` · `m-name` · `m-desc` · `m-price` · `m-foot` **خطاطيف
  * لا أنماط**: لا تفعل شيئاً إلا في طابعٍ يقرؤها (`m-skin-*`).
  *
  * رموز مسببات الحساسية والسعرات موجودة في التخطيطات الثلاثة: ميزة قائمة لا
@@ -551,7 +551,7 @@ export function DishCard({
               {desc(dish, en)}
             </p>
           )}
-          <div className="mt-auto flex items-center justify-between gap-3 pt-1">
+          <div className="m-foot mt-auto flex items-center justify-between gap-3 pt-1">
             <span className="min-w-0 flex-1">{meta}</span>
             {caffeine}
             <Price dish={dish} big style={priceStyle} en={en} />
@@ -610,7 +610,7 @@ export function DishCard({
         {/* التفاصيل الثانوية ثم السعر — سطران بارتفاع محسوم لا يتبع المحتوى.
             كانا في صفّ واحد فيفيض عن عرض البطاقة على الجوال ويلتفّ، والسعر
             وحده على سطره أسهل مسحاً بالعين نزولاً في عمود واحد. */}
-        <div className="mt-auto flex flex-col items-start gap-1.5 pt-2">
+        <div className="m-foot mt-auto flex flex-col items-start gap-1.5 pt-2">
           {meta}
           {caffeine && dish.caffeine_mg != null ? (
             <span className="flex w-full flex-wrap items-center justify-between gap-x-2 gap-y-1">
