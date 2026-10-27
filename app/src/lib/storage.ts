@@ -49,6 +49,20 @@ export const K = {
    * عموداً ولا نداءً.
    */
   MAPS_TIP_DISMISSED: "cm2_maps_tip",
+  /**
+   * صوت الطلب الجديد في اللوحة — localStorage، `on` أو `off`.
+   *
+   * مطفأ حتى يضغط التاجر الزرّ: المتصفّح لا يُسمع صوتاً قبل لمسة، والزرّ هو
+   * تلك اللمسة (`lib/chime.ts`). وتفضيلٌ للجهاز لا للمطعم: لوح الكاونتر يرنّ،
+   * وجوال المالك في جيبه قد لا يريد.
+   */
+  ORDER_SOUND: "cm2_order_sound",
+  /**
+   * ما نُبّه له التاجر وما رآه من الطلبات — localStorage، ويُلحق به معرّف
+   * المطعم (`cm2_order_alerts_<id>`). معرّفات طلبات فقط، بلا اسم ولا جوال
+   * زبون؛ والشكل والمنطق في `lib/orderAlerts.ts`.
+   */
+  ORDER_ALERTS: "cm2_order_alerts",
 } as const;
 
 function store(session: boolean): Storage | null {

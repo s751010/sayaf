@@ -18,7 +18,13 @@
  */
 import { defineConfig, devices } from "@playwright/test";
 
-const PORT = 4319;
+/**
+ * `E2E_PORT` لأشجار العمل المتوازية: ٤٣١٩ مشترك، فكان e2e شجرةٍ يفحص خادم
+ * شجرةٍ أخرى ويعطي نتيجة كاذبة. والمنفذ الخاصّ لا يعيد استعمال خادمٍ قائم
+ * و`--strictPort` يسقط بدل أن يقفز إلى منفذ غيره (درس ٢٦/١٠).
+ */
+const OWN_PORT = process.env.E2E_PORT;
+const PORT = Number(OWN_PORT ?? 4319);
 
 export default defineConfig({
   testDir: "./e2e",
@@ -51,9 +57,9 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: `npx vite --port ${PORT} --host 127.0.0.1`,
+    command: `npx vite --port ${PORT} --strictPort --host 127.0.0.1`,
     url: `http://127.0.0.1:${PORT}/`,
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: !process.env.CI && !OWN_PORT,
     timeout: 60_000,
   },
 });

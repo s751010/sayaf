@@ -9,11 +9,14 @@
  *
  * ═══ التحديث ═══
  *
- * استطلاع كل ١٥ ثانية بدل realtime: الاشتراك الحيّ يحتاج اتصالاً مفتوحاً
- * يسقط مع كل قفل شاشة على جهاز الكاشير، والاستطلاع البسيط أصدق في هذه
- * البيئة. ويتوقّف حين تكون الصفحة مخفيّة فلا يستهلك بطارية بلا فائدة.
+ * استطلاع كل عشرين ثانية بدل realtime — `usePolling` في `lib/poll.ts`: يتوقّف
+ * والصفحة مخفيّة، ويتراجع عند فشل الشبكة. والجرس **ليس هنا**: صار للّوحة كلّها
+ * (`OrderAlertsProvider`)، وهذه الصفحة تسلّمه ما جلبته فيرنّ لما وصل ويعلّمه
+ * «مرئياً». ولشاشة الكاونتر صفحتها: `Kitchen.tsx`.
  */
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { AlertControls, useOrderAlerts } from "@/components/OrderAlerts";
 import { Badge, Button, Card, EmptyState, Skeleton, useToast } from "@/components/ui";
 import {
   listOrders,
@@ -22,75 +25,12 @@ import {
   type MerchantOrder,
   type OrderStatus,
 } from "@/lib/data";
+import { Icon } from "@/lib/icons";
+import { LABEL, NEXT, OPEN, isLate, since } from "@/lib/orderFlow";
+import { usePolling } from "@/lib/poll";
 import { formatMoney } from "@/lib/utils";
 import { vatAddedOnTop } from "@/lib/vat";
 import { useDashboard } from "./Dashboard";
-
-/** الحالة التالية وزرّها. `null` = الطلب انتهى. */
-const NEXT: Record<string, { to: OrderStatus; label: string } | null> = {
-  new: { to: "preparing", label: "ابدأ التحضير" },
-  preparing: { to: "ready", label: "جاهز للاستلام" },
-  ready: { to: "picked_up", label: "سلّمته للزبون" },
-  picked_up: null,
-  cancelled: null,
-};
-
-const LABEL: Record<string, { text: string; variant: "gold" | "green" | "red" | "neutral" }> = {
-  new: { text: "جديد", variant: "gold" },
-  preparing: { text: "قيد التحضير", variant: "gold" },
-  ready: { text: "جاهز للاستلام", variant: "green" },
-  picked_up: { text: "سُلّم", variant: "neutral" },
-  cancelled: { text: "ملغي", variant: "red" },
-};
-
-const OPEN: OrderStatus[] = ["new", "preparing", "ready"];
-
-/**
- * جرس الطلب الجديد.
- *
- * ⚠️ **بلا ملفّ صوت.** إضافة ملفّ تعني طلب شبكة قد يفشل، وحجماً في الحزمة،
- * وإذناً للتشغيل التلقائي قد يُرفض. نغمتان قصيرتان من `AudioContext` تكفيان
- * الغرض ولا تكلّفان بايتاً.
- *
- * والمتصفّح يمنع الصوت قبل أول تفاعل من المستخدم — وهذا مقبول: التاجر يفتح
- * الصفحة بنقرة، فيصير الصوت مسموحاً قبل أول طلب.
- */
-function chime() {
-  try {
-    const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-    if (!Ctx) return;
-    const ctx = new Ctx();
-    [0, 0.18].forEach((offset, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = "sine";
-      osc.frequency.value = i === 0 ? 880 : 1174;
-      gain.gain.setValueAtTime(0.0001, ctx.currentTime + offset);
-      gain.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime + offset + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + offset + 0.16);
-      osc.connect(gain).connect(ctx.destination);
-      osc.start(ctx.currentTime + offset);
-      osc.stop(ctx.currentTime + offset + 0.18);
-    });
-    window.setTimeout(() => ctx.close(), 800);
-  } catch {
-    // الصوت رفاهية — فشله لا يمسّ الطلب.
-  }
-}
-
-/** هل تجاوز الطلب وعدَه للزبون؟ */
-function isLate(order: MerchantOrder): boolean {
-  if (!order.ready_eta || order.status === "ready") return false;
-  return new Date(order.ready_eta).getTime() < Date.now();
-}
-
-function since(iso: string): string {
-  const mins = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
-  if (mins < 1) return "الآن";
-  if (mins < 60) return `قبل ${mins} د`;
-  const hours = Math.round(mins / 60);
-  return `قبل ${hours} س`;
-}
 
 /**
  * تذكرة المطبخ.
@@ -151,6 +91,7 @@ function printTicket(order: MerchantOrder, restaurantName: string) {
 
 export default function Orders() {
   const { restaurant, setRestaurant } = useDashboard();
+  const { sync } = useOrderAlerts();
   const toast = useToast();
   const [orders, setOrders] = useState<MerchantOrder[] | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
@@ -175,56 +116,19 @@ export default function Orders() {
       toast("تعذّر تغيير الحالة.", "err");
     }
   }
-  // مرجعٌ لا حالة: يُقرأ داخل مؤقّت ولا يجوز أن تُعيد قيمته جدولة المؤقّت.
-  const loading = useRef(false);
-  /**
-   * معرّفات الطلبات التي رآها التاجر.
-   *
-   * ⚠️ المقارنة بالمعرّفات لا بالعدد: طلبٌ جديد يصل وآخر يُسلَّم في نفس
-   * الدورة يُبقيان العدد ثابتاً — فالجرس يصمت عن طلبٍ وصل فعلاً.
-   */
-  const seen = useRef<Set<string> | null>(null);
-
   const load = useCallback(async () => {
-    if (loading.current) return;
-    loading.current = true;
-    try {
-      const rows = await listOrders(restaurant.id);
-      const incoming = new Set(rows.filter((o) => o.status === "new").map((o) => o.id));
+    const rows = await listOrders(restaurant.id);
+    setOrders(rows);
+    // الصفحة تعرض الطلبات ⇒ «رآها» التاجر؛ والجرس يرنّ لما لم يُرنّ له.
+    sync(rows, { seen: true });
+  }, [restaurant.id, sync]);
 
-      if (seen.current === null) {
-        // أول تحميل: ما كان موجوداً ليس «جديداً» — ولا يُرنّ له جرس.
-        seen.current = incoming;
-      } else {
-        const fresh = [...incoming].filter((id) => !seen.current!.has(id));
-        if (fresh.length > 0) {
-          chime();
-          // العنوان يحمل الخبر حتى لو كان التاجر في تبويب آخر.
-          document.title = `(${incoming.size}) طلب جديد — كلاود منيو`;
-        }
-        seen.current = incoming;
-      }
-      if (incoming.size === 0) document.title = "الطلبات — كلاود منيو";
-      setOrders(rows);
-    } catch {
-      // فشل استطلاع لا يمسح ما على الشاشة: طلبٌ قديم أنفع من فراغ.
-    } finally {
-      loading.current = false;
-    }
-  }, [restaurant.id]);
-
-  useEffect(() => {
-    load();
-    const timer = window.setInterval(() => {
-      if (document.visibilityState === "visible") load();
-    }, 15000);
-    const onShow = () => document.visibilityState === "visible" && load();
-    document.addEventListener("visibilitychange", onShow);
-    return () => {
-      window.clearInterval(timer);
-      document.removeEventListener("visibilitychange", onShow);
-    };
-  }, [load]);
+  /**
+   * ⚠️ الفشل **يُعدّ** ولا يُبتلع. كان `catch {}` هنا يُبقي هيكل التحميل إلى
+   * الأبد إن سقطت الشبكة قبل أوّل جلب — شاشة رمادية لا تقول شيئاً، وزبونٌ دفع
+   * ينتظر. وبعد أوّل نجاح لا يُمسح ما على الشاشة: طلبٌ قديم أنفع من فراغ.
+   */
+  const poll = usePolling(load);
 
   async function move(order: MerchantOrder, to: OrderStatus) {
     setBusy(order.id);
@@ -235,8 +139,13 @@ export default function Orders() {
     try {
       await setOrderStatus(order.id, to);
     } catch {
-      toast("تعذّر تحديث الطلب — حدّث الصفحة.", "err");
-      await load();
+      // التراجع محلّياً أوّلاً: لو فشلت إعادة الجلب أيضاً لبقي على الشاشة
+      // «جاهز» لطلبٍ لم يُعلَّم جاهزاً — والزبون يرى غير ما يراه الكاشير.
+      setOrders((prev) =>
+        prev ? prev.map((o) => (o.id === order.id ? { ...o, status: order.status } : o)) : prev
+      );
+      toast("تعذّر تحديث الطلب — أعدناه إلى حالته.", "err");
+      poll.refresh();
     } finally {
       setBusy(null);
     }
@@ -251,6 +160,23 @@ export default function Orders() {
   }, [orders]);
 
   if (orders === null) {
+    if (poll.failures > 0) {
+      return (
+        <Card className="flex flex-col items-center gap-3 py-10 text-center">
+          <div role="alert" className="flex flex-col items-center gap-2">
+            <span className="grid h-12 w-12 place-items-center rounded-full bg-bad/10 text-bad">
+              <Icon name="warn" size={22} />
+            </span>
+            <h1 className="text-lg font-black text-ink">لم نصل إلى طلباتك</h1>
+            <p className="max-w-sm text-sm text-dim">
+              غالباً انقطاعٌ في الاتصال. الطلبات محفوظة ولم يضع منها شيء — ونعيد المحاولة
+              تلقائياً.
+            </p>
+          </div>
+          <Button onClick={poll.refresh}>أعد المحاولة</Button>
+        </Card>
+      );
+    }
     return (
       <div className="flex flex-col gap-3">
         <Skeleton className="h-24" />
@@ -270,10 +196,27 @@ export default function Orders() {
               : "لا طلبات مفتوحة — الشاشة تتحدّث تلقائياً"}
           </p>
         </div>
-        <Button variant="ghost" onClick={load}>
+        <Button variant="ghost" onClick={poll.refresh}>
           تحديث
         </Button>
       </div>
+
+      {/* شاشة الكاونتر والجرس — أوّل ما يحتاجه من يستقبل الطلبات. */}
+      <div className="flex flex-wrap items-center gap-2">
+        <Link
+          to="/dashboard/kitchen"
+          className="press inline-flex min-h-11 items-center gap-2 rounded-[10px] bg-ink px-4 py-2.5 text-sm font-semibold text-page"
+        >
+          <Icon name="ticket" size={16} /> افتح شاشة الكاشير
+        </Link>
+        <AlertControls />
+      </div>
+
+      {poll.failures > 0 && (
+        <p role="status" className="rounded-xl bg-panel2 px-3 py-2 text-xs text-dim">
+          لم نصل للتحديث الأخير — ما تراه قد لا يكون الأحدث، ونعيد المحاولة تلقائياً.
+        </p>
+      )}
 
       {/* حالة الاستقبال: أوّل ما تقع عليه العين، لأنها أخطر مفتاح في الشاشة. */}
       <Card
