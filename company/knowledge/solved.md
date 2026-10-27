@@ -31,3 +31,8 @@
 | الخصوصية: نقل البيانات بلا ادّعاء ضمانات · وعد الحذف مطابق لإجراء مكتوب · إفصاح التحليلات · GA4 بلا `page_view` تلقائي · `deploy.yml` حُذف · `plausible.io` في CSP | `Legal.tsx` · `runbooks/account-deletion.md` · `track.ts` · `_headers` | — | #29 |
 | رفع الطوابع التسعة: ضغطٌ وأسعار مصفوفة ونافذة بحركة كل طابع · عيوب الجودة السبعة · «بيت طين نجدي» | `DishCard.tsx` · `menu-skins.css` · `SkinHeads.tsx` (`MudHead`) | `invariants.test.ts` (بصمة مجمّدة) | #30 |
 | طابع عاشر «محمصة» · المنتقي يرتّب حسب نوع النشاط بلا تطبيق · «نجدي» اسماً · «10 طوابع» في كل موضع | `themeSuggest.ts` · `ThemeSuggest.tsx` · `SkinHeads.tsx` (`BagHead`) | `theme-suggest.test.ts` · `invariants.test.ts` (`ADDED`) · e2e المنتقي | #31 |
+| دليل «اربط منيوك بقوقل ماب» + زرّ نسخ يبني الرابط من المصدر (بلا `?table=`) | `GoogleMapsTip.tsx` · مقال `google-maps-menu-link` | e2e يقرأ ما نُسخ | #33 |
+| «نفد اليوم» بشكل الطابع ولا يُطلب من أي طريق · ملفّ البيانات الغذائية للتفتيش (إقرار الموقّع، اسم PDF محايد) | `lib/soldOut.ts` · `lib/complianceFile.ts` · `ComplianceFile.tsx` | `sold-out.test.ts` · `compliance-file.test.ts` | #34 |
+| فحص e2e المعتمد على الساعة ثُبّت · `E2E_PORT` لأشجار العمل المتوازية | `e2e/smoke.spec.ts` · `playwright.config.ts` | — | #35 |
+| جرس الطلبات في كل اللوحة (شارة · شريط 320 · صوت بإذن · إشعار) + شاشة الكاشير | `OrderAlerts.tsx` · `lib/orderAlerts.ts` · `Kitchen.tsx` · `lib/orderFlow.ts` | `order-alerts.test.ts` · `e2e/kitchen.spec.ts` | #36 |
+| كل شاشات الزبون تلبس الطابع (حدود محايدة `--m-line`، أيقونات، تذكرة، متابعة بطابع المطعم، «قيّمنا على قوقل») — إخفاقات AA من ٥٠٤ إلى ٠ | `CartReview.tsx` · `DishModal.tsx` · `PickupTicket.tsx` · `OrderStatus.tsx` | `order-skin.test.ts` | #37 |
