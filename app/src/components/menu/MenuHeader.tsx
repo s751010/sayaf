@@ -19,7 +19,8 @@ import { restaurantTypeLabel } from "@/lib/menuText";
 import type { Restaurant } from "@/lib/types";
 import { LogoMark } from "./LogoMark";
 import {
-  ArcadeHead, BagHead, Corner, FolioHead, GridHead, LetterboardHead, MastheadHead, MudHead, PaperHead, PosterHead, SignHead,
+  ArcadeHead, AsirHead, BagHead, Corner, DukkanHead, FolioHead, GridHead, LetterboardHead, MastheadHead, MudHead,
+  PaperHead, PosterHead, SignHead,
   type HeadProps,
 } from "./SkinHeads";
 
@@ -33,6 +34,8 @@ const SKIN_HEADS: Partial<Record<HeaderShape, ComponentType<HeadProps>>> = {
   arcade: ArcadeHead,
   mud: MudHead,
   bag: BagHead,
+  tin: DukkanHead,
+  mural: AsirHead,
   folio: FolioHead,
   grid: GridHead,
 };

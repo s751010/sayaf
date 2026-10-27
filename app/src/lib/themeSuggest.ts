@@ -3,7 +3,7 @@
  *
  * ═══ لماذا ═══
  *
- * كلّ مطعمٍ جديد يبدأ «فاخر» (الافتراضي)، والمُنتقي يعرض العشرة بترتيبٍ واحد
+ * كلّ مطعمٍ جديد يبدأ «فاخر» (الافتراضي)، والمُنتقي يعرض الطوابع كلّها بترتيبٍ واحد
  * للجميع: صاحب المحمصة يرى أوّلاً أسود وذهباً للمشاوي. فالمُنتقي يضع أوّلاً ما
  * يناسب نوع نشاطه، وعليه شارة «يناسب نوع نشاطك».
  *
@@ -36,9 +36,11 @@ export const SUGGESTED: Readonly<Record<string, readonly [string, string, string
   كافيه: ["roastery", "letterboard", "sticker"],
   [POPULAR_CAFE]: ["najdi", "sticker", "receipt"],
   عصائر: ["sticker", "modern", "neon"],
-  "مطعم سريع": ["neon", "receipt", "sticker"],
-  مشويات: ["dark-gold", "najdi", "receipt"],
-  شعبي: ["najdi", "receipt", "roshan"],
+  // ٢٧/١٠: «دكّان» و«عسير» للشعبي — فخرج منه «فاتورة» و«روشان» وشارتاهما
+  // (قاعدة الاتّساق ٢)، وبقي كلٌّ أوّلَ نوعه الآخر أو ثانيه. وعربة الطعام «سريع».
+  "مطعم سريع": ["neon", "receipt", "dukkan"],
+  مشويات: ["dark-gold", "najdi", "asir"],
+  شعبي: ["najdi", "dukkan", "asir"],
   بحري: ["roshan", "dark-gold", "modern"],
   "مخبز وحلويات": ["editorial", "letterboard", "modern"],
 };

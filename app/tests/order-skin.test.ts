@@ -14,6 +14,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { skinFile, skinFileIds } from "./skin-css";
 
 const read = (p: string) => readFileSync(fileURLToPath(new URL(`../src/${p}`, import.meta.url)), "utf8");
 
@@ -138,5 +139,16 @@ describe("خامة شاشات الطلب في CSS", () => {
 
   it("لا `letter-spacing` في القسم (الدرس ١٢)", () => {
     expect(section).not.toMatch(/letter-spacing/);
+  });
+
+  /**
+   * الطوابع التي خامتها في ملفّها (`skins/<id>.css`، منذ «دكّان» و«عسير») تلبس
+   * شاشات الطلب هناك — فالفحص يقرؤها حيث هي لا في القسم أعلاه.
+   */
+  it.each(skinFileIds())("`skins/%s.css` يلبس شاشات الطلب ولا تباعد أحرف فيه", (id) => {
+    const file = skinFile(id);
+    expect(file).toContain(`.m-skin-${id} .m-o-`);
+    expect(file).toContain(`.m-skin-${id} .m-sheet`);
+    expect(file).not.toMatch(/letter-spacing/);
   });
 });

@@ -25,6 +25,8 @@ import type { HeadingStyle } from "@/lib/themes";
 import type { Dish } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Burst } from "./SkinHeads";
+import { DukkanHeading } from "./heads/DukkanHead";
+import { AsirHeading } from "./heads/AsirHead";
 
 /** خطّ العناوين — يسقط إلى خطّ النصّ لكل طابع لا يذكر `--m-display` (§18). */
 const dFont: CSSProperties = { fontFamily: "var(--m-display, var(--m-font))" };
@@ -293,6 +295,19 @@ export function SectionHeading({
           </div>
         )}
       </div>
+    );
+  }
+
+  /* ── دكّان (رفٌّ ولوح طباشير) · عسير (إفريز مثلّثات): كلٌّ في ملفّه (`heads/`) ── */
+  if (style === "shelf" || style === "frieze") {
+    const Skin = style === "shelf" ? DukkanHeading : AsirHeading;
+    return (
+      <Skin
+        name={name}
+        items={items}
+        index={index}
+        photo={photo && <CoverImg src={photo.src} onError={onError} className="aspect-[21/9]" />}
+      />
     );
   }
 
