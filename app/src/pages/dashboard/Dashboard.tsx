@@ -70,6 +70,7 @@ import Design from "./Design";
 import Qr from "./Qr";
 import Cards from "./Cards";
 import Analytics from "./Analytics";
+import WeeklyReport from "./WeeklyReport";
 import Loyalty from "./Loyalty";
 import Settings from "./Settings";
 import Billing from "./Billing";
@@ -761,6 +762,7 @@ export default function Dashboard() {
             <Route path="qr" element={<Qr />} />
             <Route path="print" element={<PrintMenu />} />
             <Route path="analytics" element={<Analytics />} />
+            <Route path="report" element={<WeeklyReport />} />
             <Route path="loyalty" element={<Loyalty />} />
             <Route path="billing" element={<Billing />} />
             <Route path="settings" element={<Settings />} />

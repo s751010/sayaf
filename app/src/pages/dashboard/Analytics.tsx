@@ -9,7 +9,8 @@
  */
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Badge, Button, Card, Skeleton } from "@/components/ui";
+import { Button, Card, Skeleton } from "@/components/ui";
+import { DeltaBadge } from "@/components/DeltaBadge";
 import { Insights } from "@/components/Insights";
 import { ShareMenu } from "@/components/ShareMenu";
 import { getMyAnalytics, getMyDishes } from "@/lib/data";
@@ -20,6 +21,7 @@ import { useDashboard, FeatureGate } from "./Dashboard";
 import { InsightTabs } from "./Tabs";
 import { Icon, DishGlyph } from "@/lib/icons";
 import { menuUrl } from "@/lib/menuUrl";
+import { deltaOf } from "@/lib/weeklyReport";
 
 const DOW_AR = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
 const RANGE_DAYS = 30;
@@ -116,20 +118,6 @@ function BarChart({
         </div>
       )}
     </div>
-  );
-}
-
-/** فرق نسبي مقابل الفترة السابقة. */
-function Delta({ now, prev }: { now: number; prev: number }) {
-  if (prev === 0) {
-    return now > 0 ? <Badge variant="green">جديد</Badge> : null;
-  }
-  const pct = Math.round(((now - prev) / prev) * 100);
-  if (pct === 0) return <Badge variant="neutral">= مستقر</Badge>;
-  return (
-    <Badge variant={pct > 0 ? "green" : "red"}>
-      {pct > 0 ? "▲" : "▼"} {Math.abs(pct)}%
-    </Badge>
   );
 }
 
@@ -336,7 +324,7 @@ function AnalyticsInner() {
                 <p className="text-xs text-dim">{t.label}</p>
                 <div className="mt-1 flex items-center gap-2">
                   <p className="font-display text-2xl font-black text-ink">{t.value}</p>
-                  {t.delta !== undefined && <Delta now={stats.total} prev={t.delta} />}
+                  {t.delta !== undefined && <DeltaBadge delta={deltaOf(stats.total, t.delta)} />}
                 </div>
               </Card>
             ))}

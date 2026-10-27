@@ -10,8 +10,10 @@ import { Link } from "react-router-dom";
 import { Badge, Card, Skeleton } from "@/components/ui";
 import { PreviewMenuButton } from "@/components/site";
 import { ShareMenu } from "@/components/ShareMenu";
+import { NextStepCard } from "@/components/NextStepCard";
 import { getMyAnalytics, getMyDishes, getOrdersToday, type OrdersToday } from "@/lib/data";
 import { buildNextStep } from "@/lib/nextStep";
+import { buildWeeklyReport } from "@/lib/weeklyReport";
 import { planLabel } from "@/lib/entitlements";
 import { formatPrice } from "@/lib/utils";
 import type { AnalyticsRow, Dish } from "@/lib/types";
@@ -68,22 +70,23 @@ export default function Overview() {
    * المنيو لم يكن في اللوحة ما يستدعي فتحها مرة ثانية؛ رقمٌ يتحرّك أسبوعياً
    * ومقارنة بالأسبوع الذي قبله هو أبسط ما يستدعيها.
    */
+  //
+  // ⚠️ **من `lib/weeklyReport.ts` لا حسابٌ هنا** (٢٠٢٦/١٠/٢٧): كان «آخر سبعة
+  // أيام» بتواريخ UTC، والتقرير الأسبوعي من الأحد بتوقيت الرياض — فيقول
+  // البطاقة رقماً والتقرير الذي تقود إليه رقماً آخر للأسبوع نفسه. والأسبوع
+  // الجاري يُقارَن بالمدّة نفسها من الماضي، لا بسبعة أيام كاملة.
   const week = useMemo(() => {
     if (!rows) return null;
-    const day = 86400_000;
-    const since = (n: number) => new Date(Date.now() - n * day).toISOString().slice(0, 10);
-    const d7 = since(7);
-    const d14 = since(14);
-    let now = 0;
-    let prev = 0;
-    for (const r of rows) {
-      if (r.dish_id || !r.date) continue; // فتح طبق لا مشاهدة منيو
-      if (r.date >= d7) now += r.views ?? 0;
-      else if (r.date >= d14) prev += r.views ?? 0;
-    }
-    const delta = prev > 0 ? Math.round(((now - prev) / prev) * 100) : null;
-    return { now, prev, delta };
-  }, [rows]);
+    const r = buildWeeklyReport({
+      nowMs: Date.now(),
+      mode: "current",
+      rows,
+      dishes: dishes ?? [],
+      orders: null,
+      restaurantCreatedAt: restaurant.created_at,
+    });
+    return { now: r.views.now, prev: r.views.prev, delta: r.views.delta, top: r.topDishes[0]?.dish ?? null };
+  }, [rows, dishes, restaurant.created_at]);
 
   return (
     <div>
@@ -177,80 +180,38 @@ export default function Overview() {
         * بتعليق يقول «شريطا تقدّم متجاوران يُربكان». السلّم كلّه صار في
         * `lib/nextStep.ts`، وهنا فعلٌ واحد وما بقي مطويّ.
         */}
-      {next.action && (
-        <Card className="mt-5 border-gold/30 bg-gold/[.04]">
-          <p className="text-xs font-bold text-gold">خطوتك التالية</p>
-          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-3">
-            <span className="text-2xl" aria-hidden="true">
-              <Icon name={next.action.icon} size={22} />
-            </span>
-            <p className="min-w-0 flex-1 text-sm leading-relaxed text-ink">
-              {next.action.text}
-            </p>
-            {next.action.action && (
-              <Link
-                to={next.action.action.to}
-                className="shrink-0 rounded-xl bg-gold px-4 py-2 text-sm font-bold text-on-gold hover:bg-gold2"
-              >
-                {next.action.action.label} ←
-              </Link>
-            )}
-          </div>
-          {next.rest.length > 0 && (
-            <details className="mt-3 border-t border-gold/15 pt-3">
-              <summary className="cursor-pointer text-xs font-bold text-dim hover:text-ink">
-                و{next.rest.length} خطوة أخرى
-              </summary>
-              <ul className="mt-3 flex flex-col gap-2">
-                {next.rest.map((i) => (
-                  <li
-                    key={i.id}
-                    className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-sm"
-                  >
-                    <Icon name={i.icon} size={16} className="mt-0.5 shrink-0" />
-                    <span className="min-w-0 flex-1 text-dim">{i.text}</span>
-                    {i.action && (
-                      <Link
-                        to={i.action.to}
-                        className="text-xs font-bold text-gold hover:underline"
-                      >
-                        {i.action.label} ←
-                      </Link>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </details>
-          )}
-        </Card>
-      )}
+      <NextStepCard next={next} />
 
       {/* نبض الأسبوع — لا يظهر إلا بعد أول مشاهدة، فالتاجر الجديد لا يواجه
           رقماً صفرياً محبِطاً. والأرقام الثلاثة صارت سطراً هنا بدل ثلاث بطاقات:
           «٣ قوائم» ليست خبراً يستحق بطاقة بحجم بطاقة المشاهدات. */}
-      {week && week.now + week.prev > 0 && (
+      {/* الشرط على الثلاثين يوماً لا على الأسبوع: صباح الأحد أسبوعٌ جارٍ بلا
+          مشاهدة بعد، وإخفاء البطاقة حينها يُخفي رابط تقرير الأسبوع المنصرم. */}
+      {week && (views30 ?? 0) > 0 && (
         <Card className="mt-5">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <p className="inline-flex items-center gap-2 font-display font-extrabold text-ink">
             <Icon name="pulse" size={17} className="text-gold" /> هذا الأسبوع
           </p>
-            <Link to="/dashboard/analytics" className="text-xs font-bold text-gold hover:underline">
-              التفاصيل ←
+            <Link to="/dashboard/report" className="text-xs font-bold text-gold hover:underline">
+              تقرير الأسبوع ←
             </Link>
           </div>
           <p className="mt-2 text-sm text-dim">
             منيوك شوهد <span className="font-display text-xl font-black text-ink">{week.now}</span>{" "}
             مرة
-            {week.delta !== null && (
-              <span className={week.delta >= 0 ? "font-bold text-good" : "font-bold text-bad"}>
+            {(week.delta.kind === "up" || week.delta.kind === "down") && (
+              <span className={week.delta.kind === "up" ? "font-bold text-good" : "font-bold text-bad"}>
                 {" "}
-                ({week.delta >= 0 ? "+" : ""}
-                {week.delta}% عن الأسبوع الماضي)
+                ({week.delta.kind === "up" ? "+" : "−"}
+                {week.delta.pct}% عن المدّة نفسها الأسبوع الماضي)
               </span>
             )}
-            {top[0] && (top[0].views ?? 0) > 0 && (
+            {/* من فتح هذا الأسبوع لا من عدّاد `dishes.views` التراكمي — جملةٌ
+                تحت «هذا الأسبوع» تتكلّم عن هذا الأسبوع. */}
+            {week.top && (
               <>
-                {" · "}أكثر طبق فُتح: <span className="font-bold text-ink">{top[0].name}</span>
+                {" · "}أكثر طبق فُتح: <span className="font-bold text-ink">{week.top.name}</span>
               </>
             )}
           </p>

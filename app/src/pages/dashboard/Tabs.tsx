@@ -71,12 +71,15 @@ export function MenuTabs() {
   );
 }
 
-/** التحليلات: أرقام المنيو وزبائنه. */
+/** التحليلات: أرقام المنيو · تقرير الأسبوع · زبائنه. */
 export function InsightTabs() {
   return (
     <Tabs
       tabs={[
         { to: "/dashboard/analytics", label: "الأرقام", icon: "bars" },
+        // تبويبٌ لا عنصر شريط: الشريط سبعة عناصر مقيسة، والتقرير قراءةٌ ثانية
+        // للأرقام نفسها — بابه «التحليلات» كالولاء (`dashboard-nav.test.ts`).
+        { to: "/dashboard/report", label: "الأسبوع", icon: "pulse" },
         { to: "/dashboard/loyalty", label: "الولاء", icon: "heart" },
       ]}
     />
