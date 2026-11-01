@@ -16,12 +16,14 @@
  *
  * فالقاعدة المحروسة هنا: **تفعيل ميزة يزيد ولا ينقص**.
  */
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
   DASHBOARD_NAV,
   FOUNDER_ITEM,
   ORDERS_ITEM,
   buildDashboardNav,
+  isNavActive,
 } from "@/lib/nav";
 
 const paths = (ordersOn: boolean, founder: boolean | null = false) =>
@@ -101,5 +103,39 @@ describe("شارة الطلبات الجديدة", () => {
   it("لا تُعدّل العنصر المشترك نفسه (نسخةٌ لا تحوير)", () => {
     ordersItem(true, 5);
     expect(ORDERS_ITEM.badge).toBeUndefined();
+  });
+});
+
+/**
+ * أبواب الأقسام تُضاء في تبويباتها كلّها — كان «الأسبوع» و«الولاء» و«أكواد QR»
+ * و«عدّة الطباعة» تُفتح والشريط بلا عنصرٍ مُضاء. والقائمة تُقرأ من تبويبات
+ * `Tabs.tsx` نفسها: تبويبٌ جديد بلا باب يُسقط هذا الفحص.
+ */
+describe("isNavActive — أبواب الأقسام", () => {
+  const item = (to: string) => DASHBOARD_NAV.find((n) => n.to === to)!;
+  const tabs = readFileSync(new URL("../src/pages/dashboard/Tabs.tsx", import.meta.url), "utf8");
+  const tabPaths = [...tabs.matchAll(/to: "(\/dashboard\/[a-z-]+)"/g)].map((m) => m[1]);
+
+  it("كل تبويب يُضيء عنصراً واحداً بالضبط في الشريط", () => {
+    expect(tabPaths.length).toBeGreaterThan(5);
+    for (const p of tabPaths) {
+      const lit = DASHBOARD_NAV.filter((n) => isNavActive(n, p)).map((n) => n.label);
+      expect(lit, p).toHaveLength(1);
+    }
+  });
+
+  it("الطباعة والتحليلات في تبويباتهما", () => {
+    for (const p of ["/dashboard/qr", "/dashboard/print", "/dashboard/kit", "/dashboard/cards"]) {
+      expect(isNavActive(item("/dashboard/cards"), p), p).toBe(true);
+    }
+    for (const p of ["/dashboard/report", "/dashboard/loyalty", "/dashboard/analytics"]) {
+      expect(isNavActive(item("/dashboard/analytics"), p), p).toBe(true);
+    }
+  });
+
+  it("الرئيسية تامّة المطابقة، ولا بادئة تتسرّب (`/dashboard/printer` ليس `print`)", () => {
+    expect(isNavActive(item("/dashboard"), "/dashboard")).toBe(true);
+    expect(isNavActive(item("/dashboard"), "/dashboard/dishes")).toBe(false);
+    expect(isNavActive(item("/dashboard/cards"), "/dashboard/printer")).toBe(false);
   });
 });

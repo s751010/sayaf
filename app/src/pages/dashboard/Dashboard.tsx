@@ -54,7 +54,7 @@ import {
 import { menuUrl, slugError, urlAffixes } from "@/lib/menuUrl";
 import { getRestaurantById, logAudit } from "@/lib/founder";
 import { STARTER_TYPES } from "@/lib/starterMenus";
-import { buildDashboardNav } from "@/lib/nav";
+import { buildDashboardNav, isNavActive } from "@/lib/nav";
 import { badgeText } from "@/lib/orderAlerts";
 import { cn } from "@/lib/utils";
 import type { Menu, Restaurant } from "@/lib/types";
@@ -371,6 +371,7 @@ function planShortLabel(ent: Entitlements): string {
 
 function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode }) {
   const { logout } = useAuth();
+  const { pathname } = useLocation();
   const navigate = useNavigate();
   const { unseen } = useOrderAlerts();
   /**
@@ -400,7 +401,7 @@ function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode
         key={n.to}
         to={n.to}
         end={n.end}
-        className={({ isActive }) =>
+        className={() =>
           cn(
             // الحشوة والحجم على الجوال مقيسان لا مذوقان: ستة عناصر يجب أن تسع
             // ٣٩٠px (أضيق جهاز شائع). `px-3` و`text-[10px]` كانا يعطيان ٤٢٨px
@@ -410,7 +411,8 @@ function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode
               ? "press relative flex shrink-0 flex-col items-center gap-0.5 rounded-[10px] px-2 py-2 text-[9px] font-semibold"
               : "press relative flex items-center gap-3 rounded-[10px] px-3.5 py-2.5 text-sm font-semibold",
             // النشط حبرٌ مقلوب — كصفّ «السعرات» في الملصق: أسود يحمل الأهمّ.
-            isActive ? "bg-ink text-page" : "text-dim hover:bg-ink/5 hover:text-ink"
+            // `isNavActive` لا `isActive`: أبواب الأقسام تُضاء في تبويباتها كلّها.
+            isNavActive(n, pathname) ? "bg-ink text-page" : "text-dim hover:bg-ink/5 hover:text-ink"
           )
         }
       >
