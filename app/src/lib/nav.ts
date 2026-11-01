@@ -23,6 +23,12 @@ export type NavItem = {
   end?: boolean;
   /** شارة عدد على العنصر («3» · «9+») — `undefined` = لا شارة. */
   badge?: string;
+  /**
+   * مسارات أخرى يُضاء فيها العنصر: «التحليلات» و«الطباعة» بابا قسمين لهما
+   * تبويبات (`Tabs.tsx`)، فمن كان في «الأسبوع» أو «أكواد QR» لا يرى الشريط
+   * بلا عنصرٍ مُضاء كأنه خرج من اللوحة.
+   */
+  also?: readonly string[];
 };
 
 /**
@@ -33,13 +39,23 @@ export type NavItem = {
  */
 export const DASHBOARD_NAV: readonly NavItem[] = [
   { to: "/dashboard", label: "الرئيسية", icon: "home", end: true },
-  { to: "/dashboard/dishes", label: "منيوي", icon: "plate" },
+  { to: "/dashboard/dishes", label: "منيوي", icon: "plate", also: ["/dashboard/menus"] },
   // ثاني عنصر عمداً: هو سبب الاشتراك منذ إعادة التموضع (٢٠٢٦/١٠) — حساب
   // أرقام الهيئة من الوصفة. والسابع على الجوال يفيض فيمرّر (`ScrollRow`).
   { to: "/dashboard/nutrition", label: "الامتثال", icon: "flame" },
   { to: "/dashboard/design", label: "التصميم", icon: "palette" },
-  { to: "/dashboard/cards", label: "الطباعة", icon: "printer" },
-  { to: "/dashboard/analytics", label: "التحليلات", icon: "bars" },
+  {
+    to: "/dashboard/cards",
+    label: "الطباعة",
+    icon: "printer",
+    also: ["/dashboard/qr", "/dashboard/print", "/dashboard/kit"],
+  },
+  {
+    to: "/dashboard/analytics",
+    label: "التحليلات",
+    icon: "bars",
+    also: ["/dashboard/report", "/dashboard/loyalty"],
+  },
   { to: "/dashboard/settings", label: "الإعدادات", icon: "sliders" },
 ];
 
@@ -82,4 +98,14 @@ export function buildDashboardNav(opts: {
       )
     : [...DASHBOARD_NAV];
   return opts.founder === true ? [...items, FOUNDER_ITEM] : items;
+}
+
+/**
+ * هل العنصر مُضاء في هذا المسار؟ مساره نفسه (تامّاً لـ`end`) أو أحد `also`
+ * أو ما تحتها. خالصة ليحرسها فحص — `NavLink` وحده لا يعرف أبواب الأقسام.
+ */
+export function isNavActive(item: NavItem, pathname: string): boolean {
+  const under = (base: string) => pathname === base || pathname.startsWith(`${base}/`);
+  if (item.end ? pathname === item.to : under(item.to)) return true;
+  return (item.also ?? []).some(under);
 }
