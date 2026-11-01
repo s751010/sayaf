@@ -1,5 +1,5 @@
 /** الولاء (لوحة التاجر): قائمة العملاء + ختم الزيارات + صرف المكافآت. */
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Badge,
   Button,
@@ -41,6 +41,8 @@ function LoyaltyInner() {
   const { restaurant, setRestaurant } = useDashboard();
   const toast = useToast();
   const [customers, setCustomers] = useState<LoyaltyCustomer[] | null>(null);
+  /** فشل الجلب ليس «لا عملاء بعد» (الدرس ٣٢) — بطاقات الزبائن محفوظة ولم تضع. */
+  const [failed, setFailed] = useState(false);
   const [q, setQ] = useState("");
   const [setupGoal, setSetupGoal] = useState(String(restaurant.loyalty_goal ?? 5));
   const [setupReward, setSetupReward] = useState(restaurant.loyalty_reward ?? "");
@@ -71,10 +73,15 @@ function LoyaltyInner() {
     }
   }
 
+  const load = useCallback(() => {
+    setFailed(false);
+    getLoyaltyCustomers(restaurant.id).then(setCustomers).catch(() => setFailed(true));
+  }, [restaurant.id]);
+
   useEffect(() => {
     document.title = "الولاء — كلاود منيو";
-    getLoyaltyCustomers(restaurant.id).then(setCustomers).catch(() => setCustomers([]));
-  }, [restaurant.id]);
+    load();
+  }, [load]);
 
   const goal = Math.min(20, Math.max(1, Math.round(restaurant.loyalty_goal ?? 5)));
   /** تعديل غير محفوظ في حقلَي الهدف والمكافأة. */
@@ -222,7 +229,16 @@ function LoyaltyInner() {
         className="mt-5"
       />
 
-      {customers === null ? (
+      {customers === null && failed ? (
+        <div className="mt-5">
+          <EmptyState
+            icon="warn"
+            title="تعذّر تحميل عملاء الولاء"
+            desc="غالباً انقطاعٌ في الاتصال — بطاقات زبائنك محفوظة ولم يتغيّر شيء."
+            action={<Button onClick={load}>أعد المحاولة</Button>}
+          />
+        </div>
+      ) : customers === null ? (
         <div className="mt-5 flex flex-col gap-3">
           {[...Array(3)].map((_, i) => (
             <Skeleton key={i} className="h-16" />

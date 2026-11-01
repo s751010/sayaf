@@ -7,7 +7,7 @@
  */
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Badge, Card, Skeleton } from "@/components/ui";
+import { Badge, Button, Card, EmptyState, Skeleton } from "@/components/ui";
 import { PreviewMenuButton } from "@/components/site";
 import { ShareMenu } from "@/components/ShareMenu";
 import { NextStepCard } from "@/components/NextStepCard";
@@ -37,6 +37,13 @@ export default function Overview() {
   const [dishes, setDishes] = useState<Dish[] | null>(null);
   const [rows, setRows] = useState<AnalyticsRow[] | null>(null);
   const [today, setToday] = useState<OrdersToday | null>(null);
+  /**
+   * فشل جلب الأطباق أو المشاهدات — حالةٌ ثالثة لا `[]` (الدرس ٣٢). كان الفشل
+   * يُحسم «لا أطباق» فتقول الرئيسية لتاجرٍ منيوه ممتلئ «منيوك فارغ — أضف
+   * أصنافك» و«أضف أول طبق». و`attempt` يعيد الجلب من «أعد المحاولة».
+   */
+  const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   /** تقدّم «إعداد منيوك» على هذا الجهاز — `null` = لم يبدأه هنا. */
   const [setup, setSetup] = useState<SetupProgress | null>(() =>
     parseProgress(getJSON(setupKey(restaurant.id)))
@@ -44,13 +51,18 @@ export default function Overview() {
 
   useEffect(() => {
     document.title = "لوحة التحكم — كلاود منيو";
-    getMyDishes(restaurant.id).then(setDishes).catch(() => setDishes([]));
-    getMyAnalytics(user.id).then(setRows).catch(() => setRows([]));
+    setFailed(false);
+    // الفشل لا يلمس القيمة: يبقى `null` («لم يُحسم») فلا يبني السلّم نصيحةً
+    // على فراغٍ كاذب، ويبقى ما حُمِّل في محاولةٍ سابقة معروضاً.
+    const fail = () => setFailed(true);
+    getMyDishes(restaurant.id).then(setDishes).catch(fail);
+    getMyAnalytics(user.id).then(setRows).catch(fail);
     // الطلبات تُجلب لمن ربط بوّابة فقط: نداءٌ لا معنى له عند البقيّة.
+    // وفشلها يُخفي البطاقة (`null`) لا يعرض «٠ طلب» — فلا حاجة لحالة ثالثة.
     if (restaurant.online_payment_enabled) {
       getOrdersToday(restaurant.id).then(setToday).catch(() => setToday(null));
     }
-  }, [restaurant.id, user.id]);
+  }, [restaurant.id, user.id, attempt]);
 
   // مشاهدات المنيو فقط — الصفوف التي تحمل dish_id هي فتح أطباق لا مشاهدات.
   const views30 = rows === null ? null : rows.reduce((s, r) => s + (r.dish_id ? 0 : r.views ?? 0), 0);
@@ -180,7 +192,18 @@ export default function Overview() {
         * بتعليق يقول «شريطا تقدّم متجاوران يُربكان». السلّم كلّه صار في
         * `lib/nextStep.ts`، وهنا فعلٌ واحد وما بقي مطويّ.
         */}
-      <NextStepCard next={next} />
+      {failed ? (
+        <div className="mt-5">
+          <EmptyState
+            icon="warn"
+            title="تعذّر تحميل أرقام لوحتك"
+            desc="غالباً انقطاعٌ في الاتصال — منيوك يعمل كما هو، ولم يتغيّر شيء."
+            action={<Button onClick={() => setAttempt((n) => n + 1)}>أعد المحاولة</Button>}
+          />
+        </div>
+      ) : (
+        <NextStepCard next={next} />
+      )}
 
       {/* نبض الأسبوع — لا يظهر إلا بعد أول مشاهدة، فالتاجر الجديد لا يواجه
           رقماً صفرياً محبِطاً. والأرقام الثلاثة صارت سطراً هنا بدل ثلاث بطاقات:
@@ -216,8 +239,8 @@ export default function Overview() {
             )}
           </p>
           <p className="mt-2 border-t border-line pt-2 text-xs text-faint">
-            👁️ {views30 ?? 0} مشاهدة في ٣٠ يوماً · 🍽️ {dishes?.length ?? 0} طبقاً ·
-            📋 {menus?.length ?? 0} قائمة
+            👁️ {views30 ?? 0} مشاهدة في ٣٠ يوماً · 🍽️ {dishes?.length ?? "…"} طبقاً ·
+            📋 {menus?.length ?? "…"} قائمة
           </p>
         </Card>
       )}
@@ -273,7 +296,10 @@ export default function Overview() {
             كل الأطباق ←
           </Link>
         </div>
-        {dishes === null ? (
+        {dishes === null && failed ? (
+          // «أعد المحاولة» أعلاه واحدة للّوحة كلّها — لا زرّان لعطلٍ واحد.
+          <p className="text-sm text-faint">تظهر حين تنجح إعادة المحاولة أعلاه.</p>
+        ) : dishes === null ? (
           <Skeleton className="h-40" />
         ) : top.length === 0 ? (
           <Card className="flex flex-col items-center gap-3 py-10 text-center">

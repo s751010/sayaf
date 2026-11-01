@@ -7,6 +7,7 @@
  */
 import { callFunction, rest, restCount } from "./api";
 import { generateApiKey, hashApiKey, prefixOf, randomFrom } from "./apiKeys";
+import { riyadhMidnightUtc, riyadhParts } from "./weeklyReport";
 import type {
   AnalyticsRow,
   BlogPost,
@@ -1126,13 +1127,18 @@ export type OrdersToday = { count: number; revenue: number; open: number };
  * يُحسب من الصفوف لا بـ`count` منفصل: العدد والإيراد والمفتوح ثلاثة أسئلة عن
  * نفس المجموعة، وثلاث رحلات إلى الشبكة من أجلها إسرافٌ في شاشةٍ تُفتح كل يوم.
  * والحدّ الأعلى ٥٠٠ صفّ يكفي أضخم يوم في مطعم استلام.
+ *
+ * ⚠️ «اليوم» **بتوقيت الرياض** لا بساعة المتصفّح: كان `setHours(0)` المحلّي،
+ * فتاجرٌ جهازه على توقيتٍ آخر (أو مسافر) يرى «طلبات اليوم» تبدأ من منتصف ليلٍ
+ * غير ليله، ولا تطابق تقرير الأسبوع الذي يعدّ الأيام بتوقيت الرياض. والحدّ من
+ * دالّتَي `lib/weeklyReport.ts` نفسيهما — لا حسابٌ ثانٍ للمنطقة.
+ * و`nowMs` يُمرَّر في الفحص وحده.
  */
-export async function getOrdersToday(restaurantId: string): Promise<OrdersToday> {
-  const since = new Date();
-  since.setHours(0, 0, 0, 0);
+export async function getOrdersToday(restaurantId: string, nowMs = Date.now()): Promise<OrdersToday> {
+  const since = riyadhMidnightUtc(riyadhParts(nowMs).iso);
   const rows = await rest<{ status: OrderStatus; total: number }[]>(
     `orders?restaurant_id=eq.${restaurantId}` +
-      `&status=neq.pending_payment&created_at=gte.${since.toISOString()}` +
+      `&status=neq.pending_payment&created_at=gte.${encodeURIComponent(since)}` +
       `&select=status,total&limit=500`
   );
   const live = rows.filter((r) => r.status !== "cancelled");

@@ -9,7 +9,7 @@
  */
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Button, Card, Skeleton } from "@/components/ui";
+import { Button, Card, EmptyState, Skeleton } from "@/components/ui";
 import { DeltaBadge } from "@/components/DeltaBadge";
 import { Insights } from "@/components/Insights";
 import { ShareMenu } from "@/components/ShareMenu";
@@ -145,13 +145,21 @@ function AnalyticsInner() {
   const [rows, setRows] = useState<AnalyticsRow[] | null>(null);
   const [dishes, setDishes] = useState<Dish[] | null>(null);
   const [showTable, setShowTable] = useState(false);
+  /**
+   * فشل الجلب ليس «لا مشاهدات» (الدرس ٣٢): كان يُحسم `[]` فيقرأ التاجر
+   * «لا مشاهدات بعد» ومنيوه يُزار. و`attempt` يعيد الجلب.
+   */
+  const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     document.title = "التحليلات — كلاود منيو";
+    setFailed(false);
+    const fail = () => setFailed(true);
     // ٦٠ يوماً كي تُمكن المقارنة بالفترة السابقة (٣٠ + ٣٠).
-    getMyAnalytics(user.id, RANGE_DAYS * 2).then(setRows).catch(() => setRows([]));
-    getMyDishes(restaurant.id).then(setDishes).catch(() => setDishes([]));
-  }, [user.id, restaurant.id]);
+    getMyAnalytics(user.id, RANGE_DAYS * 2).then(setRows).catch(fail);
+    getMyDishes(restaurant.id).then(setDishes).catch(fail);
+  }, [user.id, restaurant.id, attempt]);
 
   const stats = useMemo(() => {
     const all = rows ?? [];
@@ -276,7 +284,16 @@ function AnalyticsInner() {
 
       <InsightTabs />
 
-      {loading ? (
+      {loading && failed ? (
+        <div className="mt-6">
+          <EmptyState
+            icon="warn"
+            title="تعذّر تحميل التحليلات"
+            desc="لم نصل إلى أرقامك — غالباً انقطاعٌ في الاتصال. منيوك يعمل كما هو."
+            action={<Button onClick={() => setAttempt((n) => n + 1)}>أعد المحاولة</Button>}
+          />
+        </div>
+      ) : loading ? (
         <div className="mt-6 flex flex-col gap-4">
           <Skeleton className="h-24 rounded-2xl" />
           <Skeleton className="h-56 rounded-2xl" />
