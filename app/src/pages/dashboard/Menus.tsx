@@ -42,7 +42,7 @@ import { MenuTabs } from "./Tabs";
 import { Icon } from "@/lib/icons";
 
 export default function Menus() {
-  const { user, restaurant, setRestaurant, menus, refreshMenus, ent } = useDashboard();
+  const { user, restaurant, setRestaurant, menus, menusFailed, refreshMenus, retryMenus, ent } = useDashboard();
   // يرتّب المُنتقي حسب نوع النشاط ويعلّم المقترح — لا يطبّق شيئاً (`lib/themeSuggest.ts`).
   const themeOrder = useThemeOrder(restaurant.type);
   const toast = useToast();
@@ -207,7 +207,17 @@ export default function Menus() {
       <MenuTabs />
 
       <div className="mt-6 flex flex-col gap-3">
-        {menus === null &&
+        {/* الفشل ليس «لا قوائم» (الدرس ٣٢): «أنشئ القائمة الأولى» هنا كانت
+            تُنشئ ثانيةً لتاجرٍ له قائمة. */}
+        {menus === null && menusFailed && (
+          <EmptyState
+            icon="warn"
+            title="تعذّر تحميل قوائمك"
+            desc="غالباً انقطاعٌ في الاتصال — قوائمك ومنيوك بخير، ولم يتغيّر شيء."
+            action={<Button onClick={retryMenus}>أعد المحاولة</Button>}
+          />
+        )}
+        {menus === null && !menusFailed &&
           [...Array(2)].map((_, i) => <Skeleton key={i} className="h-20 rounded-2xl" />)}
         {(menus ?? []).map((m) => (
           <Card key={m.id} className="flex flex-wrap items-center justify-between gap-3">

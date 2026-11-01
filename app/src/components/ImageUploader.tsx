@@ -14,6 +14,7 @@ import {
   compress,
   imageFileError,
   uniqueName,
+  uploadErrorMessage,
   type ImageShape,
 } from "@/lib/image";
 import { cn } from "@/lib/utils";
@@ -52,7 +53,7 @@ export function ImageUploader({
       setBroken(false);
       onChange(url);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "تعذّر رفع الصورة.");
+      setError(uploadErrorMessage(e));
     } finally {
       setBusy(false);
       if (inputRef.current) inputRef.current.value = "";

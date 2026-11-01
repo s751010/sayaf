@@ -85,9 +85,18 @@ interface DashboardCtx {
   user: SessionUser;
   restaurant: Restaurant;
   setRestaurant: (r: Restaurant) => void;
-  /** `null` = ما زالت تُحمَّل · `[]` = لا توجد قوائم فعلاً. */
+  /** `null` = ما زالت تُحمَّل (أو فشل جلبها — انظر `menusFailed`) · `[]` = لا توجد قوائم فعلاً. */
   menus: Menu[] | null;
+  /**
+   * آخر جلبٍ للقوائم فشل. **ليس `[]`**: كان الفشل يُحسم إلى «لا قوائم» فيرى
+   * التاجر «أنشئ القائمة الأولى» وله قائمة (الدرس ٣٢). والصفحة التي تنتظر
+   * `menus` تعرض «أعد المحاولة» حين `menus === null && menusFailed`.
+   */
+  menusFailed: boolean;
+  /** يرمي عند الفشل — لمن ينتظره بعد كتابة ويعرض خطأه. */
   refreshMenus: () => Promise<void>;
+  /** زرّ «أعد المحاولة»: الفشل يُسجَّل في `menusFailed` فلا يُرمى. */
+  retryMenus: () => void;
   ent: Entitlements;
   refreshEnt: () => Promise<void>;
   /**
@@ -587,6 +596,7 @@ export default function Dashboard() {
   const [loadFailed, setLoadFailed] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const [menus, setMenus] = useState<Menu[] | null>(null);
+  const [menusFailed, setMenusFailed] = useState(false);
   const [ent, setEnt] = useState<Entitlements>(DEFAULT_ENTITLEMENTS);
   /**
    * `?as=<restaurantId>` — الدخول كتاجر.
@@ -607,9 +617,25 @@ export default function Dashboard() {
     };
   }, [asId]);
 
+  /**
+   * ⚠️ الفشل **لا يلمس** `menus`: لا يُطوى إلى `[]` (كان «لا قوائم») ولا يُصفّر
+   * ما حُمِّل — إعادة جلبٍ بعد كتابةٍ تفشل لا تُخفي قوائم معروضة.
+   */
   const refreshMenus = useCallback(async () => {
-    if (restaurant) setMenus(await getMyMenus(restaurant.id));
+    if (!restaurant) return;
+    try {
+      setMenus(await getMyMenus(restaurant.id));
+      setMenusFailed(false);
+    } catch (e) {
+      setMenusFailed(true);
+      throw e;
+    }
   }, [restaurant]);
+  const retryMenus = useCallback(() => {
+    setMenusFailed(false);
+    // الفشل مسجَّلٌ في `menusFailed` وتعرضه الصفحة — لا شيء يُبتلع هنا.
+    refreshMenus().catch(() => undefined);
+  }, [refreshMenus]);
 
   /** صلاحيات **مالك المطعم** في وضع الانتحال، لا صلاحيات المؤسس. */
   const entOwner = viewAs && restaurant?.user_id ? restaurant.user_id : user?.id;
@@ -658,8 +684,9 @@ export default function Dashboard() {
   }, [refreshEnt]);
 
   useEffect(() => {
-    // فشل الجلب يحسم الحالة إلى «فارغة» بدل تركها معلّقة على هيكل تحميل أبدي.
-    refreshMenus().catch(() => setMenus([]));
+    // الفشل حالةٌ ثالثة (`menusFailed`) لا «فارغة» ولا هيكل تحميل أبدي: الصفحات
+    // تعرض «أعد المحاولة» مكان الهيكل. وكان `setMenus([])` فيظهر «لا قوائم».
+    refreshMenus().catch(() => undefined);
   }, [refreshMenus]);
 
   if (loading) {
@@ -716,7 +743,9 @@ export default function Dashboard() {
     restaurant,
     setRestaurant,
     menus,
+    menusFailed,
     refreshMenus,
+    retryMenus,
     ent,
     refreshEnt,
     readOnly: viewAs,

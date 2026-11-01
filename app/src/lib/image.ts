@@ -77,3 +77,17 @@ export function imageFileError(file: File): string | null {
   if (file.size > MAX_FILE_BYTES) return "الصورة كبيرة جداً (أكثر من 15 ميغابايت).";
   return null;
 }
+
+/**
+ * رسالة فشل الرفع بالعربية دائماً. كان `ImageUploader` يعرض `e.message` كما هو،
+ * فيرى التاجر «upload 413» أو «Failed to fetch». الجلسة المنتهية تبقى برسالتها
+ * (عربية من `api.ts`)، والحجم يُسمّى، والباقي جملة ثابتة بإعادة محاولة.
+ * بنمط `lib/scan.ts`: الحالة تُقرأ من `status` بلا استيراد `ApiError`.
+ */
+export function uploadErrorMessage(e: unknown): string {
+  const status = (e as { status?: unknown } | null)?.status;
+  if (status === 401) return "انتهت الجلسة — سجّل الدخول من جديد.";
+  if (status === 413) return "الصورة كبيرة على الرفع حتى بعد الضغط. جرّب صورة أصغر.";
+  if (e instanceof TypeError) return "انقطع الاتصال أثناء الرفع. تحقّق من الشبكة وأعد المحاولة.";
+  return "تعذّر رفع الصورة. أعد المحاولة بعد لحظة.";
+}

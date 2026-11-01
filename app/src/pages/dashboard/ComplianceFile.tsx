@@ -34,7 +34,7 @@ const MUTED = "#5a5346";
 const RULE = "#d9d4c9";
 
 export default function ComplianceFile() {
-  const { restaurant, menus } = useDashboard();
+  const { restaurant, menus, menusFailed, retryMenus } = useDashboard();
   /** `null` = يُحمَّل · `[]` = لا أطباق فعلاً (القاعدة «ج»). */
   const [dishes, setDishes] = useState<ComplianceDish[] | null>(null);
   /** فشل التحميل ليس «لا أطباق» — ولا تُطبع ورقةٌ ناقصة أمام مفتّش. */
@@ -95,12 +95,23 @@ export default function ComplianceFile() {
         </Button>
       </div>
 
-      {failed ? (
+      {/* والقوائم مثل الأطباق: فشلُ جلبها كان `[]` فتخرج ورقةٌ «لا أطباق في
+          قوائمك المفعّلة» لمطعمٍ له قوائم. */}
+      {failed || (menus === null && menusFailed) ? (
         <EmptyState
           icon="warn"
-          title="تعذّر تحميل الأطباق"
+          title={failed ? "تعذّر تحميل الأطباق" : "تعذّر تحميل قوائمك"}
           desc="تحقّق من الاتصال ثم أعد المحاولة."
-          action={<Button onClick={load}>أعد المحاولة</Button>}
+          action={
+            <Button
+              onClick={() => {
+                if (failed) load();
+                if (menus === null && menusFailed) retryMenus();
+              }}
+            >
+              أعد المحاولة
+            </Button>
+          }
         />
       ) : file === null ? (
         <Skeleton className="h-[60vh]" />

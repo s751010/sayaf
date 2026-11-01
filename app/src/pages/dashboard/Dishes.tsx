@@ -3,7 +3,7 @@
  * ⚠️ القاعدة (أ): فورم الطبق هنا + DishPayload في lib/data هما مصدر الحقول؛
  * أي حقل جديد في جدول dishes يُضاف في الحالتين معاً وإلا يسقط بصمت.
  */
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
   Badge,
@@ -34,7 +34,6 @@ import {
   countDishes,
   createDish,
   createDishes,
-  createMenu,
   deleteDish,
   duplicateDish,
   getMyDishes,
@@ -71,6 +70,7 @@ import { CURRENCY, PLAN } from "@/lib/plans";
 import type { Dish } from "@/lib/types";
 import { useDashboard, UpgradeGate } from "./Dashboard";
 import { MenuTabs } from "./Tabs";
+import { ensureMenuId } from "./setup/ensureMenu";
 
 /* تهيئة الفورم (القاعدة أ — المكان 1) */
 type DishForm = {
@@ -312,6 +312,11 @@ export default function Dishes() {
   const { user, restaurant, setRestaurant, menus, refreshMenus, ent } = useDashboard();
   const toast = useToast();
   const [dishes, setDishes] = useState<Dish[] | null>(null);
+  /**
+   * فشل الجلب ليس «لا أطباق» (الدرس ٣٢): كان يُحسم `[]` فتظهر شاشة «ابدأ
+   * منيوك» بقائمة جاهزة واستيراد — فيُكرّر التاجر أصنافاً موجودة دفعةً واحدة.
+   */
+  const [failed, setFailed] = useState(false);
   const [filter, setFilter] = useState("");
   const [editing, setEditing] = useState<Dish | "new" | null>(null);
   const [importing, setImporting] = useState(false);
@@ -326,10 +331,15 @@ export default function Dishes() {
   /** حاسبة الوصفة داخل الفورم — مضمَّنة لا نافذة فوق نافذة (Escape كان سيغلق الاثنتين). */
   const [calcOpen, setCalcOpen] = useState(false);
 
+  const load = useCallback(() => {
+    setFailed(false);
+    getMyDishes(restaurant.id).then(setDishes).catch(() => setFailed(true));
+  }, [restaurant.id]);
+
   useEffect(() => {
     document.title = "الأطباق — كلاود منيو";
-    getMyDishes(restaurant.id).then(setDishes).catch(() => setDishes([]));
-  }, [restaurant.id]);
+    load();
+  }, [load]);
 
   // القيم التي تحسبها قاعدة البيانات — نعرضها للتاجر لحظياً وهو يكتب.
   const computed = computedNutrition(numOrNull(form.calories), numOrNull(form.sodium_mg));
@@ -370,19 +380,19 @@ export default function Dishes() {
    * إلى صفحة أخرى ليتعلّم مفهوماً لا يعنيه — و١٠ من ١٩ مطعماً في الإنتاج بلا
    * قائمة أصلاً لأن إنشاءها التلقائي أُضيف متأخراً. الآن تُنشأ عند الحاجة
    * ضمن نفس الحركة، ويُخبَر بما حدث بدل أن يقع صامتاً.
+   *
+   * ⚠️ و«لا قائمة في السياق» ليست دليلاً على أن لا قائمة: `menus` تبقى `null`
+   * أثناء التحميل وعند فشله — فيُسأل الخادم قبل الإنشاء (`ensureMenuId`).
    */
   async function ensureMenu(): Promise<string> {
     if (form.menu_id) return form.menu_id;
-    const existing = menus?.[0]?.id;
-    if (existing) return existing;
-    const m = await createMenu({
-      name: "القائمة الرئيسية",
-      restaurant_id: restaurant.id,
-      user_id: user.id,
+    return ensureMenuId({
+      restaurantId: restaurant.id,
+      userId: user.id,
+      menus,
+      refreshMenus,
+      onCreated: () => toast("أنشأنا لك «القائمة الرئيسية» تلقائياً ✓"),
     });
-    await refreshMenus();
-    toast("أنشأنا لك «القائمة الرئيسية» تلقائياً ✓");
-    return m.id;
   }
 
   async function save(e: FormEvent) {
@@ -661,7 +671,16 @@ export default function Dishes() {
         />
       )}
 
-      {dishes === null ? (
+      {dishes === null && failed ? (
+        <div className="mt-5">
+          <EmptyState
+            icon="warn"
+            title="تعذّر تحميل أطباقك"
+            desc="غالباً انقطاعٌ في الاتصال — أطباقك ومنيوك بخير، ولم يتغيّر شيء."
+            action={<Button onClick={load}>أعد المحاولة</Button>}
+          />
+        </div>
+      ) : dishes === null ? (
         <div className="mt-5 flex flex-col gap-3">
           {[...Array(4)].map((_, i) => (
             <Skeleton key={i} className="h-20" />
