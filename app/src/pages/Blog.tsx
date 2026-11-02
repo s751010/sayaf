@@ -5,6 +5,7 @@ import { Navbar, Footer } from "@/components/site";
 import { Badge, EmptyState, Skeleton } from "@/components/ui";
 import { getPublishedPosts } from "@/lib/data";
 import { useSeo } from "@/lib/seo";
+import { STATIC_SEO } from "@/lib/routeSeo";
 import { categoriesOf, mergePosts, readingLabel, readingMinutes } from "@/lib/articles";
 import { cn, formatDate } from "@/lib/utils";
 import type { BlogPost } from "@/lib/types";
@@ -29,12 +30,7 @@ export default function Blog() {
   const shown = active ? all.filter((p) => p.category === active) : all;
   const choose = (c: string | null) => setParams(c ? { c } : {}, { replace: true });
 
-  useSeo({
-    title: "المدونة",
-    description:
-      "أدلّة عملية لأصحاب المطاعم والمقاهي السعودية: اشتراطات المنيو، وحساب السعرات من الوصفة، ومسبّبات الحساسية، والمنيو الرقمي.",
-    path: "/blog",
-  });
+  useSeo(STATIC_SEO.blog);
 
   useEffect(() => {
     getPublishedPosts()

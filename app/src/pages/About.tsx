@@ -31,6 +31,7 @@ import { SITE_NAME } from "@/lib/config";
 import { CARD_SIZE_COUNT, PRINT_DPI, THEME_COUNT, THEMES_LABEL } from "@/lib/facts";
 import { CURRENCY, PLANS } from "@/lib/plans";
 import { ORGANIZATION, absoluteUrl, useJsonLd, useSeo } from "@/lib/seo";
+import { STATIC_SEO } from "@/lib/routeSeo";
 import { formatPrice } from "@/lib/utils";
 
 /**
@@ -109,11 +110,7 @@ function Stat({ value, label }: { value: string; label: string }) {
 /* ── الصفحة ─────────────────────────────────────────────────────────── */
 
 export default function About() {
-  useSeo({
-    title: "من نحن",
-    description: `${SITE_NAME} منصّة سعودية لمنيو المطاعم الرقمي عبر رمز QR — بلا تطبيق يحمّله زبونك، وبأموالٍ تصل حساب مطعمك مباشرة.`,
-    path: "/about",
-  });
+  useSeo(STATIC_SEO.about);
 
   useJsonLd("about", {
     "@context": "https://schema.org",

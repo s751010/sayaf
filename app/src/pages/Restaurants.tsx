@@ -23,6 +23,7 @@ import { Icon } from "@/lib/icons";
 import { isHex, normalizeHex } from "@/lib/themes";
 import { normalizeAr } from "@/lib/arabic";
 import { useSeo } from "@/lib/seo";
+import { STATIC_SEO } from "@/lib/routeSeo";
 
 export default function Restaurants() {
   // `null` = يُحمَّل، `[]` = فارغ فعلاً (القاعدة (ج)).
@@ -30,11 +31,7 @@ export default function Restaurants() {
   const [q, setQ] = useState("");
 
   // canonical خاصّ بالدليل: بدونه يرث رابط الصفحة الرئيسية، فيعدّه قوقل نسخةً منها.
-  useSeo({
-    title: "دليل المطاعم",
-    description: "مطاعم ومقاهٍ سعودية بمنيو رقمي على كلاود منيو — تصفّح منيو أي منها من جوّالك.",
-    path: "/restaurants",
-  });
+  useSeo(STATIC_SEO.restaurants);
 
   useEffect(() => {
     listPublicRestaurants()
