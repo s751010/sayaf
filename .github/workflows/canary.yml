@@ -43,7 +43,7 @@ concurrency:
 jobs:
   pulse:
     runs-on: ubuntu-latest
-    # ثلاثة طلبات بمهلة ٢٠ ثانية لكلٍّ منها؛ وما زاد على ٥ دقائق عطلٌ في العدّاء.
+    # أربعة طلبات بمهلة ٢٠ ثانية لكلٍّ منها؛ وما زاد على ٥ دقائق عطلٌ في العدّاء.
     timeout-minutes: 5
     steps:
       - name: الموقع يردّ
@@ -59,6 +59,19 @@ jobs:
           code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 20 "$SITE/demo")
           echo "المنيو التجريبي: $code"
           [ "$code" = "200" ] || { echo "::error::/demo تردّ $code"; exit 1; }
+
+      - name: الصفحات المولَّدة تُخدَم بوسومها
+        # التوليد المسبق (`scripts/prerender.ts`) يكتب `blog/<slug>.html`؛ وإن
+        # قدّم Netlify `index.html` بدله (قاعدة SPA غلبت) عاد كل مقال بعنوان
+        # الرئيسية في عين واتساب وقوقل — بلا خطأ يظهر. الـHTML الخام يكفي.
+        run: |
+          html=$(curl -sS --max-time 20 "$SITE/blog/getting-started")
+          title=$(printf '%s' "$html" | grep -o '<title>[^<]*</title>' | head -1)
+          echo "العنوان: $title"
+          case "$title" in
+            *"ابدأ مع كلاود منيو"*) echo "✔ المقال يُخدَم من ملفّه المولَّد" ;;
+            *) echo "::error::/blog/getting-started لا يحمل عنوانه في الـHTML الخام — التوليد المسبق لا يُخدَم"; exit 1 ;;
+          esac
 
       - name: الاستعلام العامّ يعيد صفّاً
         # نفس الأعمدة التي تطلبها `PUBLIC_RESTAURANT_COLS` — لا `select=*`:
