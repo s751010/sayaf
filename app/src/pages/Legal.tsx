@@ -23,6 +23,7 @@ import { Navbar, Footer } from "@/components/site";
 import { CURRENCY, PLANS } from "@/lib/plans";
 import { SITE_NAME } from "@/lib/config";
 import { useSeo } from "@/lib/seo";
+import { STATIC_SEO } from "@/lib/routeSeo";
 import { IDENTITY_COMPLETE, LEGAL, SUBSCRIPTION_TAX_NOTE, yearlyDiscountPct } from "@/lib/legal";
 import { formatPrice } from "@/lib/utils";
 
@@ -119,12 +120,7 @@ function Shell({
 /* ══ سياسة الخصوصية ══════════════════════════════════════════════════ */
 
 export function Privacy() {
-  useSeo({
-    title: "سياسة الخصوصية",
-    description:
-      "ما تجمعه كلاود منيو من التجّار وزبائن المطاعم، ولماذا، وأين يُخزَّن، ومع من يُشارَك، وكم يُحفظ، وكيف تمارس حقوقك وفق نظام حماية البيانات الشخصية.",
-    path: "/privacy",
-  });
+  useSeo(STATIC_SEO.privacy);
 
   return (
     <Shell
@@ -304,12 +300,7 @@ export function Terms() {
   const monthly = PLANS[0]?.monthly ?? 0;
   const yearly = PLANS[0]?.yearly ?? 0;
 
-  useSeo({
-    title: "شروط الاستخدام",
-    description:
-      "شروط استخدام منصّة كلاود منيو: الاشتراك والتجديد والإلغاء والاسترجاع، ومسؤوليات التاجر عن محتوى منيوه.",
-    path: "/terms",
-  });
+  useSeo(STATIC_SEO.terms);
 
   return (
     <Shell

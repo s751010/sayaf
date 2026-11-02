@@ -8,6 +8,7 @@
 import { Link } from "react-router-dom";
 import { Card } from "@/components/ui";
 import { useSeo } from "@/lib/seo";
+import { STATIC_SEO } from "@/lib/routeSeo";
 import { Navbar, Footer } from "@/components/site";
 import { SupportWhatsAppButton } from "@/components/SupportWhatsApp";
 import { menuUrl } from "@/lib/menuUrl";
@@ -115,12 +116,7 @@ const POLICY = [
 ];
 
 export default function Help() {
-  useSeo({
-    title: "المساعدة والأسئلة الشائعة",
-    description:
-      "إجابات عن أسئلة التجّار: كيف تبدأ منيوك الرقمي، أكواد الطاولات، الاشتراك والإلغاء والاسترجاع، وطرق الدفع المتاحة.",
-    path: "/help",
-  });
+  useSeo(STATIC_SEO.help);
 
   return (
     <div className="min-h-dvh">
