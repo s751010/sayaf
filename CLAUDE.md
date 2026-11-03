@@ -75,7 +75,8 @@ app/src/
                         في `lib/segments.ts` ولكل وعدٍ دليلٌ في الشيفرة (`segments.test.ts`)،
                         والأسماء وحدها في `lib/segmentLinks.ts` (يقرؤها الذيل)؛ و`/for` وحدها **غير** محجوزة — تبقى لمسار المنيو
     OrderStatus.tsx     متابعة الطلب /o/:id
-    Demo.tsx            منيو تجريبي حي /demo (بيانات محلية، بدون شبكة)
+    Demo.tsx            منيو تجريبي حي /demo (بيانات محلية، بدون شبكة) — `?kind=cafe|shaabi|truck` منيو كل شريحة من `lib/demoMenus.ts`
+    CalorieTool.tsx     حاسبة السعرات مجاناً بلا تسجيل /tools/calorie-calculator — مقطعان فلا تصطدم برابط مطعم ولا تحتاج حجزاً
     Login.tsx  ResetPassword.tsx  Stamp.tsx (وضع الكاشير العام)
     Blog.tsx  BlogPost.tsx  Help.tsx  ApiDocs.tsx  NotFound.tsx
                         (المدونة: الثابتة من `content/` + مسوّدات `blog_posts` معاً)
@@ -148,9 +149,11 @@ app/src/
     config.ts plans.ts entitlements.ts themes.ts types.ts utils.ts
     themeSuggest.ts     ترتيب مُنتقي الطوابع حسب نوع النشاط (`aliasType` + `cafeFlavor`) — **يرتّب ولا يطبّق**
     allergens.ts hours.ts nutrition.ts options.ts
-    ingredients.ts      ١٢٩ مكوّناً بقيم USDA لكل ١٠٠غ — جدول الحاسبة (§26)
+    ingredients.ts      ١٦١ مكوّناً بقيم USDA لكل ١٠٠غ — جدول الحاسبة (§26)
     recipe.ts           محلّل الوصفة + الحساب — دوالّ خالصة بلا شبكة (§26)
     recipeExamples.ts   أمثلة البطل والحاسبة — تُفهم كاملة أو يسقط الفحص
+    sfdaChecklist.ts    «لو دخل المفتّش اليوم»: بنود الاشتراط بحالتها وطريق إكمالها — خالص (`components/SfdaChecklist.tsx` يعرضه في الامتثال، وسطرٌ منه في الرئيسية)
+    demoMenus.ts        المنيو التجريبي لكل نوع نشاط (الديوان · مقهى · شعبي · عربة) — أرقامها معقولة عمداً
     patterns.ts         زخارف SVG (سدو، مشربية، جيري CC0، نخيل، أهلّة، قطّ عسيري، نجمة)
     fonts.ts            تحميل خطوط الطوابع عند الطلب (§18)
     icons.tsx           ٧٢ أيقونة مرسومة يدوياً — مسارات واحدة للـDOM وللـcanvas (§20)

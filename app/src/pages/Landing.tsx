@@ -1,14 +1,19 @@
 /**
  * صفحة الهبوط — **«منيو يشبه مطعمك، ويبيع عنك»**.
  *
- * ═══ البنية (٢٠٢٦/١٠/٢١) ═══
+ * ═══ البنية (٢٠٢٦/١١/٠٣) ═══
  *
  *   ١. البطل: الوعد، وتحته **منيو الزائر نفسه** — يكتب اسم مطعمه ويرفع شعاره
  *      ويختار لونه وطابعه، فيتبدّل المنيو الحقيقي في الجوّال أمامه.
- *   ٢. لماذا يبيع: أربع نتائج لا أربع مزايا.
- *   ٣. كيف يعمل: ثلاث خطوات.   ٤. الطوابع: اختر ما يشبه مكانك.
- *   ٥. الحاسبة: «سعراتك محسوبة، لا مكتوبة».   ٦. وفوقها.
- *   ٧. السعر.  ٨. الأسئلة.  ٩. الدعوة الأخيرة.
+ *   ٢. الحاسبة: «سعراتك محسوبة، لا مكتوبة».
+ *   ٣. لماذا يبيع: أربع نتائج لا أربع مزايا.
+ *   ٤. كيف يعمل: ثلاث خطوات.   ٥. الطوابع (شريطٌ أفقي على الجوّال).
+ *   ٦. وفوقها.  ٧. السعر.  ٨. الأسئلة.  ٩. الدعوة الأخيرة.
+ *
+ * ⚠️ **والحاسبة صعدت ثانيةً (٢٠٢٦/١١)** بعد أن كانت خامسة: البطل يبقى جواب
+ * «كيف سيبدو منيوي؟»، لكن السبب الذي **يُدفع** من أجله — إلزام الهيئة منذ
+ * يوليو ٢٠٢٥ يشمل منيو QR — كان بعد ثماني شاشات على الجوّال، ولا يبلغه أغلب
+ * الزوّار. والجمال يعده كثيرون؛ الحساب من الوصفة لا يعده غيرنا.
  *
  * ⚠️ كان البطل الحاسبة: «سعراتك محسوبة، لا مكتوبة». وهي ميزةٌ حقيقية تحلّ
  * إلزاماً نظامياً — لكنّها **ميزة**، والتاجر لا يشتري ميزة: يشتري منيواً
@@ -259,7 +264,26 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ٢. لماذا يبيع — نتائج لا مزايا. */}
+      {/* ٢. الحاسبة — الإلزام النظامي محلولاً، بلا تسجيل.
+          ثاني قسمٍ عمداً (٢٠٢٦/١١): هي سبب الدفع، والجمال يقدّمه كثيرون. كانت
+          خامسةً بعد الطوابع، أي بعد ثماني شاشات على الجوّال. */}
+      <section id="calories" className="mx-auto w-full max-w-6xl scroll-mt-20 px-5 py-20">
+        <SectionHead
+          title={
+            <>
+              سعراتك محسوبة، <span className="text-gold-grad">لا مكتوبة.</span>
+            </>
+          }
+          sub="هيئة الغذاء تطلب السعرات والصوديوم والكافيين في المنيو الرقمي والمطبوع وتطبيقات التوصيل. اكتب وصفة الصنف كما تقولها، ونحسبها لك — جرّبها هنا قبل أن تسجّل."
+        />
+        <div className={cn("min-w-0", CALC_MIN_H)}>
+          <Suspense fallback={<div className={cn("skeleton mx-auto max-w-4xl rounded-[20px]", CALC_MIN_H)} />}>
+            <HeroCalculator />
+          </Suspense>
+        </div>
+      </section>
+
+      {/* ٣. لماذا يبيع — نتائج لا مزايا. */}
       <section className="border-y border-line bg-panel/60">
         <div className="mx-auto max-w-6xl px-5 py-20">
           <SectionHead
@@ -282,7 +306,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ٣. كيف يعمل — ثلاث خطوات. */}
+      {/* ٤. كيف يعمل — ثلاث خطوات. */}
       <section id="how" className="mx-auto w-full max-w-6xl scroll-mt-20 px-5 py-20">
         <SectionHead title="ثلاث خطوات ومنيوك جاهز" sub="من صورة منيوك الحالي إلى كودٍ على طاولاتك — في جلسة واحدة." />
         <ol className="grid gap-4 md:grid-cols-3">
@@ -303,16 +327,18 @@ export default function Landing() {
         </ol>
       </section>
 
-      {/* ٤. الطوابع — اختر ما يشبه مكانك، بلون علامتك. */}
+      {/* ٥. الطوابع — اختر ما يشبه مكانك، بلون علامتك.
+          على الجوّال شريطٌ يُسحب أفقياً: اثنتا عشرة بطاقة تحت بعضها كانت ثلاث
+          شاشات من صفحةٍ طولها ستّ عشرة. */}
       <section className="border-y border-line bg-panel/60">
         <div className="mx-auto max-w-6xl px-5 py-20">
           <SectionHead
             title={`${THEMES_LABEL} — اختر ما يشبه مكانك`}
             sub="كلٌّ منها تصميمٌ كامل يلبس شعارك ولون علامتك، وتحته الأماكن التي يناسبها. اضغط أيّها لتراه على منيوك أعلاه."
           />
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="-mx-5 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-3 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-3">
             {ALL_THEMES.map((t, i) => (
-              <Reveal key={t.id} delay={(i % 3) * 70}>
+              <Reveal key={t.id} delay={(i % 3) * 70} className="w-[78%] shrink-0 snap-start sm:w-auto">
                 <button
                   type="button"
                   onClick={() => tryTheme(t.id)}
@@ -349,23 +375,6 @@ export default function Landing() {
               </Fragment>
             ))}
           </p>
-        </div>
-      </section>
-
-      {/* ٥. الحاسبة — الإلزام النظامي محلولاً، بلا تسجيل. */}
-      <section id="calories" className="mx-auto w-full max-w-6xl scroll-mt-20 px-5 py-20">
-        <SectionHead
-          title={
-            <>
-              سعراتك محسوبة، <span className="text-gold-grad">لا مكتوبة.</span>
-            </>
-          }
-          sub="اكتب وصفة الصنف كما تقولها، ونحسب الأرقام التي تطلبها هيئة الغذاء — جرّبها هنا قبل أن تسجّل."
-        />
-        <div className={cn("min-w-0", CALC_MIN_H)}>
-          <Suspense fallback={<div className={cn("skeleton mx-auto max-w-4xl rounded-[20px]", CALC_MIN_H)} />}>
-            <HeroCalculator />
-          </Suspense>
         </div>
       </section>
 

@@ -60,6 +60,28 @@ describe("renderPage", () => {
   });
 });
 
+describe("noindex", () => {
+  it("صفحةٌ تُخدَم ولا تُفهرَس تحمل وسم robots — والبقيّة بلا وسم", () => {
+    expect(renderPage(template, { ...page, noindex: true })).toContain('<meta name="robots" content="noindex, nofollow" />');
+    expect(renderPage(template, page)).not.toContain('name="robots"');
+  });
+
+  it("الدليل مخفيّ حتى يمتلئ، وخارج الذيل وخريطة الموقع", () => {
+    expect(STATIC_SEO.restaurants.noindex).toBe(true);
+    const site = readFileSync(new URL("../src/components/site.tsx", import.meta.url), "utf8");
+    const sitemap = readFileSync(new URL("../scripts/sitemap.mjs", import.meta.url), "utf8");
+    expect(site).not.toContain('to="/restaurants"');
+    expect(sitemap).not.toContain('loc: "/restaurants"');
+  });
+
+  it("صفحة الحاسبة لا تصطدم بروابط المطاعم: مقطعان لا يُقرآن منيواً", async () => {
+    const { slugFromRequest } = await import("../../shared/menu-url.mjs");
+    expect(slugFromRequest("example.com", STATIC_SEO.calories.path)).toBeNull();
+    const sitemap = readFileSync(new URL("../scripts/sitemap.mjs", import.meta.url), "utf8");
+    expect(sitemap).toContain(`loc: "${STATIC_SEO.calories.path}"`);
+  });
+});
+
 describe("outputFile", () => {
   it("مسار ⇒ ملفّ .html يخدمه Netlify قبل قاعدة SPA", () => {
     expect(outputFile("/help")).toBe("help.html");
@@ -75,7 +97,8 @@ describe("outputFile", () => {
 describe("المصدر الواحد", () => {
   it("كل صفحة ثابتة بعنوان ووصف ومسار، والوصف في حدود ما يعرضه قوقل", () => {
     for (const [k, s] of Object.entries(STATIC_SEO)) {
-      expect(s.path, k).toMatch(/^\/[a-z-]+$/);
+      // مقطعٌ أو اثنان (`/tools/calorie-calculator`) — والمقطعان لا يُقرآن منيواً.
+      expect(s.path, k).toMatch(/^\/[a-z-]+(\/[a-z-]+)?$/);
       expect(s.title.length, k).toBeGreaterThan(2);
       expect(s.description.length, k).toBeGreaterThan(50);
       expect(s.description.length, k).toBeLessThanOrEqual(170);
@@ -90,6 +113,7 @@ describe("المصدر الواحد", () => {
       ["Blog.tsx", ["blog"]],
       ["Restaurants.tsx", ["restaurants"]],
       ["Legal.tsx", ["privacy", "terms"]],
+      ["CalorieTool.tsx", ["calories"]],
     ] as const) {
       for (const k of keys) expect(read(file), `${file} ⇐ ${k}`).toContain(`useSeo(STATIC_SEO.${k})`);
     }

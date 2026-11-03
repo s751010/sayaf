@@ -21,6 +21,7 @@ import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { cn } from "@/lib/utils";
 import { Icon } from "@/lib/icons";
 import { ALL_THEMES, getTheme, isHex } from "@/lib/themes";
+import type { DemoKind } from "@/lib/demoMenus";
 
 export type Brand = { name: string; color: string | null; theme: string; logo: string | null };
 
@@ -165,7 +166,7 @@ export function BrandControls({ brand, onChange }: { brand: Brand; onChange: (b:
  * الرسالة تُرسَل بعد أن يُعلن الإطار جاهزيته، ثم مع كل تغيير بعد مهلة قصيرة
  * (الكتابة حرفاً حرفاً لا تستحق إعادة رسم لكل ضغطة).
  */
-export function PhoneMenu({ brand }: { brand: Brand }) {
+export function PhoneMenu({ brand, kind }: { brand: Brand; kind?: DemoKind }) {
   const frame = useRef<HTMLIFrameElement>(null);
   const [ready, setReady] = useState(false);
 
@@ -202,7 +203,7 @@ export function PhoneMenu({ brand }: { brand: Brand }) {
           {!ready && <div className="skeleton absolute inset-0" aria-hidden="true" />}
           <iframe
             ref={frame}
-            src="/demo?embed=1"
+            src={kind ? `/demo?embed=1&kind=${kind}` : "/demo?embed=1"}
             title="معاينة منيو مطعمك"
             className={cn("absolute left-0 top-0 border-0 transition-opacity duration-300", ready ? "opacity-100" : "opacity-0")}
             style={{ width: SCREEN_W, height: SCREEN_H, transform: `scale(${SCALE})`, transformOrigin: "0 0" }}

@@ -35,6 +35,8 @@ export type PrerenderPage = {
   jsonLd?: unknown[];
   /** HTML داخل `#root` — موثوق (من المستودع)، لا مُدخل مستخدم. */
   body: string;
+  /** صفحةٌ تُخدَم ولا تُفهرَس — نفس ما يكتبه `useSeo` في المتصفّح. */
+  noindex?: boolean;
 };
 
 /** للنصوص داخل الوسوم والسمات. */
@@ -97,6 +99,7 @@ export function renderPage(template: string, page: PrerenderPage): string {
     .map((d) => `    <script type="application/ld+json">${jsonForScript(d)}</script>\n`)
     .join("");
   if (ld) html = html.replace("</head>", `${ld}  </head>`);
+  if (page.noindex) html = html.replace("</head>", `    <meta name="robots" content="noindex, nofollow" />\n  </head>`);
 
   if (!html.includes('<div id="root"></div>')) throw new Error("prerender: لم أجد #root فارغاً في القالب");
   return html.replace('<div id="root"></div>', `<div id="root">${page.body}</div>`);

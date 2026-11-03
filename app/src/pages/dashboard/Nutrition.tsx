@@ -20,6 +20,8 @@ import { Icon } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 import type { Dish } from "@/lib/types";
 import { isDrinkText, nutritionPatch, type NutritionResult } from "@/lib/recipe";
+import { sfdaChecklist } from "@/lib/sfdaChecklist";
+import { SfdaChecklist } from "@/components/SfdaChecklist";
 
 type Status = "done" | "caffeine" | "sodium" | "empty";
 
@@ -80,6 +82,10 @@ export default function Nutrition() {
   }, [rows]);
 
   const total = rows?.length ?? 0;
+  const checklist = useMemo(
+    () => (dishes && dishes.length ? sfdaChecklist(dishes, restaurant) : null),
+    [dishes, restaurant]
+  );
   const pct = total ? Math.round((counts.done / total) * 100) : 0;
 
   const apply = async (r: NutritionResult) => {
@@ -166,6 +172,9 @@ export default function Nutrition() {
           </div>
         </Card>
       ) : null}
+
+      {/* البنود كما يقرؤها المفتّش — النسبة فوقها تقول «كم»، وهذه تقول «ماذا». */}
+      {checklist && <SfdaChecklist items={checklist} here="/dashboard/nutrition" />}
 
       {failed ? (
         <EmptyState

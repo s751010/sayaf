@@ -94,21 +94,25 @@ function BarChart({
                   opacity={hover === null || hover === i ? 1 : 0.45}
                 />
               )}
-              {(i % Math.ceil(points.length / 6) === 0 || i === points.length - 1) && (
-                <text
-                  x={PAD + i * bw + bw / 2}
-                  y={H - 7}
-                  textAnchor="middle"
-                  fontSize="10"
-                  fill="var(--c-faint)"
-                >
-                  {p.label}
-                </text>
-              )}
             </g>
           );
         })}
       </svg>
+      {/* التسميات خارج الـSVG: داخله كانت بحجم ١٠ وحدات من عرضٍ ٦٤٠، فتصير على
+          جوّال عرضه ٣٩٠ قرابة ٥ بكسل لا تُقرأ. هنا بكسلات حقيقية في أيّ عرض. */}
+      <div className="relative h-5" aria-hidden="true">
+        {points.map((p, i) =>
+          i % Math.ceil(points.length / 6) === 0 || i === points.length - 1 ? (
+            <span
+              key={i}
+              className="absolute top-0 -translate-x-1/2 whitespace-nowrap text-[11px] text-faint tabular"
+              style={{ left: `${((PAD + i * bw + bw / 2) / W) * 100}%` }}
+            >
+              {p.label}
+            </span>
+          ) : null
+        )}
+      </div>
       {hover !== null && (
         <div
           className="pointer-events-none absolute -top-1 rounded-lg border border-line bg-panel2 px-2.5 py-1.5 text-xs font-bold text-ink shadow-lg"

@@ -37,11 +37,32 @@ const nav = siteNav([
   { href: "/", label: SITE_NAME },
   { href: "/demo", label: "جرّب منيو تجريبياً" },
   ...SEGMENTS.map((s) => ({ href: `/for/${s.slug}`, label: s.label })),
+  { href: "/tools/calorie-calculator", label: "حاسبة السعرات مجاناً" },
   { href: "/blog", label: "المدونة" },
   { href: "/help", label: "المساعدة" },
   { href: "/about", label: "من نحن" },
-  { href: "/restaurants", label: "دليل المطاعم" },
 ]);
+
+/**
+ * نصّ صفحة الحاسبة للزاحف — الحاسبة نفسها تفاعلية ولا تُقرأ بلا جافاسكربت،
+ * فيقرأ ما يجيب بحثه: ماذا يطلب الاشتراط، وكيف نحسب.
+ */
+const CALORIE_TOOL_TEXT =
+  "<h2>ماذا تطلب هيئة الغذاء في المنيو؟</h2><ul>" +
+  [
+    "السعرات الحرارية لكل صنف.",
+    "علامة الملح على الصنف الذي يزيد صوديومه عن ٦٠٠ ملغم.",
+    "كمية الكافيين في المشروبات.",
+    "جملة الاحتياج اليومي: ٢٠٠٠ سعرة للبالغ، وحدّ ٤٠٠ ملغم كافيين.",
+    "وتشمل المنيو المطبوع والرقمي ومنيو QR وتطبيقات التوصيل.",
+  ]
+    .map((t) => `<li>${escapeHtml(t)}</li>`)
+    .join("") +
+  "</ul><h2>كيف نحسب؟</h2><p>" +
+  escapeHtml(
+    "لكل مكوّن قيمه لكل ١٠٠ غرام من قاعدة USDA FoodData Central. نحوّل الكمية التي تكتبها إلى غرامات ثم نجمع قيم المكوّنات. الأرقام تقديرٌ من الوصفة، والمسؤولية النظامية عن المنيو على المنشأة."
+  ) +
+  "</p>";
 
 const pages: PrerenderPage[] = [];
 
@@ -52,11 +73,14 @@ for (const seo of Object.values(STATIC_SEO)) {
       ? `<ul>${STATIC_POSTS.map(
           (p) => `<li><a href="/blog/${p.slug}">${escapeHtml(p.title ?? "")}</a> — ${escapeHtml(p.excerpt ?? "")}</li>`
         ).join("")}</ul>`
-      : undefined;
+      : seo.path === STATIC_SEO.calories.path
+        ? CALORIE_TOOL_TEXT
+        : undefined;
   pages.push({
     path: seo.path,
     title: seo.title,
     description: seo.description,
+    noindex: "noindex" in seo && seo.noindex === true,
     jsonLd: [breadcrumbs([{ name: SITE_NAME, path: "/" }, { name: seo.title, path: seo.path }])],
     body: simpleBody({ h1: seo.title, lead: seo.description, nav, extra }),
   });

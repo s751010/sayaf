@@ -152,7 +152,7 @@ export const INGREDIENTS: readonly Ingredient[] = [
   // ── مخبوزات وحبوب ──────────────────────────────────────────────
   ing("bakery", "flour", ["دقيق أبيض", "دقيق", "طحين"], "Wheat flour, white", [364, 1, 0.2, 0.3, 2, 0], ["gluten"], { units: { cup: 125, tbsp: 7.8 } }),
   ing("bakery", "white-bread", ["خبز توست", "توست", "خبز أبيض"], "White bread", [266, 3.3, 0.7, 5, 491, 0], ["gluten"], { units: { slice: 25 } }),
-  ing("bakery", "pita", ["خبز عربي", "خبز بر", "خبز تميس", "صامولي", "خبز"], "Pita / Arabic bread", [275, 1.2, 0.2, 1.3, 536, 0], ["gluten"], { units: { piece: 60 } }),
+  ing("bakery", "pita", ["خبز عربي", "خبز بر", "صامولي", "خبز"], "Pita / Arabic bread", [275, 1.2, 0.2, 1.3, 536, 0], ["gluten"], { units: { piece: 60 } }),
   ing("bakery", "burger-bun", ["خبز برجر", "خبزة برجر", "بن برجر"], "Hamburger bun", [279, 3.9, 0.8, 5.2, 492, 0], ["gluten"], { units: { piece: 60 } }),
   ing("bakery", "croissant", ["كرواسون", "كرواسان"], "Butter croissant", [406, 21, 11.7, 11.3, 469, 0], ["gluten", "milk", "eggs"], { units: { piece: 57 } }),
   ing("bakery", "tortilla", ["تورتيلا", "خبز تورتيلا", "خبز صاج"], "Flour tortilla", [304, 7.5, 2.2, 2.2, 600, 0], ["gluten"], { estimate: true, units: { piece: 45 } }),
@@ -241,6 +241,45 @@ export const INGREDIENTS: readonly Ingredient[] = [
   ing("pantry", "cardamom", ["هيل", "حبهان"], "Cardamom", [311, 6.7, 0.7, 0, 18, 0], [], { units: { tsp: 2, tbsp: 6 } }),
   ing("pantry", "saffron", ["زعفران"], "Saffron", [310, 5.9, 1.6, 0, 148, 0], [], { units: { tsp: 0.7 } }),
   ing("pantry", "cinnamon", ["قرفة", "دارسين"], "Cinnamon", [247, 1.2, 0.3, 2.2, 10, 0], [], { units: { tsp: 2.6, tbsp: 7.8 } }),
+
+  // ── إضافات ٢٠٢٦/١١ — ما يكتبه المطعم السعودي ولم يكن يُفهم ─────────
+  //
+  // ⚠️ بعضها **حارسٌ لمطابقةٍ خاطئة** قبل أن يكون مكوّناً: «دبس رمان» كان
+  // يُقرأ «رمان» (فاكهة بـ٨٣ سعرة بدل دبسٍ مركّز)، و«ورق عنب» يُقرأ «عنب»
+  // (بصوديوم ٢ ملغم بدل ٢٨٥٣ للمعلّب). الأطول يسبق في المطابقة، فوجودهما يكفي.
+  ing("protein", "chicken-thigh-cooked", ["فخذ دجاج", "أفخاذ دجاج", "ورك دجاج", "دجاج فخذ مشوي"], "Chicken thigh, roasted (meat only)", [209, 10.9, 3, 0, 95, 0], [], { units: { piece: 110 } }),
+  ing("protein", "beef-steak", ["ستيك لحم", "ستيك بقري", "ستيك", "ريب آي", "سيرلوين"], "Beef steak, grilled (lean & fat)", [250, 16, 6.5, 0, 55, 0], [], { estimate: true }),
+  ing("protein", "frankfurter", ["نقانق", "هوت دوق", "هوت دوغ", "سوسيس"], "Frankfurter, beef", [322, 29, 12, 1, 1050, 0], [], { units: { piece: 45 } }),
+  ing("protein", "turkey-deli", ["صدر ديك رومي", "تركي مدخن", "صدر حبش"], "Turkey breast, deli", [104, 1.7, 0.4, 3.5, 1015, 0], [], { units: { slice: 28 } }),
+  ing("dairy", "cheese-slice", ["جبنة شرائح", "شريحة جبن", "جبنة مطبوخة", "جبنة أمريكية"], "Processed cheese slice", [330, 25, 15, 5, 1400, 0], ["milk"], { estimate: true, units: { slice: 21 } }),
+  ing("dairy", "milk-powder", ["حليب بودرة", "حليب مجفف", "بودرة حليب"], "Dry whole milk", [496, 26.7, 16.7, 38.4, 371, 0], ["milk"], { units: { tbsp: 8, tsp: 2.6 } }),
+  ing("bakery", "semolina", ["سميد", "سميدة", "سميد ناعم", "سميد خشن"], "Semolina", [360, 1.1, 0.2, 0, 1, 0], ["gluten"], { units: { cup: 167, tbsp: 10 } }),
+  ing("bakery", "cornstarch", ["نشا", "نشا ذرة", "نشاء"], "Cornstarch", [381, 0.1, 0, 0, 9, 0], [], { units: { tbsp: 8, tsp: 2.7 } }),
+  ing("bakery", "vermicelli", ["شعيرية", "شعرية"], "Vermicelli, dry", [371, 1.5, 0.3, 2.7, 6, 0], ["gluten"], { units: { cup: 90 } }),
+  // التميس خرج من مرادفات «الخبز العربي»: رغيفه ~١٥٠غ لا ٦٠، فكانت «حبّة تميس» تُحسب أقلّ من نصفها.
+  ing("bakery", "tamees", ["تميس", "خبز تميس"], "Tamees flatbread", [290, 3, 0.5, 1.5, 520, 0], ["gluten"], { estimate: true, units: { piece: 150 } }),
+  ing("bakery", "granola", ["جرانولا", "غرانولا"], "Granola", [471, 20, 3.7, 20, 26, 0], ["nuts", "gluten"], { estimate: true, units: { cup: 120, tbsp: 7.5 } }),
+  ing("sweet", "sandwich-cookie", ["أوريو", "بسكويت أوريو", "بسكويت شوكولاتة بالكريمة"], "Chocolate sandwich cookie", [471, 20.6, 5.9, 41, 397, 0], ["gluten", "soy"], { units: { piece: 11.3 } }),
+  ing("sweet", "vanilla", ["فانيلا", "فانيليا", "خلاصة فانيلا"], "Vanilla extract", [288, 0.1, 0, 12.7, 9, 0], [], { units: { tsp: 4.2 } }),
+  ing("sweet", "pomegranate-molasses", ["دبس رمان", "دبس الرمان"], "Pomegranate molasses", [270, 0, 0, 60, 30, 0], [], { estimate: true, density: 1.35, units: { tbsp: 20 } }),
+  ing("fats", "bbq-sauce", ["صوص باربكيو", "صوص باربيكيو", "صوص الشواء", "باربكيو"], "Barbecue sauce", [172, 0.6, 0.1, 33, 1027, 0], [], { units: { tbsp: 17 } }),
+  ing("fats", "hot-sauce", ["صوص حار", "صوص سريراتشا", "سريراتشا", "شطة"], "Hot chili sauce (sriracha)", [93, 0.9, 0.1, 9.3, 2124, 0], [], { estimate: true, units: { tbsp: 15, tsp: 5 } }),
+  ing("fats", "ranch", ["صوص رانش", "رانش"], "Ranch dressing", [430, 44.5, 7, 3.7, 900, 0], ["eggs", "milk"], { estimate: true, units: { tbsp: 15 } }),
+  ing("produce", "grape-leaves", ["ورق عنب", "ورق العنب", "يبرق"], "Grape leaves, canned", [69, 2, 0.3, 0, 2853, 0], [], { units: { piece: 4 } }),
+  ing("produce", "pomegranate", ["رمان", "حب رمان"], "Pomegranate seeds", [83, 1.2, 0.1, 13.7, 3, 0], [], { units: { cup: 174, tbsp: 11 } }),
+  ing("produce", "apple", ["تفاح", "تفاحة"], "Apple", [52, 0.2, 0, 10.4, 1, 0], [], { units: { piece: 180 } }),
+  ing("produce", "watermelon", ["بطيخ", "حبحب"], "Watermelon", [30, 0.2, 0, 6.2, 1, 0], [], { units: { cup: 152 } }),
+  ing("produce", "pineapple", ["أناناس", "اناناس"], "Pineapple", [50, 0.1, 0, 9.9, 1, 0], [], { units: { cup: 165, slice: 84 } }),
+  ing("produce", "grapes", ["عنب"], "Grapes", [69, 0.2, 0.1, 15.5, 2, 0], [], { units: { cup: 151 } }),
+  ing("produce", "ginger", ["زنجبيل", "زنجبيل طازج"], "Ginger root", [80, 0.8, 0.2, 1.7, 13, 0], [], { units: { tsp: 2, tbsp: 6 } }),
+  ing("nuts", "hazelnuts", ["بندق"], "Hazelnuts", [628, 60.8, 4.5, 4.3, 0, 0], ["nuts"], { units: { tbsp: 8.5 } }),
+  ing("nuts", "chia", ["بذور شيا", "شيا", "بذور الشيا"], "Chia seeds", [486, 30.7, 3.3, 0, 16, 0], [], { units: { tbsp: 12, tsp: 4 } }),
+  ing("pantry", "cumin", ["كمون", "كمّون"], "Cumin, ground", [375, 22.3, 1.5, 2.3, 168, 0], [], { units: { tsp: 2.1, tbsp: 6 } }),
+  ing("pantry", "black-pepper", ["فلفل أسود", "فلفل اسود", "بهار أسود"], "Black pepper", [251, 3.3, 1.4, 0.6, 20, 0], [], { units: { tsp: 2.3, tbsp: 6.9 } }),
+  ing("pantry", "turmeric", ["كركم", "عقدة صفراء"], "Turmeric, ground", [312, 3.3, 1.8, 3.2, 27, 0], [], { units: { tsp: 3, tbsp: 9.4 } }),
+  ing("pantry", "chili-powder", ["فلفل أحمر مطحون", "شطة مطحونة", "فلفل حار مجروش", "بابريكا"], "Red pepper, ground", [318, 17.3, 3.3, 10.3, 30, 0], [], { units: { tsp: 1.8, tbsp: 5.3 } }),
+  ing("coffee", "rose-water", ["ماء ورد", "ماء الورد", "ماء زهر", "ماء الزهر"], "Rose / orange blossom water", [0, 0, 0, 0, 0, 0], [], { estimate: true, units: { tbsp: 15, tsp: 5 } }),
+  ing("coffee", "hibiscus", ["كركديه", "كركدية"], "Hibiscus tea, brewed", [0, 0, 0, 0, 4, 0], [], { units: { cup: 240 } }),
 ];
 
 const BY_ID = new Map(INGREDIENTS.map((i) => [i.id, i]));

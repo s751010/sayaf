@@ -15,7 +15,7 @@ import { getMyAnalytics, getMyDishes, getOrdersToday, type OrdersToday } from "@
 import { buildNextStep } from "@/lib/nextStep";
 import { buildWeeklyReport } from "@/lib/weeklyReport";
 import { planLabel } from "@/lib/entitlements";
-import { formatPrice } from "@/lib/utils";
+import { cn, formatPrice } from "@/lib/utils";
 import type { AnalyticsRow, Dish } from "@/lib/types";
 import { useDashboard } from "./Dashboard";
 import { DishGlyph } from "@/lib/icons";
@@ -31,6 +31,7 @@ import {
   type SetupProgress,
 } from "@/lib/setup";
 import { getJSON, setJSON } from "@/lib/storage";
+import { checklistTodo, ofTotal, sfdaChecklist } from "@/lib/sfdaChecklist";
 
 export default function Overview() {
   const { user, restaurant, menus, ent } = useDashboard();
@@ -100,6 +101,17 @@ export default function Overview() {
     return { now: r.views.now, prev: r.views.prev, delta: r.views.delta, top: r.topDishes[0]?.dish ?? null };
   }, [rows, dishes, restaurant.created_at]);
 
+  /**
+   * جاهزية الهيئة في سطر — سبب الاشتراك يُرى كل يوم لا في شاشته وحدها.
+   * `null` حتى تُحسم الأطباق، ولا سطر لمنيوٍ فارغ («أضف أصنافك» عمل السلّم).
+   */
+  const compliance = useMemo(() => {
+    if (!dishes || dishes.length === 0) return null;
+    const items = sfdaChecklist(dishes, restaurant);
+    const withKcal = dishes.filter((d) => d.calories !== null).length;
+    return { todo: checklistTodo(items), kcal: ofTotal(withKcal, dishes.length, "أصنافٌ بسعراتها") };
+  }, [dishes, restaurant]);
+
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -140,6 +152,29 @@ export default function Overview() {
           </div>
         )}
       </Card>
+
+      {compliance && (
+        <Link
+          to="/dashboard/nutrition"
+          className={cn(
+            "press mt-5 flex items-center justify-between gap-3 rounded-[14px] border px-4 py-3",
+            compliance.todo ? "border-gold/30 bg-gold/[.06]" : "border-good/30 bg-good/[.06]"
+          )}
+        >
+          <span className="flex min-w-0 items-center gap-3">
+            <Icon name="flame" size={18} className={compliance.todo ? "text-gold" : "text-good"} />
+            <span className="min-w-0">
+              <span className="block text-sm font-bold text-ink">
+                {compliance.todo
+                  ? `اشتراطات الهيئة: ${compliance.todo} ${compliance.todo === 1 ? "بند ينقصك" : "بنود تنقصك"}`
+                  : "اشتراطات الهيئة: كل البنود جاهزة"}
+              </span>
+              <span className="block text-xs text-dim">{compliance.kcal}</span>
+            </span>
+          </span>
+          <span className="shrink-0 text-xs font-bold text-gold">افتح ←</span>
+        </Link>
+      )}
 
       {/* «أكمل إعداد منيوك» — لمن خرج من المسار قبل آخره. وتُقرأ من الجهاز
           بلا شبكة، فلا تومض ولا تنتظر. والإخفاء نهائي لهذا المطعم. */}
