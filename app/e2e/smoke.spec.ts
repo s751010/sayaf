@@ -38,6 +38,10 @@ const PAGES = [
   { path: "/tools/calorie-calculator", anchor: "حاسبة السعرات الحرارية لأصناف المنيو", role: "heading", label: "حاسبة السعرات" },
   // منيو الكافيه التجريبي — صفحة «للكافيه المختصّ» تفتحه لا منيو الستيك (`lib/demoMenus.ts`).
   { path: "/demo?kind=cafe", anchor: "محمصة نخلة", role: "text", label: "منيو الكافيه التجريبي" },
+  // طابعٌ يُعاين وحده ⇒ منيو عالمه: «مرفأ» على مطعم أسماك (`demoKindForSuits`).
+  { path: "/demo?theme=harbor", anchor: "مطعم شاطئ النورس", role: "text", label: "مرفأ على منيو الأسماك" },
+  { path: "/demo?theme=patisserie", anchor: "حلويات بيت السكّر", role: "text", label: "حلواني على منيو الحلويات" },
+  { path: "/demo?theme=juice", anchor: "عصيرات ليمونة", role: "text", label: "عصّارة على منيو العصير" },
   // مقالٌ ثابت: نصّه يُحمَّل كسولاً (`import.meta.glob`) ويمرّ على المنقّي في
   // متصفّح حقيقي — ويُعرض ولو سقطت الشبكة. والمرساة عنوانٌ **داخل النصّ** لا
   // عنوان المقال: هي ما يثبت أن الملفّ الكسول وصل ومرّ على المنقّي سليماً.

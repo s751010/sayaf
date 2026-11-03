@@ -20,13 +20,16 @@ import type { PatternId } from "./patterns";
  * مجلّة · `arcade` أقواس روشان · `mud` بيت طينٍ نجديّ بشُرفاته وبابه · `bag`
  * وجه كيس قهوةٍ مختصّة · `tin` لوحة صفيحٍ مدهونة باليد فوق دكّان الحارة ·
  * `mural` جدارٌ مرسومٌ بالقطّ العسيري (مثلّثات وأشرطة) · `folio` دفترُ جلدٍ
- * بخيطٍ ذهبيّ (فاخر) · `grid` شبكةٌ طباعيّة بمسطرة (عصري).
+ * بخيطٍ ذهبيّ (فاخر) · `grid` شبكةٌ طباعيّة بمسطرة (عصري) · `harbor` لوحُ
+ * مرفأٍ بحبلٍ وطوقِ نجاة (مرفأ) · `awning` مظلّةٌ مقلّمة فوق علبة كيك (حلواني) ·
+ * `slice` شريحةُ حمضيّاتٍ خلف الشعار (عصّارة).
  */
 export type HeaderShape =
   | "arch" | "band" | "frame" | "soft"
   | "paper" | "letterboard" | "poster" | "sign" | "masthead" | "arcade" | "mud" | "bag"
   | "tin" | "mural"
-  | "folio" | "grid";
+  | "folio" | "grid"
+  | "harbor" | "awning" | "slice";
 /**
  * تخطيط الأطباق — هذا ما يجعل الفرق بين الطوابع يُرى لا يُقرأ.
  * `deck` بطاقاتٌ تُسحب أفقياً لكل قسم، تكبر حين تتوسّط الشاشة.
@@ -35,7 +38,8 @@ export type DishLayout = "grid" | "list" | "showcase" | "deck";
 export type HeadingStyle =
   | "ornament" | "rule" | "plain"
   | "stars" | "letters" | "poster" | "neon" | "numeral" | "cartouche"
-  | "plaque" | "sadu" | "bold" | "origin" | "shelf" | "frieze";
+  | "plaque" | "sadu" | "bold" | "origin" | "shelf" | "frieze"
+  | "rope" | "doily" | "tile";
 /** شكل صورة الطبق — دائري للكافيهات، مربّع حادّ للمينيمال، وقوسُ نافذة للروشان. */
 export type ImageShape = "rounded" | "square" | "circle" | "arch";
 /**
@@ -49,6 +53,7 @@ export type ImageShape = "rounded" | "square" | "circle" | "arch";
 export type MenuSkin =
   | "store" | "receipt" | "letterboard" | "sticker" | "neon" | "editorial" | "roshan" | "najdi" | "roastery"
   | "dukkan" | "asir"
+  | "harbor" | "patisserie" | "juice"
   | "gold" | "modern";
 /** كيف يُقدَّم السعر: نصّاً، أو شارة ملوّنة، أو خطّاً منقّطاً يقود إليه. */
 export type PriceStyle = "plain" | "badge" | "leader";
@@ -631,6 +636,118 @@ export const DESIGN_THEMES: MenuTheme[] = [
       layout: "list",
       heading: "frieze",
       imageShape: "square",
+      divider: "none",
+      entrance: "rise",
+    }),
+  },
+  /*
+   * ══ الطوابع ١٣–١٥ (٢٠٢٦/١١/٠٣) — لثلاثة أنواعٍ كانت تُقترح لها طوابع غيرها ══
+   *
+   * «بحري» و«مخبز وحلويات» و«عصائر» أنواعٌ في `STARTER_TYPES` منذ البداية، وكان
+   * أوّل ما يُقترح لها طابعاً صُمّم لغيرها (روشان للبحري، ومجلّة للحلويات،
+   * وملصقات للعصائر). فلكلٍّ منها الآن طابعٌ من عالمه، وبقي ما كان ثانياً وثالثاً.
+   */
+  /*
+   * «مرفأ» — سوق السمك على المرفأ: لوحٌ أزرقُ البحر بحبلٍ مجدول، وطوقُ نجاةٍ
+   * برتقاليّ حول الشعار، وموجٌ تحته، والسعر على بطاقةِ سوقٍ مثقوبة.
+   * الخطّان: نوتو كوفي (لافتات الموانئ — للعناوين) وطجوال للقراءة.
+   */
+  {
+    id: "harbor",
+    name: "مرفأ",
+    tagline: "لوح مرفأ بحبلٍ مجدول وطوق نجاة، والسعر على بطاقة سوق السمك",
+    suits: ["بحري"],
+    vars: {
+      // ضبابُ البحر، وحبرٌ كحليّ عميق، وأزرقُ المرفأ، وبرتقاليّ العوّامات.
+      "--m-bg": "#e9efee",
+      "--m-bg-2": "#dbe5e4",
+      "--m-surface": "#ffffff",
+      "--m-text": "#0d2436",
+      "--m-muted": "#46596a",
+      "--m-accent": "#0b4f6c",
+      "--m-accent-2": "#d9732a",
+      "--m-on-accent": "#ffffff",
+      "--m-border": "rgba(13,36,54,.16)",
+      "--m-font": FONT.tajawal,
+      "--m-display": FONT.kufi,
+      "--m-radius": "0.6rem",
+    },
+    design: design({
+      skin: "harbor",
+      header: "harbor",
+      layout: "list",
+      heading: "rope",
+      imageShape: "rounded",
+      divider: "rule",
+      entrance: "rise",
+    }),
+  },
+  /*
+   * «حلواني» — واجهة محلّ الحلويات: مظلّةٌ مقلّمة بحافّةٍ مموّجة، واسم المحلّ
+   * على بطاقة علبة الكيك، وعناوين الأقسام على مفرش دانتيل، والصور دوائر كالكيك.
+   * الخطّان: أميري (نسخٌ رشيق كخطّ العلب — للعناوين) والمراعي للقراءة.
+   */
+  {
+    id: "patisserie",
+    name: "حلواني",
+    tagline: "مظلّة مقلّمة فوق علبة الكيك، وعناوين على مفرش دانتيل",
+    suits: ["مخبز وحلويات"],
+    vars: {
+      // كريمةٌ ورديّة، وحبرُ شوكولاتة، وتوتٌ للتمييز، وكراميلٌ للزينة.
+      "--m-bg": "#fbefec",
+      "--m-bg-2": "#f6e1dc",
+      "--m-surface": "#fffaf8",
+      "--m-text": "#3a1d29",
+      "--m-muted": "#74505e",
+      "--m-accent": "#a8325a",
+      "--m-accent-2": "#d99a2b",
+      "--m-on-accent": "#ffffff",
+      "--m-border": "rgba(58,29,41,.14)",
+      "--m-font": FONT.almarai,
+      "--m-display": FONT.amiri,
+      "--m-radius": "1rem",
+    },
+    design: design({
+      skin: "patisserie",
+      header: "awning",
+      layout: "grid",
+      heading: "doily",
+      imageShape: "circle",
+      divider: "none",
+      entrance: "fade",
+    }),
+  },
+  /*
+   * «عصّارة» — محلّ العصير: شريحةُ برتقالٍ كبيرة خلف الشعار، وعناوين الأقسام
+   * بلاطاتٌ ملوّنة كلوحات العصّارات، والسعر في دائرةٍ كغطاء الكوب.
+   * الخطّان: لاله‌زار (عريضٌ مرح — للعناوين) وكايرو للقراءة.
+   */
+  {
+    id: "juice",
+    name: "عصّارة",
+    tagline: "شريحة برتقال خلف شعارك، وعناوين على بلاطات بألوان الفواكه",
+    suits: ["عصائر"],
+    vars: {
+      // أبيضُ البلاط، وحبرٌ أخضرُ الورق، وبرتقاليٌّ للتمييز، وليمٌ للزينة.
+      "--m-bg": "#fdfbf3",
+      "--m-bg-2": "#f2f5e4",
+      "--m-surface": "#ffffff",
+      "--m-text": "#1d2a17",
+      "--m-muted": "#53614a",
+      "--m-accent": "#c2410c",
+      "--m-accent-2": "#6a9a12",
+      "--m-on-accent": "#ffffff",
+      "--m-border": "rgba(29,42,23,.14)",
+      "--m-font": FONT.cairo,
+      "--m-display": FONT.lalezar,
+      "--m-radius": "1.25rem",
+    },
+    design: design({
+      skin: "juice",
+      header: "slice",
+      layout: "grid",
+      heading: "tile",
+      imageShape: "circle",
       divider: "none",
       entrance: "rise",
     }),

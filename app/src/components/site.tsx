@@ -64,8 +64,10 @@ export function Logo({ compact, tone = "site" }: { compact?: boolean; tone?: "si
  * `?preview=1` وحده لا يمنح شيئاً: `MenuPage` يتحقّق أن الجلسة الحالية تخصّ
  * صاحب المطعم قبل تجاوز قفل النشر، فيبقى القفل فعّالاً أمام العموم.
  */
-export function menuPreviewUrl(slug: string | null | undefined): string | null {
-  return menuUrl(slug, "?preview=1");
+export function menuPreviewUrl(slug: string | null | undefined, themeId?: string): string | null {
+  // `theme` يُعاين طابعاً على منيو التاجر نفسه قبل تطبيقه — وللمالك وحده: `MenuPage`
+  // لا يقرؤه إلا بعد أن يثبت أن الجلسة جلسته، ولا يكتب شيئاً.
+  return menuUrl(slug, themeId ? `?preview=1&theme=${encodeURIComponent(themeId)}` : "?preview=1");
 }
 
 /**

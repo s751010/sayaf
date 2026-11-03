@@ -23,7 +23,7 @@ import {
   Switch,
   useToast,
 } from "@/components/ui";
-import { PreviewMenuButton } from "@/components/site";
+import { PreviewMenuButton, menuPreviewUrl } from "@/components/site";
 import { ImageUploader } from "@/components/ImageUploader";
 import { ThemePreview } from "@/components/menu/ThemePreview";
 import { SuggestBadge, SuitsLine, ThemeOrderNote, useThemeOrder } from "@/components/ThemeSuggest";
@@ -173,14 +173,29 @@ export default function Design() {
                 </button>
                 {/* معاينة كاملة قبل الالتزام: البطاقة المصغّرة تكفي للمفاضلة
                     ولا تُري منيواً حقيقياً بهذا الطابع أمام الزبائن. */}
-                <a
-                  href={`/demo?theme=${encodeURIComponent(t.id)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-1 text-center text-[11px] font-bold text-dim hover:text-gold"
-                >
-                  عاينه كاملاً ↗
-                </a>
+                <div className="mt-1 flex items-center justify-center gap-2 text-[11px] font-bold text-dim">
+                  {/* على أصنافك أنت أوّلاً — ثم على منيوٍ من عالم الطابع
+                      (`demoKindForSuits`) لمن لم يُضف أصنافه بعد. */}
+                  {menuPreviewUrl(restaurant.slug, id) && (
+                    <a
+                      href={menuPreviewUrl(restaurant.slug, id)!}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex min-h-9 items-center hover:text-gold"
+                    >
+                      على منيوك ↗
+                    </a>
+                  )}
+                  <span aria-hidden="true" className="text-faint">·</span>
+                  <a
+                    href={`/demo?theme=${encodeURIComponent(t.id)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex min-h-9 items-center hover:text-gold"
+                  >
+                    منيو تجريبي ↗
+                  </a>
+                </div>
               </div>
             );
           })}

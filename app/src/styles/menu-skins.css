@@ -31,6 +31,9 @@
  * بعدها ترتيباً، وتغلبه بالخصوصية: كلّ انتقائيٍّ فيها يبدأ بـ`.m-skin-<id>`. */
 @import "./skins/dukkan.css";
 @import "./skins/asir.css";
+@import "./skins/harbor.css";
+@import "./skins/patisserie.css";
+@import "./skins/juice.css";
 
 /* ══ المشترك ══════════════════════════════════════════════════════════ */
 

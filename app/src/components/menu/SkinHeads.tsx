@@ -17,7 +17,8 @@
  * - `BagHead`      وجه كيس قهوةٍ مختصّة: كرافت، وصمّام، ولاصقٌ بالاسم ومنحنى تحميص.
  * - `FolioHead`    دفتر منيو من جلد (فاخر): خيطٌ ذهبيّ مخيط، والاسم مختومٌ بالذهب.
  * - `GridHead`     شبكةٌ طباعيّة (عصري): شريطٌ أسود، وخليّة الشعار، ومسطرةٌ مقيسة.
- * - `DukkanHead` · `AsirHead` — في ملفّيهما (`heads/`) كي لا يتزاحم طابعان على ملفّ.
+ * - `DukkanHead` · `AsirHead` · `HarborHead` · `PatisserieHead` · `JuiceHead` — كلٌّ في ملفّه (`heads/`)
+ *   كي لا تتزاحم الطوابع على ملفّ.
  *
  * والحركة كلّها في `styles/menu-skins.css` — CSS خالص، ولا تعمل إلا لمن يقبل الحركة.
  * وكلّ ما هنا يُلوَّن بـ`--m-*`، فيلبس لون علامة التاجر كما تلبسه واجهة المتجر.
@@ -578,6 +579,9 @@ export function BagHead({ restaurant, corner, children }: HeadProps) {
 
 /* ══ دكّان · عسير — كلٌّ في ملفّه (`heads/`) ══════════════════════════════ */
 export { DukkanHead } from "./heads/DukkanHead";
+export { HarborHead } from "./heads/HarborHead";
+export { PatisserieHead } from "./heads/PatisserieHead";
+export { JuiceHead } from "./heads/JuiceHead";
 export { AsirHead } from "./heads/AsirHead";
 
 /* ══ فاخر — دفتر جلدٍ بخيطٍ ذهبيّ ══════════════════════════════════════ */
