@@ -221,9 +221,9 @@ export default function Menus() {
           [...Array(2)].map((_, i) => <Skeleton key={i} className="h-20 rounded-2xl" />)}
         {(menus ?? []).map((m) => (
           <Card key={m.id} className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-gold/12 text-xl">📋</span>
-              <div>
+            <div className="flex min-w-0 items-center gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gold/12 text-xl">📋</span>
+              <div className="min-w-0">
                 <p className="font-bold text-ink">{m.name}</p>
                 {m.window_from && m.window_to && (
                   <p className="flex items-center gap-1.5 text-xs text-dim">
@@ -247,7 +247,9 @@ export default function Menus() {
                 </Link>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            {/* `flex-wrap`: سبعة أزرار في سطر واحد كانت تمدّ الصفحة إلى ٤٧٣ بكسل
+                على جوال عرضه ٣٩٠ فتُقصّ «إعادة تسمية» والحذف من الطرف. */}
+            <div className="flex flex-wrap items-center gap-2">
               <Badge variant={m.active !== false ? "green" : "neutral"}>
                 {m.active !== false ? "منشورة" : "مخفية"}
               </Badge>

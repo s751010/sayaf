@@ -94,8 +94,10 @@ const STATIC = [
   { loc: "/for/specialty-coffee", priority: "0.8", changefreq: "monthly" },
   { loc: "/for/traditional-restaurants", priority: "0.8", changefreq: "monthly" },
   { loc: "/for/food-trucks", priority: "0.8", changefreq: "monthly" },
-  // الدليل يتغيّر بتغيّر المطاعم لا بتحرير نصّه — لذلك `weekly` كالمنيوهات.
-  { loc: "/restaurants", priority: "0.8", changefreq: "weekly" },
+  // `/restaurants` خرج من الخريطة (٢٠٢٦/١١) حتى يصير فيه ٣٠ مطعماً — دليلٌ
+  // بمطعمين يقول إن المنصّة فارغة. التفصيل فوق `restaurants` في `lib/routeSeo.ts`.
+  // أداة مجانية — تُفهرَس على بحث «حاسبة سعرات» (`pages/CalorieTool.tsx`).
+  { loc: "/tools/calorie-calculator", priority: "0.8", changefreq: "monthly" },
   { loc: "/about", priority: "0.7", changefreq: "monthly" },
   { loc: "/help", priority: "0.7", changefreq: "monthly" },
   // `/docs/api` خرج من الخريطة (٢٠٢٦/١٠): الواجهة مجمّدة ولا تُفتح إلا بقرار

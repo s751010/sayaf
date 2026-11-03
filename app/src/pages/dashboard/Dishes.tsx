@@ -4,6 +4,7 @@
  * أي حقل جديد في جدول dishes يُضاف في الحالتين معاً وإلا يسقط بصمت.
  */
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import { normalizeAr } from "@/lib/arabic";
 import { useSearchParams } from "react-router-dom";
 import {
   Badge,
@@ -345,10 +346,12 @@ export default function Dishes() {
   const computed = computedNutrition(numOrNull(form.calories), numOrNull(form.sodium_mg));
 
   const filtered = useMemo(() => {
-    const q = filter.trim().toLowerCase();
+    // `normalizeAr`: التاجر يكتب «قهوه» وصنفه «قهوة» — والبحث بالحرف كان يُرجع
+    // صفراً، كما كان في منيو الزبون قبل `lib/arabic.ts`.
+    const q = normalizeAr(filter);
     if (!q) return dishes ?? [];
     return (dishes ?? []).filter((d) =>
-      [d.name, d.category, d.name_en].filter(Boolean).some((s) => s!.toLowerCase().includes(q))
+      [d.name, d.category, d.name_en].filter(Boolean).some((s) => normalizeAr(s!).includes(q))
     );
   }, [dishes, filter]);
 
@@ -933,8 +936,14 @@ export default function Dishes() {
             </span>
             <Switch checked={form.featured} onChange={(v) => set("featured", v)} label="مميز" />
           </div>
-          <div className="flex items-center justify-between rounded-xl border border-line bg-panel2 px-4 py-3">
-            <span className="text-sm font-bold text-ink">🟢 متاح الآن</span>
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-line bg-panel2 px-4 py-3">
+            <span>
+              <span className="block text-sm font-bold text-ink">🟢 متاح الآن</span>
+              {/* إطفاؤه لا يحذف الصنف — كان التاجر يحذف ما نفد ثم يعيد كتابته غداً. */}
+              <span className="mt-0.5 block text-xs text-faint">
+                أطفئه حين ينفد: يبقى في المنيو بعلامة «نفد اليوم» ولا يُطلب، وتعيده بضغطة.
+              </span>
+            </span>
             <Switch checked={form.available} onChange={(v) => set("available", v)} label="متاح" />
           </div>
 

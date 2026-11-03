@@ -28,10 +28,30 @@ export const STATIC_SEO = {
       "أدلّة عملية لأصحاب المطاعم والمقاهي السعودية: اشتراطات المنيو، وحساب السعرات من الوصفة، ومسبّبات الحساسية، والمنيو الرقمي.",
     path: "/blog",
   },
+  /**
+   * ⚠️ **مخفيّ عن الفهرسة والروابط حتى يمتلئ** (٢٠٢٦/١١): دليلٌ فيه مطعمان
+   * يقول للزائر وللتاجر إن المنصّة فارغة. الصفحة باقية تعمل لمن عنده رابطها،
+   * لكن لا رابط إليها في الذيل ولا في خريطة الموقع، ولا تُفهرَس.
+   *
+   * يعود حين يصير فيه ٣٠ مطعماً منشوراً على الأقل: احذف `noindex` هنا،
+   * وأعِد سطره في ذيل `components/site.tsx` و`scripts/sitemap.mjs`
+   * و`scripts/prerender.ts`.
+   */
   restaurants: {
     title: "دليل المطاعم",
     description: "مطاعم ومقاهٍ سعودية بمنيو رقمي على كلاود منيو — تصفّح منيو أي منها من جوّالك.",
     path: "/restaurants",
+    noindex: true,
+  },
+  /**
+   * أداةٌ لا صفحة تسويق — تُفهرَس على بحث «حاسبة سعرات» الذي لا يبلغه الهبوط.
+   * مقطعان عمداً: انظر رأس `pages/CalorieTool.tsx`.
+   */
+  calories: {
+    title: "حاسبة السعرات الحرارية للمنيو مجاناً",
+    description:
+      "احسب السعرات والصوديوم والكافيين لأي صنف من وصفته، على ملصق بنمط هيئة الغذاء. مجاناً وبلا تسجيل، للمطاعم والمقاهي السعودية.",
+    path: "/tools/calorie-calculator",
   },
   privacy: {
     title: "سياسة الخصوصية",
@@ -45,6 +65,6 @@ export const STATIC_SEO = {
       "شروط استخدام منصّة كلاود منيو: الاشتراك والتجديد والإلغاء والاسترجاع، ومسؤوليات التاجر عن محتوى منيوه.",
     path: "/terms",
   },
-} satisfies Record<string, Seo & { description: string; path: string }>;
+} satisfies Record<string, Seo & { description: string; path: string; noindex?: boolean }>;
 
 export type StaticPage = keyof typeof STATIC_SEO;

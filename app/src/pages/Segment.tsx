@@ -102,7 +102,7 @@ function SegmentPage({ seg }: { seg: Segment }) {
             </div>
 
             <div className="min-w-0">
-              <PhoneMenu brand={brand} />
+              <PhoneMenu brand={brand} kind={seg.demo} />
               {/* بعرض الجوّال تقريباً، وكافٍ لأطول اسم («لوحة حروف») بلا قصّ. */}
               <div className="mx-auto mt-5 w-full max-w-[340px]">
                 <p className="text-center text-xs font-bold text-dim">

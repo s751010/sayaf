@@ -29,6 +29,7 @@ import type { IconName } from "./icons";
 import { ALL_THEMES, type MenuTheme } from "./themes";
 import { SUGGESTED, suggestionKey } from "./themeSuggest";
 import { SEGMENT_LINKS, type SegmentSlug } from "./segmentLinks";
+import type { DemoKind } from "./demoMenus";
 
 /** دليل الوعد: ملفٌّ نسبةً إلى `app/src`، ونصٌّ يجب أن يكون فيه. */
 export interface Proof {
@@ -58,6 +59,11 @@ export interface Segment {
   features: SegmentFeature[];
   /** مقالات ثابتة من `content/articles.json` — slug كلٍّ منها. */
   articles: string[];
+  /**
+   * المنيو التجريبي الذي يفتحه جوّال الصفحة (`lib/demoMenus.ts`). كان واحداً
+   * للجميع، فصفحة الكافيه تعرض منيو مطعم ستيك.
+   */
+  demo: DemoKind;
 }
 
 /* ── أدلّة مشتركة ─────────────────────────────────────────────────── */
@@ -87,6 +93,7 @@ const WHATSAPP_ORDERS: SegmentFeature = {
 export const SEGMENTS: readonly Segment[] = [
   {
     slug: "specialty-coffee",
+    demo: "cafe",
     typeKey: "كافيه",
     label: "للكافيه المختصّ",
     audience: "الكافيه المختصّ",
@@ -148,6 +155,7 @@ export const SEGMENTS: readonly Segment[] = [
   },
   {
     slug: "traditional-restaurants",
+    demo: "shaabi",
     typeKey: "شعبي",
     label: "للمطعم الشعبي",
     audience: "المطعم الشعبي",
@@ -195,6 +203,7 @@ export const SEGMENTS: readonly Segment[] = [
   },
   {
     slug: "food-trucks",
+    demo: "truck",
     typeKey: "مطعم سريع",
     label: "لعربات الطعام",
     audience: "عربة الطعام",

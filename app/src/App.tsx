@@ -30,6 +30,7 @@ const OrderStatus = lazy(() => import("@/pages/OrderStatus"));
 const Founder = lazy(() => import("@/pages/founder/Founder"));
 const Demo = lazy(() => import("@/pages/Demo"));
 const Help = lazy(() => import("@/pages/Help"));
+const CalorieTool = lazy(() => import("@/pages/CalorieTool"));
 const ApiDocs = lazy(() => import("@/pages/ApiDocs"));
 const About = lazy(() => import("@/pages/About"));
 /** دليل المطاعم — صفحة فهرس عامة تنمو مع كل تاجر جديد. */
@@ -89,6 +90,7 @@ export default function App() {
                 />
                 <Route path="/demo" element={<Demo />} />
                 <Route path="/help" element={<Help />} />
+                <Route path="/tools/calorie-calculator" element={<CalorieTool />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/restaurants" element={<Restaurants />} />
                 {/* مقطعان لا يلتقطهما `/:slug` أصلاً. و`/for` وحدها تبقى لمسار
