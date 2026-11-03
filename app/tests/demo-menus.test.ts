@@ -2,7 +2,8 @@
  * منيو تجريبي لكل شريحة — صفحة الكافيه لا تعرض منيو مطعم ستيك.
  */
 import { describe, expect, it } from "vitest";
-import { DEMO_KINDS, demoData, isDemoKind } from "@/lib/demoMenus";
+import { DEMO_KINDS, demoData, demoKindForSuits, isDemoKind } from "@/lib/demoMenus";
+import { ALL_THEMES } from "@/lib/themes";
 import { SEGMENTS } from "@/lib/segments";
 import { getTheme, splitThemeId } from "@/lib/themes";
 import { burnMinutes, isHighSodium } from "@/lib/nutrition";
@@ -52,4 +53,20 @@ describe("demoMenus", () => {
     for (const d of drinks) expect(d.caffeine_mg, d.name).not.toBeNull();
     expect(dishes.some((d) => d.available === false)).toBe(true);
   });
+
+  it("«عاينه كاملاً» يفتح الطابع على منيو عالمه — «مرفأ» على مطعم أسماك لا ستيك", () => {
+    const kindOf = (id: string) => demoKindForSuits(ALL_THEMES.find((t) => t.id === id)!.suits);
+    expect(kindOf("harbor")).toBe("seafood");
+    expect(kindOf("patisserie")).toBe("sweets");
+    expect(kindOf("juice")).toBe("juice");
+    expect(kindOf("roastery")).toBe("cafe");
+    expect(kindOf("dark-gold")).toBe("restaurant");
+    // ولكلّ طابعٍ منيوٌ موجود — لا معاينة على بيانات ناقصة.
+    for (const t of ALL_THEMES) expect(isDemoKind(demoKindForSuits(t.suits)), t.id).toBe(true);
+    // والطابع الجديد يُعاين على منيوٍ طابعُه هو نفسه.
+    for (const id of ["harbor", "patisserie", "juice"]) {
+      expect(demoData(kindOf(id)).menus[0].theme).toBe(id);
+    }
+  });
 });
+

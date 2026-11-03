@@ -78,7 +78,10 @@ describe("`rankThemes` يرتّب ولا يحذف", () => {
     ["مقهى شعبي", "najdi", true],
     ["مطعم شعبي", "najdi", false],
     ["مشاوي", "dark-gold", false],
-    ["أسماك", "roshan", false],
+    // ٠٣/١١: للبحري طابعه («مرفأ») — وروشان ثانيه.
+    ["أسماك", "harbor", false],
+    ["حلويات", "patisserie", false],
+    ["عصيرات", "juice", false],
     ["برجر", "neon", false],
     ["أخرى", "dark-gold", false],
     [null, "dark-gold", false],

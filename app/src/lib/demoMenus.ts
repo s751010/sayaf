@@ -18,9 +18,9 @@
 import type { Dish, Menu, Restaurant } from "./types";
 import { burnMinutes, isHighSodium, isSfdaCompliant } from "./nutrition";
 
-export type DemoKind = "restaurant" | "cafe" | "shaabi" | "truck";
+export type DemoKind = "restaurant" | "cafe" | "shaabi" | "truck" | "seafood" | "sweets" | "juice";
 
-export const DEMO_KINDS: readonly DemoKind[] = ["restaurant", "cafe", "shaabi", "truck"];
+export const DEMO_KINDS: readonly DemoKind[] = ["restaurant", "cafe", "shaabi", "truck", "seafood", "sweets", "juice"];
 
 export function isDemoKind(v: string | null | undefined): v is DemoKind {
   return !!v && (DEMO_KINDS as readonly string[]).includes(v);
@@ -548,7 +548,266 @@ function truck(): DemoData {
   };
 }
 
-const BUILDERS: Record<DemoKind, () => DemoData> = { restaurant: diwan, cafe, shaabi, truck };
+/* ── مطعم أسماك — لطابع «مرفأ» (٢٠٢٦/١١/٠٣) ─────────────────────────────── */
+
+function seafood(): DemoData {
+  const R = "demo-seafood";
+  const M = "demo-seafood-menu";
+  const dish = dishMaker(R, M);
+  return {
+    restaurant: restaurantOf(R, {
+      name: "مطعم شاطئ النورس",
+      type: "أسماك طازجة من سوق اليوم",
+      address: "جدة — الكورنيش الشمالي",
+      logo: "🐟",
+      allergens_text: "أطباقنا تحتوي على أسماك وقشريات، وقد تحتوي على جلوتين وسمسم.",
+      working_hours: WEEK("13:00", "00:30", "01:30"),
+      loyalty_goal: 8,
+      loyalty_reward: "طبق صيادية مجاناً",
+      prep_minutes: 30,
+      category_order: JSON.stringify(["المقبلات", "الأسماك", "القشريات", "الأرز", "المشروبات"]),
+    }),
+    menus: [menuOf(R, M, "harbor")],
+    dishes: [
+      dish("f1", "سلطة الحمّص بالطحينة", "Hummus", "المقبلات", 16, "🥣", {
+        description: "حمّص ناعم بالطحينة وزيت الزيتون.",
+        calories: 330,
+        sodium_mg: 520,
+        allergens: ["سمسم"],
+      }),
+      dish("f2", "شوربة سمك", "Fish Soup", "المقبلات", 22, "🍲", {
+        description: "مرق السمك بالكزبرة والليمون وقطع الهامور.",
+        calories: 210,
+        sodium_mg: 760,
+        allergens: ["سمك"],
+      }),
+      dish("f3", "هامور مشوي — كيلو", "Grilled Hammour (1kg)", "الأسماك", 145, "🐟", {
+        description: "هامور من سوق اليوم مشوي على الفحم بالبهارات البحرية، مع أرز صيادية وسلطة.",
+        featured: true,
+        calories: 1180,
+        sodium_mg: 1650,
+        allergens: ["سمك"],
+        options: JSON.stringify([
+          { name: "نصف كيلو", price: 0 },
+          { name: "مقلي بدل مشوي", price: 0, kcal: 260 },
+        ]),
+      }),
+      dish("f4", "سمك سلمون بالليمون", "Lemon Salmon", "الأسماك", 78, "🍣", {
+        description: "شريحة سلمون بزبدة الليمون والأعشاب، مع خضار سوتيه.",
+        calories: 540,
+        sodium_mg: 610,
+        allergens: ["سمك", "حليب"],
+      }),
+      dish("f5", "روبيان جامبو مشوي", "Grilled Jumbo Shrimp", "القشريات", 95, "🦐", {
+        description: "روبيان جامبو بالثوم والزبدة الحارّة.",
+        featured: true,
+        calories: 420,
+        sodium_mg: 980,
+        allergens: ["قشريات", "حليب"],
+      }),
+      dish("f6", "سلطعون بالبهارات", "Spiced Crab", "القشريات", 88, "🦀", {
+        description: "سلطعون أزرق بصلصة البهارات الحارّة.",
+        calories: 380,
+        sodium_mg: 1240,
+        allergens: ["قشريات"],
+        available: false,
+      }),
+      dish("f7", "أرز صيادية", "Sayadieh Rice", "الأرز", 18, "🍚", {
+        description: "أرز بالبصل المكرمل ومرق السمك.",
+        calories: 360,
+        sodium_mg: 540,
+        allergens: ["سمك"],
+      }),
+      dish("f8", "ليمون بالنعناع", "Mint Lemonade", "المشروبات", 14, "🍋", {
+        description: "ليمون طازج بالنعناع والثلج.",
+        calories: 130,
+        sodium_mg: 10,
+      }),
+      dish("f9", "شاي أحمر", "Black Tea", "المشروبات", 6, "🫖", {
+        description: "شاي مخدّر بالنعناع.",
+        calories: 30,
+        sodium_mg: 5,
+        caffeine_mg: 40,
+      }),
+    ],
+  };
+}
+
+/* ── محلّ حلويات — لطابع «حلواني» ─────────────────────────────────────── */
+
+function sweets(): DemoData {
+  const R = "demo-sweets";
+  const M = "demo-sweets-menu";
+  const dish = dishMaker(R, M);
+  return {
+    restaurant: restaurantOf(R, {
+      name: "حلويات بيت السكّر",
+      type: "كيك وحلويات شرقية تُخبز كل صباح",
+      address: "الرياض — حي الياسمين",
+      logo: "🎂",
+      allergens_text: "منتجاتنا تحتوي على جلوتين وحليب وبيض، وقد تحتوي على مكسرات.",
+      working_hours: WEEK("09:00", "00:00", "01:00"),
+      loyalty_goal: 8,
+      loyalty_reward: "قطعة كيك مجاناً",
+      prep_minutes: 10,
+      category_order: JSON.stringify(["الكيك", "الحلويات الشرقية", "المعجّنات", "المشروبات"]),
+    }),
+    menus: [menuOf(R, M, "patisserie")],
+    dishes: [
+      dish("w1", "كيك الفستق بالورد", "Pistachio Rose Cake", "الكيك", 26, "🍰", {
+        description: "إسفنج بالفستق الحلبي وكريمة الورد — قطعة.",
+        featured: true,
+        calories: 460,
+        sodium_mg: 220,
+        allergens: ["حليب", "بيض", "جلوتين", "مكسرات"],
+      }),
+      dish("w2", "تشيز كيك التوت", "Berry Cheesecake", "الكيك", 24, "🍓", {
+        description: "تشيز كيك نيويورك بصوص التوت المشكّل.",
+        calories: 430,
+        sodium_mg: 310,
+        allergens: ["حليب", "بيض", "جلوتين"],
+      }),
+      dish("w3", "كيكة التمر بالدبس", "Date Cake", "الكيك", 19, "🌰", {
+        description: "كيكة تمر سكري بصوص دبس التمر.",
+        calories: 390,
+        sodium_mg: 260,
+        allergens: ["حليب", "بيض", "جلوتين"],
+      }),
+      dish("w4", "كنافة نابلسية", "Knafeh", "الحلويات الشرقية", 28, "🧀", {
+        description: "كنافة بالجبن الطازج والقطر — طبق فردي.",
+        featured: true,
+        calories: 520,
+        sodium_mg: 380,
+        allergens: ["حليب", "جلوتين"],
+      }),
+      dish("w5", "بسبوسة بالقشطة", "Basbousa", "الحلويات الشرقية", 15, "🍯", {
+        description: "بسبوسة بالسميد محشوّة بالقشطة.",
+        calories: 410,
+        sodium_mg: 190,
+        allergens: ["حليب", "جلوتين"],
+      }),
+      dish("w6", "معمول تمر — ٣ حبّات", "Date Maamoul", "الحلويات الشرقية", 12, "🍪", {
+        description: "معمول بالسميد والتمر.",
+        calories: 360,
+        sodium_mg: 90,
+        allergens: ["جلوتين", "حليب"],
+        available: false,
+      }),
+      dish("w7", "كرواسون بالزعتر", "Zaatar Croissant", "المعجّنات", 11, "🥐", {
+        description: "كرواسون بالزبدة والزعتر وزيت الزيتون.",
+        calories: 330,
+        sodium_mg: 450,
+        allergens: ["حليب", "جلوتين", "بيض", "سمسم"],
+      }),
+      dish("w8", "قهوة سعودية", "Saudi Coffee", "المشروبات", 10, "☕", {
+        description: "دلّة صغيرة بالهيل والزعفران.",
+        calories: 15,
+        sodium_mg: 5,
+        caffeine_mg: 95,
+      }),
+      dish("w9", "حليب بالزعفران", "Saffron Milk", "المشروبات", 16, "🥛", {
+        description: "حليب دافئ بالزعفران والهيل.",
+        calories: 190,
+        sodium_mg: 105,
+        allergens: ["حليب"],
+      }),
+    ],
+  };
+}
+
+/* ── محلّ عصير — لطابع «عصّارة» ──────────────────────────────────────── */
+
+function juice(): DemoData {
+  const R = "demo-juice";
+  const M = "demo-juice-menu";
+  const dish = dishMaker(R, M);
+  return {
+    restaurant: restaurantOf(R, {
+      name: "عصيرات ليمونة",
+      type: "عصير طازج وسموذي وسلطات",
+      address: "الدمام — حي الشاطئ",
+      logo: "🍊",
+      allergens_text: "نحضّر في مكانٍ واحد مع الحليب والمكسرات.",
+      working_hours: WEEK("10:00", "01:00", "02:00"),
+      loyalty_goal: 6,
+      loyalty_reward: "عصير مجاناً",
+      prep_minutes: 7,
+      category_order: JSON.stringify(["عصير طازج", "سموذي", "كوكتيلات", "سلطات"]),
+    }),
+    menus: [menuOf(R, M, "juice")],
+    dishes: [
+      dish("j1", "برتقال طازج", "Fresh Orange", "عصير طازج", 12, "🍊", {
+        description: "برتقال معصور أمامك، ٤٠٠ مل بلا سكر مضاف.",
+        featured: true,
+        calories: 180,
+        sodium_mg: 5,
+      }),
+      dish("j2", "ليمون بالنعناع", "Mint Lemonade", "عصير طازج", 11, "🍋", {
+        description: "ليمون ونعناع وثلج مجروش.",
+        calories: 130,
+        sodium_mg: 10,
+      }),
+      dish("j3", "رمان طازج", "Fresh Pomegranate", "عصير طازج", 18, "🍷", {
+        description: "رمان طائفي معصور، ٣٥٠ مل.",
+        calories: 230,
+        sodium_mg: 15,
+      }),
+      dish("j4", "سموذي مانجو وباشن", "Mango Passion Smoothie", "سموذي", 19, "🥭", {
+        description: "مانجو وباشن فروت وزبادي.",
+        calories: 290,
+        sodium_mg: 70,
+        allergens: ["حليب"],
+        options: JSON.stringify([{ name: "بدون زبادي", price: 0 }, { name: "بروتين", price: 6, kcal: 120 }]),
+      }),
+      dish("j5", "سموذي توت وموز", "Berry Banana Smoothie", "سموذي", 19, "🫐", {
+        description: "توت مشكّل وموز وحليب لوز.",
+        calories: 260,
+        sodium_mg: 90,
+        allergens: ["مكسرات"],
+      }),
+      dish("j6", "كوكتيل ليمونة", "Laymouna Cocktail", "كوكتيلات", 21, "🍹", {
+        description: "طبقات مانجو وفراولة وأفوكادو، بالقشطة والعسل والمكسرات.",
+        featured: true,
+        calories: 520,
+        sodium_mg: 85,
+        allergens: ["حليب", "مكسرات"],
+      }),
+      dish("j7", "أفوكادو بالعسل", "Avocado Honey", "كوكتيلات", 20, "🥑", {
+        description: "أفوكادو بالحليب والعسل.",
+        calories: 450,
+        sodium_mg: 95,
+        allergens: ["حليب"],
+        available: false,
+      }),
+      dish("j8", "سلطة كينوا", "Quinoa Salad", "سلطات", 24, "🥗", {
+        description: "كينوا وخضار وجبنة فيتا وصوص ليمون.",
+        calories: 380,
+        sodium_mg: 540,
+        allergens: ["حليب"],
+      }),
+    ],
+  };
+}
+
+/**
+ * المنيو الذي يُعاين به طابعٌ ما وحده (`/demo?theme=…` من «عاينه كاملاً»):
+ * أوّل نوعٍ في `suits` ⇒ منيو ذلك النوع. فـ«مرفأ» يُعاين على مطعم أسماك لا على
+ * ستيك واقيو، و«حلواني» على حلويات. وما لا نوع له ⇒ «الديوان».
+ */
+const KIND_BY_TYPE: Record<string, DemoKind> = {
+  كافيه: "cafe",
+  شعبي: "shaabi",
+  "مطعم سريع": "truck",
+  بحري: "seafood",
+  "مخبز وحلويات": "sweets",
+  عصائر: "juice",
+};
+
+export function demoKindForSuits(suits: readonly string[] | undefined): DemoKind {
+  return KIND_BY_TYPE[suits?.[0] ?? ""] ?? "restaurant";
+}
+
+const BUILDERS: Record<DemoKind, () => DemoData> = { restaurant: diwan, cafe, shaabi, truck, seafood, sweets, juice };
 
 /** المنيو التجريبي لنوعٍ ما — والمجهول يسقط إلى «الديوان». */
 export function demoData(kind: string | null | undefined): DemoData {

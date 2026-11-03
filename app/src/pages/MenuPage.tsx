@@ -273,7 +273,13 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
 
   // مذكَّر على النصّ المخزَّن: `getTheme` يبني كائناً جديداً في كل نداء، و`theme.vars`
   // مفتاح تأثير الخطوط تحته — فبلا هذا يُعاد التأثير مع كل إعادة رسم.
-  const themeId = state.status === "ready" ? state.menus.find((m) => m.theme)?.theme : null;
+  /**
+   * «عاينه على منيوك» من صفحة التصميم: طابعٌ يُجرَّب على أصناف التاجر الحقيقية
+   * قبل أن يطبّقه. **للمالك وحده** (`preview` لا يُمنح إلا بعد مطابقة الجلسة)،
+   * ولا يُكتب شيء — والزائر الذي يضيف `?theme=` إلى رابطٍ عام لا يغيّر شيئاً.
+   */
+  const tryTheme = preview ? params.get("theme")?.trim() || null : null;
+  const themeId = tryTheme ?? (state.status === "ready" ? state.menus.find((m) => m.theme)?.theme : null);
   const theme = useMemo(() => getTheme(themeId), [themeId]);
   const design = theme.design;
   const rhythm = RHYTHM[design.density];

@@ -35,14 +35,16 @@ export const SUGGESTED: Readonly<Record<string, readonly [string, string, string
   مطعم: ["dark-gold", "modern", "editorial"],
   كافيه: ["roastery", "letterboard", "sticker"],
   [POPULAR_CAFE]: ["najdi", "sticker", "receipt"],
-  عصائر: ["sticker", "modern", "neon"],
+  // ٠٣/١١: «عصّارة» و«مرفأ» و«حلواني» أوّلَ أنواعها — وما كان أوّلاً صار ثانياً
+  // بشارته، وخرج الثالث القديم (بلا شارةٍ لذلك النوع، فلا تُمسّ قاعدة ٢).
+  عصائر: ["juice", "sticker", "modern"],
   // ٢٧/١٠: «دكّان» و«عسير» للشعبي — فخرج منه «فاتورة» و«روشان» وشارتاهما
   // (قاعدة الاتّساق ٢)، وبقي كلٌّ أوّلَ نوعه الآخر أو ثانيه. وعربة الطعام «سريع».
   "مطعم سريع": ["neon", "receipt", "dukkan"],
   مشويات: ["dark-gold", "najdi", "asir"],
   شعبي: ["najdi", "dukkan", "asir"],
-  بحري: ["roshan", "dark-gold", "modern"],
-  "مخبز وحلويات": ["editorial", "letterboard", "modern"],
+  بحري: ["harbor", "roshan", "dark-gold"],
+  "مخبز وحلويات": ["patisserie", "editorial", "letterboard"],
 };
 
 /** الشارة التي يجب أن يحملها أوّل الصفّ — الكافيه الشعبي مكانٌ شعبي. */

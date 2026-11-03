@@ -413,3 +413,29 @@ test("عدّة الطباعة: كود كلّ قطعة يطابق مصفوفته 
     expect(f.moduleMm, `${f.key} مقاس الوحدة`).toBeGreaterThanOrEqual(0.8);
   }
 });
+
+test("«على منيوك»: المالك يجرّب طابعاً على أصنافه قبل تطبيقه — والزائر لا يغيّر شيئاً بالمعامل", async ({ page }) => {
+  const { crashes } = watch(page);
+  await signedIn(page);
+  await page.goto(`/${restaurant.slug}?preview=1&theme=juice`);
+  await expect(page.getByText("لاتيه").first()).toBeVisible();
+  await expect(page.locator(".m-skin-juice").first()).toBeAttached();
+  expect(crashes, crashes.join("\n")).toEqual([]);
+});
+
+test("`?theme=` على رابطٍ عامّ بلا جلسة المالك لا يبدّل الطابع", async ({ page }) => {
+  await page.route(/supabase\.co/, async (route) => {
+    const req = route.request();
+    const body = bodyFor(new URL(req.url()), req.method());
+    const n = Array.isArray(body) ? body.length : 1;
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      headers: { "content-range": `0-${Math.max(n - 1, 0)}/${n}`, "access-control-expose-headers": "content-range" },
+      body: JSON.stringify(body),
+    });
+  });
+  await page.goto(`/${restaurant.slug}?theme=juice`);
+  await expect(page.getByText("لاتيه").first()).toBeVisible();
+  await expect(page.locator(".m-skin-juice")).toHaveCount(0);
+});

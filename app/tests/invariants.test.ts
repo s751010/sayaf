@@ -73,6 +73,10 @@ describe("ثابت §18 — ألوان الطوابع", () => {
     // «دكّان» و«عسير» (٢٠٢٦/١٠/٢٧) — خطّة المالك، الموجة ٢ البند ٧.
     dukkan: "131b99f1",
     asir: "36df99e3",
+    // «مرفأ» و«حلواني» و«عصّارة» (٢٠٢٦/١١/٠٣) — لأنواعٍ كانت تُقترح لها طوابع غيرها.
+    harbor: "d99f9515",
+    patisserie: "6712cfbe",
+    juice: "bf6e66df",
   };
 
   it("بصمة التسعة المجمّدة لم تتغيّر", () => {
@@ -98,7 +102,8 @@ describe("ثابت §18 — ألوان الطوابع", () => {
     // بحذف غير مقصود لتغيّر ما تَعِد به الصفحة بلا أن يلاحظ أحد.
     // ٩ ⇒ ١٠ (٢٠٢٦/١٠/٢٦): «محمصة» بقرار اجتماع الطوابع — تعديلٌ متعمَّد لا تعطيل.
     // ١٠ ⇒ ١٢ (٢٠٢٦/١٠/٢٧): «دكّان» و«عسير» باختيار المالك (خطّة الموجة ٢).
-    expect(ALL_THEMES.length).toBe(12);
+    // ١٢ ⇒ ١٥ (٢٠٢٦/١١/٠٣): «مرفأ» و«حلواني» و«عصّارة» — طلب المالك «طوابع جديدة».
+    expect(ALL_THEMES.length).toBe(15);
   });
 
   /**
@@ -400,7 +405,7 @@ describe("الطوابع الثلاث بعد الرفع — الضغط والس�
     expect(css).toMatch(/\.m-price \{\s*font-family: var\(--font-cairo\)/);
   });
 
-  it.each(["receipt", "neon", "sticker", "letterboard", "editorial", "roshan", "najdi", "roastery", "dukkan", "asir", "gold", "modern"])(
+  it.each(["receipt", "neon", "sticker", "letterboard", "editorial", "roshan", "najdi", "roastery", "dukkan", "asir", "harbor", "patisserie", "juice", "gold", "modern"])(
     "«%s» له حركة نافذةٍ خاصّة داخل `no-preference`",
     (skin) => {
       const block = css.split("@media (prefers-reduced-motion: no-preference)").slice(1).join("");

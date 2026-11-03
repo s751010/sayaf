@@ -306,6 +306,71 @@ function asir(ctx: Ctx, b: MotifBox, k: MotifInk): void {
   ctx.fillRect(b.outer, b.H - b.outer - h - b.mm * 1, b.W - b.outer * 2, b.mm * 0.5);
 }
 
+/** مرفأ — حبلٌ مجدول حول الوجه: إطارٌ بالتمييز تقطعه شَرطاتٌ مائلة كفتل الحبل. */
+function harbor(ctx: Ctx, b: MotifBox, k: MotifInk): void {
+  const at = b.outer + b.mm * 0.9;
+  ctx.strokeStyle = k.accent;
+  ctx.lineWidth = b.mm * 1.6;
+  ring(ctx, b, at, b.mm * 3);
+  ctx.stroke();
+  // الفتل: شرطةٌ مائلة بلون الورق كلّ ٢٫٢ ملم على الضلعين العلوي والسفلي.
+  ctx.strokeStyle = k.bg;
+  ctx.lineWidth = b.mm * 0.35;
+  const step = b.mm * 2.2;
+  for (const y of [at, b.H - at]) {
+    for (let x = at + b.mm * 3.5; x < b.W - at - b.mm * 3.5; x += step) {
+      ctx.beginPath();
+      ctx.moveTo(x - b.mm * 0.5, y - b.mm * 0.7);
+      ctx.lineTo(x + b.mm * 0.5, y + b.mm * 0.7);
+      ctx.stroke();
+    }
+  }
+}
+
+/** حلواني — حافّة دانتيل: أنصافُ دوائر متلاصقة على الضلعين، وخطٌّ رفيع داخلها. */
+function patisserie(ctx: Ctx, b: MotifBox, k: MotifInk): void {
+  const r = Math.min(b.mm * 1.6, (b.reach - b.outer) / 2);
+  alongTopBottom(b, r * 2, (x, w, top) => {
+    const y = top ? b.outer : b.H - b.outer;
+    ctx.fillStyle = k.accent;
+    ctx.beginPath();
+    ctx.arc(x + w / 2, y, w / 2, top ? 0 : Math.PI, top ? Math.PI : Math.PI * 2);
+    ctx.fill();
+  });
+  ctx.strokeStyle = k.muted;
+  ctx.lineWidth = b.mm * 0.25;
+  ctx.setLineDash([b.mm * 0.5, b.mm * 0.6]);
+  ring(ctx, b, b.outer + r + b.mm * 1.2, b.mm * 1.4);
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+/** عصّارة — شرائح فاكهة: أنصافُ دوائر مفصّصة بالتمييز تتوزّع على الضلعين. */
+function juice(ctx: Ctx, b: MotifBox, k: MotifInk): void {
+  const r = Math.min(b.mm * 2.4, b.reach - b.outer);
+  let i = 0;
+  alongTopBottom(b, r * 3, (x, w, top) => {
+    if (i++ % 2) return;
+    const cx = x + w / 2;
+    const y = top ? b.outer : b.H - b.outer;
+    const from = top ? 0 : Math.PI;
+    ctx.fillStyle = k.accent;
+    ctx.beginPath();
+    ctx.arc(cx, y, r, from, from + Math.PI);
+    ctx.fill();
+    // الفصوص: خطوطٌ بلون الورق من المركز.
+    ctx.strokeStyle = k.bg;
+    ctx.lineWidth = b.mm * 0.3;
+    for (let a = 1; a < 5; a++) {
+      const t = from + (Math.PI * a) / 5;
+      ctx.beginPath();
+      ctx.moveTo(cx, y);
+      ctx.lineTo(cx + Math.cos(t) * r * 0.85, y + Math.sin(t) * r * 0.85);
+      ctx.stroke();
+    }
+  });
+}
+
 const MOTIFS: Record<MenuSkin, ((ctx: Ctx, b: MotifBox, k: MotifInk) => void) | null> = {
   gold: folio,
   receipt,
@@ -319,6 +384,9 @@ const MOTIFS: Record<MenuSkin, ((ctx: Ctx, b: MotifBox, k: MotifInk) => void) | 
   roastery,
   dukkan,
   asir,
+  harbor,
+  patisserie,
+  juice,
   // «لون علامتي» محايدٌ عمداً على الشاشة — وكذلك على الورق.
   store: null,
 };

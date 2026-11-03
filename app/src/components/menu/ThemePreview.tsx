@@ -320,6 +320,93 @@ function DukkanMini({ v }: { v: Record<string, string> }) {
   );
 }
 
+/** مرفأ: لوحٌ بلون البحر في إطار حبل، وطوق نجاةٍ فوقه، وموجٌ في الأسفل. */
+function HarborMini({ v }: { v: Record<string, string> }) {
+  const rope = "repeating-linear-gradient(-50deg, #c8a46a 0 3px, #8b6a3b 3px 4.5px)";
+  return (
+    <div className="relative h-28 overflow-hidden" style={{ background: v["--m-bg"] }} aria-hidden="true">
+      <span className="absolute left-1/2 top-4 block h-12 w-32 -translate-x-1/2 rounded-[10px] p-[3px]" style={{ background: rope }}>
+        <span className="flex h-full w-full items-end justify-center rounded-[8px] pb-2" style={{ background: v["--m-accent"] }}>
+          <span className="block h-1.5 w-14 rounded-full" style={{ background: v["--m-on-accent"] }} />
+        </span>
+      </span>
+      <span
+        className="absolute left-1/2 top-1.5 block h-6 w-6 -translate-x-1/2 rounded-full"
+        style={{
+          background: `conic-gradient(from 45deg, ${v["--m-accent-2"]} 0 25%, #fffdf8 0 50%, ${v["--m-accent-2"]} 0 75%, #fffdf8 0)`,
+          boxShadow: `inset 0 0 0 5px transparent, 0 0 0 1px rgba(0,0,0,.2)`,
+        }}
+      >
+        <span className="absolute inset-[6px] rounded-full" style={{ background: v["--m-surface"] }} />
+      </span>
+      <div className="absolute inset-x-3 bottom-6 flex gap-2">
+        {[0, 1].map((i) => (
+          <span key={i} className="block h-3 flex-1 rounded-[3px]" style={{ background: v["--m-surface"], boxShadow: `inset 0 0 0 1px ${v["--m-border"]}` }} />
+        ))}
+      </div>
+      <span
+        className="absolute inset-x-0 bottom-0 h-3"
+        style={{
+          background: `radial-gradient(circle at 50% 100%, ${v["--m-accent"]} 6px, transparent 6.5px) 0 0 / 14px 12px repeat-x`,
+          opacity: 0.85,
+        }}
+      />
+    </div>
+  );
+}
+
+/** حلواني: مظلّةٌ مقلّمة بحافّةٍ مموّجة، وعلبة الكيك تحتها بدرزةٍ منقّطة. */
+function PatisserieMini({ v }: { v: Record<string, string> }) {
+  const stripes = `repeating-linear-gradient(90deg, ${v["--m-accent"]} 0 10px, ${v["--m-surface"]} 10px 20px)`;
+  const scallop =
+    "linear-gradient(#000 0 0) 0 0 / 100% calc(100% - 5px) no-repeat, radial-gradient(circle at 50% 0, #000 4.8px, transparent 5.2px) 0 100% / 10px 5px repeat-x";
+  return (
+    <div className="relative h-28 overflow-hidden" style={{ background: v["--m-bg"] }} aria-hidden="true">
+      <span className="absolute inset-x-0 top-0 block h-7" style={{ background: stripes, WebkitMask: scallop, mask: scallop }} />
+      <span
+        className="absolute left-1/2 top-10 flex h-10 w-28 -translate-x-1/2 items-center justify-center rounded-[14px]"
+        style={{
+          background: v["--m-surface"],
+          boxShadow: `0 0 0 1.5px ${v["--m-accent"]}`,
+          outline: `1px dashed ${v["--m-accent"]}`,
+          outlineOffset: "-5px",
+        }}
+      >
+        <span className="block h-1.5 w-12 rounded-full" style={{ background: v["--m-text"] }} />
+      </span>
+      <div className="absolute inset-x-6 bottom-3 flex justify-center gap-3">
+        {[0, 1, 2].map((i) => (
+          <span key={i} className="block h-5 w-5 rounded-full" style={{ background: v["--m-bg-2"], boxShadow: `0 0 0 1.5px ${v["--m-surface"]}` }} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** عصّارة: شريحة برتقالٍ خلف الشعار، وبلاطتان بمربّع فاكهة. */
+function JuiceMini({ v }: { v: Record<string, string> }) {
+  const fruits = [v["--m-accent"], "#6a9a12", "#b8325f"];
+  return (
+    <div className="relative h-28 overflow-hidden" style={{ background: v["--m-bg"] }} aria-hidden="true">
+      <span
+        className="absolute left-1/2 top-2 block h-14 w-14 -translate-x-1/2 rounded-full"
+        style={{
+          background: `radial-gradient(circle, #fff8e6 0 12%, transparent 13%), repeating-conic-gradient(from 8deg, color-mix(in srgb, ${v["--m-accent"]} 62%, #ffc56b) 0 32deg, #fff1d2 32deg 36deg)`,
+          boxShadow: `inset 0 0 0 4px #fff1d2, 0 0 0 3px ${v["--m-accent"]}`,
+        }}
+      />
+      <div className="absolute inset-x-3 bottom-3 grid gap-1.5">
+        {fruits.slice(0, 2).map((c, i) => (
+          <span key={i} className="flex h-4 gap-1">
+            <span className="block w-2 rounded-[4px]" style={{ background: c }} />
+            <span className="block flex-1 rounded-[4px]" style={{ background: v["--m-surface"], boxShadow: `inset 0 0 0 1px ${v["--m-border"]}` }} />
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /** عسير: شريطٌ ومثلّثات بألوان القطّ، والشعار في حلقات، وسطران بخطٍّ متعرّج. */
 function AsirMini({ v }: { v: Record<string, string> }) {
   const band = `repeating-linear-gradient(90deg, ${v["--m-accent"]} 0 12px, #e8b51f 12px 24px, #17704a 24px 36px, #2b5a9e 36px 48px)`;
@@ -524,6 +611,12 @@ export function ThemePreview({ theme }: { theme: MenuTheme }) {
       return <DukkanMini v={v} />;
     case "asir":
       return <AsirMini v={v} />;
+    case "harbor":
+      return <HarborMini v={v} />;
+    case "patisserie":
+      return <PatisserieMini v={v} />;
+    case "juice":
+      return <JuiceMini v={v} />;
     case "gold":
       return <GoldMini theme={theme} />;
     case "modern":
