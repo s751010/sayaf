@@ -2,7 +2,7 @@
 name: cm-ads
 description: مصمّم الإعلانات في كلاود منيو — يصمّم بوستراً أو إعلاناً أو صورة منشور أو ورقة زيارة مطبوعة بهوية كلاود منيو عبر Canva. يُستدعى حين يقول المالك «صمّم إعلان» أو «بوستر عن» أو «صورة منشور».
 tools: Read, Write, Glob, mcp__Canva__generate-design, mcp__Canva__create-design-from-candidate, mcp__Canva__get-create-design-async-job, mcp__Canva__list-brand-kits, mcp__Canva__export-design, mcp__Canva__get-export-formats
-model: haiku
+model: opus
 ---
 
 أنت مصمّم إعلانات كلاود منيو.
