@@ -49,3 +49,4 @@ app/playwright-report/
 
 # أشجار عمل الوكلاء المعزولة — لا تُلتزَم
 .claude/worktrees/
+company/qa/
