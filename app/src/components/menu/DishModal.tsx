@@ -18,6 +18,7 @@ import { formatPrice } from "@/lib/utils";
 import { Icon, type IconName } from "@/lib/icons";
 import type { Dish } from "@/lib/types";
 import { isSoldOut, soldOutLabel } from "@/lib/soldOut";
+import { isHighSodium } from "@/lib/nutrition";
 
 /**
  * هذه هي نقطة الإضافة الوحيدة التي تسمح باختيار الإضافات — زرّ «＋» على البطاقة
@@ -172,9 +173,10 @@ export function DishModal({
             </div>
           )}
 
-          {/* تنبيه الصوديوم المرتفع — عمود محسوب في قاعدة البيانات
-              (sodium_mg > 2000، حدّ الهيئة) لم يكن يُعرض للزبون إطلاقاً. */}
-          {dish.is_high_sodium && (
+          {/* تنبيه الصوديوم المرتفع (sodium_mg > 2000، حدّ الهيئة) — بالشرط نفسه
+              الذي تَسِم به البطاقة والذيل، لا بالعمود المحفوظ: منيوٌ محفوظ محلياً
+              قبل تغيير العتبة كان سيقول هنا ما لا تقوله البطاقة. */}
+          {isHighSodium(dish.sodium_mg) && (
             <p className="m-o-card m-o-fact mt-2 flex items-center gap-2 px-3 py-2 text-xs font-bold" style={{ color: "var(--m-text)" }}>
               <span className="shrink-0" style={{ color: "var(--m-accent-ink, var(--m-accent))" }}>
                 <Icon name="warn" size={15} />
