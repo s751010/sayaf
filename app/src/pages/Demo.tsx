@@ -8,6 +8,10 @@
  * `?kind=cafe|shaabi|truck|seafood|sweets|juice|burger|bakery|breakfast|grill|pizza` يفتح منيو نوع نشاطٍ آخر
  * (`lib/demoMenus.ts`) — صفحات الشرائح تفتح منيوها هي لا منيو مطعم الستيك.
  * و`?theme=` وحده يختار منيو عالم الطابع (`demoKindForSuits`).
+ *
+ * وفوقه شريط الأقسام (`DemoPicker`، ٠٧/١١): يختار الزائر نوع مطعمه فيكتب الشريط
+ * `?kind=` و`?theme=` نفسيهما — لا معامل ثالث، والمعاملان يعملان كما كانا. والقسم
+ * المُضاء يُقرأ منهما (`demoCategoryOf`).
  */
 import { Link, useSearchParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
@@ -15,9 +19,11 @@ import { getTheme, isHex, splitThemeId, themeBaseOf, themeIdOf } from "@/lib/the
 import MenuPage, { type MenuData } from "./MenuPage";
 import { CTA_PRIMARY } from "@/lib/facts";
 import { demoData, demoKindForSuits } from "@/lib/demoMenus";
+import { demoCategoryOf, type ThemeCategory } from "@/lib/themeCategories";
+import { DemoPicker } from "@/components/DemoPicker";
 
 export default function Demo() {
-  const [params] = useSearchParams();
+  const [params, setParams] = useSearchParams();
   useEffect(() => {
     document.title = "منيو تجريبي — كلاود منيو";
   }, []);
@@ -92,6 +98,28 @@ export default function Demo() {
    */
   const embedded = embeddedParam;
 
+  /**
+   * الإطار يُعرَف بـ`?embed=1` (`PhoneMenu` في الهبوط وصفحات الشرائح) — وبأنه إطارٌ
+   * فعلاً احتياطاً: شريط الأقسام **لا يُرسم داخل جوّال البطل** أيّاً كان رابطه، فهناك
+   * مُنتقي الطابع حوله، وشريطٌ ثانٍ في شاشةٍ مصغّرة يسرق نصفها.
+   */
+  const framed = embedded || (typeof window !== "undefined" && window.self !== window.top);
+
+  /** الطابع المعروض فعلاً: المعامل، أو طابع منيو النوع. */
+  const shownTheme = themeBaseOf(theme ?? DEMO.menus[0]?.theme);
+  // بلا معاملٍ إطلاقاً لا قسم: «الديوان» منيو الهبوط، لا «راقي ومناسبات» مختاراً عن الزائر.
+  const category = params.has("kind") || theme ? demoCategoryOf(kind, shownTheme) : null;
+  const pick = (cat: ThemeCategory, themeId: string) =>
+    setParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.set("kind", cat.kind);
+        next.set("theme", themeId);
+        return next;
+      },
+      { replace: true }
+    );
+
   return (
     <div className="relative">
       {!embedded && (
@@ -111,7 +139,10 @@ export default function Demo() {
         </div>
       )}
 
-      <MenuPage demo={data} />
+      {!framed && <DemoPicker category={category} theme={shownTheme} onPick={pick} />}
+
+      {/* منيو نوعٍ آخر شجرةٌ جديدة: سلّةٌ وتصنيفٌ مفتوح من منيو المخبز لا يبقيان في منيو البحري. */}
+      <MenuPage key={kind ?? "restaurant"} demo={data} />
     </div>
   );
 }

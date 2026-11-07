@@ -35,6 +35,8 @@ import { CURRENCY, CURRENCY_CODE, PLAN, PLANS, effectiveMonthly, type BillingCyc
 import { cn, formatPrice } from "@/lib/utils";
 import { Icon, type IconName } from "@/lib/icons";
 import { ALL_THEMES } from "@/lib/themes";
+import { fillColumns, themesOf, type ThemeCategoryId } from "@/lib/themeCategories";
+import { ThemeCategoryTabs } from "@/components/ThemeCategoryTabs";
 import { CTA_PRIMARY, CTA_SECONDARY, PRINT_DPI, THEMES_LABEL } from "@/lib/facts";
 import { absoluteUrl, useJsonLd, useSeo } from "@/lib/seo";
 import { SEGMENT_LINKS, segmentPath } from "@/lib/segmentLinks";
@@ -151,10 +153,18 @@ function SectionHead({ title, sub }: { title: ReactNode; sub?: string }) {
   );
 }
 
+/** أصناف الأعمدة نصوصاً كاملة — Tailwind لا يرى صنفاً يُركَّب من رقم. */
+const GALLERY_SM = { 2: "sm:grid-cols-2", 3: "sm:grid-cols-3" } as const;
+const GALLERY_LG = { 3: "lg:grid-cols-3", 4: "lg:grid-cols-4" } as const;
+
 export default function Landing() {
   const [cycle, setCycle] = useState<BillingCycle>("monthly");
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [brand, setBrand] = useState<Brand>(DEFAULT_BRAND);
+  // معرض الطوابع يفتح على «الكل» — الزائر لم يقل بعدُ أيّ مطعمٍ مطعمه.
+  const [galleryCat, setGalleryCat] = useState<ThemeCategoryId | null>(null);
+  const gallery = themesOf(galleryCat, ALL_THEMES);
+  const galleryRail = useRef<HTMLDivElement>(null);
   const hero = usePassed<HTMLElement>();
   const builder = useRef<HTMLDivElement>(null);
   const trialDaysLabel = daysLabel(useTrialDays());
@@ -336,10 +346,34 @@ export default function Landing() {
             title={`${THEMES_LABEL} — اختر ما يشبه مكانك`}
             sub="كلٌّ منها تصميمٌ كامل يلبس شعارك ولون علامتك، وتحته الأماكن التي يناسبها. اضغط أيّها لتراه على منيوك أعلاه."
           />
-          {/* أربعة على الحاسوب: عشرون صفوفٌ تامّة في الاثنين والأربعة — والثلاثة (للثمانية
-              عشر) كانت ستترك «جمر» و«ريحان» وحدهما في الصفّ الأخير. */}
-          <div className="-mx-5 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-3 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-4">
-            {ALL_THEMES.map((t, i) => (
+          {/* أقسامٌ حسب نوع المطعم (`lib/themeCategories.ts`) — الشريط نفسه الذي في اللوحة
+              و`/demo`. والقسم يُبدَّل في مكانه: لا تمرير، والبطاقات تنكشف كما انكشف القسم. */}
+          <ThemeCategoryTabs
+            value={galleryCat}
+            onChange={(id) => {
+              setGalleryCat(id);
+              galleryRail.current?.scrollTo({ left: 0 });
+            }}
+            tone="ink"
+            label="الطوابع حسب نوع المطعم"
+            panelId="landing-themes"
+            className="-mx-5 mb-6 sm:mx-0"
+            listClassName="sm:mx-auto sm:max-w-3xl sm:justify-center"
+          />
+          {/* الأعمدة من عدد البطاقات (`fillColumns`): عشرون وأربعة ⇒ اثنان ثم أربعة، وثلاثة
+              ⇒ ثلاثة — لا طابعٌ وحيد في آخر صفّ. و`auto-rows-fr`: البطاقات كلّها بطولٍ واحد
+              لا صفّاً صفّاً. */}
+          <div
+            ref={galleryRail}
+            id="landing-themes"
+            role="tabpanel"
+            className={cn(
+              "-mx-5 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-3 sm:mx-0 sm:grid sm:auto-rows-fr sm:overflow-visible sm:px-0 sm:pb-0",
+              GALLERY_SM[fillColumns(gallery.length, [2, 3] as const)],
+              GALLERY_LG[fillColumns(gallery.length, [4, 3] as const)]
+            )}
+          >
+            {gallery.map((t, i) => (
               <Reveal key={t.id} delay={(i % 4) * 70} className="w-[78%] shrink-0 snap-start sm:w-auto">
                 <button
                   type="button"

@@ -156,3 +156,65 @@ test("المنيو التجريبي: «نفد اليوم» يُرى في آخر 
 
   expect(crashes, crashes.join("\n")).toEqual([]);
 });
+
+/**
+ * شريط الأقسام في `/demo` (`DemoPicker`، ٠٧/١١): الزائر يختار نوع مطعمه فيتبدّل المنيو
+ * إلى منيو ذلك النوع وتتبدّل الطوابع المعروضة إلى طوابع قسمه — والاختيار في الرابط
+ * (`?kind=` و`?theme=` نفسيهما). وعلى ٣٢٠ لا يغطّي المنيو ولا يفيض، ويُطوى. وفي إطار
+ * البطل (`?embed=1`) لا يُرسم أصلاً.
+ */
+test("المنيو التجريبي: اختيار قسمٍ يبدّل المنيو وطوابعه، ويُطوى، ولا يظهر في الإطار", async ({ page }) => {
+  const { crashes } = watch(page);
+  await page.setViewportSize({ width: 320, height: 640 });
+  await page.goto("/demo");
+  await page.getByText("مطعم الديوان", { exact: false }).first().waitFor();
+
+  const picker = page.locator("[data-demo-picker]");
+  // بلا معامل: لا قسم مختار، ولا صفّ طوابع.
+  await expect(picker.getByRole("tab", { selected: true })).toHaveCount(0);
+  await expect(picker.getByRole("group")).toHaveCount(0);
+
+  await picker.getByRole("tab", { name: "بحري" }).click();
+  await expect(page).toHaveURL(/kind=seafood/);
+  await expect(page.getByText("مطعم شاطئ النورس", { exact: false }).first()).toBeVisible();
+  await expect(page.getByText("مطعم الديوان", { exact: false })).toHaveCount(0);
+  const themes = picker.getByRole("group", { name: "طوابع «بحري»" });
+  await expect(themes.getByRole("button")).toHaveText(["مرفأ", "عصري", "فاخر"]);
+  await expect(themes.getByRole("button", { name: "مرفأ" })).toHaveAttribute("aria-pressed", "true");
+
+  // طابعٌ آخر من القسم: المنيو نفسه بلباسٍ آخر.
+  await themes.getByRole("button", { name: "عصري" }).click();
+  await expect(page).toHaveURL(/theme=modern/);
+  await expect(themes.getByRole("button", { name: "عصري" })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByText("مطعم شاطئ النورس", { exact: false }).first()).toBeVisible();
+
+  // قسمٌ آخر: منيوه وطوابعه.
+  await picker.getByRole("tab", { name: "فطور" }).click();
+  await expect(page.getByText("فوّال باب مكة", { exact: false }).first()).toBeVisible();
+  await expect(picker.getByRole("group", { name: "طوابع «فطور»" }).getByRole("button")).toHaveText(["فوّال", "دكّان", "فرن"]);
+
+  // لا يغطّي المنيو: في مجرى الصفحة قبل ترويسته، ولا فيض أفقيّ على ٣٢٠.
+  const pickerBox = (await picker.boundingBox())!;
+  const nameBox = (await page.getByText("فوّال باب مكة", { exact: false }).first().boundingBox())!;
+  expect(nameBox.y).toBeGreaterThanOrEqual(pickerBox.y + pickerBox.height);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+
+  // يُطوى سطراً واحداً.
+  await picker.getByRole("button", { name: "اطوِ" }).click();
+  await expect(picker.getByRole("tablist")).toHaveCount(0);
+  expect((await picker.boundingBox())!.height).toBeLessThanOrEqual(48);
+  await picker.getByRole("button", { name: "غيّر" }).click();
+  await expect(picker.getByRole("tab", { name: "فطور" })).toHaveAttribute("aria-selected", "true");
+
+  // `?theme=` وحده يعمل كما كان، ويُضيء قسمه.
+  await page.goto("/demo?theme=harbor");
+  await expect(page.getByText("مطعم شاطئ النورس", { exact: false }).first()).toBeVisible();
+  await expect(picker.getByRole("tab", { name: "بحري" })).toHaveAttribute("aria-selected", "true");
+
+  // إطار البطل: لا شريط.
+  await page.goto("/demo?embed=1");
+  await page.getByText("مطعم الديوان", { exact: false }).first().waitFor();
+  await expect(picker).toHaveCount(0);
+
+  expect(crashes, crashes.join("\n")).toEqual([]);
+});
