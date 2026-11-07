@@ -13,7 +13,8 @@
  * لا أنماط**: لا تفعل شيئاً إلا في طابعٍ يقرؤها (`m-skin-*`).
  *
  * رموز مسببات الحساسية والسعرات موجودة في التخطيطات الثلاثة: ميزة قائمة لا
- * يجوز أن تختفي لأن التاجر بدّل شكل منيوه.
+ * يجوز أن تختفي لأن التاجر بدّل شكل منيوه. وكذلك **علامة الملح** (`SaltMark`)
+ * في أوّل الاسم في التخطيطات الأربعة — وسمٌ نظاميّ لا زينة.
  *
  * والطبق **النافد** (`available === false`) يُرسم في التخطيطات كلّها: شارة
  * «نفد اليوم» بشكل الطابع (`.m-soldout`)، وصورته وحدها باهتة (`[data-soldout]
@@ -27,6 +28,7 @@ import type { Dish } from "@/lib/types";
 import { cn, formatPrice } from "@/lib/utils";
 import { Icon } from "@/lib/icons";
 import { isSoldOut, soldOutLabel } from "@/lib/soldOut";
+import { isHighSodium } from "@/lib/nutrition";
 import { DishArtwork } from "./DishArtwork";
 // ⚠️ يُستورد لا يُكتب: كان معرَّفاً هنا نسخةً ثانية من ثابت `chrome.tsx` نفسه.
 import { nameFont } from "./chrome";
@@ -81,6 +83,47 @@ function NameText({ dish, en, star, className }: { dish: Dish; en: boolean; star
 }
 function desc(d: Dish, en: boolean): string | null {
   return en && d.description_en ? d.description_en : d.description;
+}
+
+/**
+ * علامة الملح على البطاقة — لائحة الهيئة: «يُوضع الوسم واضحًا بحجم ولون بارز
+ * بجانب الأصناف التي تتجاوز كمية الملح فيها 5 جرام (ما يعادل 2000 ملليجرام
+ * صوديوم)» (https://www.sfda.gov.sa/ar/regulations/19819).
+ *
+ * كانت في نافذة الطبق وحدها، وعبارتها في ذيل المنيو بجانب أيقونتها — فيقرأ
+ * الزبون العبارة ولا يجد العلامة على صنف.
+ *
+ * - **الشرط** `isHighSodium(sodium_mg)` — شرط عبارة الذيل نفسه
+ *   (`needsSaltStatement`): لا عبارة بلا صنفٍ موسوم، ولا صنفٌ موسوم بلا عبارة.
+ * - **الأيقونة** `warn` نفسها التي بجانب العبارة وفي النافذة، فيربطها الزبون بها.
+ * - **في أوّل الاسم لا آخره**: `line-clamp-2` يقصّ آخر الاسم الطويل، فعلامةٌ بعده
+ *   تُقصّ معه — والنجمة تحتمل ذلك، والوسم النظامي لا. وأوّل الاسم أوّل ما يُقرأ.
+ * - **اللون** حبّةٌ بـ`--m-accent` وأيقونتها بـ`--m-on-accent`: الزوج الذي يحرس
+ *   `invariants.test.ts` تباينه ≥ ٤٫٥ في كل طابع، ويحلّه `bestOnAccent` للون علامة
+ *   التاجر (القاعدة ز). لا لون مضمَّن غيرهما، فتعمل على الطوابع كلّها بلا سطر CSS.
+ * - **بالـem**: أكبر من حرف الاسم بنحو ثلثه أيّاً كان خطّ الطابع وحجمه، وأصغر من
+ *   سطره (`1lh` = ‎1.375em) فلا تطول بطاقةٌ موسومة عن جاراتها.
+ * - ⚠️ **`align-top` في وسط السطر، لا `align-middle`**: «الوسط» يُحسب من خطّ القاعدة
+ *   وارتفاع حرف الخطّ، فكانت تعلو سطرها ١٫٦px بخطّ Tajawal (الفاتورة · دكّان ·
+ *   مرفأ) فيقصّ `line-clamp` رأسها في الشبكة والعرض. أعلى السطر ثابتٌ في كل خطّ،
+ *   والهامش `(1lh − 1.3em) / 2` يتوسّطه (ومتصفّحٌ بلا `lh` يُسقطه فتلتصق بأعلاه).
+ * - **بلا كلمة ظاهرة**: كلمةٌ تأخذ نصف السطر الأوّل من بطاقة الشبكة على ٣٢٠
+ *   فيُقصّ الاسم؛ ومعنى الرمز في الذيل. والقارئ الآلي يسمع «عالي الملح».
+ */
+function SaltMark({ en }: { en: boolean }) {
+  const label = en ? "High in salt" : "عالي الملح";
+  return (
+    <span
+      data-salt-mark=""
+      role="img"
+      aria-label={label}
+      title={label}
+      className="m-salt me-[0.3em] mt-[calc((1lh_-_1.3em)/2)] inline-flex size-[1.3em] shrink-0 items-center justify-center rounded-[0.3em] align-top [&>svg]:size-[0.95em]"
+      style={{ background: "var(--m-accent)", color: "var(--m-on-accent)" }}
+    >
+      <Icon name="warn" size={14} strokeWidth={2.2} />
+    </span>
+  );
 }
 
 /**
@@ -415,6 +458,7 @@ export function DishCard({
   };
   const radius = imageRadius(imageShape);
   const caffeine = design.skin === "roastery" ? <CaffeineGauge dish={dish} en={en} /> : null;
+  const salt = isHighSodium(dish.sodium_mg ?? null) ? <SaltMark en={en} /> : null;
 
   /* ── قائمة رأسية أنيقة ─────────────────────────────────────────────── */
   /*
@@ -448,6 +492,7 @@ export function DishCard({
               className="m-name min-w-0 text-base font-bold leading-snug @max-[16rem]:basis-full"
               style={{ color: "var(--m-text)", ...nameFont }}
             >
+              {salt}
               <NameText dish={dish} en={en} star={star} className="ms-1 inline-block align-[-1px]" />
             </span>
             {/* الخط النقطي يقود العين من الاسم إلى السعر — تقليد المنيوهات الراقية.
@@ -544,6 +589,7 @@ export function DishCard({
             className={cn(NAME_2_LINES, "m-name text-base font-bold leading-snug")}
             style={{ color: "var(--m-text)", ...nameFont }}
           >
+            {salt}
             <NameText dish={dish} en={en} star={star} className="ms-0.5 mb-0.5 inline-block align-middle" />
           </p>
           {showDesc && (
@@ -600,6 +646,7 @@ export function DishCard({
           className={cn(NAME_2_LINES, "m-name text-sm font-bold leading-snug")}
           style={{ color: "var(--m-text)", ...nameFont }}
         >
+          {salt}
           <NameText dish={dish} en={en} star={star} className="ms-0.5 mb-0.5 inline-block align-middle" />
         </p>
         {showDesc && (
