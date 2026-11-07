@@ -8,7 +8,7 @@
  */
 import { useState } from "react";
 import { DESIGN_THEMES, type MenuTheme } from "@/lib/themes";
-import { cafeFlavor, rankThemes, type CafeFlavor } from "@/lib/themeSuggest";
+import { POPULAR_CAFE, cafeFlavor, rankThemes, type CafeFlavor } from "@/lib/themeSuggest";
 import { categoryById, categoryForType, fillColumns, themesOf, type ThemeCategoryId } from "@/lib/themeCategories";
 import { cn } from "@/lib/utils";
 
@@ -27,7 +27,9 @@ export function useThemeOrder(rawType: string | null | undefined) {
     setCategory(categoryForType(rawType, f));
   };
   // مفتاح الصفّ نفسه لغير الكافيه: النوع، أو صفّه الفرعيّ («مخبز ومعجّنات» · «فطور شعبي»).
-  const typeLabel = order.isCafe ? (flavor === "popular" ? "كافيه شعبي" : "كافيه مختصّ") : order.key;
+  // وللكافيه نكهته — إلا صفّ قهوةٍ ذكره النصّ («قهوة عربية» · «قهوة مختصّة»، ٠٧/١١) فاسمه.
+  const cafeRow = order.key === "كافيه" || order.key === POPULAR_CAFE;
+  const typeLabel = order.isCafe && cafeRow ? (flavor === "popular" ? "كافيه شعبي" : "كافيه مختصّ") : order.key;
   // داخل القسم ترتيب المالك؛ وفي «الكل» ترتيب نوع النشاط.
   const visible = category ? themesOf(category, DESIGN_THEMES) : order.ordered;
   return { ...order, flavor, setFlavor, typeLabel, home, category, setCategory, visible };

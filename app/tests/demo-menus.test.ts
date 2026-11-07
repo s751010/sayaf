@@ -54,6 +54,18 @@ describe("demoMenus", () => {
     expect(dishes.some((d) => d.available === false)).toBe(true);
   });
 
+  it.each([
+    // ٠٧/١١: محلّ القهوة السعودية والإسبريسو بار — الكافيين على كلّ مشروب قهوة.
+    ["qahwa", ["القهوة السعودية"]],
+    ["espresso", ["إسبريسو", "بالحليب", "باردة"]],
+  ] as const)("منيو «%s»: الكافيين على كلّ مشروب قهوة، وصنفٌ نافد", (kind, cats) => {
+    const { dishes } = demoData(kind);
+    const coffee = dishes.filter((d) => (cats as readonly string[]).includes(d.category ?? ""));
+    expect(coffee.length).toBeGreaterThan(3);
+    for (const d of coffee) expect(d.caffeine_mg, d.name).not.toBeNull();
+    expect(dishes.some((d) => d.available === false)).toBe(true);
+  });
+
   it("منيو البرجر: الوجبة أرخص من أجزائها، وسعراتها وصوديومها مجموع أجزائها", () => {
     const { dishes } = demoData("burger");
     const by = (id: string) => dishes.find((d) => d.id === id)!;
@@ -74,6 +86,9 @@ describe("demoMenus", () => {
     // ٠٧/١١: «المشكّل» حصّةٌ من كلّ سيخ، و«عرض الاثنين» مارغريتا وأرابياتا وخبزٌ بالثوم.
     ["grill", "g5", [["g1", 1], ["g2", 1], ["g3", 1]]],
     ["pizza", "p6", [["p1", 1], ["p7", 1], ["p10", 1]]],
+    // ٠٧/١١: «ضيافة المجلس» دلّةٌ صغيرة وسكري ولقيمات، و«عرض الصباح» فلات وايت وكوكيز.
+    ["qahwa", "a6", [["a1", 1], ["a7", 1], ["a10", 1]]],
+    ["espresso", "e15", [["e5", 1], ["e12", 1]]],
   ] as const)("«%s»: «%s» أرخص من أجزائه، وسعراته وصوديومه مجموعها", (kind, combo, parts) => {
     const { dishes } = demoData(kind);
     const by = (id: string) => dishes.find((d) => d.id === id)!;
@@ -97,6 +112,11 @@ describe("demoMenus", () => {
     // ٠٧/١١: «جمر» و«ريحان» على منيويهما — و«فاخر» (شارته الأولى «مشويات») على الديوان كما كان.
     expect(kindOf("grill")).toBe("grill");
     expect(kindOf("pizza")).toBe("pizza");
+    // ٠٧/١١: «دلّة» و«باريستا» على منيويهما — و«لوحة حروف» و«عصري» تبدّلت شارتاهما وبقيا كما كانا.
+    expect(kindOf("dallah")).toBe("qahwa");
+    expect(kindOf("barista")).toBe("espresso");
+    expect(kindOf("letterboard")).toBe("cafe");
+    expect(kindOf("modern")).toBe("juice");
     expect(kindOf("editorial")).toBe("sweets");
     expect(kindOf("patisserie")).toBe("sweets");
     expect(kindOf("najdi")).toBe("shaabi");
@@ -105,7 +125,7 @@ describe("demoMenus", () => {
     // ولكلّ طابعٍ منيوٌ موجود — لا معاينة على بيانات ناقصة.
     for (const t of ALL_THEMES) expect(isDemoKind(demoKindForSuits(t.suits, t.id)), t.id).toBe(true);
     // والطابع الجديد يُعاين على منيوٍ طابعُه هو نفسه.
-    for (const id of ["harbor", "patisserie", "juice", "burger", "bakery", "breakfast", "grill", "pizza"]) {
+    for (const id of ["harbor", "patisserie", "juice", "burger", "bakery", "breakfast", "grill", "pizza", "dallah", "barista"]) {
       expect(demoData(kindOf(id)).menus[0].theme).toBe(id);
     }
   });

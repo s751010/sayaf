@@ -60,7 +60,7 @@ describe("الأقسام والطوابع", () => {
   });
 
   it("`themesOf` يحفظ ترتيب المالك، و«الكل» يعيد الكلّ كما هو", () => {
-    expect(themesOf("cafe", DESIGN_THEMES).map((t) => t.id)).toEqual(["roastery", "letterboard", "editorial", "modern"]);
+    expect(themesOf("cafe", DESIGN_THEMES).map((t) => t.id)).toEqual(["roastery", "barista", "dallah", "letterboard", "editorial", "modern"]);
     expect(themesOf(null, DESIGN_THEMES)).toEqual(DESIGN_THEMES);
     expect(categoryById("nope")).toBeNull();
   });
@@ -85,6 +85,10 @@ describe("قسم التاجر من نوع نشاطه — مفردات `themeSugg
     ["كافيه", "cafe"],
     ["محمصة قهوة مختصة", "cafe"],
     ["مقهى شعبي", "shaabi"],
+    // ٠٧/١١: صفّا القهوة على رفّ المقاهي.
+    ["قهوة عربية", "cafe"],
+    ["خولاني", "cafe"],
+    ["إسبريسو بار", "cafe"],
     ["مخبز وحلويات", "bakery"],
     ["مخبز تميس", "bakery"],
     ["فول وتميس", "breakfast"],
@@ -128,6 +132,9 @@ describe("`/demo`: القسم من `?kind=` و`?theme=` — ولا يغيّر م
     // `?kind=` وحده: طابع منيو النوع.
     ["sweets", "patisserie", "bakery"],
     ["truck", "neon", "fast"],
+    // ٠٧/١١: طابعا القهوة على منيويهما ⇒ رفّ المقاهي.
+    [demoKindForSuits(ALL_THEMES.find((t) => t.id === "dallah")!.suits, "dallah"), "dallah", "cafe"],
+    [demoKindForSuits(ALL_THEMES.find((t) => t.id === "barista")!.suits, "barista"), "barista", "cafe"],
   ] as const)("kind=%s theme=%s ⇒ %s", (kind, theme, cat) => {
     expect(demoCategoryOf(kind, theme)).toBe(cat);
   });

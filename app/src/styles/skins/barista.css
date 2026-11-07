@@ -1,0 +1,509 @@
+/*
+ * ══ باريستا — إسبريسو بار (٢٠٢٦/١١/٠٧) ══════════════════════════════════════════
+ * الطابع الثاني والعشرون. آلة إسبريسو من الأمام: جسمٌ مدهونٌ بلون العلامة يلمع بإطارٍ من
+ * ستيل، وشعارك وجهُ عدّاد ضغطها، ورأسا تحضيرٍ يصبّان في فنجانين على صينيّة التقطير، وذراع
+ * البخار ينفث، وفناجين تُدفّأ على ظهرها، والآلة على كاونترٍ من السنديان فوق أرضيّة تيرازو.
+ * والأقسام أكوابٌ ورقية بختم المحلّ والعدد تذكرة طلب، والسعر على حلقة فنجانٍ تركها على
+ * الورق، والطبق بلا صورة **لاتيه من فوق** ورسمته رمزُ الطبق برغوة الحليب.
+ * الترويسة وعنوان القسم في `components/menu/heads/BaristaHead.tsx`.
+ *
+ * ⚠️ مستورَدٌ من **رأس** `menu-skins.css` — فكلّ انتقائيٍّ هنا يبدأ بـ
+ * `.m-skin-barista` ليغلب نظيره العامّ بالخصوصية لا بالترتيب.
+ *
+ * ما يتبع العلامة: دهان الآلة (`--m-accent`)، وختم الكوب والسعر (`--m-accent-ink`)، وطلاء
+ * الفنجان في رسم الطبق، والأزرار. وما لا يتبعها خامة: الستيل والخزف والقهوة والسنديان
+ * والتيرازو. والنصّ الوحيد على خامةٍ عددُ القسم على تذكرة الطلب: حبر الطابع على أبيض.
+ */
+.m-skin-barista {
+  display: flow-root;
+  --m-br-steel: #d5d9dc;
+  --m-br-steel-2: #868d93;
+  --m-br-chrome: linear-gradient(180deg, #ffffff, #d9dde0 40%, #9aa1a7 70%, #e8ebed);
+  --m-br-crema: #a8683a;
+  --m-br-foam: #fff6e6;
+  /* الزخرفة: تيرازو — رقائقُ حجرٍ مضلّعة بثلاثة ألوانٍ متناثرة على بلاطةٍ واسعة. */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='170' height='160'%3E%3Cg fill-opacity='.2'%3E%3Cpath fill='%23b9a48e' d='M14 18l7-3 3 6-6 4z'/%3E%3Cpath fill='%238f9a98' d='M92 12l6 1-1 6-7-1z'/%3E%3Cpath fill='%23c99a7a' d='M140 40l5 4-4 5-5-3z'/%3E%3Cpath fill='%238f9a98' d='M40 70l8 2-3 6-6-2z'/%3E%3Cpath fill='%23b9a48e' d='M118 86l4-4 5 3-3 6z'/%3E%3Cpath fill='%23c99a7a' d='M70 124l6-2 2 5-6 3z'/%3E%3Cpath fill='%23b9a48e' d='M154 136l5 2-2 5-5-2z'/%3E%3Cpath fill='%238f9a98' d='M20 142l4-3 4 4-4 3z'/%3E%3C/g%3E%3Cg fill='%23a39686' fill-opacity='.16'%3E%3Ccircle cx='60' cy='30' r='1.3'/%3E%3Ccircle cx='128' cy='18' r='1'/%3E%3Ccircle cx='86' cy='62' r='1.2'/%3E%3Ccircle cx='10' cy='96' r='1'/%3E%3Ccircle cx='150' cy='104' r='1.3'/%3E%3Ccircle cx='104' cy='146' r='1'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 170px 160px;
+}
+
+/* ── الجدار: ضوءٌ أبيض فوق الآلة ── */
+.m-skin-barista .m-br-wall {
+  background: linear-gradient(180deg, #ebe7df, color-mix(in srgb, #ebe7df 35%, var(--m-bg)) 60%, var(--m-bg));
+}
+.m-skin-barista .m-br-light {
+  pointer-events: none;
+  background: radial-gradient(50% 46% at 50% 38%, rgba(255, 255, 255, 0.85), transparent 72%);
+}
+
+/* ── الآلة ── */
+/* الحجرة تحت الجسم: لوحٌ خلفيٌّ داكن يبرز عليه الفنجانان والقهوة. */
+.m-skin-barista .m-br-machine::before {
+  content: "";
+  position: absolute;
+  inset-inline: 3.5%;
+  top: 7.5rem;
+  bottom: 0.7rem;
+  border-radius: 0 0 4px 4px;
+  background: linear-gradient(180deg, #2f3337, #1d2023);
+  box-shadow: inset 0 6px 8px -4px rgba(0, 0, 0, 0.7);
+}
+/* فناجين مقلوبة تُدفّأ على الظهر. */
+.m-skin-barista .m-br-warm {
+  clip-path: polygon(16% 0, 84% 0, 100% 100%, 0 100%);
+  background: linear-gradient(90deg, #e3ded5, #ffffff 40%, #d6d0c6);
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.12);
+}
+.m-skin-barista .m-br-rail {
+  border-radius: 4px;
+  background: var(--m-br-chrome);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+/* الجسم: دهانٌ بلون العلامة بين شريطَي ستيل أعلى وأسفل وحافّتين جانبيّتين. */
+.m-skin-barista .m-br-body {
+  border-radius: 18px 18px 6px 6px;
+  background:
+    linear-gradient(180deg, #f4f6f7, #b9bfc4) 0 0 / 100% 9px no-repeat,
+    linear-gradient(180deg, #e9ecee, #8d949a) 0 100% / 100% 13px no-repeat,
+    linear-gradient(90deg, #c9ced2, #f2f4f5 40%, #9aa1a7) 0 0 / 8px 100% no-repeat,
+    linear-gradient(90deg, #9aa1a7, #f2f4f5 60%, #c9ced2) 100% 0 / 8px 100% no-repeat,
+    var(--m-accent);
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.18),
+    0 14px 20px -12px rgba(20, 14, 10, 0.55);
+}
+/* اللمعة: ضوءٌ من فوق، وخطّ انعكاسٍ مائل — دهانٌ مخبوزٌ لامع لا لونٌ مسطّح. */
+.m-skin-barista .m-br-gloss {
+  border-radius: inherit;
+  background:
+    linear-gradient(104deg, transparent 0 14%, rgba(255, 255, 255, 0.32) 17%, rgba(255, 255, 255, 0.06) 22%, transparent 26%),
+    linear-gradient(104deg, transparent 0 70%, rgba(255, 255, 255, 0.14) 72%, transparent 76%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.2), transparent 38%, rgba(0, 0, 0, 0.2));
+}
+/* عدّاد الضغط: إطارٌ من ستيل والتدريج عليه، ووجهه شعارك. */
+.m-skin-barista .m-br-gauge {
+  background: radial-gradient(
+    circle closest-side,
+    #fbfaf7 0 74%,
+    #8a9096 75%,
+    #f6f7f8 78%,
+    #cfd3d7 86%,
+    #8a9096 95%,
+    #e6e8ea 98%,
+    #6f757b 100%
+  );
+  box-shadow:
+    0 0 0 2px rgba(0, 0, 0, 0.25),
+    0 6px 10px -3px rgba(0, 0, 0, 0.5);
+}
+.m-skin-barista .m-br-gauge > span:last-child {
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.18);
+}
+/* المؤشّر: إبرةٌ حمراء على الإطار وحده — يدور حول المركز، ويستقرّ على ضغط الاستخلاص. */
+.m-skin-barista .m-br-needle {
+  transform: rotate(52deg);
+}
+.m-skin-barista .m-br-needle::before {
+  content: "";
+  position: absolute;
+  left: calc(50% - 1.5px);
+  top: 1px;
+  width: 3px;
+  height: 0.66rem;
+  border-radius: 2px;
+  background: #c8321e;
+  box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.35);
+}
+/* رأسا التحضير: أسطوانة ستيل، وسلّة المقبض تحتها، والمقبض خشبٌ داكن يميل إلى الخارج. */
+.m-skin-barista .m-br-group {
+  top: 7.45rem;
+  width: 17%;
+  height: 2rem;
+}
+.m-skin-barista .m-br-group-start {
+  inset-inline-start: 13%;
+}
+.m-skin-barista .m-br-group-end {
+  inset-inline-end: 13%;
+}
+.m-skin-barista .m-br-head {
+  height: 1rem;
+  border-radius: 0 0 7px 7px;
+  background: linear-gradient(90deg, #6f757b, #e9ecee 30%, #ffffff 42%, #b7bcc1 70%, #6c7277);
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.4);
+}
+.m-skin-barista .m-br-basket {
+  top: 0.95rem;
+  inset-inline: -7%;
+  height: 0.6rem;
+  border-radius: 2px 2px 9px 9px;
+  background: linear-gradient(90deg, #3b4044, #a7adb2 38%, #e4e7e9 46%, #575c61);
+}
+.m-skin-barista .m-br-handle {
+  top: 1.02rem;
+  width: 2.3rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #4a3427, #24170f);
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.35);
+}
+/* المقبض إلى الخارج: يمين الرأس الأيمن ويسار الأيسر، مائلاً إلى الأسفل. */
+.m-skin-barista .m-br-group-start .m-br-handle {
+  inset-inline-start: -1.85rem;
+  rotate: 16deg;
+}
+.m-skin-barista .m-br-group-end .m-br-handle {
+  inset-inline-end: -1.85rem;
+  rotate: -16deg;
+}
+[dir="ltr"].m-skin-barista .m-br-group-start .m-br-handle {
+  rotate: -16deg;
+}
+[dir="ltr"].m-skin-barista .m-br-group-end .m-br-handle {
+  rotate: 16deg;
+}
+/* الفنجانان تحت الرأسين على الصينيّة، وخيطا القهوة من السلّة إلى وجه الفنجان. */
+.m-skin-barista .m-br-cup {
+  top: 9.45rem;
+  width: 2.2rem;
+  height: 1.55rem;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.45));
+}
+.m-skin-barista .m-br-cup-start {
+  inset-inline-start: calc(21.5% - 1.1rem);
+}
+.m-skin-barista .m-br-cup-end {
+  inset-inline-end: calc(21.5% - 1.1rem);
+}
+.m-skin-barista .m-br-stream {
+  bottom: calc(100% - 0.3rem);
+  width: 2px;
+  height: 0.8rem;
+  border-radius: 1px;
+  background: linear-gradient(180deg, #5a2e14, #8a4f26 70%, #b0703e);
+  transform-origin: 50% 0;
+}
+.m-skin-barista .m-br-stream-1 {
+  left: 38%;
+}
+.m-skin-barista .m-br-stream-2 {
+  left: 52%;
+}
+/* ذراع البخار: أنبوبٌ من ستيل على جانب الآلة، وطرفه ينفث. */
+.m-skin-barista .m-br-wand {
+  inset-inline-end: -0.15rem;
+  top: 4.4rem;
+  width: 5px;
+  height: 4.9rem;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #7d848a, #f4f6f7 45%, #9aa1a7);
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.3);
+  rotate: 9deg;
+}
+[dir="ltr"].m-skin-barista .m-br-wand {
+  rotate: -9deg;
+}
+.m-skin-barista .m-br-puff {
+  left: 50%;
+  bottom: -0.4rem;
+  width: 0.9rem;
+  height: 0.9rem;
+  margin-left: -0.45rem;
+  background: rgba(255, 255, 255, 0.75);
+  filter: blur(3px);
+  opacity: 0.6;
+  pointer-events: none;
+}
+.m-skin-barista .m-br-puff-1 {
+  bottom: -0.9rem;
+  margin-left: -0.9rem;
+  opacity: 0.45;
+}
+.m-skin-barista .m-br-puff-2 {
+  bottom: -1.2rem;
+  margin-left: 0;
+  opacity: 0.35;
+}
+/* صينيّة التقطير: شبكةٌ من ستيل. */
+.m-skin-barista .m-br-tray {
+  border-radius: 3px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.55), transparent 40%),
+    repeating-linear-gradient(90deg, #5d6268 0 2px, #dfe2e4 2px 5px);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.25),
+    0 4px 5px -2px rgba(0, 0, 0, 0.45);
+}
+/* الكاونتر: سنديانٌ فاتح بعروقه، وظلّه على الأرضية. */
+.m-skin-barista .m-br-counter {
+  background:
+    repeating-linear-gradient(90deg, rgba(140, 95, 50, 0.1) 0 2px, transparent 2px 9px, rgba(140, 95, 50, 0.05) 9px 12px, transparent 12px 23px),
+    linear-gradient(180deg, #f0dcb6 0 2px, #e2c596 2px 55%, #c9a774);
+  box-shadow: 0 8px 12px -7px rgba(60, 40, 20, 0.45);
+}
+
+/* صورة الغلاف: في إطارٍ من ستيل. */
+.m-skin-barista .m-br-window {
+  border-radius: 16px;
+  box-shadow:
+    0 0 0 3px var(--m-br-steel),
+    0 0 0 4px var(--m-br-steel-2),
+    0 14px 22px -14px rgba(20, 14, 10, 0.5);
+}
+
+/* ── عنوان القسم: كوبٌ ورقيّ بختم المحلّ، والاسم، وتذكرة الطلب ── */
+.m-skin-barista .m-br-paper {
+  filter: drop-shadow(0 3px 2px rgba(30, 20, 12, 0.22));
+}
+.m-skin-barista .m-br-rule {
+  background: color-mix(in srgb, var(--m-text) 20%, transparent);
+}
+/* تذكرة الطلب: ورقةٌ بيضاء بثلمتين على جانبيها، والعدد بحبر الطابع. */
+.m-skin-barista .m-br-ticket {
+  background: #ffffff;
+  color: var(--m-text);
+  border-radius: 3px;
+  box-shadow: 0 1px 2px rgba(30, 20, 12, 0.18);
+  -webkit-mask:
+    radial-gradient(circle 4px at 0 50%, transparent 96%, #000) left / 51% 100% no-repeat,
+    radial-gradient(circle 4px at 100% 50%, transparent 96%, #000) right / 51% 100% no-repeat;
+  mask:
+    radial-gradient(circle 4px at 0 50%, transparent 96%, #000) left / 51% 100% no-repeat,
+    radial-gradient(circle 4px at 100% 50%, transparent 96%, #000) right / 51% 100% no-repeat;
+  padding-inline: 0.85rem;
+}
+.m-skin-barista .m-br-photo {
+  padding: 4px;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 12px 20px -14px rgba(30, 20, 12, 0.55);
+}
+.m-skin-barista .m-br-photo .m-img {
+  border-radius: 12px;
+}
+
+/* ── السعر: حلقة فنجانٍ تركها على ورق المنيو، خلف الرقم ── */
+.m-skin-barista .m-card .m-price:not(.m-shine),
+.m-skin-barista .m-feature .m-price {
+  position: relative;
+  isolation: isolate;
+  display: inline-block;
+  width: fit-content;
+}
+.m-skin-barista .m-card .m-price:not(.m-shine)::before,
+.m-skin-barista .m-feature .m-price::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: -0.95em;
+  top: 42%;
+  width: 2.6em;
+  height: 2.6em;
+  translate: 0 -50%;
+  border-radius: 50%;
+  /* الحلقة لا تُغلق: الفنجان لم يكن ممتلئاً حتى حافّته — فيها فجوةٌ كما تتركها القهوة. */
+  -webkit-mask: conic-gradient(from 20deg, #000 0 250deg, transparent 275deg 315deg, #000 340deg);
+  mask: conic-gradient(from 20deg, #000 0 250deg, transparent 275deg 315deg, #000 340deg);
+  /* حلقتان متزحزحتان قليلاً: الفنجان رُفع ووُضع — لا دائرةٌ مرسومة بالفرجار. */
+  background:
+    radial-gradient(circle closest-side at 47% 53%, transparent 82%, rgba(122, 69, 36, 0.14) 86%, transparent 92%),
+    radial-gradient(circle closest-side, transparent 78%, rgba(122, 69, 36, 0.3) 82%, rgba(122, 69, 36, 0.12) 89%, transparent 94%);
+  rotate: -18deg;
+}
+
+/* ── الطبق بلا صورة: لاتيه من فوق ──
+   الأرضية كاونتر السنديان، والصحن **فنجانٌ على صحنه**: كريما الإسبريسو في قلبه، وجدارٌ
+   من خزفٍ أبيض، وطلاءٌ بلون العلامة على حافّته، والصحن الصغير تحته حلقةٌ بيضاء (`ring`)،
+   والأذن على جانبه. والرمز **رسمة اللاتيه** برغوة الحليب على الكريما. */
+.m-skin-barista .m-art {
+  --m-art-bg:
+    radial-gradient(58% 54% at 50% 48%, rgba(255, 250, 238, 0.55), transparent 74%),
+    repeating-linear-gradient(90deg, rgba(140, 95, 50, 0.07) 0 2px, transparent 2px 8px, rgba(140, 95, 50, 0.04) 8px 11px, transparent 11px 19px),
+    linear-gradient(180deg, #ecd8b4, #dcc095);
+  --m-art-plate: radial-gradient(
+    circle closest-side,
+    #c58a55 0,
+    var(--m-br-crema) 42%,
+    #7a4524 70%,
+    #5e321a 73%,
+    #f7f3ec 75% 85%,
+    #ffffff 86.5% 90%,
+    color-mix(in srgb, var(--m-accent) 82%, #ffffff) 91.5% 100%
+  );
+  --m-art-ring:
+    0 0 0 7px #fbf8f3,
+    0 0 0 8px rgba(60, 40, 25, 0.14);
+  --m-art-lift: 0 14px 16px -8px rgba(40, 25, 15, 0.42);
+  --m-art-well:
+    inset 0 0 0 2px rgba(255, 244, 226, 0.3),
+    inset 0 0 12px rgba(60, 28, 8, 0.4);
+  --m-art-mark: color-mix(in srgb, var(--m-accent) 10%, transparent);
+}
+/* رسمة اللاتيه برغوة الحليب — والأذن على جانب الفنجان فوق صحنه. */
+.m-skin-barista .m-art-plate {
+  position: relative;
+  --m-accent-ink: var(--m-br-foam);
+}
+.m-skin-barista .m-art-plate::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  inset-inline-end: -17%;
+  width: 22%;
+  height: 16%;
+  translate: 0 -50%;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ffffff, #e3ded5);
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.08),
+    0 3px 3px rgba(40, 25, 15, 0.2);
+}
+
+/* ── البطاقة والشرائح ── */
+.m-skin-barista .m-card,
+.m-skin-barista .m-feature {
+  --m-border: color-mix(in srgb, var(--m-text) 10%, transparent);
+}
+.m-skin-barista .m-chips > *,
+.m-skin-barista .m-tab {
+  border-radius: 999px;
+}
+/* زرّ الإضافة: حلقةٌ من ستيل حوله. */
+.m-skin-barista .m-add {
+  box-shadow:
+    0 0 0 2px var(--m-surface),
+    0 0 0 3.5px #b9bfc4,
+    0 4px 10px -3px rgba(30, 20, 12, 0.4);
+}
+
+/* «نفد اليوم»: مكتوبٌ بالقلم على شريطٍ أسود كما يُعلَّم على الكوب. */
+.m-skin-barista .m-soldout {
+  border-radius: 3px;
+  background: var(--m-text);
+  color: #ffffff;
+  transform: rotate(-3deg);
+}
+
+/* ── شاشات الطلب ── */
+.m-skin-barista .m-o-card {
+  border-radius: 18px;
+  box-shadow: 0 8px 18px -14px rgba(30, 20, 12, 0.5);
+}
+.m-skin-barista .m-o-cta {
+  border-radius: 999px;
+  box-shadow:
+    0 0 0 2px var(--m-surface),
+    0 0 0 3.5px #b9bfc4,
+    0 12px 20px -14px rgba(30, 20, 12, 0.7);
+}
+.m-skin-barista .m-o-field,
+.m-skin-barista .m-o-ghost,
+.m-skin-barista .m-o-opt,
+.m-skin-barista .m-o-soldout,
+.m-skin-barista .m-o-step,
+.m-skin-barista .m-o-chip {
+  border-radius: 14px;
+}
+.m-skin-barista .m-o-thumb {
+  border-radius: 12px;
+}
+
+/* ── الحركة: الآلة توضع، والمؤشّر يرتفع إلى ضغط الاستخلاص مرّة، والشوت يُسحب مرّتين في
+ * الفنجانين، وذراع البخار ينفث مرّتين، والكوب يُناوَل عبر الكاونتر عند دخول القسم، والنافذة
+ * تصعد كالرغوة — كلّها تنتهي. والإبرة على `transform` وحدها، والمقبض والذراع على `rotate`. */
+@media (prefers-reduced-motion: no-preference) {
+  .m-skin-barista .m-br-machine {
+    animation: m-br-set 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) 0.1s both;
+  }
+  .m-skin-barista .m-br-needle {
+    animation: m-br-swing 1.5s cubic-bezier(0.3, 1.4, 0.5, 1) 0.45s both;
+  }
+  .m-skin-barista .m-br-stream {
+    animation: m-br-pull 1.8s ease-in-out 0.9s 2 both;
+  }
+  .m-skin-barista .m-br-cup-end .m-br-stream {
+    animation-delay: 1.15s;
+  }
+  .m-skin-barista .m-br-puff {
+    animation: m-br-puff 1.7s ease-out 1.2s 2 both;
+  }
+  .m-skin-barista .m-br-puff-1 {
+    animation-delay: 1.45s;
+  }
+  .m-skin-barista .m-br-puff-2 {
+    animation-delay: 1.7s;
+  }
+  .m-skin-barista .m-sheet.anim-fade-up {
+    animation: m-br-foam 0.28s cubic-bezier(0.2, 0.9, 0.25, 1) backwards;
+  }
+  .m-skin-barista .m-card.m-surface:active,
+  .m-skin-barista .m-feature:active {
+    transform: translateY(1px) scale(0.99);
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    /* الكوب يُناوَل عبر الكاونتر حين يدخل القسم الشاشة. */
+    .m-skin-barista .m-cup-h .m-br-cupwrap {
+      animation: m-br-hand linear both;
+      animation-timeline: view();
+      animation-range: entry 10% cover 30%;
+    }
+    [dir="ltr"].m-skin-barista .m-cup-h .m-br-cupwrap {
+      animation-name: m-br-hand-ltr;
+    }
+  }
+}
+
+@keyframes m-br-set {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+@keyframes m-br-swing {
+  from {
+    transform: rotate(-128deg);
+  }
+}
+/* الشوت: الخيط ينزل من السلّة، ويبقى، ثم يعود للمرّة الثانية — ويستقرّ نازلاً. */
+@keyframes m-br-pull {
+  0% {
+    transform: scaleY(0);
+  }
+  30%,
+  100% {
+    transform: scaleY(1);
+  }
+}
+@keyframes m-br-puff {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.4);
+  }
+  40% {
+    opacity: 0.8;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-14px) scale(1.4);
+  }
+}
+@keyframes m-br-foam {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.985);
+  }
+}
+@keyframes m-br-hand {
+  from {
+    opacity: 0.35;
+    transform: translateX(-30px);
+  }
+}
+@keyframes m-br-hand-ltr {
+  from {
+    opacity: 0.35;
+    transform: translateX(30px);
+  }
+}

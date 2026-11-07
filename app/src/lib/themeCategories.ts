@@ -3,7 +3,7 @@
  *
  * ═══ لماذا ═══
  *
- * عشرون طابعاً في شبكةٍ واحدة تُقرأ كتالوجاً لا اختياراً: صاحب الفوّال يمرّر
+ * اثنان وعشرون طابعاً في شبكةٍ واحدة تُقرأ كتالوجاً لا اختياراً: صاحب الفوّال يمرّر
  * دفتر جلدٍ ومجلّة وكيس بنّ قبل أن يصل إلى صينيّته. والأقسام تختصر الطريق إلى
  * ثلاثةٍ أو أربعة تشبه مكانه، و«الكل» باقٍ بترتيب `themeSuggest` لمن أراد الكلّ.
  *
@@ -21,7 +21,7 @@
 import type { DemoKind } from "./demoMenus";
 import type { IconName } from "./icons";
 import { norm } from "./starterMenus";
-import { BAKERY, BREAKFAST, GRILL, PIZZA, POPULAR_CAFE, suggestionKey, type CafeFlavor } from "./themeSuggest";
+import { ARABIC_COFFEE, BAKERY, BREAKFAST, GRILL, PIZZA, POPULAR_CAFE, SPECIALTY, suggestionKey, type CafeFlavor } from "./themeSuggest";
 
 export type ThemeCategoryId =
   | "cafe" | "bakery" | "breakfast" | "fast" | "pizza"
@@ -39,18 +39,22 @@ export interface ThemeCategory {
   kind: DemoKind;
 }
 
-/** بترتيب المالك: الأقسام، وطوابع كلّ قسم. */
+/**
+ * بترتيب المالك: الأقسام، وطوابع كلّ قسم. و«باريستا» و«دلّة» (٠٧/١١) في المقاهي بعد بيتها
+ * «محمصة» — أشكال القهوة الثلاثة أوّلاً — و«دلّة» أيضاً في الشعبي (الكافيه الشعبي يُفتح عليه
+ * ومقترحه «دلّة») وفي «راقي ومناسبات» (القهوة العربية سيّدة المناسبات).
+ */
 export const THEME_CATEGORIES: readonly ThemeCategory[] = [
-  { id: "cafe", name: "مقاهي", nameEn: "Cafés", icon: "dallah", themes: ["roastery", "letterboard", "editorial", "modern"], kind: "cafe" },
+  { id: "cafe", name: "مقاهي", nameEn: "Cafés", icon: "dallah", themes: ["roastery", "barista", "dallah", "letterboard", "editorial", "modern"], kind: "cafe" },
   { id: "bakery", name: "مخابز وحلويات", nameEn: "Bakeries & sweets", icon: "croissant", themes: ["bakery", "patisserie", "letterboard"], kind: "bakery" },
   { id: "breakfast", name: "فطور", nameEn: "Breakfast", icon: "egg", themes: ["breakfast", "dukkan", "bakery"], kind: "breakfast" },
   { id: "fast", name: "وجبات سريعة", nameEn: "Fast food", icon: "burger", themes: ["burger", "neon", "receipt", "sticker"], kind: "burger" },
   { id: "pizza", name: "بيتزا وإيطالي", nameEn: "Pizza & Italian", icon: "pizza", themes: ["pizza", "editorial", "modern"], kind: "pizza" },
   { id: "grill", name: "مشاوي وشاورما", nameEn: "Grills & shawarma", icon: "skewer", themes: ["grill", "dark-gold", "asir"], kind: "grill" },
-  { id: "shaabi", name: "شعبي", nameEn: "Traditional", icon: "pot", themes: ["najdi", "dukkan", "breakfast", "asir"], kind: "shaabi" },
+  { id: "shaabi", name: "شعبي", nameEn: "Traditional", icon: "pot", themes: ["najdi", "dallah", "dukkan", "breakfast", "asir"], kind: "shaabi" },
   { id: "seafood", name: "بحري", nameEn: "Seafood", icon: "fish", themes: ["harbor", "modern", "dark-gold"], kind: "seafood" },
   { id: "juice", name: "عصائر", nameEn: "Juices", icon: "juice", themes: ["juice", "sticker", "neon"], kind: "juice" },
-  { id: "upscale", name: "راقي ومناسبات", nameEn: "Fine dining & occasions", icon: "sparkle", themes: ["dark-gold", "roshan", "editorial"], kind: "restaurant" },
+  { id: "upscale", name: "راقي ومناسبات", nameEn: "Fine dining & occasions", icon: "sparkle", themes: ["dark-gold", "roshan", "dallah", "editorial"], kind: "restaurant" },
 ];
 
 /** أقلّ ما يكون في قسم — قسمٌ بطابعين قائمةٌ لا رفّ. */
@@ -65,13 +69,16 @@ export function categoryById(id: string | null | undefined): ThemeCategory | nul
  * لمفتاحٍ بلا سطر)، و«مطعم» وحده `null`: هو سقوط `aliasType` لكلّ نصٍّ لا يُعرف
  * («مأكولات سعودية وعالمية» · `general`) — فلا نعرف نشاطه، فيفتح «الكل».
  *
- * والكافيه الشعبي ⇒ «شعبي» لا «مقاهي»: ترتيبه يبدأ بـ«نجدي» (`themeSuggest`)،
- * وشارة «يناسب نوع نشاطك» يجب أن تقع داخل القسم المفتوح.
+ * والكافيه الشعبي ⇒ «شعبي» لا «مقاهي»: ترتيبه يبدأ بـ«دلّة» (`themeSuggest`، ٠٧/١١ — كان
+ * «نجدي»)، و«دلّة» على رفّ الشعبي أيضاً؛ وشارة «يناسب نوع نشاطك» يجب أن تقع داخل القسم
+ * المفتوح. وصفّا القهوة («قهوة عربية» · «قهوة مختصّة») ⇒ «مقاهي».
  */
 export const CATEGORY_BY_KEY: Readonly<Record<string, ThemeCategoryId | null>> = {
   مطعم: null,
   كافيه: "cafe",
   [POPULAR_CAFE]: "shaabi",
+  [ARABIC_COFFEE]: "cafe",
+  [SPECIALTY]: "cafe",
   عصائر: "juice",
   "مطعم سريع": "fast",
   [PIZZA]: "pizza",

@@ -485,6 +485,67 @@ function pizza(ctx: Ctx, b: MotifBox, k: MotifInk): void {
   });
 }
 
+/** دلّة — صفُّ فناجين على الضلعين: فنجالٌ بلا أذن بالتمييز، وبين كلّ اثنين حبّة هيلٍ بالخافت. */
+function dallah(ctx: Ctx, b: MotifBox, k: MotifInk): void {
+  const room = b.reach - b.outer;
+  const s = Math.min(b.mm * 2.6, room * 0.6);
+  alongTopBottom(b, s * 1.7, (x, w, top) => {
+    const cx = x + w / 2;
+    const cy = top ? b.outer + room * 0.5 : b.H - b.outer - room * 0.5;
+    const i = Math.round((x - b.outer) / w);
+    if (i % 2) {
+      // حبّة الهيل: بيضويٌّ مائل.
+      ctx.fillStyle = k.muted;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, s * 0.32, s * 0.17, i % 4 === 1 ? -0.5 : 0.5, 0, Math.PI * 2);
+      ctx.fill();
+      return;
+    }
+    // الفنجال من جانبه: فمٌ عريض يضيق إلى قاعدةٍ صغيرة، وخطٌّ تحت الحافّة.
+    const h = s * 0.7;
+    const top0 = cy - h / 2;
+    ctx.fillStyle = k.accent;
+    ctx.beginPath();
+    ctx.moveTo(cx - s * 0.5, top0);
+    ctx.lineTo(cx + s * 0.5, top0);
+    ctx.quadraticCurveTo(cx + s * 0.44, top0 + h * 0.8, cx + s * 0.18, top0 + h * 0.86);
+    ctx.lineTo(cx + s * 0.2, top0 + h);
+    ctx.lineTo(cx - s * 0.2, top0 + h);
+    ctx.lineTo(cx - s * 0.18, top0 + h * 0.86);
+    ctx.quadraticCurveTo(cx - s * 0.44, top0 + h * 0.8, cx - s * 0.5, top0);
+    ctx.fill();
+    ctx.fillStyle = k.bg;
+    ctx.fillRect(cx - s * 0.42, top0 + h * 0.2, s * 0.84, b.mm * 0.22);
+  });
+}
+
+/** باريستا — حبّات بنٍّ على الضلعين بالتمييز والخافت بالتناوب، بشقّها في الوسط. */
+function barista(ctx: Ctx, b: MotifBox, k: MotifInk): void {
+  const room = b.reach - b.outer;
+  const s = Math.min(b.mm * 2.2, room * 0.55);
+  alongTopBottom(b, s * 1.6, (x, w, top) => {
+    const cx = x + w / 2;
+    const cy = top ? b.outer + room * 0.5 : b.H - b.outer - room * 0.5;
+    const i = Math.round((x - b.outer) / w);
+    const tilt = i % 2 ? -0.6 : 0.6;
+    ctx.fillStyle = i % 3 === 2 ? k.muted : k.accent;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, s * 0.36, s * 0.5, tilt, 0, Math.PI * 2);
+    ctx.fill();
+    // الشقّ: خطٌّ منحنٍ بلون الأرضية على طول الحبّة.
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(tilt);
+    ctx.strokeStyle = k.bg;
+    ctx.lineWidth = b.mm * 0.3;
+    ctx.beginPath();
+    ctx.moveTo(0, -s * 0.4);
+    ctx.bezierCurveTo(-s * 0.16, -s * 0.12, s * 0.16, s * 0.12, 0, s * 0.4);
+    ctx.stroke();
+    ctx.restore();
+  });
+}
+
 const MOTIFS: Record<MenuSkin, ((ctx: Ctx, b: MotifBox, k: MotifInk) => void) | null> = {
   gold: folio,
   receipt,
@@ -506,6 +567,8 @@ const MOTIFS: Record<MenuSkin, ((ctx: Ctx, b: MotifBox, k: MotifInk) => void) | 
   breakfast,
   grill,
   pizza,
+  dallah,
+  barista,
   // «لون علامتي» محايدٌ عمداً على الشاشة — وكذلك على الورق.
   store: null,
 };

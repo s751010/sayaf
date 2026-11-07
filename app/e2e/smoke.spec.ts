@@ -50,6 +50,11 @@ const PAGES = [
   { path: "/demo?kind=grill", anchor: "شاورما لحم", role: "text", label: "منيو المشاوي التجريبي" },
   { path: "/demo?theme=pizza", anchor: "بيتزيريا ريحانة", role: "text", label: "ريحان على منيو البيتزا" },
   { path: "/demo?kind=pizza", anchor: "مارغريتا", role: "text", label: "منيو البيتزا التجريبي" },
+  // ٠٧/١١: طابعا القهوة — «دلّة» على محلّ القهوة السعودية، و«باريستا» على الإسبريسو بار.
+  { path: "/demo?theme=dallah", anchor: "قهوة سعفة", role: "text", label: "دلّة على منيو القهوة السعودية" },
+  { path: "/demo?kind=qahwa", anchor: "ضيافة المجلس", role: "text", label: "منيو القهوة السعودية التجريبي" },
+  { path: "/demo?theme=barista", anchor: "رغوة", role: "text", label: "باريستا على منيو الإسبريسو" },
+  { path: "/demo?kind=espresso", anchor: "فلات وايت", role: "text", label: "منيو الإسبريسو التجريبي" },
   // مقالٌ ثابت: نصّه يُحمَّل كسولاً (`import.meta.glob`) ويمرّ على المنقّي في
   // متصفّح حقيقي — ويُعرض ولو سقطت الشبكة. والمرساة عنوانٌ **داخل النصّ** لا
   // عنوان المقال: هي ما يثبت أن الملفّ الكسول وصل ومرّ على المنقّي سليماً.

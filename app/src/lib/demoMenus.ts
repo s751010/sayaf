@@ -21,10 +21,12 @@ import { burnMinutes, isHighSodium, isSfdaCompliant } from "./nutrition";
 export type DemoKind =
   | "restaurant" | "cafe" | "shaabi" | "truck" | "seafood" | "sweets" | "juice" | "burger"
   | "bakery" | "breakfast"
-  | "grill" | "pizza";
+  | "grill" | "pizza"
+  | "qahwa" | "espresso";
 
 export const DEMO_KINDS: readonly DemoKind[] = [
   "restaurant", "cafe", "shaabi", "truck", "seafood", "sweets", "juice", "burger", "bakery", "breakfast", "grill", "pizza",
+  "qahwa", "espresso",
 ];
 
 export function isDemoKind(v: string | null | undefined): v is DemoKind {
@@ -1418,6 +1420,277 @@ function pizza(): DemoData {
   };
 }
 
+/* ── قهوة سعودية وتمور — لطابع «دلّة» (٢٠٢٦/١١/٠٧) ──────────────────────────────
+ * محلّ قهوةٍ في عنيزة: الدلّة بالحجم (٥٠٠ مل ولتر) والكوب للطريق، وخولاني جازان، وتمور
+ * القصيم والأحساء، ولقيمات وكليجا. والكافيين تقديرٌ لتحميصٍ أشقر (≈ ٣٤٠ ملغم في اللتر —
+ * أخفّ من الإسبريسو لكلّ مل وأكثر في الدلّة كلّها). و«ضيافة المجلس» دلّةٌ صغيرة وتمرٌ
+ * ولقيمات، أرخص من الثلاثة وسعراتها وصوديومها مجموعها (`demo-menus.test.ts`). */
+
+function qahwa(): DemoData {
+  const R = "demo-qahwa";
+  const M = "demo-qahwa-menu";
+  const dish = dishMaker(R, M);
+  const DALLAH = JSON.stringify([
+    { name: "هيل زيادة", price: 0 },
+    { name: "زعفران زيادة", price: 4 },
+    { name: "قرنفل", price: 0 },
+  ]);
+  return {
+    restaurant: restaurantOf(R, {
+      name: "قهوة سعفة",
+      type: "قهوة سعودية وتمور القصيم",
+      address: "عنيزة — حي الملك فهد",
+      logo: "☕",
+      allergens_text: "الحلى فيها جلوتين وسمسم وحليب، والتمر المحشي فيه مكسرات — اسألنا قبل الطلب.",
+      working_hours: WEEK("06:00", "00:00", "01:00"),
+      loyalty_goal: 7,
+      loyalty_reward: "دلّة صغيرة مجاناً",
+      prep_minutes: 7,
+      category_order: JSON.stringify(["القهوة السعودية", "التمور", "الحلى", "مشروبات أخرى"]),
+    }),
+    menus: [menuOf(R, M, "dallah")],
+    dishes: [
+      dish("a1", "دلّة قهوة سعودية — صغيرة", "Saudi Coffee Dallah — Small", "القهوة السعودية", 25, "☕", {
+        description: "٥٠٠ مل تكفي ثلاثة أو أربعة، تحميصٌ أشقر بالهيل والزعفران، مع فناجينها.",
+        featured: true,
+        calories: 10,
+        sodium_mg: 25,
+        caffeine_mg: 170,
+        options: DALLAH,
+      }),
+      dish("a2", "دلّة قهوة سعودية — كبيرة", "Saudi Coffee Dallah — Large", "القهوة السعودية", 45, "☕", {
+        description: "لترٌ يكفي سبعةً أو ثمانية — للمجلس والعزايم.",
+        calories: 20,
+        sodium_mg: 50,
+        caffeine_mg: 340,
+        options: DALLAH,
+      }),
+      dish("a3", "قهوة خولاني", "Khawlani Coffee", "القهوة السعودية", 35, "☕", {
+        description: "دلّة ٥٠٠ مل من بنّ خولاني جازان، تحميصٌ متوسّط بالهيل.",
+        calories: 10,
+        sodium_mg: 25,
+        caffeine_mg: 190,
+      }),
+      dish("a4", "كوب قهوة سعودية", "Saudi Coffee Cup", "القهوة السعودية", 9, "☕", {
+        description: "٢٥٠ مل للطريق، بالهيل.",
+        calories: 5,
+        sodium_mg: 12,
+        caffeine_mg: 85,
+      }),
+      // نافدةٌ اليوم — الزعفران ينتهي، و«نفد اليوم» أصدق من أن يختفي الصنف.
+      dish("a5", "قهوة بالزعفران", "Saffron Coffee", "القهوة السعودية", 30, "☕", {
+        description: "دلّة ٥٠٠ مل بزعفرانٍ أكثر من المعتاد.",
+        calories: 12,
+        sodium_mg: 25,
+        caffeine_mg: 170,
+        available: false,
+      }),
+      dish("a6", "ضيافة المجلس", "Majlis Set", "القهوة السعودية", 42, "☕", {
+        description: "دلّة صغيرة وصحن سكري ولقيمات بالدبس — لثلاثة أو أربعة.",
+        featured: true,
+        // ١٠ + ٢٨٠ + ٣٨٠ — والصوديوم ٢٥ + ٥ + ٢٠٠.
+        calories: 670,
+        sodium_mg: 230,
+        caffeine_mg: 170,
+        allergens: ["جلوتين", "سمسم"],
+      }),
+      dish("a7", "تمر سكري — صحن", "Sukkari Dates", "التمور", 12, "🌴", {
+        description: "١٠٠ غ من سكري القصيم المفتّل.",
+        calories: 280,
+        sodium_mg: 5,
+      }),
+      dish("a8", "خلاص محشي بالمكسّرات", "Stuffed Khalas Dates", "التمور", 18, "🌰", {
+        description: "١٠٠ غ خلاص الأحساء محشيٌّ باللوز والجوز.",
+        calories: 380,
+        sodium_mg: 5,
+        allergens: ["مكسرات"],
+      }),
+      dish("a9", "تمر بالقشطة", "Dates with Cream", "التمور", 16, "🌴", {
+        description: "سكري بالقشطة الطازجة والفستق.",
+        calories: 340,
+        sodium_mg: 45,
+        allergens: ["حليب", "مكسرات"],
+      }),
+      dish("a10", "لقيمات بالدبس", "Luqaimat with Date Syrup", "الحلى", 14, "🍯", {
+        description: "عشر لقيمات مقرمشة بدبس التمر والسمسم.",
+        calories: 380,
+        sodium_mg: 200,
+        allergens: ["جلوتين", "سمسم"],
+      }),
+      dish("a11", "كليجا القصيم", "Kleicha", "الحلى", 10, "🍪", {
+        description: "ثلاث حبّات بالتمر والهيل.",
+        calories: 330,
+        sodium_mg: 180,
+        allergens: ["جلوتين", "حليب"],
+      }),
+      dish("a12", "معمول تمر", "Date Maamoul", "الحلى", 9, "🍪", {
+        description: "حبّتان بالسمن البلدي.",
+        calories: 260,
+        sodium_mg: 90,
+        allergens: ["جلوتين", "حليب"],
+      }),
+      dish("a13", "شاي بالنعناع — براد", "Mint Tea Pot", "مشروبات أخرى", 15, "🫖", {
+        description: "٥٠٠ مل شاي أحمر بنعناع المدينة، والسكّر جانباً.",
+        calories: 5,
+        sodium_mg: 10,
+        caffeine_mg: 90,
+      }),
+      dish("a14", "حليب بالزنجبيل", "Ginger Milk", "مشروبات أخرى", 10, "🥛", {
+        description: "٢٥٠ مل حليب ساخن بالزنجبيل والهيل.",
+        calories: 160,
+        sodium_mg: 105,
+        allergens: ["حليب"],
+      }),
+      dish("a15", "مياه", "Water", "مشروبات أخرى", 2, "💧", {
+        description: "٣٣٠ مل.",
+        calories: 0,
+        sodium_mg: 5,
+      }),
+    ],
+  };
+}
+
+/* ── إسبريسو بار — لطابع «باريستا» (٢٠٢٦/١١/٠٧) ─────────────────────────────────
+ * غير «محمصة نخلة» (تقطيرٌ ومحاصيل وكيس بنّ): بارٌ في جدّة يبيع ما تصنعه الآلة — الشوت
+ * وما يُبنى عليه من حليب. والكافيين **من الشوت**: ٦٣ ملغم للواحد و١٢٦ للدبل، والموكا
+ * أكثر قليلاً بالشوكولاتة. واللاتيه ١٢٧ سعرة كما تحسبه الحاسبة (`recipe.test.ts`). و«عرض
+ * الصباح» فلات وايت وكوكيز، أرخص من الاثنين وسعراته وصوديومه مجموعها. */
+
+function espresso(): DemoData {
+  const R = "demo-espresso";
+  const M = "demo-espresso-menu";
+  const dish = dishMaker(R, M);
+  const MILK = JSON.stringify([
+    { name: "حليب شوفان", price: 4, kcal: 25 },
+    { name: "حليب لوز", price: 4 },
+    { name: "شوت إضافي", price: 5, kcal: 3 },
+  ]);
+  return {
+    restaurant: restaurantOf(R, {
+      name: "رغوة",
+      type: "إسبريسو بار — قهوة مختصّة",
+      address: "جدة — حي الشاطئ",
+      logo: "☕",
+      allergens_text: "الحليب في أغلب مشروباتنا، والمخبوزات فيها جلوتين وبيض — وعندنا شوفان ولوز بديلاً.",
+      working_hours: WEEK("07:00", "00:00", "01:00"),
+      loyalty_goal: 9,
+      loyalty_reward: "فلات وايت مجاناً",
+      prep_minutes: 6,
+      category_order: JSON.stringify(["إسبريسو", "بالحليب", "باردة", "مخبوزات"]),
+    }),
+    menus: [menuOf(R, M, "barista")],
+    dishes: [
+      dish("e1", "إسبريسو", "Espresso", "إسبريسو", 10, "☕", {
+        description: "شوت ٣٠ مل من خلطة البيت: إثيوبي وبرازيلي.",
+        calories: 2,
+        sodium_mg: 5,
+        caffeine_mg: 63,
+      }),
+      dish("e2", "دبل إسبريسو", "Doppio", "إسبريسو", 13, "☕", {
+        description: "شوتان ٦٠ مل.",
+        calories: 4,
+        sodium_mg: 10,
+        caffeine_mg: 126,
+      }),
+      dish("e3", "ماكياتو", "Macchiato", "إسبريسو", 14, "☕", {
+        description: "دبل إسبريسو بلمسة رغوة.",
+        calories: 15,
+        sodium_mg: 18,
+        caffeine_mg: 126,
+        allergens: ["حليب"],
+      }),
+      dish("e4", "كورتادو", "Cortado", "إسبريسو", 15, "☕", {
+        description: "دبل إسبريسو و٦٠ مل حليب مبخّر.",
+        calories: 40,
+        sodium_mg: 35,
+        caffeine_mg: 126,
+        allergens: ["حليب"],
+      }),
+      dish("e5", "فلات وايت", "Flat White", "بالحليب", 17, "☕", {
+        description: "دبل ريستريتو و١٢٠ مل حليب مخمليّ — ورسمة توليب.",
+        featured: true,
+        calories: 80,
+        sodium_mg: 60,
+        caffeine_mg: 126,
+        allergens: ["حليب"],
+        options: MILK,
+      }),
+      dish("e6", "كابتشينو", "Cappuccino", "بالحليب", 17, "☕", {
+        description: "دبل إسبريسو و١٥٠ مل حليب برغوةٍ كثيفة.",
+        calories: 95,
+        sodium_mg: 75,
+        caffeine_mg: 126,
+        allergens: ["حليب"],
+        options: MILK,
+      }),
+      dish("e7", "لاتيه", "Latte", "بالحليب", 18, "☕", {
+        description: "دبل إسبريسو و٢٠٠ مل حليب.",
+        calories: 127,
+        sodium_mg: 95,
+        caffeine_mg: 126,
+        allergens: ["حليب"],
+        options: MILK,
+      }),
+      dish("e8", "موكا", "Mocha", "بالحليب", 21, "☕", {
+        description: "لاتيه بصوص الشوكولاتة الداكنة.",
+        calories: 230,
+        sodium_mg: 130,
+        caffeine_mg: 136,
+        allergens: ["حليب"],
+        options: MILK,
+      }),
+      dish("e9", "آيس لاتيه", "Iced Latte", "باردة", 19, "🧊", {
+        description: "دبل إسبريسو وحليب بارد على الثلج.",
+        calories: 120,
+        sodium_mg: 90,
+        caffeine_mg: 126,
+        allergens: ["حليب"],
+        options: MILK,
+      }),
+      dish("e10", "إسبريسو تونك", "Espresso Tonic", "باردة", 22, "🧊", {
+        description: "دبل إسبريسو على مياه تونك وقشر برتقال.",
+        calories: 60,
+        sodium_mg: 20,
+        caffeine_mg: 126,
+      }),
+      dish("e11", "آيس أمريكانو", "Iced Americano", "باردة", 15, "🧊", {
+        description: "دبل إسبريسو وماء بارد على الثلج.",
+        calories: 10,
+        sodium_mg: 10,
+        caffeine_mg: 126,
+      }),
+      dish("e12", "كوكيز بالشوكولاتة", "Chocolate Cookie", "مخبوزات", 9, "🍪", {
+        description: "كوكيز طرية بقطع الشوكولاتة الداكنة.",
+        calories: 220,
+        sodium_mg: 160,
+        allergens: ["حليب", "بيض", "جلوتين"],
+      }),
+      // نافدٌ اليوم — يُخبز صباحاً وينتهي قبل الظهر.
+      dish("e13", "بان أو شوكولا", "Pain au Chocolat", "مخبوزات", 14, "🥐", {
+        description: "معجّنات زبدة بعودين من الشوكولاتة.",
+        calories: 300,
+        sodium_mg: 250,
+        allergens: ["حليب", "جلوتين", "بيض"],
+        available: false,
+      }),
+      dish("e14", "باسك تشيز كيك", "Basque Cheesecake", "مخبوزات", 24, "🍰", {
+        description: "تشيز كيك محروق الوجه، قوامه كريمي.",
+        calories: 450,
+        sodium_mg: 280,
+        allergens: ["حليب", "بيض", "جلوتين"],
+      }),
+      dish("e15", "عرض الصباح: فلات وايت وكوكيز", "Morning Deal: Flat White & Cookie", "مخبوزات", 22, "☕", {
+        description: "فلات وايت وكوكيز بالشوكولاتة.",
+        // ٨٠ + ٢٢٠ — والصوديوم ٦٠ + ١٦٠.
+        calories: 300,
+        sodium_mg: 220,
+        caffeine_mg: 126,
+        allergens: ["حليب", "بيض", "جلوتين"],
+      }),
+    ],
+  };
+}
+
 /**
  * المنيو الذي يُعاين به طابعٌ ما وحده (`/demo?theme=…` من «عاينه كاملاً»):
  * منيوه إن كان له (`KIND_BY_THEME`)، وإلا أوّل نوعٍ في `suits` ⇒ منيو ذلك النوع.
@@ -1444,6 +1717,9 @@ const KIND_BY_TYPE: Record<string, DemoKind> = {
  * و«جمر» و«ريحان» شارتاهما «مشويات» و«مطعم» — ولا منيو لنوعيهما (فيعاينهما «الديوان»).
  * و«مشويات» **لا** تُضاف إلى `KIND_BY_TYPE`: «فاخر» شارته الأولى «مشويات»، فيصير
  * منيوه منيو المنقل لا ستيك الديوان.
+ *
+ * و«دلّة» و«باريستا» (٠٧/١١) شارتهما «كافيه» ومنيو الكافيه لـ«محمصة» — فلكلٍّ منيوه. و«لوحة
+ * حروف» و«عصري» تبدّلت شارتاهما معهما (`themeSuggest`) وبقي كلٌّ يُعاين على منيوه كما كان.
  */
 const KIND_BY_THEME: Readonly<Record<string, DemoKind>> = {
   bakery: "bakery",
@@ -1451,6 +1727,10 @@ const KIND_BY_THEME: Readonly<Record<string, DemoKind>> = {
   asir: "shaabi",
   grill: "grill",
   pizza: "pizza",
+  dallah: "qahwa",
+  barista: "espresso",
+  letterboard: "cafe",
+  modern: "juice",
 };
 
 export function demoKindForSuits(suits: readonly string[] | undefined, themeId?: string | null): DemoKind {
@@ -1470,6 +1750,8 @@ const BUILDERS: Record<DemoKind, () => DemoData> = {
   breakfast,
   grill,
   pizza,
+  qahwa,
+  espresso,
 };
 
 /** المنيو التجريبي لنوعٍ ما — والمجهول يسقط إلى «الديوان». */

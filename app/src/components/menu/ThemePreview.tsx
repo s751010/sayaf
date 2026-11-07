@@ -9,7 +9,8 @@
  * مجلّة، وأقواس، وبيت طين، وكيس بنّ، ولوحة دكّان على رفّ، وجدارٌ بالقطّ العسيري،
  * ودفتر جلدٍ بخيطٍ ذهبيّ (فاخر)، وورق شبكةٍ بمسطرة (عصري)، ولوح كاونترٍ يسيل منه
  * الجبن فوق صاجٍ حديديّ (صاج)، وفوهة فرنٍ متّقدة فوق ختمٍ (فرن)، وصينيّة نحاسٍ تطلع
- * فوق بلاطٍ مزخرف (فوّال)، وسيخٌ فوق منقلٍ متّقد (جمر)، وبيتزا على مفرشٍ مائل (ريحان).
+ * فوق بلاطٍ مزخرف (فوّال)، وسيخٌ فوق منقلٍ متّقد (جمر)، وبيتزا على مفرشٍ مائل (ريحان)،
+ * وصفُّ دلالٍ على رفٍّ بمساميرَ نحاس (دلّة)، وآلة إسبريسو بعدّاد ضغطٍ (باريستا).
  *
  * ⚠️ أشكالٌ لا نصوص: خطوط الطوابع لا تُحمَّل في اللوحة ولا في الهبوط، وحرفٌ
  * بخطٍّ احتياطي يكذب على التاجر في أوّل ما يراه من الطابع.
@@ -618,6 +619,103 @@ function PizzaMini({ v }: { v: Record<string, string> }) {
   );
 }
 
+/** صورة الدلّة الظلّية للمعاينة — القطع نفسها في `heads/DallahHead.tsx` مختصرةً في مسارٍ واحد. */
+const DALLAH_PATH =
+  "M70 .5 72.6 6H67.4ZM56 30C56 20 62 13 70 13S84 20 84 30ZM52 29.5H88V33H52ZM55 33H85C82 44 80.5 54 81.5 64H58.5C59.5 54 58 44 55 33Z" +
+  "M55.5 63H84.5V67H55.5ZM57 67C40 72 31 88 33 104 35 119 50 127 70 127S105 119 107 104C109 88 100 72 83 67Z" +
+  "M55 125C55 129 51 132.5 48.5 135H91.5C89 132.5 85 129 85 125Z" +
+  "M45 76C33 71 25 60 19.5 47.5 15.5 38.5 12 29.5 6.5 21.5 15 27.5 21 37 26.5 45.5 33 55.5 41.5 63 52.5 68.5Z";
+
+function MiniPot({ h, flip, style }: { h: number; flip?: boolean; style?: CSSProperties }) {
+  return (
+    <svg viewBox="0 0 120 136" className="absolute block" style={{ height: h, width: (h * 120) / 136, transform: flip ? "scaleX(-1)" : undefined, ...style }}>
+      <path d="M84 38C103 37 112 53 106.5 71 103 83 99 89 99.5 95" fill="none" stroke="#7a5214" strokeWidth="6" />
+      <path d={DALLAH_PATH} fill="#c8973a" stroke="#6b4710" strokeWidth="2" />
+      <ellipse cx="54" cy="94" rx="6" ry="17" fill="#f4dc96" opacity=".55" />
+    </svg>
+  );
+}
+
+/** دلّة: صفّ دلالٍ من نحاسٍ على رفٍّ بمساميرَ والشعار في بطن الكبيرة، والاسم، وفنجال القسم
+    وعدده تمرة. */
+function DallahMini({ v }: { v: Record<string, string> }) {
+  return (
+    <div className="relative h-28 overflow-hidden" style={{ background: v["--m-bg"] }} aria-hidden="true">
+      <span
+        className="absolute inset-x-0 top-0 block h-[80px]"
+        style={{ background: `radial-gradient(45% 55% at 50% 55%, rgba(255,226,150,.6), transparent 75%), linear-gradient(180deg, #e7e1c6, ${v["--m-bg"]})` }}
+      />
+      <MiniPot h={38} style={{ left: "calc(50% - 50px)", top: 34 }} />
+      <MiniPot h={32} flip style={{ left: "calc(50% + 24px)", top: 40 }} />
+      <MiniPot h={64} style={{ left: "calc(50% - 32px)", top: 8 }} />
+      <span
+        className="absolute block h-[21px] w-[21px] rounded-full"
+        style={{ left: "calc(50% + 2.5px - 10.5px)", top: 44, background: v["--m-surface"], boxShadow: "0 0 0 2px #e9c873, 0 0 0 3px #6b4710" }}
+      />
+      <span
+        className="absolute inset-x-0 top-[72px] block h-[8px]"
+        style={{
+          background: `radial-gradient(circle, #f6de98 0 1px, transparent 1.6px) 3px 50% / 11px 100% repeat-x, linear-gradient(${v["--m-accent"]}, ${v["--m-accent"]}) 0 100% / 100% 2px no-repeat, linear-gradient(#6b4426, #3a2212)`,
+        }}
+      />
+      <span className="absolute left-1/2 top-[88px] block h-2 w-20 -translate-x-1/2 rounded-full" style={{ background: v["--m-text"] }} />
+      <span className="absolute inset-x-5 bottom-[6px] flex items-center gap-1.5">
+        <span className="block h-[8px] w-[11px]" style={{ background: "#fbf7ef", clipPath: "polygon(0 0,100% 0,72% 100%,28% 100%)", boxShadow: "inset 0 2px 0 #d7a443" }} />
+        <span className="block h-1.5 w-10 rounded-full" style={{ background: v["--m-text"] }} />
+        <span className="block h-[3px] flex-1" style={{ background: "radial-gradient(circle, #6f8a35 0 1.2px, transparent 1.7px) 0 50% / 7px 100% repeat-x" }} />
+        <span className="block h-[9px] w-5 rounded-[50%]" style={{ background: "#4f240f" }} />
+      </span>
+    </div>
+  );
+}
+
+/** باريستا: آلة إسبريسو بلون العلامة بإطار ستيل وعدّاد ضغطٍ وجهه الشعار، ورأسان يصبّان في
+    فنجانين، وصينيّة تقطير، وكاونتر سنديان، والاسم، وكوب القسم الورقيّ بختمه. */
+function BaristaMini({ v }: { v: Record<string, string> }) {
+  const chrome = "linear-gradient(180deg, #f4f6f7, #9aa1a7)";
+  return (
+    <div className="relative h-28 overflow-hidden" style={{ background: v["--m-bg"] }} aria-hidden="true">
+      <span className="absolute inset-x-[22%] top-[5px] flex justify-between">
+        {[0, 1, 2, 3].map((i) => (
+          <span key={i} className="block h-[5px] w-[8px]" style={{ background: "#fff", clipPath: "polygon(18% 0,82% 0,100% 100%,0 100%)" }} />
+        ))}
+      </span>
+      <span
+        className="absolute inset-x-[12%] top-[12px] block h-[38px] rounded-t-[8px] rounded-b-[2px]"
+        style={{
+          background: `${chrome} 0 0 / 100% 4px no-repeat, linear-gradient(180deg, #e9ecee, #8d949a) 0 100% / 100% 5px no-repeat, linear-gradient(104deg, transparent 16%, rgba(255,255,255,.3) 20%, transparent 26%), ${v["--m-accent"]}`,
+          boxShadow: "0 6px 8px -5px rgba(0,0,0,.5)",
+        }}
+      />
+      <span
+        className="absolute left-1/2 top-[15px] flex h-[28px] w-[28px] -translate-x-1/2 items-center justify-center rounded-full"
+        style={{ background: "radial-gradient(circle closest-side, #fbfaf7 0 70%, #8a9096 72%, #f6f7f8 78%, #8a9096 100%)" }}
+      >
+        <span className="block h-[18px] w-[18px] rounded-full" style={{ background: v["--m-surface"], boxShadow: "inset 0 0 0 1px rgba(0,0,0,.12)" }} />
+      </span>
+      <span className="absolute inset-x-[15%] top-[50px] block h-[20px]" style={{ background: "linear-gradient(#2f3337, #1d2023)" }} />
+      {[27, 73].map((x) => (
+        <span key={x} className="absolute top-[48px] block" style={{ left: `${x}%` }}>
+          <span className="absolute -left-[8px] top-0 block h-[6px] w-[16px] rounded-b-[3px]" style={{ background: "linear-gradient(90deg,#6f757b,#fff 45%,#6c7277)" }} />
+          <span className="absolute -left-[1px] top-[6px] block h-[7px] w-[2px]" style={{ background: "#8a4f26" }} />
+          <span className="absolute -left-[5px] top-[13px] block h-[6px] w-[10px] rounded-b-[2px]" style={{ background: "#fbfaf7" }} />
+        </span>
+      ))}
+      <span className="absolute inset-x-[13%] top-[69px] block h-[3px]" style={{ background: "repeating-linear-gradient(90deg,#5d6268 0 1px,#dfe2e4 1px 3px)" }} />
+      <span className="absolute inset-x-0 top-[72px] block h-[7px]" style={{ background: "linear-gradient(180deg, #f0dcb6, #c9a774)" }} />
+      <span className="absolute left-1/2 top-[88px] block h-2 w-20 -translate-x-1/2 rounded-full" style={{ background: v["--m-text"] }} />
+      <span className="absolute inset-x-5 bottom-[5px] flex items-center gap-1.5">
+        <span className="relative block h-[12px] w-[9px]" style={{ background: "#fdfcf9", clipPath: "polygon(0 0,100% 0,85% 100%,15% 100%)", boxShadow: "inset 0 3px 0 #2b2420" }}>
+          <span className="absolute left-1/2 top-[5px] block h-[4px] w-[4px] -translate-x-1/2 rounded-full" style={{ boxShadow: `inset 0 0 0 1px ${v["--m-accent"]}` }} />
+        </span>
+        <span className="block h-1.5 w-12 rounded-full" style={{ background: v["--m-text"] }} />
+        <span className="block h-px flex-1" style={{ background: v["--m-muted"], opacity: 0.4 }} />
+        <span className="block h-[8px] w-5 rounded-[2px]" style={{ background: "#fff", boxShadow: "0 0 0 1px rgba(0,0,0,.08)" }} />
+      </span>
+    </div>
+  );
+}
+
 /** عسير: شريطٌ ومثلّثات بألوان القطّ، والشعار في حلقات، وسطران بخطٍّ متعرّج. */
 function AsirMini({ v }: { v: Record<string, string> }) {
   const band = `repeating-linear-gradient(90deg, ${v["--m-accent"]} 0 12px, #e8b51f 12px 24px, #17704a 24px 36px, #2b5a9e 36px 48px)`;
@@ -838,6 +936,10 @@ export function ThemePreview({ theme }: { theme: MenuTheme }) {
       return <GrillMini v={v} />;
     case "pizza":
       return <PizzaMini v={v} />;
+    case "dallah":
+      return <DallahMini v={v} />;
+    case "barista":
+      return <BaristaMini v={v} />;
     case "gold":
       return <GoldMini theme={theme} />;
     case "modern":

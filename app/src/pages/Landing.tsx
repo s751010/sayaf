@@ -360,7 +360,7 @@ export default function Landing() {
             className="-mx-5 mb-6 sm:mx-0"
             listClassName="sm:mx-auto sm:max-w-3xl sm:justify-center"
           />
-          {/* الأعمدة من عدد البطاقات (`fillColumns`): عشرون وأربعة ⇒ اثنان ثم أربعة، وثلاثة
+          {/* الأعمدة من عدد البطاقات (`fillColumns`): اثنان وعشرون وأربعة ⇒ اثنان ثم أربعة، وثلاثة
               ⇒ ثلاثة — لا طابعٌ وحيد في آخر صفّ. و`auto-rows-fr`: البطاقات كلّها بطولٍ واحد
               لا صفّاً صفّاً. */}
           <div

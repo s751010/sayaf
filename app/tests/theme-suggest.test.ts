@@ -8,13 +8,13 @@
 import { describe, expect, it } from "vitest";
 import { ALL_THEMES } from "@/lib/themes";
 import { STARTER_TYPES } from "@/lib/starterMenus";
-import { BAKERY, BREAKFAST, GRILL, PIZZA, POPULAR_CAFE, SUGGESTED, badgeTypeOf, cafeFlavor, rankThemes, suggestionKey } from "@/lib/themeSuggest";
+import { ARABIC_COFFEE, BAKERY, BREAKFAST, GRILL, PIZZA, POPULAR_CAFE, SPECIALTY, SUGGESTED, badgeTypeOf, cafeFlavor, rankThemes, suggestionKey } from "@/lib/themeSuggest";
 
 const byId = new Map(ALL_THEMES.map((t) => [t.id, t]));
 
 describe("مفردات واحدة مع `aliasType`", () => {
-  it("مفاتيح الجدول = أنواع `STARTERS` + الكافيه الشعبي + المخبز والفطور والمشاوي والبيتزا", () => {
-    const extra = [POPULAR_CAFE, BAKERY, BREAKFAST, GRILL, PIZZA];
+  it("مفاتيح الجدول = أنواع `STARTERS` + الكافيه الشعبي + المخبز والفطور والمشاوي والبيتزا والقهوة", () => {
+    const extra = [POPULAR_CAFE, BAKERY, BREAKFAST, GRILL, PIZZA, ARABIC_COFFEE, SPECIALTY];
     const keys = Object.keys(SUGGESTED).filter((k) => !extra.includes(k)).sort();
     expect(keys).toEqual([...STARTER_TYPES].sort());
     for (const k of extra) expect(SUGGESTED[k], k).toBeDefined();
@@ -62,6 +62,10 @@ describe("الكافيه: مختصّ أم شعبي — تلميحٌ من الن�
     ["مجلس قهوة", "popular"],
     ["كافيه تراثي", "popular"],
     ["شاي على الجمر", "popular"],
+    // ٠٧/١١: الخولاني بنّ القهوة السعودية — والدلّة دلّة.
+    ["قهوة خولاني", "popular"],
+    ["قهوة سعودية", "popular"],
+    ["كافيه مختص", "specialty"],
     [null, "specialty"],
   ] as const)("«%s» ⇒ %s", (raw, flavor) => {
     expect(cafeFlavor(raw)).toBe(flavor);
@@ -126,10 +130,48 @@ describe("والصفّان بعدهما: المشاوي والبيتزا (٠٧/�
   });
 });
 
+describe("صفّا القهوة (٠٧/١١، «دلّة» و«باريستا»)", () => {
+  it("من نصّ النوع — والكافيه العامّ يبقى على صفّه («محمصة» أوّلاً)", () => {
+    expect(suggestionKey("كافيه")).toBe("كافيه");
+    expect(suggestionKey("قهوة عربية")).toBe(ARABIC_COFFEE);
+    expect(suggestionKey("قهوة سعودية وتمور")).toBe(ARABIC_COFFEE);
+    expect(suggestionKey("محل قهوة خولاني")).toBe(ARABIC_COFFEE);
+    // ‏«خولاني» و«إسبريسو» وحدهما لا كلمة لهما في `aliasType` فهما «مطعم» — والصفّ يلتقطهما.
+    expect(suggestionKey("خولاني")).toBe(ARABIC_COFFEE);
+    expect(suggestionKey("إسبريسو بار")).toBe(SPECIALTY);
+    expect(suggestionKey("سبيشلتي")).toBe(SPECIALTY);
+    expect(suggestionKey("كافيه مختص")).toBe(SPECIALTY);
+    expect(suggestionKey("قهوة مختصة")).toBe(SPECIALTY);
+  });
+
+  it("المحمصة محمصة، و«مطعم مختص» مطعم، و«تسهيلات» ليست هيلاً", () => {
+    expect(suggestionKey("محمصة قهوة مختصة")).toBe("كافيه");
+    expect(suggestionKey("مطعم مختص بالكبسة")).toBe("مطعم");
+    expect(suggestionKey("مطعم تسهيلات")).toBe("مطعم");
+  });
+
+  it("زرّ «مختصّ أم شعبي؟» يغلب النصّ في الاتّجاهين", () => {
+    expect(suggestionKey("قهوة عربية", "specialty")).toBe("كافيه");
+    expect(suggestionKey("كافيه مختص", "popular")).toBe(POPULAR_CAFE);
+    expect(suggestionKey("قهوة عربية", "popular")).toBe(ARABIC_COFFEE);
+    expect(suggestionKey("كافيه مختص", "specialty")).toBe(SPECIALTY);
+  });
+
+  it("شارتهما «كافيه» — والكافيه الشعبي معهما", () => {
+    for (const k of [ARABIC_COFFEE, SPECIALTY, POPULAR_CAFE]) expect(badgeTypeOf(k)).toBe("كافيه");
+    expect(SUGGESTED["كافيه"]).toEqual(["roastery", "barista", "dallah"]);
+  });
+});
+
 describe("`rankThemes` يرتّب ولا يحذف", () => {
   it.each([
     ["كافيه", "roastery", true],
-    ["مقهى شعبي", "najdi", true],
+    // ٠٧/١١: الكافيه الشعبي يبدأ بـ«دلّة» — كان «نجدي».
+    ["مقهى شعبي", "dallah", true],
+    ["قهوة عربية", "dallah", true],
+    ["خولاني", "dallah", false],
+    ["كافيه مختص", "barista", true],
+    ["Espresso Bar", "barista", false],
     ["مطعم شعبي", "najdi", false],
     // ٠٧/١١: للمشاوي طابعها («جمر») — و«فاخر» ثانيه بشارته.
     ["مشاوي", "grill", false],
