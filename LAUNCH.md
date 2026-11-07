@@ -577,7 +577,7 @@ create unique index analytics_dish_hour_unique
 - **الختم التلقائي** (`mark_order_paid`) مُفصَح عنه الآن تحت حقل الجوال. إن أردته
   **بموافقة صريحة** لا بإشعار، فهو هجرة: عمود موافقة في `orders` يقرؤه التريجر.
 
-### ج) انشر ثلاث دوالّ — المصدر أُصلح ولم يُنشر
+### ج) ✅ نُشرت الدوالّ الثلاث (٢٧ أكتوبر — تحقّق ٢٠٢٦/١١/٠٧)
 | الدالّة | ما تغيّر |
 |---|---|
 | `webhook-dispatch` | لا يتبع التحويلات (`redirect: "manual"`) — كان مضيفٌ عامّ يحوّل إلى عنوان داخلي فيتجاوز الحارس · ويرفض `localhost.` و`*.localhost` |
@@ -589,7 +589,7 @@ create unique index analytics_dish_hour_unique
 ### د) ثلاثة أشياء في لوحة Supabase
 1. **ميسر**: تأكّد أن `MOYASAR_SK` و`MOYASAR_WEBHOOK_SECRET` غير مضبوطين، أو احذف
    `payments` و`moyasar-webhook` — مسارٌ مهجور بجدول أسعار قديم.
-2. **قيد اللون** — `cover_color` نصٌّ حرّ يصل إلى `style` في الدليل (الواجهة تفحصه الآن):
+2. ✅ **قيد اللون** — طُبّق ٢٠٢٦/١١/٠٧ (`supabase/migrations/20261107_cover_color_hex.sql`). كان `cover_color` نصّاً حرّاً يصل إلى `style` في الدليل:
    ```sql
    alter table public.restaurants add constraint restaurants_cover_color_hex
      check (cover_color is null or cover_color ~ '^#[0-9a-fA-F]{6}$') not valid;
@@ -614,8 +614,8 @@ select p.proname from pg_proc p join pg_namespace n on n.oid = p.pronamespace
   الحجمان معاً. يحتاج حقل `group` في `dishes.options` **ومثله حرفياً** في
   `paylink-order-create` (معرّف الإضافة موضعها).
 - **«نفد اليوم»**: الطبق غير المتاح يختفي من المنيو بدل أن يظهر باهتاً.
-- **حدّ علامة الملح**: العمود المحسوب `is_high_sodium` على ٦٠٠ ملغم؛ تحقّق من الحدّ في
-  نصّ لائحة الهيئة نفسه — تغييره هجرة على عمود `GENERATED`.
+- ✅ **حدّ علامة الملح**: صار ٢٠٠٠ ملغم بنصّ لائحة الهيئة (طُبّق ٢٠٢٦/١١/٠٧ —
+  `20261107_salt_mark_2000mg.sql`).
 
 ---
 

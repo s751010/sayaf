@@ -14,9 +14,9 @@
 
 ## في Supabase (الفريق لا يلمسه بقرارك)
 - [ ] عند أوّل طلب حذف حساب: نفّذ `company/runbooks/account-deletion.md` (٣٠ يوماً — وعدٌ مكتوب).
-- [ ] نشر `webhook-dispatch` · `menu-scan` · `api` (إصلاحات أمنية في المصدر منذ ٢٢ أكتوبر).
+- [x] نشر `webhook-dispatch` · `menu-scan` · `api` — منشورة منذ ٢٧ أكتوبر بإصلاحاتها (تحقّق ٢٠٢٦/١١/٠٧).
 - [ ] أسرار ميسر غير مضبوطة، أو حذف `payments` و`moyasar-webhook`.
-- [ ] قيد `cover_color` (SQL في LAUNCH).
+- [x] قيد `cover_color` — طُبّق ٢٠٢٦/١١/٠٧ (`20261107_cover_color_hex.sql`).
 - [ ] تفعيل تأكيد البريد · حماية كلمات المرور المسرّبة · تحقّق ثنائي (MFA) لحساب المؤسّس.
 - [ ] **مؤجَّل بقرارك**: فتح لوحة المؤسّس لـ seeaf2013@gmail.com (`founder_email()`).
 
