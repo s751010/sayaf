@@ -42,7 +42,8 @@ describe("الشرائح — المحتوى والروابط", () => {
   it("الطوابع هي ما يضعه المُنتقي أوّلاً لذلك النوع — من `SUGGESTED` لا بيد", () => {
     for (const s of SEGMENTS) {
       const ids = segmentThemeIds(s);
-      expect(ids).toEqual(SUGGESTED[suggestionKey(s.typeKey)]);
+      // أوّل ثلاثةٍ من الصفّ (والصفّ أربعة منذ ٠٧/١١) — ما تقوله الصفحة وما تصفّه أزرارها.
+      expect(ids).toEqual(SUGGESTED[suggestionKey(s.typeKey)].slice(0, 3));
       // كل معرّف طابعٌ قائم — فلا يسقط شيءٌ بصمت في `segmentThemes`.
       expect(segmentThemes(s).map((t) => t.id)).toEqual([...ids]);
       for (const id of ids) expect(ALL_THEMES.some((t) => t.id === id), id).toBe(true);

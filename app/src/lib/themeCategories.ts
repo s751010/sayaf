@@ -22,7 +22,7 @@ import type { DemoKind } from "./demoMenus";
 import type { IconName } from "./icons";
 import { norm } from "./starterMenus";
 import {
-  ARABIC_COFFEE, BAKERY, BREAKFAST, GRILL, KARAK, PIZZA, POPULAR_CAFE, SPECIALTY, TEA_HOUSE, suggestionKey, type CafeFlavor,
+  ARABIC_COFFEE, BAKERY, BREAKFAST, GRILL, PIZZA, POPULAR_CAFE, SPECIALTY, TEA_HOUSE, suggestionKey, type CafeFlavor,
 } from "./themeSuggest";
 
 export type ThemeCategoryId =
@@ -47,8 +47,8 @@ export interface ThemeCategory {
  * ومقترحه «دلّة») وفي «راقي ومناسبات» (القهوة العربية سيّدة المناسبات).
  *
  * و«شاي» (٠٧/١١، كرك وسماور) قسمٌ حادي عشر بعد المقاهي: الكشك ثم البيت ثم «دلّة» (المجلس
- * يقدّم الاثنين) ثم «ملصقات» (وُلدت لمحلّ الشاي الشبابي). و«سماور» أيضاً في الشعبي بعد «دلّة»،
- * و«كرك» في العصائر آخراً — كلٌّ على رفّ شارته («شعبي» · «عصائر»).
+ * يقدّم الاثنين) ثم «ملصقات» (وُلدت لمحلّ الشاي الشبابي) — ومنيوه كشك الكرك، وقسم التاجر
+ * «شاي» نوعاً (`aliasType`) أو بيتَ شاي. و«سماور» أيضاً في الشعبي بعد «دلّة» (جلسةٌ أرضية).
  *
  * ⚠️ **ولا شايَ على رفّ المقاهي**: رفّ الشاي يجاوره. وسماورٌ هناك كان سيجعل `?theme=samovar`
  * يُضيء «مقاهي» لا «شاي» (`demoCategoryOf` ⇐ أوّل رفٍّ فيه الطابع)، والكرك وحده يجعل المقاهي
@@ -64,7 +64,7 @@ export const THEME_CATEGORIES: readonly ThemeCategory[] = [
   { id: "grill", name: "مشاوي وشاورما", nameEn: "Grills & shawarma", icon: "skewer", themes: ["grill", "dark-gold", "asir"], kind: "grill" },
   { id: "shaabi", name: "شعبي", nameEn: "Traditional", icon: "pot", themes: ["najdi", "dallah", "samovar", "dukkan", "breakfast", "asir"], kind: "shaabi" },
   { id: "seafood", name: "بحري", nameEn: "Seafood", icon: "fish", themes: ["harbor", "modern", "dark-gold"], kind: "seafood" },
-  { id: "juice", name: "عصائر", nameEn: "Juices", icon: "juice", themes: ["juice", "sticker", "neon", "karak"], kind: "juice" },
+  { id: "juice", name: "عصائر", nameEn: "Juices", icon: "juice", themes: ["juice", "sticker", "neon"], kind: "juice" },
   { id: "upscale", name: "راقي ومناسبات", nameEn: "Fine dining & occasions", icon: "sparkle", themes: ["dark-gold", "roshan", "dallah", "editorial"], kind: "restaurant" },
 ];
 
@@ -82,7 +82,7 @@ export function categoryById(id: string | null | undefined): ThemeCategory | nul
  *
  * والكافيه الشعبي ⇒ «شعبي» لا «مقاهي»: ترتيبه يبدأ بـ«دلّة» (`themeSuggest`، ٠٧/١١ — كان
  * «نجدي»)، و«دلّة» على رفّ الشعبي أيضاً؛ وشارة «يناسب نوع نشاطك» يجب أن تقع داخل القسم
- * المفتوح. وصفّا القهوة («قهوة عربية» · «قهوة مختصّة») ⇒ «مقاهي»، وصفّا الشاي ⇒ «شاي».
+ * المفتوح. وصفّا القهوة («قهوة عربية» · «قهوة مختصّة») ⇒ «مقاهي»، والشاي وبيته ⇒ «شاي».
  */
 export const CATEGORY_BY_KEY: Readonly<Record<string, ThemeCategoryId | null>> = {
   مطعم: null,
@@ -90,7 +90,7 @@ export const CATEGORY_BY_KEY: Readonly<Record<string, ThemeCategoryId | null>> =
   [POPULAR_CAFE]: "shaabi",
   [ARABIC_COFFEE]: "cafe",
   [SPECIALTY]: "cafe",
-  [KARAK]: "tea",
+  شاي: "tea",
   [TEA_HOUSE]: "tea",
   عصائر: "juice",
   "مطعم سريع": "fast",

@@ -123,7 +123,7 @@ describe("demoMenus", () => {
     expect(kindOf("barista")).toBe("espresso");
     expect(kindOf("letterboard")).toBe("cafe");
     expect(kindOf("modern")).toBe("juice");
-    // ٠٧/١١: «كرك» و«سماور» على منيويهما — و«فاتورة» و«دكّان» تبدّلت شارتاهما وبقيا كما كانا.
+    // ٠٧/١١: «كرك» و«سماور» على منيويهما (الأوّل من نوعه «شاي»، والثاني بسطره) — و«فاتورة» و«دكّان» كما كانا.
     expect(kindOf("karak")).toBe("karak");
     expect(kindOf("samovar")).toBe("teahouse");
     expect(kindOf("receipt")).toBe("burger");
