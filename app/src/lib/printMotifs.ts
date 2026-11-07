@@ -371,6 +371,34 @@ function juice(ctx: Ctx, b: MotifBox, k: MotifInk): void {
   });
 }
 
+/** صاج — جبنٌ يسيل: شريطٌ بالتمييز على الضلعين، وقطراتٌ تتدلّى منه نحو الداخل بأطوالٍ تتبدّل. */
+function burger(ctx: Ctx, b: MotifBox, k: MotifInk): void {
+  const band = Math.min(b.mm * 0.9, (b.reach - b.outer) / 4);
+  const room = b.reach - b.outer - band;
+  if (room <= 0) return;
+  const r = Math.min(b.mm * 0.9, room / 3);
+  // أطوال القطرات من المسافة المتاحة — أطولها ٨٥٪ منها، فلا تبلغ `reach` أبداً.
+  const LENGTHS = [0.55, 0.3, 0.85, 0.42];
+  ctx.fillStyle = k.accent;
+  ctx.fillRect(b.outer, b.outer, b.W - b.outer * 2, band);
+  ctx.fillRect(b.outer, b.H - b.outer - band, b.W - b.outer * 2, band);
+  let i = 0;
+  alongTopBottom(b, r * 5, (x, w, top) => {
+    const len = Math.max(r * 2, room * LENGTHS[i++ % LENGTHS.length]);
+    const cx = x + w / 2;
+    const y0 = top ? b.outer + band : b.H - b.outer - band;
+    const tip = top ? y0 + len - r : y0 - len + r;
+    ctx.beginPath();
+    ctx.moveTo(cx - r, y0);
+    ctx.lineTo(cx - r, tip);
+    // نصف دائرةٍ تحت القطرة (أعلى الوجه) أو فوقها (أسفله) — نحو الداخل دائماً.
+    ctx.arc(cx, tip, r, Math.PI, 0, top);
+    ctx.lineTo(cx + r, y0);
+    ctx.closePath();
+    ctx.fill();
+  });
+}
+
 const MOTIFS: Record<MenuSkin, ((ctx: Ctx, b: MotifBox, k: MotifInk) => void) | null> = {
   gold: folio,
   receipt,
@@ -387,6 +415,7 @@ const MOTIFS: Record<MenuSkin, ((ctx: Ctx, b: MotifBox, k: MotifInk) => void) | 
   harbor,
   patisserie,
   juice,
+  burger,
   // «لون علامتي» محايدٌ عمداً على الشاشة — وكذلك على الورق.
   store: null,
 };

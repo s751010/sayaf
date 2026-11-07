@@ -22,14 +22,16 @@ import type { PatternId } from "./patterns";
  * `mural` جدارٌ مرسومٌ بالقطّ العسيري (مثلّثات وأشرطة) · `folio` دفترُ جلدٍ
  * بخيطٍ ذهبيّ (فاخر) · `grid` شبكةٌ طباعيّة بمسطرة (عصري) · `harbor` لوحُ
  * مرفأٍ بحبلٍ وطوقِ نجاة (مرفأ) · `awning` مظلّةٌ مقلّمة فوق علبة كيك (حلواني) ·
- * `slice` شريحةُ حمضيّاتٍ خلف الشعار (عصّارة).
+ * `slice` شريحةُ حمضيّاتٍ خلف الشعار (عصّارة) · `griddle` لوحٌ بلون العلامة يسيل
+ * منه الجبن (صاج).
  */
 export type HeaderShape =
   | "arch" | "band" | "frame" | "soft"
   | "paper" | "letterboard" | "poster" | "sign" | "masthead" | "arcade" | "mud" | "bag"
   | "tin" | "mural"
   | "folio" | "grid"
-  | "harbor" | "awning" | "slice";
+  | "harbor" | "awning" | "slice"
+  | "griddle";
 /**
  * تخطيط الأطباق — هذا ما يجعل الفرق بين الطوابع يُرى لا يُقرأ.
  * `deck` بطاقاتٌ تُسحب أفقياً لكل قسم، تكبر حين تتوسّط الشاشة.
@@ -39,7 +41,8 @@ export type HeadingStyle =
   | "ornament" | "rule" | "plain"
   | "stars" | "letters" | "poster" | "neon" | "numeral" | "cartouche"
   | "plaque" | "sadu" | "bold" | "origin" | "shelf" | "frieze"
-  | "rope" | "doily" | "tile";
+  | "rope" | "doily" | "tile"
+  | "melt";
 /** شكل صورة الطبق — دائري للكافيهات، مربّع حادّ للمينيمال، وقوسُ نافذة للروشان. */
 export type ImageShape = "rounded" | "square" | "circle" | "arch";
 /**
@@ -54,6 +57,7 @@ export type MenuSkin =
   | "store" | "receipt" | "letterboard" | "sticker" | "neon" | "editorial" | "roshan" | "najdi" | "roastery"
   | "dukkan" | "asir"
   | "harbor" | "patisserie" | "juice"
+  | "burger"
   | "gold" | "modern";
 /** كيف يُقدَّم السعر: نصّاً، أو شارة ملوّنة، أو خطّاً منقّطاً يقود إليه. */
 export type PriceStyle = "plain" | "badge" | "leader";
@@ -573,7 +577,8 @@ export const DESIGN_THEMES: MenuTheme[] = [
     id: "dukkan",
     name: "دكّان",
     tagline: "لوحة صفيح مدهونة باليد، ورفوف، وأسعار بالطباشير",
-    suits: ["شعبي", "مطعم سريع"],
+    // ٠٧/١١: شارة «مطعم سريع» انتقلت إلى «صاج» — «دكّان» بقي ثاني الشعبي بشارته.
+    suits: ["شعبي"],
     vars: {
       // جصٌّ دافئ، ولوحة الصفيح أزرقَ مينا، والشريط اللاصق أصفر.
       "--m-bg": "#f3e8d2",
@@ -749,6 +754,44 @@ export const DESIGN_THEMES: MenuTheme[] = [
       heading: "tile",
       imageShape: "circle",
       divider: "none",
+      entrance: "rise",
+    }),
+  },
+  /*
+   * «صاج» — محلّ البرجر والوجبات السريعة (٢٠٢٦/١١/٠٧): لوحٌ بلون العلامة كلوح
+   * الكاونتر، والشعار في ختمٍ مموّج كورق تغليف البرجر، والجبن يسيل من حافّته.
+   * والأقسام على صاجٍ حديديّ يسيل منه الجبن، والسعر تحته خطّ صوصٍ متموّج.
+   * الخطّان: نوتو كوفي (عريضٌ كلافتات الكاونتر — للعناوين وأسماء الأصناف)
+   * وكايرو للقراءة. والتخطيط الافتراضي `showcase`: البرجر يُباع بصورته.
+   */
+  {
+    id: "burger",
+    name: "صاج",
+    tagline: "لوحٌ بلونك يسيل منه الجبن، والأقسام على صاجٍ حامٍ",
+    suits: ["مطعم سريع"],
+    vars: {
+      // ورقُ تغليفٍ مشمّع، وحبرٌ محروق، وأخضرُ المخلّل للتمييز، وصوصُ طماطم للزينة.
+      "--m-bg": "#f7f2e8",
+      "--m-bg-2": "#ede5d6",
+      "--m-surface": "#fffdf8",
+      "--m-text": "#1f1610",
+      "--m-muted": "#5a4a3d",
+      "--m-accent": "#2d5a32",
+      "--m-accent-2": "#d4492a",
+      "--m-on-accent": "#ffffff",
+      "--m-border": "rgba(31,22,16,.14)",
+      "--m-font": FONT.cairo,
+      "--m-display": FONT.kufi,
+      "--m-radius": "1.1rem",
+    },
+    design: design({
+      skin: "burger",
+      header: "griddle",
+      layout: "showcase",
+      heading: "melt",
+      imageShape: "rounded",
+      divider: "none",
+      depth: "raised",
       entrance: "rise",
     }),
   },

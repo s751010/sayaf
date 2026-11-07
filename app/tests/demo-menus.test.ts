@@ -54,17 +54,31 @@ describe("demoMenus", () => {
     expect(dishes.some((d) => d.available === false)).toBe(true);
   });
 
+  it("منيو البرجر: الوجبة أرخص من أجزائها، وسعراتها وصوديومها مجموع أجزائها", () => {
+    const { dishes } = demoData("burger");
+    const by = (id: string) => dishes.find((d) => d.id === id)!;
+    for (const [combo, burger] of [["b5", "b1"], ["b6", "b2"]] as const) {
+      const parts = [by(burger), by("b9"), by("b12")];
+      expect(by(combo).price).toBeLessThan(parts.reduce((s, d) => s + (d.price ?? 0), 0));
+      expect(by(combo).calories).toBe(parts.reduce((s, d) => s + (d.calories ?? 0), 0));
+      expect(by(combo).sodium_mg).toBe(parts.reduce((s, d) => s + (d.sodium_mg ?? 0), 0));
+    }
+    // وصنفٌ نافد يُري الزبون «نفد اليوم» بشكل الطابع.
+    expect(dishes.some((d) => d.available === false)).toBe(true);
+  });
+
   it("«عاينه كاملاً» يفتح الطابع على منيو عالمه — «مرفأ» على مطعم أسماك لا ستيك", () => {
     const kindOf = (id: string) => demoKindForSuits(ALL_THEMES.find((t) => t.id === id)!.suits);
     expect(kindOf("harbor")).toBe("seafood");
     expect(kindOf("patisserie")).toBe("sweets");
     expect(kindOf("juice")).toBe("juice");
+    expect(kindOf("burger")).toBe("burger");
     expect(kindOf("roastery")).toBe("cafe");
     expect(kindOf("dark-gold")).toBe("restaurant");
     // ولكلّ طابعٍ منيوٌ موجود — لا معاينة على بيانات ناقصة.
     for (const t of ALL_THEMES) expect(isDemoKind(demoKindForSuits(t.suits)), t.id).toBe(true);
     // والطابع الجديد يُعاين على منيوٍ طابعُه هو نفسه.
-    for (const id of ["harbor", "patisserie", "juice"]) {
+    for (const id of ["harbor", "patisserie", "juice", "burger"]) {
       expect(demoData(kindOf(id)).menus[0].theme).toBe(id);
     }
   });
