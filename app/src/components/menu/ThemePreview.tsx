@@ -7,7 +7,8 @@
  * يراه زبونه. والطوابع ذات البنية الخاصّة (`design.skin`) لكلٍّ منها رسمها:
  * فاتورةٌ على طاولة، ولوحة حروفٍ على جدار، وملصقات، ولافتة على طوب، وصفحة
  * مجلّة، وأقواس، وبيت طين، وكيس بنّ، ولوحة دكّان على رفّ، وجدارٌ بالقطّ العسيري،
- * ودفتر جلدٍ بخيطٍ ذهبيّ (فاخر)، وورق شبكةٍ بمسطرة (عصري).
+ * ودفتر جلدٍ بخيطٍ ذهبيّ (فاخر)، وورق شبكةٍ بمسطرة (عصري)، ولوح كاونترٍ يسيل منه
+ * الجبن فوق صاجٍ حديديّ (صاج).
  *
  * ⚠️ أشكالٌ لا نصوص: خطوط الطوابع لا تُحمَّل في اللوحة ولا في الهبوط، وحرفٌ
  * بخطٍّ احتياطي يكذب على التاجر في أوّل ما يراه من الطابع.
@@ -407,6 +408,43 @@ function JuiceMini({ v }: { v: Record<string, string> }) {
   );
 }
 
+/** قطرات الجبن — القناع نفسه الذي تُقصّ به في `skins/burger.css`، بنصف مقاسه. */
+const DRIP =
+  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 26'%3E%3Cpath d='M0 0H60V7H0ZM11.5 6V16.5A3.5 3.5 0 0 1 4.5 16.5V6ZM23.5 6V9.5A2.5 2.5 0 0 1 18.5 9.5V6ZM39 6V21A4 4 0 0 1 31 21V6ZM52.5 6V12.5A2.5 2.5 0 0 1 47.5 12.5V6Z'/%3E%3C/svg%3E\") 0 0 / 30px 13px repeat-x";
+
+/** صاج: لوحٌ بلون العلامة بختمٍ مموّج، وجبنٌ يسيل تحته، وقسمٌ على صاجٍ داكن فوق بطاقة. */
+function BurgerMini({ v }: { v: Record<string, string> }) {
+  const steel = "#2b2420";
+  return (
+    <div className="relative h-28 overflow-hidden" style={{ background: v["--m-bg"] }} aria-hidden="true">
+      <span
+        className="absolute left-1/2 top-2 flex h-11 w-32 -translate-x-1/2 flex-col items-center justify-center gap-1 rounded-[12px]"
+        style={{ background: v["--m-accent"], boxShadow: `inset 0 0 0 2px color-mix(in srgb, ${v["--m-accent"]} 78%, #000)` }}
+      >
+        <span
+          className="block h-5 w-5 rounded-full"
+          style={{ background: "repeating-conic-gradient(#fff4dc 0 15deg, #efdcb6 15deg 30deg)" }}
+        />
+        <span className="block h-1.5 w-14 rounded-full" style={{ background: v["--m-on-accent"] }} />
+      </span>
+      <span
+        className="absolute left-1/2 top-[51px] block h-[13px] w-28 -translate-x-1/2"
+        style={{ background: "#f2ac2b", WebkitMask: DRIP, mask: DRIP }}
+      />
+      <span className="absolute inset-x-4 top-[71px] flex h-3.5 items-center justify-between rounded-[5px] px-1.5" style={{ background: steel }}>
+        <span className="block h-1 w-10 rounded-full" style={{ background: "#fff4dc" }} />
+        <span className="block h-1.5 w-3 rounded-full" style={{ background: v["--m-accent"] }} />
+      </span>
+      <span
+        className="absolute inset-x-4 bottom-2 flex h-[18px] items-end justify-end rounded-[6px] px-1.5 pb-1"
+        style={{ background: v["--m-surface"], boxShadow: `inset 0 0 0 1px ${v["--m-border"]}` }}
+      >
+        <span className="block h-[3px] w-5 rounded-full" style={{ background: v["--m-accent-2"] }} />
+      </span>
+    </div>
+  );
+}
+
 /** عسير: شريطٌ ومثلّثات بألوان القطّ، والشعار في حلقات، وسطران بخطٍّ متعرّج. */
 function AsirMini({ v }: { v: Record<string, string> }) {
   const band = `repeating-linear-gradient(90deg, ${v["--m-accent"]} 0 12px, #e8b51f 12px 24px, #17704a 24px 36px, #2b5a9e 36px 48px)`;
@@ -617,6 +655,8 @@ export function ThemePreview({ theme }: { theme: MenuTheme }) {
       return <PatisserieMini v={v} />;
     case "juice":
       return <JuiceMini v={v} />;
+    case "burger":
+      return <BurgerMini v={v} />;
     case "gold":
       return <GoldMini theme={theme} />;
     case "modern":

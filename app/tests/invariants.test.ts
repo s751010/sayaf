@@ -77,6 +77,8 @@ describe("ثابت §18 — ألوان الطوابع", () => {
     harbor: "d99f9515",
     patisserie: "6712cfbe",
     juice: "bf6e66df",
+    // «صاج» (٢٠٢٦/١١/٠٧) — الطابع السادس عشر، للبرجر والوجبات السريعة.
+    burger: "80c5d899",
   };
 
   it("بصمة التسعة المجمّدة لم تتغيّر", () => {
@@ -103,7 +105,8 @@ describe("ثابت §18 — ألوان الطوابع", () => {
     // ٩ ⇒ ١٠ (٢٠٢٦/١٠/٢٦): «محمصة» بقرار اجتماع الطوابع — تعديلٌ متعمَّد لا تعطيل.
     // ١٠ ⇒ ١٢ (٢٠٢٦/١٠/٢٧): «دكّان» و«عسير» باختيار المالك (خطّة الموجة ٢).
     // ١٢ ⇒ ١٥ (٢٠٢٦/١١/٠٣): «مرفأ» و«حلواني» و«عصّارة» — طلب المالك «طوابع جديدة».
-    expect(ALL_THEMES.length).toBe(15);
+    // ١٥ ⇒ ١٦ (٢٠٢٦/١١/٠٧): «صاج» — البرجر والوجبات السريعة بلا طابعٍ من عالمها.
+    expect(ALL_THEMES.length).toBe(16);
   });
 
   /**
@@ -405,7 +408,7 @@ describe("الطوابع الثلاث بعد الرفع — الضغط والس�
     expect(css).toMatch(/\.m-price \{\s*font-family: var\(--font-cairo\)/);
   });
 
-  it.each(["receipt", "neon", "sticker", "letterboard", "editorial", "roshan", "najdi", "roastery", "dukkan", "asir", "harbor", "patisserie", "juice", "gold", "modern"])(
+  it.each(["receipt", "neon", "sticker", "letterboard", "editorial", "roshan", "najdi", "roastery", "dukkan", "asir", "harbor", "patisserie", "juice", "burger", "gold", "modern"])(
     "«%s» له حركة نافذةٍ خاصّة داخل `no-preference`",
     (skin) => {
       const block = css.split("@media (prefers-reduced-motion: no-preference)").slice(1).join("");

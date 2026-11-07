@@ -18,9 +18,11 @@
 import type { Dish, Menu, Restaurant } from "./types";
 import { burnMinutes, isHighSodium, isSfdaCompliant } from "./nutrition";
 
-export type DemoKind = "restaurant" | "cafe" | "shaabi" | "truck" | "seafood" | "sweets" | "juice";
+export type DemoKind = "restaurant" | "cafe" | "shaabi" | "truck" | "seafood" | "sweets" | "juice" | "burger";
 
-export const DEMO_KINDS: readonly DemoKind[] = ["restaurant", "cafe", "shaabi", "truck", "seafood", "sweets", "juice"];
+export const DEMO_KINDS: readonly DemoKind[] = [
+  "restaurant", "cafe", "shaabi", "truck", "seafood", "sweets", "juice", "burger",
+];
 
 export function isDemoKind(v: string | null | undefined): v is DemoKind {
   return !!v && (DEMO_KINDS as readonly string[]).includes(v);
@@ -789,15 +791,132 @@ function juice(): DemoData {
   };
 }
 
+/* ── محلّ برجر ووجبات سريعة — لطابع «صاج» (٢٠٢٦/١١/٠٧) ──────────────────────
+ * غير «عربة دخّان»: تلك عربةٌ تتنقّل بثلاثة أقسام، وهذا محلّ سماش بوجباتٍ (برجر +
+ * بطاطس + مشروب) — والوجبة سعرها أقلّ من مجموع أجزائها، وسعراتها مجموعها. */
+
+function burger(): DemoData {
+  const R = "demo-burger";
+  const M = "demo-burger-menu";
+  const dish = dishMaker(R, M);
+  return {
+    restaurant: restaurantOf(R, {
+      name: "برجر الحارة",
+      type: "سماش برجر ووجبات سريعة",
+      address: "الخبر — شارع الأمير تركي",
+      logo: "🍔",
+      allergens_text: "خبزنا يحتوي على جلوتين وسمسم، وصوصاتنا على بيض وخردل، والمقليات كلّها في زيتٍ واحد.",
+      working_hours: WEEK("12:00", "02:00", "03:00"),
+      loyalty_goal: 7,
+      loyalty_reward: "وجبة سماش مجاناً",
+      prep_minutes: 12,
+      category_order: JSON.stringify(["البرجر", "الوجبات", "الدجاج", "الجانبية", "المشروبات"]),
+    }),
+    menus: [menuOf(R, M, "burger")],
+    dishes: [
+      dish("b1", "سماش كلاسيك", "Classic Smash", "البرجر", 19, "🍔", {
+        description: "قرص لحم مكبوس على الصاج، شيدر، بصل، مخلل، وصوص الحارة.",
+        calories: 480,
+        sodium_mg: 860,
+        allergens: ["جلوتين", "حليب", "بيض", "سمسم", "خردل"],
+        options: JSON.stringify([
+          { name: "قرص لحم إضافي", price: 7, kcal: 220 },
+          { name: "بدون بصل", price: 0 },
+        ]),
+      }),
+      dish("b2", "دبل سماش بالجبن", "Double Cheese Smash", "البرجر", 27, "🍔", {
+        description: "قرصان مكبوسان وشريحتا شيدر ذائب، بخبز البطاطس المحمّص بالزبدة.",
+        featured: true,
+        calories: 760,
+        sodium_mg: 1340,
+        allergens: ["جلوتين", "حليب", "بيض", "سمسم", "خردل"],
+      }),
+      dish("b3", "برجر الصاج الحار", "Spicy Griddle Burger", "البرجر", 26, "🌶️", {
+        description: "لحم مع هالبينو مشوي، وجبن بيبرجاك، وصوص الشطّة.",
+        calories: 690,
+        sodium_mg: 1290,
+        allergens: ["جلوتين", "حليب", "بيض", "سمسم"],
+      }),
+      dish("b4", "برجر الفطر والترافل", "Truffle Mushroom Burger", "البرجر", 32, "🍄", {
+        description: "لحم أنقس، فطر مكرمل، جبن سويسري، ومايونيز الترافل.",
+        calories: 780,
+        sodium_mg: 1220,
+        allergens: ["جلوتين", "حليب", "بيض", "سمسم"],
+      }),
+      dish("b5", "وجبة سماش", "Smash Combo", "الوجبات", 29, "🍟", {
+        description: "سماش كلاسيك مع بطاطس وسط ومشروب غازي.",
+        featured: true,
+        // ٤٨٠ برجر + ٣٤٠ بطاطس + ١٤٠ مشروب — والصوديوم مجموعها كذلك.
+        calories: 960,
+        sodium_mg: 1310,
+        allergens: ["جلوتين", "حليب", "بيض", "سمسم", "خردل"],
+        options: JSON.stringify([
+          { name: "كبّر البطاطس", price: 4, kcal: 140 },
+          { name: "ميلك شيك بدل المشروب", price: 9, kcal: 380 },
+        ]),
+      }),
+      dish("b6", "وجبة دبل", "Double Combo", "الوجبات", 36, "🍟", {
+        description: "دبل سماش بالجبن مع بطاطس وسط ومشروب غازي.",
+        calories: 1240,
+        sodium_mg: 1790,
+        allergens: ["جلوتين", "حليب", "بيض", "سمسم", "خردل"],
+      }),
+      dish("b7", "ساندويتش دجاج سبايسي", "Spicy Chicken Sandwich", "الدجاج", 22, "🍗", {
+        description: "صدر دجاج متبّل ومقلي، كولسلو، ومخلل.",
+        calories: 610,
+        sodium_mg: 1250,
+        allergens: ["جلوتين", "بيض", "حليب"],
+      }),
+      dish("b8", "تندر دجاج — ٥ قطع", "Chicken Tenders (5 pcs)", "الدجاج", 24, "🍗", {
+        description: "قطع صدر مقرمشة مع صوص العسل والخردل.",
+        calories: 540,
+        sodium_mg: 1180,
+        allergens: ["جلوتين", "بيض", "خردل"],
+      }),
+      dish("b9", "بطاطس مقلية", "Fries", "الجانبية", 9, "🍟", {
+        description: "حجم وسط، بملح البحر.",
+        calories: 340,
+        sodium_mg: 420,
+      }),
+      dish("b10", "بطاطس بالجبن واللحم", "Loaded Fries", "الجانبية", 16, "🍟", {
+        description: "بطاطس مع صوص الشيدر وقطع اللحم والهالبينو.",
+        calories: 610,
+        sodium_mg: 1080,
+        allergens: ["حليب"],
+        available: false,
+      }),
+      dish("b11", "ميلك شيك فانيلا", "Vanilla Shake", "المشروبات", 16, "🥤", {
+        description: "آيس كريم فانيلا وحليب كامل الدسم — ٤٠٠ مل.",
+        calories: 520,
+        sodium_mg: 260,
+        allergens: ["حليب"],
+      }),
+      dish("b12", "مشروب غازي", "Soft Drink", "المشروبات", 6, "🥤", {
+        description: "٣٣٠ مل.",
+        calories: 140,
+        sodium_mg: 30,
+      }),
+      dish("b13", "مياه", "Water", "المشروبات", 2, "💧", {
+        description: "٣٣٠ مل.",
+        calories: 0,
+        sodium_mg: 5,
+      }),
+    ],
+  };
+}
+
 /**
  * المنيو الذي يُعاين به طابعٌ ما وحده (`/demo?theme=…` من «عاينه كاملاً»):
  * أوّل نوعٍ في `suits` ⇒ منيو ذلك النوع. فـ«مرفأ» يُعاين على مطعم أسماك لا على
  * ستيك واقيو، و«حلواني» على حلويات. وما لا نوع له ⇒ «الديوان».
+ *
+ * و«مطعم سريع» ⇒ محلّ البرجر لا العربة (٠٧/١١): أوّل طوابع النوع صار «صاج»،
+ * فمنيو النوع منيوه. والعربة باقيةٌ لصفحة عربات الطعام (`segments.ts`) و`?kind=truck`.
  */
 const KIND_BY_TYPE: Record<string, DemoKind> = {
   كافيه: "cafe",
   شعبي: "shaabi",
-  "مطعم سريع": "truck",
+  "مطعم سريع": "burger",
   بحري: "seafood",
   "مخبز وحلويات": "sweets",
   عصائر: "juice",
@@ -807,7 +926,16 @@ export function demoKindForSuits(suits: readonly string[] | undefined): DemoKind
   return KIND_BY_TYPE[suits?.[0] ?? ""] ?? "restaurant";
 }
 
-const BUILDERS: Record<DemoKind, () => DemoData> = { restaurant: diwan, cafe, shaabi, truck, seafood, sweets, juice };
+const BUILDERS: Record<DemoKind, () => DemoData> = {
+  restaurant: diwan,
+  cafe,
+  shaabi,
+  truck,
+  seafood,
+  sweets,
+  juice,
+  burger,
+};
 
 /** المنيو التجريبي لنوعٍ ما — والمجهول يسقط إلى «الديوان». */
 export function demoData(kind: string | null | undefined): DemoData {

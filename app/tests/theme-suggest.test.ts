@@ -82,7 +82,10 @@ describe("`rankThemes` يرتّب ولا يحذف", () => {
     ["أسماك", "harbor", false],
     ["حلويات", "patisserie", false],
     ["عصيرات", "juice", false],
-    ["برجر", "neon", false],
+    // ٠٧/١١: للبرجر والوجبات السريعة طابعهما («صاج») — ونيون ثانيه.
+    ["برجر", "burger", false],
+    ["وجبات سريعة", "burger", false],
+    ["Burger House", "burger", false],
     ["أخرى", "dark-gold", false],
     [null, "dark-gold", false],
   ] as const)("«%s» ⇒ «%s» أوّلاً", (raw, first, cafe) => {

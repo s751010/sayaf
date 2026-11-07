@@ -9,9 +9,10 @@
  *
  * كلّها تُلوَّن بمتغيّرات `--m-*` (ثيم القائمة) لا بألوان اللوحة.
  */
-import { useEffect, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
 import { type CardReserve } from "@/components/menu/DishCard";
 import type { DishLayout } from "@/lib/themes";
+import { trapTab } from "@/lib/focusTrap";
 import { Icon } from "@/lib/icons";
 import type { Dish } from "@/lib/types";
 
@@ -52,13 +53,17 @@ export function Chip({ children, onClick, href }: { children: ReactNode; onClick
  * كان شريحةً وسط الحالة والتقييم والموقع، فيُقرأ معلومةً عن المطعم لا أداةً
  * للزبون. والزاوية حيث يبحث عنه الزبون في كل تطبيق. وأرضيّته شبه معتمة مع
  * ضبابٍ خلفه: يجلس فوق غلافٍ بلون العلامة أو صورةٍ أو طوبٍ ويبقى مقروءاً.
+ *
+ * ‏٤٤px للمس لا للشكل: كلّ زرٍّ عرضه ٤٤ وارتفاعه المرئي ٣٦، و`m-hit` يمدّ ما
+ * يُلمس فوقه وتحته (`menu-skins.css`). ولا `overflow-hidden` على الإطار — كان
+ * سيقصّ ذلك الامتداد؛ فالزرّان يستديران عند طرفيهما بأنفسهما بدلاً منه.
  */
 export function LangToggle({ lang, onChange }: { lang: "ar" | "en"; onChange: (l: "ar" | "en") => void }) {
   return (
     <div
       role="group"
       aria-label="اللغة / Language"
-      className="m-lang inline-flex h-9 overflow-hidden rounded-full text-[13px] font-bold"
+      className="m-lang inline-flex h-9 rounded-full text-[13px] font-bold"
       style={{
         background: "color-mix(in srgb, var(--m-bg) 86%, transparent)",
         boxShadow: "0 0 0 1px var(--m-border), 0 8px 18px -10px rgba(0,0,0,.45)",
@@ -71,7 +76,7 @@ export function LangToggle({ lang, onChange }: { lang: "ar" | "en"; onChange: (l
           key={l}
           onClick={() => onChange(l)}
           aria-pressed={lang === l}
-          className="min-w-10 px-3 transition-colors"
+          className="m-hit min-w-11 px-3 transition-colors first:rounded-s-full last:rounded-e-full"
           style={lang === l ? { background: "var(--m-accent)", color: "var(--m-on-accent)" } : { color: "var(--m-text)" }}
         >
           {l === "ar" ? "ع" : "EN"}
@@ -84,7 +89,10 @@ export function LangToggle({ lang, onChange }: { lang: "ar" | "en"; onChange: (l
 /**
  * لوح منسدل بثيم المنيو (`--m-*`).
  * `ui.tsx`'s Modal مربوط بألوان اللوحة لا بثيم المنيو، فنحتاج نسخة مستقلة —
- * لكن منطق Escape وقفل التمرير موحّد هنا بدل تكراره في كل لوح.
+ * لكن منطق Escape وقفل التمرير وحبس التركيز موحّد هنا بدل تكراره في كل لوح.
+ *
+ * التركيز يدخل اللوح ويُحبس فيه ويعود إلى الزرّ الذي فتحه (`lib/focusTrap.ts`):
+ * كان «Tab» يتجوّل خلف الغطاء، وقارئ الشاشة يقرأ المنيو المحجوب لا اللوح.
  */
 export function MenuSheet({
   title,
@@ -95,8 +103,25 @@ export function MenuSheet({
   onClose: () => void;
   children: ReactNode;
 }) {
+  const sheetRef = useRef<HTMLDivElement>(null);
+  /**
+   * مرّةً للّوح لا لكل رسم: `onClose` دالّةٌ مضمَّنة تتجدّد مع كل رسم، فلو سكن
+   * هذا في التأثير تحته لعاد التركيز إلى الزرّ ثم إلى اللوح مع كل ضغطة.
+   * واللوح نفسه لا أوّل زرّ فيه — كما في `DishModal`: قارئ الشاشة يبدأ من
+   * العنوان، ولا حلقة تركيز على «إغلاق» لمن فتح بلمسة.
+   */
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    const prev = document.activeElement as HTMLElement | null;
+    sheetRef.current?.focus({ preventScroll: true });
+    return () => {
+      if (prev?.isConnected) prev.focus({ preventScroll: true });
+    };
+  }, []);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      else if (sheetRef.current) trapTab(e, sheetRef.current);
+    };
     document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
     return () => {
@@ -114,8 +139,10 @@ export function MenuSheet({
         role="dialog"
         aria-modal="true"
         aria-label={title}
+        ref={sheetRef}
+        tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
-        className="m-sheet anim-fade-up max-h-[88dvh] w-full max-w-lg overflow-y-auto border p-5"
+        className="m-sheet anim-fade-up max-h-[88dvh] w-full max-w-lg overflow-y-auto border p-5 outline-none"
         style={{
           // ‏`backgroundColor` لا `background`: الاختصار المضمَّن يُعيد
           // `background-image` إلى لا شيء فيغلب خامة الطابع (كرافت المحمصة).

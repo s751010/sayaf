@@ -75,6 +75,13 @@ export const K = {
    * بمغادرة الصفحة فتُدفع ثانيةً. تُمسح عند الحفظ أو «ابدأ من جديد».
    */
   SETUP_ROWS: "cm2_setup_rows",
+  /**
+   * آخر منيو حمّله الزبون بنجاح — localStorage، ويُلحق به الـslug
+   * (`cm2_menu_cache_<slug>`). يُعرض حين تفشل الشبكة مع «قد يكون قديماً»
+   * بدل «تعذّر التحميل». بياناتٌ عامّة وحدها (لا يُحفظ ما جُلب بجلسة المالك)،
+   * والشكل والمنطق في `lib/menuCache.ts`.
+   */
+  MENU_CACHE: "cm2_menu_cache",
 } as const;
 
 function store(session: boolean): Storage | null {
