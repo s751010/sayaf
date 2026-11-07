@@ -9,7 +9,8 @@
  * يحفظها PDF — والقواعد في `@media print` (global.css) تُخفي كل ما عداها.
  *
  * ⚠️ الإلزام يشمل الورق: السعرات بجانب كل صنف، والكافيين للمشروبات، وتنبيه
- * الصوديوم المرتفع، ومسبّبات الحساسية، وعبارة الاحتياج اليومي. كل ذلك هنا من
+ * الصوديوم المرتفع، ومسبّبات الحساسية، وعبارة الاحتياج اليومي، وعبارتا الملح
+ * و«متاحة عند الطلب» (`lib/sfdaStatements.ts`). كل ذلك هنا من
  * نفس أعمدة القاعدة التي يقرؤها المنيو الرقمي — رقمٌ واحد في كل مكان.
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -26,6 +27,7 @@ import { displayAllergens } from "@/lib/allergens";
 import { menuUrl } from "@/lib/menuUrl";
 import { qrDataUrl } from "@/lib/qr";
 import { burnMinutes, isHighSodium } from "@/lib/nutrition";
+import { MORE_INFO_STATEMENT, SALT_STATEMENT, needsMoreInfoStatement, needsSaltStatement } from "@/lib/sfdaStatements";
 import { Icon } from "@/lib/icons";
 import { formatPrice } from "@/lib/utils";
 import type { Dish } from "@/lib/types";
@@ -96,6 +98,10 @@ export default function PrintMenu() {
     () => (sections ?? []).some((s) => s.items.some((d) => (d.caffeine_mg ?? 0) > 0)),
     [sections]
   );
+
+  const shownDishes = useMemo(() => (sections ?? []).flatMap((s) => s.items), [sections]);
+  const hasSalt = needsSaltStatement(shownDishes);
+  const hasMoreInfo = needsMoreInfoStatement(shownDishes);
 
   const usedAllergens = useMemo(() => {
     const all = new Set<string>();
@@ -318,11 +324,18 @@ export default function PrintMenu() {
                 <p style={{ color: INK, fontWeight: 700 }}>
                   يحتاج البالغ في المتوسّط إلى {DAILY_KCAL.toLocaleString("ar-SA-u-nu-latn")} سعرة حرارية يومياً.
                 </p>
+                {hasMoreInfo && <p style={{ color: INK, fontWeight: 700 }}>{MORE_INFO_STATEMENT.ar}</p>}
                 {/* ⚠️ لائحة الكافيين (يوليو ٢٠٢٥) تطلب العبارة مع الكمية — كانت الورقة
                     تطبع كافيين القهوة بلا العبارة. تظهر متى وُجد صنفٌ بكافيين. */}
                 {hasCaffeine && (
                   <p style={{ color: INK, fontWeight: 700 }}>
                     الحدّ الأعلى اليومي من الكافيين للبالغ {DAILY_CAFFEINE_MAX_MG} ملغم.
+                  </p>
+                )}
+                {/* لائحة الملح: بجانب «⚠» نفسها التي تُعلَّم بها الأصناف أعلاه. */}
+                {hasSalt && (
+                  <p data-salt-statement style={{ color: INK, fontWeight: 700 }}>
+                    <span style={{ color: "#b3261e" }}>⚠</span> {SALT_STATEMENT.ar}
                   </p>
                 )}
                 {usedAllergens.length > 0 && (

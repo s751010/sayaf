@@ -6,7 +6,8 @@
  * شاشة الامتثال كانت تقول «٨٨٪ جاهز» — رقمٌ صحيح لكنه لا يجيب سؤال التاجر
  * الحقيقي: «لو دخل المفتّش اليوم، وش ينقصني؟». وهذه تجيبه بالبنود نفسها التي
  * يطلبها الاشتراط (السعرات، والصوديوم وعلامته، والكافيين على المشروبات، وتنبيه
- * الحساسية، وجملة الاحتياج اليومي)، ولكل بندٍ حالته وطريق إصلاحه.
+ * الحساسية، وجملة الاحتياج اليومي، وعبارتا الملح و«متاحة عند الطلب»)، ولكل بندٍ
+ * حالته وطريق إصلاحه.
  *
  * ⚠️ **الصيغة «جاهز» لا «متوافق مع الهيئة»**: نحسب ونعرض، والمسؤولية النظامية
  * على المنشأة (كما في `lib/plans.ts` و`Legal.tsx`). البند المكتمل يعني أن
@@ -18,11 +19,12 @@
 import type { Dish, Restaurant } from "./types";
 import { isDrinkText } from "./recipe";
 import { DAILY_CAFFEINE_MAX_MG, DAILY_KCAL } from "./nutrition";
+import { MORE_INFO_STATEMENT, needsMoreInfoStatement, needsSaltStatement } from "./sfdaStatements";
 
 export type CheckState = "done" | "todo" | "auto";
 
 export type CheckItem = {
-  id: "calories" | "sodium" | "caffeine" | "allergens" | "daily";
+  id: "calories" | "sodium" | "caffeine" | "allergens" | "daily" | "onRequest" | "saltNote";
   label: string;
   state: CheckState;
   /** سطرٌ يشرح الحالة: «٧ من ٨ أصناف» · «يظهر تلقائياً أسفل منيوك». */
@@ -92,6 +94,24 @@ export function sfdaChecklist(
       label: `جملة الاحتياج اليومي (${NUM(DAILY_KCAL)} سعرة، و${NUM(DAILY_CAFFEINE_MAX_MG)} ملغم كافيين)`,
       state: "auto",
       detail: "تظهر تلقائياً أسفل منيوك — لا شيء عليك",
+    },
+    // العبارتان تكتبهما المنصّة بشرطهما (`lib/sfdaStatements.ts`) — فالبند جاهز
+    // دائماً، والسطر يقول هل تظهر الآن أم متى تظهر، فلا يَعِد بما لا يُرى.
+    {
+      id: "onRequest",
+      label: `عبارة «${MORE_INFO_STATEMENT.ar.replace(/\.$/, "")}»`,
+      state: "auto",
+      detail: needsMoreInfoStatement(dishes)
+        ? "تظهر تلقائياً أسفل منيوك — لا شيء عليك"
+        : "تظهر تلقائياً أسفل منيوك متى أدخلت سعرات صنف",
+    },
+    {
+      id: "saltNote",
+      label: "عبارة الملح بجانب علامته (الحدّ اليومي للفرد 5 جرام ملح)",
+      state: "auto",
+      detail: needsSaltStatement(dishes)
+        ? "تظهر تلقائياً أسفل منيوك بجانب علامة الملح — لا شيء عليك"
+        : "لا صنف بعلامة الملح الآن — وتظهر تلقائياً متى وُجد",
     },
   ];
 }

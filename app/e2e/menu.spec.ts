@@ -8,6 +8,8 @@
  *   فوقه وتحته يصيب العنصر نفسه.
  * - **`MenuSheet`**: التركيز يدخل اللوح ويُحبس فيه ويعود إلى الزرّ عند الإغلاق.
  * - **البيان**: باسم المطعم و`start_url` رابطه، والأصلي يعود عند المغادرة.
+ * - **عبارتا الهيئة في الذيل** (`lib/sfdaStatements.ts`): الملح بجانب علامته متى
+ *   وُجد صنفٌ بها، و«متاحة عند الطلب» متى وُجد صنفٌ بسعرات — وبالإنجليزية لزبون EN.
  */
 import { expect, test, type Page } from "@playwright/test";
 import { watch } from "./watch";
@@ -31,7 +33,7 @@ const dishes = [
 ];
 
 /** ‏`net.offline = true` ⇒ كل طلبٍ إلى Supabase ينقطع كما ينقطع في قبوٍ بلا إشارة. */
-async function mockMenu(page: Page, net: { offline: boolean }): Promise<void> {
+async function mockMenu(page: Page, net: { offline: boolean }, list: unknown[] = dishes): Promise<void> {
   await page.route(/supabase\.co/, async (route) => {
     if (net.offline) return route.abort("internetdisconnected");
     const req = route.request();
@@ -42,7 +44,7 @@ async function mockMenu(page: Page, net: { offline: boolean }): Promise<void> {
     else if (req.method() === "GET") {
       if (table.startsWith("restaurants")) body = [restaurant];
       else if (table.startsWith("menus")) body = menus;
-      else if (table.startsWith("dishes")) body = dishes;
+      else if (table.startsWith("dishes")) body = list;
     }
     await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(body) });
   });
@@ -159,4 +161,32 @@ test("«أضف إلى الشاشة الرئيسية»: بيانٌ باسم ال�
   await expect(page).toHaveURL(/\/$/);
   await expect(link).toHaveAttribute("href", "/manifest.webmanifest");
   expect(crashes, crashes.join("\n")).toEqual([]);
+});
+
+test("عبارتا الهيئة تظهران بشرطهما في الذيل، وبالإنجليزية لزبون EN", async ({ page }) => {
+  const { crashes } = watch(page);
+  const salty = [
+    { ...dishes[0], calories: 127, sodium_mg: 95, caffeine_mg: 126, is_high_sodium: false },
+    { id: "d3", menu_id: MID, restaurant_id: RID, name: "شاورما", category: "رئيسية", price: 22, available: true, sort_order: 2, calories: 640, sodium_mg: 1200, is_high_sodium: true },
+  ];
+  await mockMenu(page, { offline: false }, salty);
+  await openMenu(page);
+
+  const salt = page.locator("[data-salt-statement]");
+  await expect(salt).toContainText("الصنف يحتوي على كمية ملح أعلى من الكمية الموصى بها يوميًا");
+  await expect(salt).toContainText("5 جرام (2000 ملجم صوديوم)");
+  await expect(salt.locator("svg")).toHaveCount(1);
+  await expect(page.getByText("البيانات التغذوية الإضافية متاحة عند الطلب.")).toBeVisible();
+
+  await page.getByRole("group", { name: "اللغة / Language" }).getByRole("button", { name: "EN" }).click();
+  await expect(salt).toContainText("This item contains more salt than the recommended daily amount.");
+  await expect(page.getByText("Additional nutrition information is available on request.")).toBeVisible();
+  expect(crashes, crashes.join("\n")).toEqual([]);
+});
+
+test("عبارتا الهيئة تغيبان عن منيو بلا سعرات ولا علامة ملح", async ({ page }) => {
+  await mockMenu(page, { offline: false });
+  await openMenu(page);
+  await expect(page.locator("[data-salt-statement]")).toHaveCount(0);
+  await expect(page.getByText("البيانات التغذوية الإضافية متاحة عند الطلب.")).toHaveCount(0);
 });

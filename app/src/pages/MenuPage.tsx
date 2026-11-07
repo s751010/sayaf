@@ -67,6 +67,13 @@ import { getSeason } from "@/lib/seasons";
 import { hasPixels, installPixels } from "@/lib/pixels";
 import { PixelConsent } from "@/components/menu/PixelConsent";
 import { DAILY_CAFFEINE_MAX_MG, DAILY_KCAL } from "@/lib/nutrition";
+import {
+  MORE_INFO_STATEMENT,
+  SALT_STATEMENT,
+  needsMoreInfoStatement,
+  needsSaltStatement,
+  statementText,
+} from "@/lib/sfdaStatements";
 import { loadSession } from "@/lib/session";
 import { getBillingSettings } from "@/lib/billing";
 import { absoluteUrl, dietOf, priceRangeOf, schemaHours, useJsonLd, useSeo } from "@/lib/seo";
@@ -1385,7 +1392,8 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
               {/* أرقام غربية و«%» — نفس اتفاقية formatPrice ونِسب التحليلات،
                   وتتفادى إعادة ترتيب «٪» داخل نص RTL. */}
               {/* عبارات الهيئة على المنيو الرقمي كما على المطبوع (`PrintMenu`):
-                  تظهر متى عرض المنيو سعرات أو كافيين — العبارة تصاحب الرقم. */}
+                  تظهر متى عرض المنيو سعرات أو كافيين أو علامة ملح — العبارة تصاحب
+                  الرقم. ونصّ العبارتين الجديدتين وشرطهما في `lib/sfdaStatements.ts`. */}
               {state.dishes.some((d) => d.calories != null) && (
                 <p className="font-bold" style={{ color: "var(--m-text)" }}>
                   {en
@@ -1393,11 +1401,31 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
                     : `يحتاج البالغ في المتوسّط إلى ${DAILY_KCAL.toLocaleString("ar-SA-u-nu-latn")} سعرة حرارية يومياً.`}
                 </p>
               )}
+              {needsMoreInfoStatement(state.dishes) && (
+                <p className="font-bold" style={{ color: "var(--m-text)" }}>
+                  {statementText(MORE_INFO_STATEMENT, en)}
+                </p>
+              )}
               {state.dishes.some((d) => (d.caffeine_mg ?? 0) > 0) && (
                 <p className="font-bold" style={{ color: "var(--m-text)" }}>
                   {en
                     ? `Maximum daily caffeine for adults is ${DAILY_CAFFEINE_MAX_MG} mg.`
                     : `الحدّ الأعلى اليومي من الكافيين للبالغ ${DAILY_CAFFEINE_MAX_MG} ملغم.`}
+                </p>
+              )}
+              {/* لائحة الملح: العبارة بجانب أيقونة العلامة نفسها التي في نافذة
+                  الطبق (`DishModal`: «warn» بلون التمييز) — فيقرأ الزبون الرمز
+                  ومعناه معاً. */}
+              {needsSaltStatement(state.dishes) && (
+                <p
+                  data-salt-statement
+                  className="flex items-start justify-center gap-1.5 font-bold"
+                  style={{ color: "var(--m-text)" }}
+                >
+                  <span className="mt-0.5 shrink-0" style={{ color: "var(--m-accent-ink, var(--m-accent))" }}>
+                    <Icon name="warn" size={13} />
+                  </span>
+                  <span>{statementText(SALT_STATEMENT, en)}</span>
                 </p>
               )}
               {/* ⚠️ «شامل الضريبة» ادّعاءٌ بضريبة: مطعمٌ غير مسجّل لا يجوز أن
