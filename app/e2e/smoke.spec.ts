@@ -44,6 +44,8 @@ const PAGES = [
   { path: "/demo?theme=juice", anchor: "عصيرات ليمونة", role: "text", label: "عصّارة على منيو العصير" },
   { path: "/demo?theme=burger", anchor: "برجر الحارة", role: "text", label: "صاج على منيو البرجر" },
   { path: "/demo?kind=burger", anchor: "برجر الحارة", role: "text", label: "منيو البرجر التجريبي" },
+  { path: "/demo?theme=bakery", anchor: "مخبز السنابل", role: "text", label: "فرن على منيو المخبز" },
+  { path: "/demo?theme=breakfast", anchor: "فوّال باب مكة", role: "text", label: "فوّال على منيو الفطور" },
   // مقالٌ ثابت: نصّه يُحمَّل كسولاً (`import.meta.glob`) ويمرّ على المنقّي في
   // متصفّح حقيقي — ويُعرض ولو سقطت الشبكة. والمرساة عنوانٌ **داخل النصّ** لا
   // عنوان المقال: هي ما يثبت أن الملفّ الكسول وصل ومرّ على المنقّي سليماً.

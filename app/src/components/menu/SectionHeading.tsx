@@ -30,6 +30,8 @@ import { HarborHeading } from "./heads/HarborHead";
 import { PatisserieHeading } from "./heads/PatisserieHead";
 import { JuiceHeading } from "./heads/JuiceHead";
 import { BurgerHeading } from "./heads/BurgerHead";
+import { BakeryHeading } from "./heads/BakeryHead";
+import { BreakfastHeading } from "./heads/BreakfastHead";
 import { AsirHeading } from "./heads/AsirHead";
 
 /** خطّ العناوين — يسقط إلى خطّ النصّ لكل طابع لا يذكر `--m-display` (§18). */
@@ -303,8 +305,8 @@ export function SectionHeading({
   }
 
   /* ── دكّان (رفٌّ ولوح طباشير) · عسير (إفريز مثلّثات) · مرفأ (حبلٌ ومرساة) ·
-        حلواني (مفرش دانتيل) · عصّارة (بلاطة فاكهة) · صاج (جبنٌ يسيل من الصاج):
-        كلٌّ في ملفّه (`heads/`) ── */
+        حلواني (مفرش دانتيل) · عصّارة (بلاطة فاكهة) · صاج (جبنٌ يسيل من الصاج) ·
+        فرن (مطرحة خبّاز) · فوّال (صحن نحاس): كلٌّ في ملفّه (`heads/`) ── */
   const FILE_HEADINGS = {
     shelf: DukkanHeading,
     frieze: AsirHeading,
@@ -312,6 +314,8 @@ export function SectionHeading({
     doily: PatisserieHeading,
     tile: JuiceHeading,
     melt: BurgerHeading,
+    peel: BakeryHeading,
+    plate: BreakfastHeading,
   } as const;
   if (style in FILE_HEADINGS) {
     const Skin = FILE_HEADINGS[style as keyof typeof FILE_HEADINGS];

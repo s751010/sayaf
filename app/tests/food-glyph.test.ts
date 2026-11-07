@@ -32,6 +32,10 @@ describe("guessGlyph — اسم الطبق", () => {
     ["ستيك واقيو مشوي", "skewer"],
     ["شوربة سمك", "soup"],
     ["سلطة الحمّص بالطحينة", "salad"],
+    // ٠٧/١١: منيو «فرن» و«فوّال».
+    ["مطبّق جبن", "croissant"],
+    ["مطبّق لحم", "croissant"],
+    ["شريك بالسمسم", "bread"],
   ] as const)("«%s» ⇐ %s", (name, icon) => {
     expect(guessGlyph(name)).toBe(icon);
   });
@@ -57,6 +61,8 @@ describe("categoryIcon — القاموس أولاً، ثم الكلمة", () =>
     ["الإيدامات", "pot"],
     ["الدجاج", "fries"],
     ["الحلويات الشرقية", "cake"],
+    ["المطبّق", "croissant"],
+    ["من الفرن", "bread"],
     ["إسبريسو وحليب", "cup"],
   ] as const)("«%s» ⇐ %s", (cat, icon) => {
     expect(categoryIcon(cat)).toBe(icon);

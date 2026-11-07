@@ -8,7 +8,8 @@
  * فاتورةٌ على طاولة، ولوحة حروفٍ على جدار، وملصقات، ولافتة على طوب، وصفحة
  * مجلّة، وأقواس، وبيت طين، وكيس بنّ، ولوحة دكّان على رفّ، وجدارٌ بالقطّ العسيري،
  * ودفتر جلدٍ بخيطٍ ذهبيّ (فاخر)، وورق شبكةٍ بمسطرة (عصري)، ولوح كاونترٍ يسيل منه
- * الجبن فوق صاجٍ حديديّ (صاج).
+ * الجبن فوق صاجٍ حديديّ (صاج)، وفوهة فرنٍ متّقدة فوق ختمٍ (فرن)، وصينيّة نحاسٍ تطلع
+ * فوق بلاطٍ مزخرف (فوّال).
  *
  * ⚠️ أشكالٌ لا نصوص: خطوط الطوابع لا تُحمَّل في اللوحة ولا في الهبوط، وحرفٌ
  * بخطٍّ احتياطي يكذب على التاجر في أوّل ما يراه من الطابع.
@@ -453,6 +454,73 @@ function BurgerMini({ v }: { v: Record<string, string> }) {
   );
 }
 
+/** فرن: قوسُ طوبٍ بجوفٍ متّقد ورغيفٍ ذهبيّ، وعتبة، والاسم في ختمٍ مزدوج، ومطرحةٌ تحته. */
+function BakeryMini({ v }: { v: Record<string, string> }) {
+  const bricks =
+    "repeating-conic-gradient(from -90deg at 50% 40px, #ead9bc 0 2deg, #b9653a 2deg 16deg, #ead9bc 16deg 18deg, #a2532d 18deg 30deg)";
+  return (
+    <div className="relative h-28 overflow-hidden" style={{ background: v["--m-bg"] }} aria-hidden="true">
+      <span className="absolute left-1/2 top-1.5 block h-[52px] w-20 -translate-x-1/2 rounded-t-full" style={{ background: bricks }}>
+        <span
+          className="absolute inset-x-[7px] bottom-0 top-[7px] flex items-end justify-center rounded-t-full pb-1"
+          style={{ background: "radial-gradient(120% 95% at 50% 100%, #ffb04c 0%, #e2601d 28%, #5a1f0c 55%, #1b0d07 80%)" }}
+        >
+          <span
+            className="block h-5 w-5 rounded-full"
+            style={{ background: "radial-gradient(circle at 38% 30%, #ecb86e, #c98a3c 45%, #94541f)" }}
+          />
+        </span>
+      </span>
+      <span className="absolute left-1/2 top-[58px] block h-1.5 w-[5.6rem] -translate-x-1/2 rounded-[2px]" style={{ background: "#e6d6ba" }} />
+      <span
+        className="absolute left-1/2 top-[70px] flex h-[18px] w-24 -translate-x-1/2 -rotate-2 items-center justify-center rounded-[5px]"
+        style={{ boxShadow: `inset 0 0 0 1.5px ${v["--m-accent"]}, inset 0 0 0 3px ${v["--m-bg"]}, inset 0 0 0 4px ${v["--m-accent"]}` }}
+      >
+        <span className="block h-1.5 w-14 rounded-full" style={{ background: v["--m-accent"] }} />
+      </span>
+      <span className="absolute inset-x-5 bottom-2 flex items-center">
+        <span className="block h-3 w-12 rounded-s-full rounded-e-[3px]" style={{ background: "#dcb37a" }} />
+        <span className="block h-1 flex-1 rounded-e-full" style={{ background: "#c4955a" }} />
+        <span className="ms-1.5 block h-2.5 w-4 -rotate-6 rounded-[2px]" style={{ boxShadow: `inset 0 0 0 1px ${v["--m-accent"]}` }} />
+      </span>
+    </div>
+  );
+}
+
+/** فوّال: صينيّة نحاسٍ تطلع بأشعّتها فوق بلاطٍ مزخرف، والصحن عليه، وصحنا نحاسٍ تحته. */
+function BreakfastMini({ v }: { v: Record<string, string> }) {
+  const copper = "radial-gradient(circle at 36% 30%, #eaa874, #b8682f 50%, #7f3f18)";
+  const tiles = `radial-gradient(circle, ${v["--m-accent-2"]} 0 1.8px, transparent 2.2px) 0 0 / 11px 11px, radial-gradient(circle, ${v["--m-accent"]} 0 3.5px, transparent 4px) -5.5px -5.5px / 11px 11px, ${v["--m-surface"]}`;
+  return (
+    <div className="relative h-28 overflow-hidden" style={{ background: v["--m-bg"] }} aria-hidden="true">
+      <span
+        className="absolute inset-x-0 top-0 block h-[52px]"
+        style={{
+          background: "repeating-conic-gradient(from -90deg at 50% 100%, rgba(242,184,75,.35) 0 8deg, transparent 8deg 17deg)",
+          WebkitMask: "radial-gradient(farthest-side at 50% 100%, #000 40%, transparent)",
+          mask: "radial-gradient(farthest-side at 50% 100%, #000 40%, transparent)",
+        }}
+      />
+      <span
+        className="absolute left-1/2 top-[14px] block h-[38px] w-[76px] -translate-x-1/2 rounded-t-full"
+        style={{ background: copper, boxShadow: "inset 0 0 0 1.5px #7f3f18" }}
+      />
+      <span className="absolute inset-x-0 top-[52px] block h-2.5" style={{ background: tiles, boxShadow: `inset 0 1px 0 ${v["--m-text"]}, inset 0 -1px 0 ${v["--m-text"]}` }} />
+      <span className="absolute left-1/2 top-[38px] block h-7 w-7 -translate-x-1/2 rounded-full p-[3px]" style={{ background: copper }}>
+        <span className="block h-full w-full rounded-full" style={{ background: v["--m-surface"] }} />
+      </span>
+      <span className="absolute left-1/2 top-[72px] block h-2 w-16 -translate-x-1/2 rounded-full" style={{ background: v["--m-text"] }} />
+      <div className="absolute inset-x-6 bottom-2 flex justify-center gap-4">
+        {[0, 1, 2].map((i) => (
+          <span key={i} className="flex h-[22px] w-[22px] items-center justify-center rounded-full" style={{ background: copper }}>
+            <span className="block h-2.5 w-2.5 rounded-full" style={{ background: "#e7e2d8" }} />
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /** عسير: شريطٌ ومثلّثات بألوان القطّ، والشعار في حلقات، وسطران بخطٍّ متعرّج. */
 function AsirMini({ v }: { v: Record<string, string> }) {
   const band = `repeating-linear-gradient(90deg, ${v["--m-accent"]} 0 12px, #e8b51f 12px 24px, #17704a 24px 36px, #2b5a9e 36px 48px)`;
@@ -665,6 +733,10 @@ export function ThemePreview({ theme }: { theme: MenuTheme }) {
       return <JuiceMini v={v} />;
     case "burger":
       return <BurgerMini v={v} />;
+    case "bakery":
+      return <BakeryMini v={v} />;
+    case "breakfast":
+      return <BreakfastMini v={v} />;
     case "gold":
       return <GoldMini theme={theme} />;
     case "modern":

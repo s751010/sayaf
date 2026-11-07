@@ -399,6 +399,57 @@ function burger(ctx: Ctx, b: MotifBox, k: MotifInk): void {
   });
 }
 
+/** فرن — صفُّ أرغفةٍ على الضلعين: بيضاويٌّ بالتمييز، وعليه شَرطتان بلون الورق كشقّ الخبّاز. */
+function bakery(ctx: Ctx, b: MotifBox, k: MotifInk): void {
+  const room = b.reach - b.outer;
+  const ry = Math.min(b.mm * 1.3, room * 0.4);
+  const rx = ry * 1.9;
+  alongTopBottom(b, rx * 3, (x, w, top) => {
+    const cx = x + w / 2;
+    const cy = top ? b.outer + room * 0.45 : b.H - b.outer - room * 0.45;
+    ctx.fillStyle = k.accent;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = k.bg;
+    ctx.lineWidth = b.mm * 0.3;
+    for (const dx of [-0.38, 0.38]) {
+      ctx.beginPath();
+      ctx.moveTo(cx + rx * dx - ry * 0.35, cy + ry * 0.45);
+      ctx.lineTo(cx + rx * dx + ry * 0.35, cy - ry * 0.45);
+      ctx.stroke();
+    }
+  });
+}
+
+/** فوّال — صحونُ نحاسٍ على الرفّ: حلقتان (حافّةٌ بالتمييز وقاعٌ بالخافت) على خطٍّ رفيع. */
+function breakfast(ctx: Ctx, b: MotifBox, k: MotifInk): void {
+  const room = b.reach - b.outer;
+  const r = Math.min(b.mm * 1.7, room * 0.42);
+  for (const y of [b.outer + room * 0.5, b.H - b.outer - room * 0.5]) {
+    ctx.fillStyle = k.muted;
+    ctx.fillRect(b.outer, y - b.mm * 0.12, b.W - b.outer * 2, b.mm * 0.24);
+  }
+  alongTopBottom(b, r * 3.2, (x, w, top) => {
+    const cx = x + w / 2;
+    const cy = top ? b.outer + room * 0.5 : b.H - b.outer - room * 0.5;
+    ctx.fillStyle = k.bg;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = k.accent;
+    ctx.lineWidth = b.mm * 0.45;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r - b.mm * 0.25, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.strokeStyle = k.muted;
+    ctx.lineWidth = b.mm * 0.22;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r * 0.52, 0, Math.PI * 2);
+    ctx.stroke();
+  });
+}
+
 const MOTIFS: Record<MenuSkin, ((ctx: Ctx, b: MotifBox, k: MotifInk) => void) | null> = {
   gold: folio,
   receipt,
@@ -416,6 +467,8 @@ const MOTIFS: Record<MenuSkin, ((ctx: Ctx, b: MotifBox, k: MotifInk) => void) | 
   patisserie,
   juice,
   burger,
+  bakery,
+  breakfast,
   // «لون علامتي» محايدٌ عمداً على الشاشة — وكذلك على الورق.
   store: null,
 };

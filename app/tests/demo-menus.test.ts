@@ -67,18 +67,38 @@ describe("demoMenus", () => {
     expect(dishes.some((d) => d.available === false)).toBe(true);
   });
 
+  it.each([
+    // [الوجبة، أجزاؤها]: الصينيّة أربعٌ من كلّ فطيرة، وصحن الحارة فولٌ وتميسٌ وشاهي.
+    ["bakery", "k5", [["k1", 4], ["k2", 4], ["k3", 4]]],
+    ["breakfast", "q4", [["q1", 1], ["q5", 1], ["q12", 1]]],
+  ] as const)("«%s»: «%s» أرخص من أجزائه، وسعراته وصوديومه مجموعها", (kind, combo, parts) => {
+    const { dishes } = demoData(kind);
+    const by = (id: string) => dishes.find((d) => d.id === id)!;
+    const sum = (k: "price" | "calories" | "sodium_mg") => parts.reduce((s, [id, n]) => s + (by(id)[k] ?? 0) * n, 0);
+    expect(by(combo).price).toBeLessThan(sum("price"));
+    expect(by(combo).calories).toBe(sum("calories"));
+    expect(by(combo).sodium_mg).toBe(sum("sodium_mg"));
+    expect(dishes.some((d) => d.available === false)).toBe(true);
+  });
+
   it("«عاينه كاملاً» يفتح الطابع على منيو عالمه — «مرفأ» على مطعم أسماك لا ستيك", () => {
-    const kindOf = (id: string) => demoKindForSuits(ALL_THEMES.find((t) => t.id === id)!.suits);
+    const kindOf = (id: string) => demoKindForSuits(ALL_THEMES.find((t) => t.id === id)!.suits, id);
     expect(kindOf("harbor")).toBe("seafood");
     expect(kindOf("patisserie")).toBe("sweets");
     expect(kindOf("juice")).toBe("juice");
     expect(kindOf("burger")).toBe("burger");
+    // ٠٧/١١: منيوهما لا منيو نوعهما الأوّل («حلواني» و«نجدي») — و«عسير» على الشعبي كما كان.
+    expect(kindOf("bakery")).toBe("bakery");
+    expect(kindOf("breakfast")).toBe("breakfast");
+    expect(kindOf("asir")).toBe("shaabi");
+    expect(kindOf("patisserie")).toBe("sweets");
+    expect(kindOf("najdi")).toBe("shaabi");
     expect(kindOf("roastery")).toBe("cafe");
     expect(kindOf("dark-gold")).toBe("restaurant");
     // ولكلّ طابعٍ منيوٌ موجود — لا معاينة على بيانات ناقصة.
-    for (const t of ALL_THEMES) expect(isDemoKind(demoKindForSuits(t.suits)), t.id).toBe(true);
+    for (const t of ALL_THEMES) expect(isDemoKind(demoKindForSuits(t.suits, t.id)), t.id).toBe(true);
     // والطابع الجديد يُعاين على منيوٍ طابعُه هو نفسه.
-    for (const id of ["harbor", "patisserie", "juice", "burger"]) {
+    for (const id of ["harbor", "patisserie", "juice", "burger", "bakery", "breakfast"]) {
       expect(demoData(kindOf(id)).menus[0].theme).toBe(id);
     }
   });

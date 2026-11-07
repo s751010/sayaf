@@ -15,6 +15,9 @@
  *   والجدول هنا بمفاتيحه حرفياً — فحصٌ في `theme-suggest.test.ts` يسقط لو تباعدا.
  * - **لا عمود للكافيه**: «مختصّ أم شعبي» تلميحٌ من نصّ `restaurants.type` الحرّ
  *   (`cafeFlavor`)، والتاجر يبدّله بزرّ في المُنتقي ولا يُحفظ.
+ * - **ولا نوعٌ جديد للمخبز ولا للفطور** (٠٧/١١): صفّان فرعيّان (`SUB_ROWS`) يقرآن
+ *   نصّ النوع نفسه كما يقرؤه `cafeFlavor` — «مخبز تميس» و«فطائر» و«فول وتميس» —
+ *   وشارتاهما من المفردات القائمة (`badgeTypeOf`).
  *
  * كلّها دوالّ خالصة: بلا حالة ولا شبكة ولا DOM.
  */
@@ -24,6 +27,13 @@ export type CafeFlavor = "specialty" | "popular";
 
 /** مفتاح الصفّ الإضافي: الكافيه الشعبي يُرتَّب كالمكان الشعبي لا كالمختصّ. */
 export const POPULAR_CAFE = "كافيه شعبي";
+
+/**
+ * صفّان فرعيّان (٠٧/١١) — المفتاح هو ما يُعرض للتاجر («رتّبناها حسب نوع نشاطك
+ * (مخبز ومعجّنات)»)، والشارة التي يحملها أوّلهما من المفردات القائمة.
+ */
+export const BAKERY = "مخبز ومعجّنات";
+export const BREAKFAST = "فطور شعبي";
 
 /**
  * أوّل ثلاثة لكل نوع — نصّ النمو (`copy.md` §٢) حرفياً. والباقي بعدها بترتيب
@@ -45,14 +55,65 @@ export const SUGGESTED: Readonly<Record<string, readonly [string, string, string
   // الصفّ وشارتُه معه (قاعدة ٢) — وبقي ثاني الشعبي.
   "مطعم سريع": ["burger", "neon", "receipt"],
   مشويات: ["dark-gold", "najdi", "asir"],
-  شعبي: ["najdi", "dukkan", "asir"],
+  // ٠٧/١١: «فوّال» ثالثَ الشعبي — فخرج «عسير» وشارتُه (قاعدة ٢)، وبقي ثالثَ المشويات.
+  شعبي: ["najdi", "dukkan", "breakfast"],
+  [BREAKFAST]: ["breakfast", "dukkan", "najdi"],
   بحري: ["harbor", "roshan", "dark-gold"],
-  "مخبز وحلويات": ["patisserie", "editorial", "letterboard"],
+  // ٠٧/١١: «حلواني» أوّلُ الحلويات كما كان، و«فرن» ثانيه — وخرجت «لوحة حروف» وشارتها
+  // (قاعدة ٢) وبقيت ثانيةَ الكافيه. والمخبز نفسه (`BAKERY`) يبدأ بـ«فرن».
+  "مخبز وحلويات": ["patisserie", "bakery", "editorial"],
+  [BAKERY]: ["bakery", "patisserie", "letterboard"],
 };
 
-/** الشارة التي يجب أن يحملها أوّل الصفّ — الكافيه الشعبي مكانٌ شعبي. */
+/** الشارة التي يجب أن يحملها أوّل الصفّ — الكافيه الشعبي مكانٌ شعبي، والفطور كذلك. */
 export function badgeTypeOf(key: string): string {
-  return key === POPULAR_CAFE ? "شعبي" : key;
+  if (key === POPULAR_CAFE || key === BREAKFAST) return "شعبي";
+  if (key === BAKERY) return "مخبز وحلويات";
+  return key;
+}
+
+/**
+ * الصفّان الفرعيّان: يُقرآن من النصّ الحرّ **بعد** `norm`، وداخل نوعٍ يحتملهما
+ * وحده — «فطائر» و«فول» لا كلمة لهما في `aliasType` فيصيران «مطعم»، و«مخبز» هناك
+ * «مخبز وحلويات». والفطور قبل المخبز: «تميس» خبزٌ يُؤكل فطوراً، و«مخبز تميس» مخبزٌ
+ * (نوعه «مخبز وحلويات» فلا يدخل صفّ الفطور أصلاً).
+ *
+ * ⚠️ **الاسم المجرّد لنوعٍ قائم لا يدخل صفّاً فرعياً**: «مخبز وحلويات» كما يختاره
+ * التاجر من القائمة يبقى على صفّه («حلواني» أوّلاً) — فيه «مخبز» حرفاً ولم يقل شيئاً
+ * أكثر ممّا قاله النوع.
+ */
+interface SubRow {
+  key: string;
+  /** الأنواع التي يحتمله نصّها — من مفردات `aliasType`. */
+  within: readonly string[];
+  /** يكفي أن يحتويها النصّ. */
+  hints: readonly string[];
+  /** كلمةٌ كاملة لا جزءُ كلمة: «فرن» في «مطعم فرنسي» ليس فرناً. */
+  words?: readonly string[];
+}
+
+const SUB_ROWS: readonly SubRow[] = [
+  {
+    key: BREAKFAST,
+    within: ["شعبي", "مطعم"],
+    hints: ["فطور", "افطار", "فول", "فوال", "تميس", "مطبق", "breakfast"],
+  },
+  {
+    key: BAKERY,
+    within: ["مخبز وحلويات", "مطعم"],
+    hints: ["مخبز", "مخابز", "خباز", "معجنات", "فطائر", "فطاير", "كرواسون", "bakery", "bakehouse"],
+    words: ["فرن", "الفرن", "افران", "الافران"],
+  },
+];
+
+function subRowOf(rawType: string | null | undefined, type: string): string | null {
+  const v = norm(rawType ?? "");
+  if (!v || v === norm(type)) return null;
+  const words = v.split(" ");
+  const row = SUB_ROWS.find(
+    (r) => r.within.includes(type) && (r.hints.some((h) => v.includes(h)) || !!r.words?.some((w) => words.includes(w)))
+  );
+  return row?.key ?? null;
 }
 
 /** كلماتٌ تجعل الكافيه شعبياً — بعد `norm` (التاء المربوطة هاء، والألف موحّدة). */
@@ -70,8 +131,8 @@ export function cafeFlavor(rawType: string | null | undefined): CafeFlavor {
 /** مفتاح الترتيب لنوعٍ خام — و`flavor` يغلب التلميح حين يختاره التاجر بالزرّ. */
 export function suggestionKey(rawType: string | null | undefined, flavor?: CafeFlavor): string {
   const type = aliasType(rawType);
-  if (type !== "كافيه") return SUGGESTED[type] ? type : "مطعم";
-  return (flavor ?? cafeFlavor(rawType)) === "popular" ? POPULAR_CAFE : "كافيه";
+  if (type === "كافيه") return (flavor ?? cafeFlavor(rawType)) === "popular" ? POPULAR_CAFE : "كافيه";
+  return subRowOf(rawType, type) ?? (SUGGESTED[type] ? type : "مطعم");
 }
 
 export interface ThemeOrder<T> {

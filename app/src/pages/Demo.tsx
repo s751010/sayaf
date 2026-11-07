@@ -5,13 +5,13 @@
  * ولا صف في قاعدة البيانات. العميل المحتمل يجرّب التجربة الحقيقية كاملة (بحث،
  * تصنيفات، تفاصيل الطبق، الإضافات، بطاقة الولاء) قبل أن يسجّل.
  *
- * `?kind=cafe|shaabi|truck|seafood|sweets|juice|burger` يفتح منيو نوع نشاطٍ آخر
+ * `?kind=cafe|shaabi|truck|seafood|sweets|juice|burger|bakery|breakfast` يفتح منيو نوع نشاطٍ آخر
  * (`lib/demoMenus.ts`) — صفحات الشرائح تفتح منيوها هي لا منيو مطعم الستيك.
  * و`?theme=` وحده يختار منيو عالم الطابع (`demoKindForSuits`).
  */
 import { Link, useSearchParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
-import { getTheme, isHex, splitThemeId, themeIdOf } from "@/lib/themes";
+import { getTheme, isHex, splitThemeId, themeBaseOf, themeIdOf } from "@/lib/themes";
 import MenuPage, { type MenuData } from "./MenuPage";
 import { CTA_PRIMARY } from "@/lib/facts";
 import { demoData, demoKindForSuits } from "@/lib/demoMenus";
@@ -32,7 +32,7 @@ export default function Demo() {
    */
   const theme = params.get("theme")?.trim();
   // بلا `kind`: الطابع المعايَن وحده يختار منيو عالمه («مرفأ» ⇒ مطعم أسماك).
-  const kind = params.get("kind") ?? (theme ? demoKindForSuits(getTheme(theme).suits) : null);
+  const kind = params.get("kind") ?? (theme ? demoKindForSuits(getTheme(theme).suits, themeBaseOf(theme)) : null);
   const DEMO = useMemo(() => demoData(kind), [kind]);
 
   /**

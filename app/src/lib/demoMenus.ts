@@ -18,10 +18,12 @@
 import type { Dish, Menu, Restaurant } from "./types";
 import { burnMinutes, isHighSodium, isSfdaCompliant } from "./nutrition";
 
-export type DemoKind = "restaurant" | "cafe" | "shaabi" | "truck" | "seafood" | "sweets" | "juice" | "burger";
+export type DemoKind =
+  | "restaurant" | "cafe" | "shaabi" | "truck" | "seafood" | "sweets" | "juice" | "burger"
+  | "bakery" | "breakfast";
 
 export const DEMO_KINDS: readonly DemoKind[] = [
-  "restaurant", "cafe", "shaabi", "truck", "seafood", "sweets", "juice", "burger",
+  "restaurant", "cafe", "shaabi", "truck", "seafood", "sweets", "juice", "burger", "bakery", "breakfast",
 ];
 
 export function isDemoKind(v: string | null | undefined): v is DemoKind {
@@ -905,10 +907,261 @@ function burger(): DemoData {
   };
 }
 
+/* ── مخبز ومعجّنات — لطابع «فرن» (٢٠٢٦/١١/٠٧) ─────────────────────────────
+ * غير «حلويات بيت السكّر»: ذاك كيكٌ وحلا شرقيّ بالقطعة، وهذا فرنُ حيٍّ قصيميّ —
+ * فطائر بالقطعة بسعر الفرن (٤–٦ ريال)، وكرواسون، وخبزٌ من الفرن، وكليجا. و«الصينيّة»
+ * أرخص من قطعها الاثنتي عشرة، وسعراتها وصوديومها مجموعها (يحرسه `demo-menus.test.ts`). */
+
+function bakery(): DemoData {
+  const R = "demo-bakery";
+  const M = "demo-bakery-menu";
+  const dish = dishMaker(R, M);
+  return {
+    restaurant: restaurantOf(R, {
+      name: "مخبز السنابل",
+      type: "فطائر ومعجّنات وكرواسون من الفرن كل صباح",
+      address: "بريدة — حي الريان",
+      logo: "🥐",
+      allergens_text: "كلّ مخبوزاتنا فيها جلوتين، وأغلبها حليب وبيض وسمسم — ونخبز كلّها في فرنٍ واحد.",
+      working_hours: WEEK("05:30", "23:30", "00:30"),
+      loyalty_goal: 10,
+      loyalty_reward: "كرواسون بالزبدة مجاناً",
+      prep_minutes: 8,
+      category_order: JSON.stringify(["الفطائر", "الكرواسون", "من الفرن", "حلا الفرن", "المشروبات"]),
+    }),
+    menus: [menuOf(R, M, "bakery")],
+    dishes: [
+      dish("k1", "فطيرة زعتر", "Zaatar Fatayer", "الفطائر", 4, "🥐", {
+        description: "عجينة الفرن بالزعتر البلدي وزيت الزيتون والسمسم.",
+        featured: true,
+        calories: 260,
+        sodium_mg: 430,
+        allergens: ["جلوتين", "سمسم"],
+      }),
+      dish("k2", "فطيرة جبن", "Cheese Fatayer", "الفطائر", 5, "🧀", {
+        description: "جبنة عكّاوي وموزاريلا على عجينةٍ مفتوحة.",
+        calories: 310,
+        sodium_mg: 560,
+        allergens: ["جلوتين", "حليب"],
+        options: JSON.stringify([
+          { name: "زيادة جبن", price: 2, kcal: 80 },
+          { name: "مع زعتر", price: 1, kcal: 30 },
+        ]),
+      }),
+      dish("k3", "فطيرة سبانخ", "Spinach Fatayer", "الفطائر", 4, "🥬", {
+        description: "سبانخ بالبصل والسمّاق والليمون، مثلّثةٌ كما تُخبز في البيت.",
+        calories: 230,
+        sodium_mg: 390,
+        allergens: ["جلوتين"],
+      }),
+      dish("k4", "فطيرة لحم", "Meat Fatayer", "الفطائر", 6, "🥩", {
+        description: "لحم مفروم بالطماطم والبصل والبهارات.",
+        calories: 300,
+        sodium_mg: 520,
+        allergens: ["جلوتين"],
+      }),
+      dish("k5", "صينيّة فطائر — ١٢ حبّة", "Fatayer Tray (12 pcs)", "الفطائر", 45, "🥐", {
+        description: "أربع زعتر وأربع جبن وأربع سبانخ — للعائلة والضيوف.",
+        // ٤ × (٢٦٠ + ٣١٠ + ٢٣٠) — والصوديوم كذلك: للصينيّة كلّها لا للحبّة.
+        calories: 3200,
+        sodium_mg: 5520,
+        allergens: ["جلوتين", "حليب", "سمسم"],
+      }),
+      dish("k6", "كرواسون بالزبدة", "Butter Croissant", "الكرواسون", 7, "🥐", {
+        description: "سبعٌ وعشرون طبقة بالزبدة، يُخبز كل ساعتين.",
+        featured: true,
+        calories: 280,
+        sodium_mg: 320,
+        allergens: ["جلوتين", "حليب", "بيض"],
+        options: JSON.stringify([{ name: "سخّنه", price: 0 }]),
+      }),
+      dish("k7", "كرواسون زعتر وجبنة", "Zaatar & Cheese Croissant", "الكرواسون", 9, "🥐", {
+        description: "كرواسون بالزبدة محشوّ جبنةً بيضاء وزعتراً.",
+        calories: 370,
+        sodium_mg: 560,
+        allergens: ["جلوتين", "حليب", "بيض", "سمسم"],
+      }),
+      dish("k8", "كرواسون بالشوكولاتة", "Chocolate Croissant", "الكرواسون", 9, "🍫", {
+        description: "عودا شوكولاتة داكنة داخل العجينة.",
+        calories: 390,
+        sodium_mg: 280,
+        allergens: ["جلوتين", "حليب", "بيض"],
+        available: false,
+      }),
+      dish("k9", "شريك بالسمسم", "Sesame Shurayk", "من الفرن", 3, "🥯", {
+        description: "حلقة الشريك بالسمسم والحبّة السوداء، طريّةٌ من الفرن.",
+        calories: 290,
+        sodium_mg: 330,
+        allergens: ["جلوتين", "سمسم", "حليب"],
+      }),
+      dish("k10", "خبز بُرّ", "Whole Wheat Bread", "من الفرن", 2, "🍞", {
+        description: "رغيف بُرّ قصيمي من الفرن الحجري.",
+        calories: 240,
+        sodium_mg: 380,
+        allergens: ["جلوتين"],
+      }),
+      dish("k11", "كليجا — ٤ حبّات", "Kleija (4 pcs)", "حلا الفرن", 10, "🍪", {
+        description: "كليجا القصيم بالتمر والهيل والقرفة.",
+        calories: 440,
+        sodium_mg: 190,
+        allergens: ["جلوتين", "حليب", "بيض"],
+      }),
+      dish("k12", "كعك بالسمسم", "Sesame Kaak", "حلا الفرن", 6, "🥨", {
+        description: "كعك هشّ بالسمسم والمحلب — خمس حلقات.",
+        calories: 320,
+        sodium_mg: 210,
+        allergens: ["جلوتين", "سمسم", "حليب"],
+      }),
+      dish("k13", "كرك", "Karak", "المشروبات", 4, "☕", {
+        description: "شاي بالحليب والهيل والزعفران، يُغلى على مهل.",
+        calories: 150,
+        sodium_mg: 60,
+        caffeine_mg: 45,
+        allergens: ["حليب"],
+      }),
+      dish("k14", "لبن بارد", "Cold Laban", "المشروبات", 4, "🥛", {
+        description: "٢٥٠ مل.",
+        calories: 120,
+        sodium_mg: 140,
+        allergens: ["حليب"],
+      }),
+    ],
+  };
+}
+
+/* ── فطور شعبي — لطابع «فوّال» (٢٠٢٦/١١/٠٧) ────────────────────────────────
+ * غير «بيت الحارة»: ذاك مندي ومظبي وفطورٌ قسمٌ بينها، وهذا فوّالٌ من الفجر — فول
+ * وتميس وبيض ومطبّق وشاهي. و«صحن الحارة» فولٌ وتميسٌ وشاهي حليب، أرخص من أجزائه
+ * وسعراته وصوديومه مجموعها (يحرسه `demo-menus.test.ts`). */
+
+function breakfast(): DemoData {
+  const R = "demo-breakfast";
+  const M = "demo-breakfast-menu";
+  const dish = dishMaker(R, M);
+  // من الفجر إلى ما بعد العشاء، كلّ الأيام — فول العشاء عادةُ جدّة أيضاً.
+  const hours = JSON.stringify(
+    Object.fromEntries(["sat", "sun", "mon", "tue", "wed", "thu", "fri"].map((d) => [d, { open: true, from: "05:00", to: "01:00" }]))
+  );
+  return {
+    restaurant: restaurantOf(R, {
+      name: "فوّال باب مكة",
+      type: "فول وتميس ومطبّق وشاهي حليب — من الفجر",
+      address: "جدة — البلد، باب مكة",
+      logo: "🫘",
+      allergens_text: "التميس والمطبّق فيهما جلوتين وسمسم، والسمن البلدي من الحليب.",
+      working_hours: hours,
+      loyalty_goal: 8,
+      loyalty_reward: "صحن الحارة مجاناً",
+      prep_minutes: 6,
+      category_order: JSON.stringify(["الفول", "التميس", "البيض", "المطبّق", "الشاهي"]),
+    }),
+    menus: [menuOf(R, M, "breakfast")],
+    dishes: [
+      dish("q1", "فول بالسمن", "Foul with Ghee", "الفول", 9, "🫘", {
+        description: "فول مدمّس من القدرة، بالسمن البلدي والكمّون والشطّة.",
+        calories: 380,
+        sodium_mg: 640,
+        allergens: ["حليب"],
+        options: JSON.stringify([
+          { name: "زيادة سمن", price: 2, kcal: 90 },
+          { name: "بدون شطّة", price: 0 },
+        ]),
+      }),
+      dish("q2", "فول بزيت الزيتون", "Foul with Olive Oil", "الفول", 8, "🫒", {
+        description: "فول بزيت الزيتون والليمون والطماطم المقطّعة.",
+        calories: 350,
+        sodium_mg: 580,
+      }),
+      dish("q3", "فول بالطحينة", "Foul with Tahini", "الفول", 10, "🫘", {
+        description: "فول بالطحينة والثوم والبقدونس.",
+        calories: 450,
+        sodium_mg: 620,
+        allergens: ["سمسم"],
+      }),
+      dish("q4", "صحن الحارة", "Hara Breakfast Plate", "الفول", 12, "🫘", {
+        description: "فول بالسمن وتميس كامل وشاهي حليب — فطورٌ واحد بسعرٍ واحد.",
+        featured: true,
+        // ٣٨٠ فول + ٤٣٠ تميس + ١١٠ شاهي — والصوديوم مجموعها كذلك.
+        calories: 920,
+        sodium_mg: 1290,
+        allergens: ["حليب", "جلوتين", "سمسم"],
+      }),
+      dish("q5", "تميس", "Tamees", "التميس", 2, "🫓", {
+        description: "تميس حارّ من التنّور بالسمسم والحبّة السوداء.",
+        calories: 430,
+        sodium_mg: 600,
+        allergens: ["جلوتين", "سمسم"],
+      }),
+      dish("q6", "تميس بالجبن والعسل", "Tamees with Cheese & Honey", "التميس", 7, "🍯", {
+        description: "تميس مفتوح بالجبنة البيضاء والعسل السدر.",
+        featured: true,
+        calories: 610,
+        sodium_mg: 760,
+        allergens: ["جلوتين", "سمسم", "حليب"],
+      }),
+      dish("q7", "شكشوكة", "Shakshuka", "البيض", 12, "🍳", {
+        description: "بيض بالطماطم والفلفل والبصل في المقلاة.",
+        calories: 330,
+        sodium_mg: 780,
+        allergens: ["بيض"],
+      }),
+      dish("q8", "بيض عيون بالسمن", "Fried Eggs in Ghee", "البيض", 9, "🍳", {
+        description: "بيضتان بالسمن البلدي والفلفل الأسود.",
+        calories: 280,
+        sodium_mg: 360,
+        allergens: ["بيض", "حليب"],
+      }),
+      dish("q9", "مطبّق لحم", "Meat Mutabbaq", "المطبّق", 14, "🥟", {
+        description: "عجينة رقيقة محشوّة لحماً وبيضاً وكرّاثاً، على الصاج.",
+        calories: 680,
+        sodium_mg: 1120,
+        allergens: ["جلوتين", "بيض"],
+      }),
+      dish("q10", "مطبّق موز", "Banana Mutabbaq", "المطبّق", 12, "🍌", {
+        description: "موز وحليب مكثّف وعسل.",
+        calories: 590,
+        sodium_mg: 240,
+        allergens: ["جلوتين", "حليب", "بيض"],
+      }),
+      dish("q11", "مطبّق جبن", "Cheese Mutabbaq", "المطبّق", 12, "🧀", {
+        description: "جبنة بيضاء وموزاريلا وبيض.",
+        calories: 620,
+        sodium_mg: 880,
+        allergens: ["جلوتين", "حليب", "بيض"],
+        available: false,
+      }),
+      dish("q12", "شاهي حليب", "Milk Tea", "الشاهي", 3, "🫖", {
+        description: "شاهي مخدّر بالحليب والهيل في استكانة.",
+        calories: 110,
+        sodium_mg: 50,
+        caffeine_mg: 40,
+        allergens: ["حليب"],
+        options: JSON.stringify([
+          { name: "استكانة كبيرة", price: 1, kcal: 55 },
+          { name: "بدون سكر", price: 0 },
+        ]),
+      }),
+      dish("q13", "شاهي أحمر بالنعناع", "Mint Tea", "الشاهي", 2, "🫖", {
+        description: "شاهي أحمر بالنعناع الحساوي.",
+        calories: 35,
+        sodium_mg: 5,
+        caffeine_mg: 35,
+      }),
+      dish("q14", "حليب بالزنجبيل", "Ginger Milk", "الشاهي", 4, "🥛", {
+        description: "حليب ساخن بالزنجبيل والقرفة.",
+        calories: 150,
+        sodium_mg: 95,
+        allergens: ["حليب"],
+      }),
+    ],
+  };
+}
+
 /**
  * المنيو الذي يُعاين به طابعٌ ما وحده (`/demo?theme=…` من «عاينه كاملاً»):
- * أوّل نوعٍ في `suits` ⇒ منيو ذلك النوع. فـ«مرفأ» يُعاين على مطعم أسماك لا على
- * ستيك واقيو، و«حلواني» على حلويات. وما لا نوع له ⇒ «الديوان».
+ * منيوه إن كان له (`KIND_BY_THEME`)، وإلا أوّل نوعٍ في `suits` ⇒ منيو ذلك النوع.
+ * فـ«مرفأ» يُعاين على مطعم أسماك لا على ستيك واقيو، و«حلواني» على حلويات. وما لا
+ * نوع له ⇒ «الديوان».
  *
  * و«مطعم سريع» ⇒ محلّ البرجر لا العربة (٠٧/١١): أوّل طوابع النوع صار «صاج»،
  * فمنيو النوع منيوه. والعربة باقيةٌ لصفحة عربات الطعام (`segments.ts`) و`?kind=truck`.
@@ -922,8 +1175,19 @@ const KIND_BY_TYPE: Record<string, DemoKind> = {
   عصائر: "juice",
 };
 
-export function demoKindForSuits(suits: readonly string[] | undefined): DemoKind {
-  return KIND_BY_TYPE[suits?.[0] ?? ""] ?? "restaurant";
+/**
+ * طابعٌ منيوه غير منيو نوعه الأوّل (٠٧/١١): «فرن» و«فوّال» شارتاهما «مخبز وحلويات»
+ * و«شعبي» — ومنيو النوعين لـ«حلواني» و«نجدي». و«عسير» خرج من الشعبي وبقي يُعاين على
+ * منيوه (المندي والإيدامات أقرب إليه من ستيك الديوان).
+ */
+const KIND_BY_THEME: Readonly<Record<string, DemoKind>> = {
+  bakery: "bakery",
+  breakfast: "breakfast",
+  asir: "shaabi",
+};
+
+export function demoKindForSuits(suits: readonly string[] | undefined, themeId?: string | null): DemoKind {
+  return (themeId ? KIND_BY_THEME[themeId] : undefined) ?? KIND_BY_TYPE[suits?.[0] ?? ""] ?? "restaurant";
 }
 
 const BUILDERS: Record<DemoKind, () => DemoData> = {
@@ -935,6 +1199,8 @@ const BUILDERS: Record<DemoKind, () => DemoData> = {
   sweets,
   juice,
   burger,
+  bakery,
+  breakfast,
 };
 
 /** المنيو التجريبي لنوعٍ ما — والمجهول يسقط إلى «الديوان». */
