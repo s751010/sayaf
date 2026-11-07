@@ -120,6 +120,19 @@
   mask: var(--m-sj-sauce) repeat-x 0 0 / 12px 5px;
 }
 
+/* ── الطبق بلا صورة: على ورق التغليف المربّع ──
+   الصورة العريضة في «صاج» كانت حقلاً بيج فارغاً بدائرةٍ صغيرة في قلبه (تدقيق
+   ٢٠٢٦/١١/٠٧). الآن ورقُ تغليفٍ بمربّعاتٍ بلون الصوص (`--m-accent-2`، خامةٌ لا
+   تتبع العلامة) كالذي يُلفّ فيه البرجر في الصينيّة، وضوءٌ في وسطه تحت الصحن. */
+.m-skin-burger .m-art {
+  --m-art-bg:
+    radial-gradient(60% 55% at 50% 48%, color-mix(in srgb, var(--m-surface) 75%, transparent), transparent 72%),
+    repeating-conic-gradient(color-mix(in srgb, var(--m-accent-2) 8%, transparent) 0 25%, transparent 0 50%) 0 0 / 30px 30px,
+    var(--m-surface);
+  --m-art-plate: var(--m-surface);
+  --m-art-mark: color-mix(in srgb, var(--m-accent) 9%, transparent);
+}
+
 /* ── البطاقة: ورقُ صينيّةٍ أبيض، والشرائح والتبويبات أزرارُ كشك ── */
 .m-skin-burger .m-card,
 .m-skin-burger .m-feature {

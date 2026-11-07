@@ -538,6 +538,7 @@ export function DishCard({
                 <DishArtwork
                   name={dish.name}
                   emoji={dish.emoji}
+                  category={dish.category}
                   glyphSize={22}
                   className="m-img h-24 w-24"
                   style={{ borderRadius: listRadius }}
@@ -576,6 +577,7 @@ export function DishCard({
             <DishArtwork
               name={dish.name}
               emoji={dish.emoji}
+              category={dish.category}
               glyphSize={44}
               className="m-img aspect-[16/10] w-full"
             />
@@ -634,6 +636,7 @@ export function DishCard({
             <DishArtwork
               name={dish.name}
               emoji={dish.emoji}
+              category={dish.category}
               glyphSize={30}
               className={cn("m-img w-full", gridAspect(imageShape))}
               style={{ borderRadius: radius } as CSSProperties}

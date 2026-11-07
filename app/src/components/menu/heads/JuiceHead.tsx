@@ -3,7 +3,7 @@
  *
  * - `JuiceHead`    شريحةُ برتقالٍ كبيرة (قشرٌ بلون التمييز، وفصوصٌ بلبّه) خلف
  *   الشعار، والاسم بخطٍّ عريضٍ مرح تحتها.
- * - `JuiceHeading` عنوان القسم بلاطةٌ بيضاء، وقبلها مربّعٌ بلون فاكهةٍ يتبدّل
+ * - `JuiceHeading` عنوان القسم بلاطةٌ بيضاء، وعليها شريحةُ فاكهةٍ يتبدّل لونها
  *   مع ترتيب القسم (برتقال · ليم · توت · مانجو) كلوحات العصّارات.
  *
  * ألوان الفواكه خامةٌ لا علامة (`--m-fruit-*` في `styles/skins/juice.css`)،
@@ -72,18 +72,19 @@ export function JuiceHead({ restaurant, corner, children }: HeadProps) {
 export function JuiceHeading({ name, items, index, photo }: SkinHeadingProps) {
   return (
     <div className="m-h m-tile-h mb-4">
-      <div className="flex items-stretch gap-2">
-        <span aria-hidden="true" className="m-tile-swatch block w-3 shrink-0" data-fruit={index % FRUITS} />
-        <div className="m-tile flex min-w-0 flex-1 items-center justify-between gap-3 px-3.5 py-2">
-          <h2 className="min-w-0 text-[1.35rem] leading-[1.45]" style={{ ...display, color: "var(--m-text)" }}>
-            {name}
-          </h2>
-          {items && (
-            <span className="shrink-0 text-[11px] font-bold" style={{ color: "var(--m-muted)" }}>
-              {items}
-            </span>
-          )}
-        </div>
+      {/* الفاكهة شريحةٌ على البلاطة لا شريطٌ بجانبها: الشريط الرفيع جعل العنوان
+          بطاقةَ تطبيقٍ عامّة لا لوحة عصّارة (تدقيق ٢٠٢٦/١١/٠٧). والشريحة نفسها
+          التي خلف الشعار — قشرٌ وفصوص — بلون فاكهة القسم. */}
+      <div className="m-tile flex min-w-0 items-center gap-3 py-2 pe-3.5 ps-2">
+        <span aria-hidden="true" className="m-tile-swatch block h-11 w-11 shrink-0 rounded-full" data-fruit={index % FRUITS} />
+        <h2 className="min-w-0 flex-1 text-[1.35rem] leading-[1.45]" style={{ ...display, color: "var(--m-text)" }}>
+          {name}
+        </h2>
+        {items && (
+          <span className="shrink-0 text-[11px] font-bold" style={{ color: "var(--m-muted)" }}>
+            {items}
+          </span>
+        )}
       </div>
       {photo && <div className="m-jc-photo mt-2.5">{photo}</div>}
     </div>

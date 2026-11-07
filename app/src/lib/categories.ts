@@ -9,6 +9,7 @@
  */
 import type { Dish } from "./types";
 import type { IconName } from "./icons";
+import { guessGlyph } from "./foodGlyph";
 
 /* ══ قاموس التصنيفات ══════════════════════════════════════════════════
  *
@@ -186,9 +187,15 @@ export function categoryLabel(raw: string, en: boolean): string {
   return en ? (canonOf(raw)?.en ?? raw) : raw;
 }
 
-/** رمز التصنيف — يسقط إلى الصحن العامّ لما لا نعرفه. */
+/**
+ * رمز التصنيف: القاموس أولاً، ثم التخمين بالكلمة («عصير طازج» عصيرٌ وإن لم
+ * يكن «عصائر طازجة» حرفاً — `lib/foodGlyph.ts`)، ثم الصحن العامّ.
+ *
+ * ⚠️ التخمين **للرمز وحده**: الترتيب والاسم الإنجليزي على `canonOf` بمطابقته
+ * الكاملة كما هي.
+ */
 export function categoryIcon(raw: string | null | undefined): IconName {
-  return canonOf(raw)?.icon ?? "plate";
+  return canonOf(raw)?.icon ?? guessGlyph(raw) ?? "plate";
 }
 
 /** مفتاح المقارنة: بلا «ال» التعريف ولا تشكيل، بهمزات وتاء مربوطة موحّدة. */

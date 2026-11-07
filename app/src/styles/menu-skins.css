@@ -104,6 +104,40 @@
   box-shadow: 0 0 14px color-mix(in srgb, var(--m-glow, var(--m-accent)) 75%, transparent);
 }
 
+/* ══ رسم الطبق بلا صورة (`DishArtwork.tsx`) ══════════════════════════════
+ * الرمز الكبير خلف الصحن ينزلق قليلاً مع التمرير — عمقٌ كطبقتين من ورقٍ
+ * مقصوص، لا حركةٌ تُرى. ‏`translate` لا `transform`: الميل مضمَّنٌ في `transform`
+ * من الهاش، والحركة على خاصّيةٍ أخرى فلا تمحوه. ومتصفّحٌ بلا خطّ زمنٍ للعرض
+ * يرى الرسم ساكناً كاملاً.
+ * ⚠️ الخطّ الزمني **مسمّى على البطاقة** لا `view()` على الرمز: البطاقة والرسم
+ * كلاهما `overflow: hidden`، أي حاويةُ تمريرٍ لا تتمرّر — فـ`view()` كان يقيس
+ * الرمز داخل رسمه فلا يتحرّك أبداً. والبطاقة تُقاس في الصفحة نفسها.
+ * والمتغيّرات التي يلبسها الطابع: `--m-art-bg` (الأرضية) · `--m-art-plate`
+ * (الصحن) · `--m-art-ring` + `--m-art-lift` (حلقته وظلّه، في `box-shadow` واحد:
+ * «لا شيء» هو `0 0 transparent` لا `none`) · `--m-art-well` (القاع) ·
+ * `--m-art-mark` (لون الرمز الكبير). */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .m-card,
+    .m-feature {
+      view-timeline: --m-art block;
+    }
+    .m-art-mark {
+      animation: m-art-drift linear both;
+      animation-timeline: --m-art;
+      animation-range: cover;
+    }
+  }
+}
+@keyframes m-art-drift {
+  from {
+    translate: 0 9%;
+  }
+  to {
+    translate: 0 -9%;
+  }
+}
+
 /* ══ «نفد اليوم» ══════════════════════════════════════════════════════════
  * الطبق النافد يبقى في المنيو (`lib/soldOut.ts`): **صورته وحدها** تبهت،
  * والاسم والسعر بتباينهما الكامل — بهتانُ البطاقة كلّها كان يُسقط نصّها تحت AA.
@@ -520,6 +554,19 @@
 .m-skin-receipt .m-logo {
   filter: grayscale(1) contrast(1.15);
 }
+/* الطبق بلا صورة مطبوعٌ بالحبر الحراري: نقاطٌ نصف تونية على الورق، وصحنٌ
+   بحدٍّ من الحبر، والرمز الكبير خلفه رماديّ — كان تدرّجاً ورديّاً بلون التمييز
+   فيبدو ملصقاً من طابعٍ آخر على ورقة الفاتورة (تدقيق ٢٠٢٦/١١/٠٧). */
+.m-skin-receipt .m-art {
+  --m-art-bg:
+    radial-gradient(color-mix(in srgb, var(--m-text) 16%, transparent) 0.7px, transparent 1.3px) 0 0 / 5px 5px,
+    var(--m-bg);
+  --m-art-plate: var(--m-bg);
+  --m-art-ring: inset 0 0 0 1.5px color-mix(in srgb, var(--m-text) 75%, transparent);
+  --m-art-well: inset 0 0 0 1px color-mix(in srgb, var(--m-text) 22%, transparent);
+  --m-art-lift: 0 0 transparent;
+  --m-art-mark: color-mix(in srgb, var(--m-text) 10%, transparent);
+}
 
 @media (prefers-reduced-motion: no-preference) {
   /* الرأس يخرج من الطابعة: يُكشف من أعلاه في عشر خطوات لا انسياباً. */
@@ -825,6 +872,18 @@
 .m-skin-sticker .m-card.m-surface .m-img {
   border-bottom: 2.5px solid var(--m-text);
 }
+/* الطبق بلا صورة ملصقٌ أيضاً: صحنٌ بحدٍّ أسود وظلٍّ مصمت، مائلٌ كأنه أُلصق باليد،
+   والرمز الكبير خلفه بالحبر لا بلون العلامة — ملصقٌ مطبوع لا تدرّج تطبيق. */
+.m-skin-sticker .m-art {
+  --m-art-plate: var(--m-surface);
+  --m-art-ring: 0 0 0 2.5px var(--m-text);
+  --m-art-lift: 3px 4px 0 var(--m-text);
+  --m-art-well: inset 0 0 0 1.5px color-mix(in srgb, var(--m-text) 14%, transparent);
+  --m-art-mark: color-mix(in srgb, var(--m-text) 9%, transparent);
+}
+.m-skin-sticker .m-art-plate {
+  transform: rotate(-7deg);
+}
 .m-skin-sticker .m-card .m-price,
 .m-skin-sticker .m-badge,
 .m-skin-sticker .m-add {
@@ -990,6 +1049,21 @@
 }
 .m-skin-neon .m-tab[aria-current] {
   box-shadow: 0 0 16px color-mix(in srgb, var(--m-glow, var(--m-accent)) 70%, transparent);
+}
+/* الطبق بلا صورة لافتةٌ صغيرة: الصحن أنبوبٌ مضيء على الجدار المعتم، والرمز
+   يتوهّج بلونه — لا دائرةٌ رماديّة تنطفئ وسط بطاقةٍ كلّ ما حولها يضيء. */
+.m-skin-neon .m-art {
+  --m-art-plate: var(--m-bg);
+  --m-art-ring:
+    0 0 0 1.5px var(--m-glow, var(--m-accent)),
+    0 0 16px -2px color-mix(in srgb, var(--m-glow, var(--m-accent)) 75%, transparent),
+    inset 0 0 14px -4px color-mix(in srgb, var(--m-glow, var(--m-accent)) 65%, transparent);
+  --m-art-lift: 0 0 transparent;
+  --m-art-well: inset 0 0 0 1px color-mix(in srgb, var(--m-glow, var(--m-accent)) 22%, transparent);
+  --m-art-mark: color-mix(in srgb, var(--m-glow, var(--m-accent)) 12%, transparent);
+}
+.m-skin-neon .m-art-well svg {
+  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--m-glow, var(--m-accent)) 85%, transparent));
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -2143,6 +2217,9 @@
     var(--m-bg);
   --m-art-plate: var(--m-bg);
   --m-art-ring: inset 0 0 0 1.5px var(--m-text), 0 0 0 6px var(--m-bg);
+  /* مسطّحٌ كالمطبوع: لا ظلّ تحت الصحن ولا قاعٌ داخله — حلقةٌ واحدة بالحبر. */
+  --m-art-lift: 0 0 transparent;
+  --m-art-well: 0 0 transparent;
 }
 /* الشرائح والتبويب بزوايا الشبكة، لا أقراص تطبيق. */
 .m-skin-modern .m-chips > *,

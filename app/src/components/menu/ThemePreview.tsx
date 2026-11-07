@@ -397,10 +397,18 @@ function JuiceMini({ v }: { v: Record<string, string> }) {
         }}
       />
       <div className="absolute inset-x-3 bottom-3 grid gap-1.5">
+        {/* البلاطة وعليها شريحة الفاكهة — كعنوان القسم في `JuiceHead.tsx`. */}
         {fruits.slice(0, 2).map((c, i) => (
-          <span key={i} className="flex h-4 gap-1">
-            <span className="block w-2 rounded-[4px]" style={{ background: c }} />
-            <span className="block flex-1 rounded-[4px]" style={{ background: v["--m-surface"], boxShadow: `inset 0 0 0 1px ${v["--m-border"]}` }} />
+          <span
+            key={i}
+            className="flex h-4 items-center gap-1.5 rounded-[5px] ps-1"
+            style={{ background: v["--m-surface"], boxShadow: `inset 0 0 0 1px ${v["--m-border"]}` }}
+          >
+            <span
+              className="block h-2.5 w-2.5 rounded-full"
+              style={{ background: `repeating-conic-gradient(color-mix(in srgb, ${c} 70%, #fff3d6) 0 40deg, #fff4dc 40deg 45deg)`, boxShadow: `0 0 0 1.5px ${c}` }}
+            />
+            <span className="block h-1 w-10 rounded-full" style={{ background: v["--m-text"], opacity: 0.55 }} />
           </span>
         ))}
       </div>

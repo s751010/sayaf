@@ -107,7 +107,7 @@ export function DishModal({
           className="h-56 w-full object-cover"
           style={soldOut ? { filter: "grayscale(0.85)" } : undefined}
           fallback={
-            <DishArtwork name={dish.name} emoji={dish.emoji} glyphSize={48} className="h-44 w-full" />
+            <DishArtwork name={dish.name} emoji={dish.emoji} category={dish.category} glyphSize={48} className="h-44 w-full" />
           }
         />
 
