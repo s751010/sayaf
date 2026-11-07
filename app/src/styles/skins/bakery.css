@@ -1,0 +1,342 @@
+/*
+ * ══ فرن — فرن الحيّ (٢٠٢٦/١١/٠٧) ═══════════════════════════════════════════════
+ * الطابع السابع عشر. فوهةُ فرنٍ حجريّ بقوسٍ من الطوب تتّقد جمراً ولهباً، والشعار في
+ * رغيفٍ مستدير على أرضيّتها، واسم المحلّ **مختومٌ** تحتها بحبر الختم. والأقسام على
+ * مطرحة الخبّاز، والسعر ختمٌ صغير، والطبق بلا صورة في سلّة خوصٍ على ورق خبز.
+ * الترويسة وعنوان القسم في `components/menu/heads/BakeryHead.tsx`.
+ *
+ * ⚠️ مستورَدٌ من **رأس** `menu-skins.css` — فكلّ انتقائيٍّ هنا يبدأ بـ
+ * `.m-skin-bakery` ليغلب نظيره العامّ بالخصوصية لا بالترتيب.
+ *
+ * ما يتبع العلامة: حبر الختم (`--m-accent-ink` — الاسم والإطار وختم العدد والسعر)،
+ * والأزرار. وما لا يتبعها خامة: الطوب والجمر واللهب والرغيف وخشب المطرحة والخوص.
+ * والنصّ الوحيد على خامةٍ اسمُ القسم على الخشب (‎8.4:1، ثابتٌ أيّاً كان لون التاجر)،
+ * وحبيبة الحبر على **إطار** الختم وحده لا على الاسم.
+ */
+.m-skin-bakery {
+  display: flow-root;
+  --m-fr-brick: #b9653a;
+  --m-fr-brick-2: #a2532d;
+  --m-fr-mortar: #ead9bc;
+  --m-fr-soot: #1b0d07;
+  --m-fr-crust: #c98a3c;
+  --m-fr-crust-2: #94541f;
+  --m-fr-wood: #dcb37a;
+  --m-fr-wood-2: #c4955a;
+  --m-fr-plaster: #efe3cc;
+  --m-fr-paper: #fbf6ea;
+  /* حبيبة الختم المطّاطي: ضجيجٌ يثقب الحبر في ١٠–١٥٪ من الإطار — قناعٌ لا لون. */
+  --m-fr-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 3.2 0 0 0 -.55'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23g)'/%3E%3C/svg%3E");
+  /* غبار الدقيق على الكاونتر: ذرّاتٌ خافتة بثلاث شبكاتٍ أوّليّة المقاس فلا تُقرأ نقشاً
+     منتظماً، وأقلّ منها نخالة. */
+  background-image:
+    radial-gradient(circle at 18% 22%, rgba(255, 255, 255, 0.55) 0 0.8px, transparent 1.3px),
+    radial-gradient(circle at 63% 71%, rgba(255, 255, 255, 0.45) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 81% 38%, rgba(120, 85, 50, 0.08) 0 0.8px, transparent 1.3px);
+  background-size: 37px 41px, 59px 53px, 43px 31px;
+}
+
+/* ── الفرن: قوسٌ من الطوب، وجوفٌ أسود يتّقد من أرضيّته ── */
+.m-skin-bakery .m-fr-arch {
+  /* نصف دائرةٍ تامّة فوق (نصف القطر نصف العرض)، وكتفان قصيران تحتها. */
+  border-radius: 999px 999px 6px 6px;
+  /* الطوب يشعّ من مركز القوس: لبنتان بلونين في كلّ ٢٢٫٥° يفصلهما خطّ ملاط. */
+  background: repeating-conic-gradient(
+    from -90deg at 50% 7.75rem,
+    var(--m-fr-mortar) 0 1.2deg,
+    var(--m-fr-brick) 1.2deg 11.25deg,
+    var(--m-fr-mortar) 11.25deg 12.45deg,
+    var(--m-fr-brick-2) 12.45deg 22.5deg
+  );
+  box-shadow:
+    inset 0 0 0 2px rgba(80, 35, 15, 0.35),
+    0 16px 24px -18px rgba(60, 30, 10, 0.7);
+}
+.m-skin-bakery .m-fr-mouth {
+  border-radius: 999px 999px 0 0;
+  background: radial-gradient(120% 95% at 50% 100%, #5a1f0c 0%, #2b0f07 45%, var(--m-fr-soot) 75%);
+  box-shadow: inset 0 12px 22px rgba(0, 0, 0, 0.65);
+}
+.m-skin-bakery .m-fr-glow {
+  transform-origin: 50% 100%;
+  background: radial-gradient(
+    72% 58% at 50% 100%,
+    rgba(255, 176, 76, 0.95) 0%,
+    rgba(238, 104, 34, 0.72) 30%,
+    rgba(150, 40, 10, 0.32) 58%,
+    transparent 80%
+  );
+}
+/* الرغيف حول الشعار: قشرةٌ ذهبية ودقيقٌ عليها، وضوء الجمر من تحتها. */
+.m-skin-bakery .m-fr-loaf {
+  background:
+    radial-gradient(circle at 22% 18%, rgba(255, 250, 235, 0.85) 0 1px, transparent 1.6px) 0 0 / 9px 8px,
+    radial-gradient(circle at 38% 30%, #ecb86e, var(--m-fr-crust) 45%, var(--m-fr-crust-2) 100%);
+  box-shadow:
+    0 0 0 1.5px #74401a,
+    0 8px 14px -6px rgba(0, 0, 0, 0.75),
+    0 0 30px 4px rgba(255, 150, 60, 0.35);
+}
+/* عتبة الحجر تحت الفوهة. */
+.m-skin-bakery .m-fr-sill {
+  position: relative;
+  border-radius: 4px;
+  background: linear-gradient(180deg, #f8efdf, var(--m-fr-plaster) 40%, #d8c4a2);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    0 8px 12px -8px rgba(60, 30, 10, 0.55);
+}
+
+/* ── الختم: إطارٌ مزدوج بحبر التمييز وحبيبته، والاسم مصمتٌ داخله ── */
+.m-skin-bakery .m-fr-stamp {
+  transform: rotate(-2deg);
+}
+.m-skin-bakery .m-fr-stamp::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: 12px;
+  border: 2.5px solid var(--m-accent-ink, var(--m-accent));
+  /* خطٌّ داخليّ رفيع بعد فاصلٍ بلون الدقيق — إطار الأختام المزدوج. */
+  box-shadow:
+    inset 0 0 0 3px var(--m-bg),
+    inset 0 0 0 4.5px var(--m-accent-ink, var(--m-accent));
+  -webkit-mask: var(--m-fr-grain) 0 0 / 140px 140px;
+  mask: var(--m-fr-grain) 0 0 / 140px 140px;
+}
+
+/* صورة الغلاف: صورةٌ على ورق خبز. */
+.m-skin-bakery .m-fr-window {
+  border-radius: 14px;
+  box-shadow:
+    0 0 0 5px var(--m-fr-paper),
+    0 0 0 6px rgba(42, 29, 20, 0.12),
+    0 14px 22px -16px rgba(60, 30, 10, 0.6);
+}
+
+/* ── عنوان القسم: المطرحة — لوحٌ خشبيّ عليه الاسم، ويدٌ ممدودة بثقبٍ للتعليق ── */
+.m-skin-bakery .m-fr-blade {
+  position: relative;
+  /* مقدّمة اللوح مستديرة (جهة البداية)، وكتفه عند اليد أضيق انحناءً. */
+  border-start-start-radius: 1.6rem 50%;
+  border-end-start-radius: 1.6rem 50%;
+  border-start-end-radius: 0.7rem;
+  border-end-end-radius: 0.7rem;
+  background-color: var(--m-fr-wood);
+  /* لطختا دقيقٍ على اللوح (عند المقدّمة وتحت الاسم)، وعروق الخشب، وضوءٌ من أعلاه. */
+  background-image:
+    radial-gradient(30% 70% at 12% 75%, rgba(255, 252, 240, 0.5), transparent 70%),
+    radial-gradient(45% 55% at 70% 100%, rgba(255, 252, 240, 0.32), transparent 70%),
+    repeating-linear-gradient(180deg, transparent 0 5px, rgba(120, 70, 25, 0.12) 5px 6px, transparent 6px 11px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.28), transparent 45%, rgba(90, 50, 15, 0.1));
+  box-shadow:
+    inset 0 0 0 1px rgba(110, 65, 25, 0.35),
+    0 6px 10px -7px rgba(60, 30, 10, 0.6);
+}
+.m-skin-bakery .m-fr-handle {
+  margin-inline-start: -2px;
+  border-start-end-radius: 999px;
+  border-end-end-radius: 999px;
+  /* الثقب قرب طرف اليد — يسار العربية. */
+  background:
+    radial-gradient(circle at 8px 50%, var(--m-bg) 0 2px, rgba(80, 45, 15, 0.45) 2.2px 2.8px, transparent 3px),
+    linear-gradient(180deg, #e6c591, var(--m-fr-wood-2) 60%, #a97a42);
+  box-shadow: inset 0 0 0 1px rgba(110, 65, 25, 0.3);
+}
+[dir="ltr"].m-skin-bakery .m-fr-handle {
+  background:
+    radial-gradient(circle at calc(100% - 8px) 50%, var(--m-bg) 0 2px, rgba(80, 45, 15, 0.45) 2.2px 2.8px, transparent 3px),
+    linear-gradient(180deg, #e6c591, var(--m-fr-wood-2) 60%, #a97a42);
+}
+/* عدد الأصناف ختمٌ صغير مائل بحبر التمييز. */
+.m-skin-bakery .m-fr-count {
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 1.5px currentColor;
+  transform: rotate(-4deg);
+  font-family: var(--m-display, var(--m-font));
+}
+.m-skin-bakery .m-fr-photo {
+  padding: 6px;
+  border-radius: 16px;
+  background: var(--m-fr-paper);
+  box-shadow:
+    0 0 0 1px rgba(42, 29, 20, 0.08),
+    0 12px 20px -16px rgba(60, 30, 10, 0.6);
+}
+.m-skin-bakery .m-fr-photo .m-img {
+  border-radius: 11px;
+}
+
+/* ── السعر: ختمٌ صغير بخطٍّ واحد، مائلٌ قليلاً كما تُختم الأكياس باليد ── */
+.m-skin-bakery .m-card .m-price:not(.m-shine),
+.m-skin-bakery .m-feature .m-price {
+  display: inline-block;
+  width: fit-content;
+  padding: 1px 7px;
+  border-radius: 5px;
+  box-shadow: inset 0 0 0 1.5px var(--m-price, var(--m-accent-ink, var(--m-accent)));
+  transform: rotate(-2deg);
+}
+
+/* ── الطبق بلا صورة: سلّة خوصٍ على لوح العجين المرشوش بالدقيق ──
+   الأرضية لوحُ خشبٍ بعروقه وألواحه، وفي قلبه بقعةُ دقيقٍ حيث عُجن العجين (لا شبكةُ نقاط
+   — تلك تُقرأ نقشاً لا دقيقاً). والصحن حلقاتُ خوصٍ ملفوفة تخيطها غُرزٌ شعاعية، والقاع
+   منديل كتّان (`inset` بامتداد يملؤه — القاع بلا خلفيّةٍ خاصّة به). */
+.m-skin-bakery .m-art {
+  --m-art-bg:
+    radial-gradient(46% 42% at 50% 52%, rgba(255, 252, 244, 0.95), rgba(255, 252, 244, 0.6) 55%, transparent 78%),
+    radial-gradient(22% 18% at 18% 24%, rgba(255, 252, 244, 0.5), transparent 70%),
+    radial-gradient(18% 14% at 84% 80%, rgba(255, 252, 244, 0.45), transparent 70%),
+    repeating-linear-gradient(180deg, transparent 0 63px, rgba(90, 50, 15, 0.22) 63px 64px),
+    repeating-linear-gradient(180deg, rgba(120, 72, 30, 0.08) 0 1px, transparent 1px 7px, rgba(120, 72, 30, 0.05) 7px 8px, transparent 8px 13px),
+    linear-gradient(180deg, #e2c08e, #d4ab73);
+  --m-art-plate:
+    repeating-conic-gradient(rgba(80, 45, 12, 0.22) 0 2deg, transparent 2deg 15deg),
+    repeating-radial-gradient(circle, #dab274 0 2.5px, #b4823f 2.5px 3.5px, #e5c085 3.5px 6px, #a5733a 6px 7px);
+  --m-art-ring: 0 0 0 1.5px #8a5c2c;
+  --m-art-lift: 0 10px 16px -10px rgba(70, 40, 15, 0.6);
+  --m-art-well:
+    inset 0 2px 5px rgba(70, 40, 15, 0.28),
+    inset 0 0 0 999px #fbf5e7;
+  --m-art-mark: color-mix(in srgb, var(--m-accent) 9%, transparent);
+}
+
+/* ── البطاقة: ورق خبزٍ أبيض، والشرائح والتبويبات حبّات عجين ── */
+.m-skin-bakery .m-card,
+.m-skin-bakery .m-feature {
+  --m-border: color-mix(in srgb, var(--m-text) 11%, transparent);
+}
+.m-skin-bakery .m-chips > *,
+.m-skin-bakery .m-tab {
+  border-radius: 999px;
+}
+/* زرّ الإضافة: حلقةٌ بحبر الختم حوله. */
+.m-skin-bakery .m-add {
+  box-shadow:
+    0 0 0 2px var(--m-surface),
+    0 0 0 3.5px color-mix(in srgb, var(--m-accent) 45%, transparent);
+}
+
+/* «نفد اليوم»: ختمٌ مزدوج بالحبر على ورقٍ أبيض — «نفد الخبز». */
+.m-skin-bakery .m-soldout {
+  border-radius: 6px;
+  background: var(--m-surface);
+  color: var(--m-accent-ink, var(--m-accent));
+  box-shadow:
+    inset 0 0 0 1.5px currentColor,
+    inset 0 0 0 3px var(--m-surface),
+    inset 0 0 0 4px currentColor;
+  transform: rotate(-5deg);
+}
+
+/* ── شاشات الطلب ── */
+.m-skin-bakery .m-o-card {
+  border-radius: 16px;
+  box-shadow: 0 8px 18px -14px rgba(60, 30, 10, 0.5);
+}
+.m-skin-bakery .m-o-cta {
+  border-radius: 14px;
+  box-shadow:
+    0 0 0 2px var(--m-surface),
+    0 0 0 3.5px color-mix(in srgb, var(--m-accent) 55%, transparent),
+    0 12px 20px -14px rgba(60, 30, 10, 0.7);
+}
+.m-skin-bakery .m-o-field,
+.m-skin-bakery .m-o-ghost,
+.m-skin-bakery .m-o-opt,
+.m-skin-bakery .m-o-soldout,
+.m-skin-bakery .m-o-step,
+.m-skin-bakery .m-o-chip {
+  border-radius: 12px;
+}
+.m-skin-bakery .m-o-thumb {
+  border-radius: 10px;
+}
+
+/* ── الحركة: الفرن يتّقد مرّة واللهب يرفّ ثلاثاً، والختم يُضرب مرّة، والنافذة تختمر ──
+ * كلّها تنتهي: لا حركة هنا تتكرّر بلا نهاية. */
+@media (prefers-reduced-motion: no-preference) {
+  .m-skin-bakery .m-fr-glow {
+    animation: m-fr-warm 1.8s ease-out 0.1s both;
+  }
+  .m-skin-bakery .m-fr-flame {
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+    animation: m-fr-flicker 0.9s ease-in-out 0.3s 3 both;
+  }
+  .m-skin-bakery .m-fr-flame-2 {
+    animation-delay: 0.45s;
+  }
+  .m-skin-bakery .m-fr-stamp {
+    animation: m-fr-stamp 0.55s cubic-bezier(0.3, 0, 0.2, 1) 0.5s both;
+  }
+  .m-skin-bakery .m-sheet.anim-fade-up {
+    animation: m-fr-proof 0.3s cubic-bezier(0.2, 0.9, 0.25, 1) backwards;
+  }
+  .m-skin-bakery .m-card.m-surface:active,
+  .m-skin-bakery .m-feature:active {
+    transform: translateY(1px) scale(0.99);
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    /* يد المطرحة تمتدّ حين يدخل القسم الشاشة — كما تُدفع المطرحة في الفرن. */
+    .m-skin-bakery .m-peel-h .m-fr-handle {
+      transform-origin: right center;
+      animation: m-fr-reach linear both;
+      animation-timeline: view();
+      animation-range: entry 10% cover 30%;
+    }
+    [dir="ltr"].m-skin-bakery .m-peel-h .m-fr-handle {
+      transform-origin: left center;
+    }
+  }
+}
+
+@keyframes m-fr-warm {
+  from {
+    opacity: 0.2;
+    transform: scale(0.82);
+  }
+}
+@keyframes m-fr-flicker {
+  0%,
+  100% {
+    transform: none;
+  }
+  30% {
+    transform: scale(1.06, 0.86);
+  }
+  65% {
+    transform: scale(0.94, 1.1);
+  }
+}
+/* الختم يُضرب: يهبط كبيراً مائلاً، فينضغط، ثم يستقرّ على ميله (−٢°، من القاعدة نفسها). */
+@keyframes m-fr-stamp {
+  0% {
+    opacity: 0;
+    transform: rotate(-8deg) scale(1.35);
+  }
+  60% {
+    opacity: 1;
+    transform: rotate(-1deg) scale(0.95);
+  }
+}
+/* العجين يختمر: يصعد منبسطاً قليلاً ثم يعلو إلى مكانه. */
+@keyframes m-fr-proof {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.97, 0.94);
+  }
+  70% {
+    transform: translateY(-2px) scale(1.005, 1.01);
+  }
+}
+@keyframes m-fr-reach {
+  from {
+    opacity: 0.3;
+    transform: scaleX(0.15);
+  }
+}

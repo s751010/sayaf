@@ -23,7 +23,9 @@ export function PatisserieHead({ restaurant, corner, children }: HeadProps) {
   const banner = restaurant.banner_image?.trim();
   return (
     <header className="m-head m-head-awning relative pb-1">
-      <Corner className="top-[4.6rem]">{corner}</Corner>
+      {/* المبدّل على المظلّة لا على حافّة العلبة: كان يقطع حدّها المزدوج فيبدو
+          خطأ تخطيط لا بطاقةً معلّقة (تدقيق ٢٠٢٦/١١/٠٧). */}
+      <Corner className="top-3">{corner}</Corner>
       <div aria-hidden="true" className="m-awning" />
       <div className="relative mx-auto mt-9 max-w-sm px-4">
         <div className="m-pt-box relative px-6 pb-5 pt-11 text-center">
@@ -79,7 +81,8 @@ export function PatisserieHeading({ name, items, photo }: SkinHeadingProps) {
         </h2>
       </span>
       {items && (
-        <p className="mt-2 text-[12px] font-bold" style={{ color: "var(--m-muted)" }}>
+        // ‏`mt-4`: حلقة الدانتيل تخرج ١٣px خارج البيضاوي (`::before`) فكان العدد تحتها.
+        <p className="mt-4 text-[12px] font-bold" style={{ color: "var(--m-muted)" }}>
           {items}
         </p>
       )}

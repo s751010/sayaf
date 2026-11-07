@@ -18,10 +18,13 @@
 import type { Dish, Menu, Restaurant } from "./types";
 import { burnMinutes, isHighSodium, isSfdaCompliant } from "./nutrition";
 
-export type DemoKind = "restaurant" | "cafe" | "shaabi" | "truck" | "seafood" | "sweets" | "juice" | "burger";
+export type DemoKind =
+  | "restaurant" | "cafe" | "shaabi" | "truck" | "seafood" | "sweets" | "juice" | "burger"
+  | "bakery" | "breakfast"
+  | "grill" | "pizza";
 
 export const DEMO_KINDS: readonly DemoKind[] = [
-  "restaurant", "cafe", "shaabi", "truck", "seafood", "sweets", "juice", "burger",
+  "restaurant", "cafe", "shaabi", "truck", "seafood", "sweets", "juice", "burger", "bakery", "breakfast", "grill", "pizza",
 ];
 
 export function isDemoKind(v: string | null | undefined): v is DemoKind {
@@ -905,10 +908,521 @@ function burger(): DemoData {
   };
 }
 
+/* ── مخبز ومعجّنات — لطابع «فرن» (٢٠٢٦/١١/٠٧) ─────────────────────────────
+ * غير «حلويات بيت السكّر»: ذاك كيكٌ وحلا شرقيّ بالقطعة، وهذا فرنُ حيٍّ قصيميّ —
+ * فطائر بالقطعة بسعر الفرن (٤–٦ ريال)، وكرواسون، وخبزٌ من الفرن، وكليجا. و«الصينيّة»
+ * أرخص من قطعها الاثنتي عشرة، وسعراتها وصوديومها مجموعها (يحرسه `demo-menus.test.ts`). */
+
+function bakery(): DemoData {
+  const R = "demo-bakery";
+  const M = "demo-bakery-menu";
+  const dish = dishMaker(R, M);
+  return {
+    restaurant: restaurantOf(R, {
+      name: "مخبز السنابل",
+      type: "فطائر ومعجّنات وكرواسون من الفرن كل صباح",
+      address: "بريدة — حي الريان",
+      logo: "🥐",
+      allergens_text: "كلّ مخبوزاتنا فيها جلوتين، وأغلبها حليب وبيض وسمسم — ونخبز كلّها في فرنٍ واحد.",
+      working_hours: WEEK("05:30", "23:30", "00:30"),
+      loyalty_goal: 10,
+      loyalty_reward: "كرواسون بالزبدة مجاناً",
+      prep_minutes: 8,
+      category_order: JSON.stringify(["الفطائر", "الكرواسون", "من الفرن", "حلا الفرن", "المشروبات"]),
+    }),
+    menus: [menuOf(R, M, "bakery")],
+    dishes: [
+      dish("k1", "فطيرة زعتر", "Zaatar Fatayer", "الفطائر", 4, "🥐", {
+        description: "عجينة الفرن بالزعتر البلدي وزيت الزيتون والسمسم.",
+        featured: true,
+        calories: 260,
+        sodium_mg: 430,
+        allergens: ["جلوتين", "سمسم"],
+      }),
+      dish("k2", "فطيرة جبن", "Cheese Fatayer", "الفطائر", 5, "🧀", {
+        description: "جبنة عكّاوي وموزاريلا على عجينةٍ مفتوحة.",
+        calories: 310,
+        sodium_mg: 560,
+        allergens: ["جلوتين", "حليب"],
+        options: JSON.stringify([
+          { name: "زيادة جبن", price: 2, kcal: 80 },
+          { name: "مع زعتر", price: 1, kcal: 30 },
+        ]),
+      }),
+      dish("k3", "فطيرة سبانخ", "Spinach Fatayer", "الفطائر", 4, "🥬", {
+        description: "سبانخ بالبصل والسمّاق والليمون، مثلّثةٌ كما تُخبز في البيت.",
+        calories: 230,
+        sodium_mg: 390,
+        allergens: ["جلوتين"],
+      }),
+      dish("k4", "فطيرة لحم", "Meat Fatayer", "الفطائر", 6, "🥩", {
+        description: "لحم مفروم بالطماطم والبصل والبهارات.",
+        calories: 300,
+        sodium_mg: 520,
+        allergens: ["جلوتين"],
+      }),
+      dish("k5", "صينيّة فطائر — ١٢ حبّة", "Fatayer Tray (12 pcs)", "الفطائر", 45, "🥐", {
+        description: "أربع زعتر وأربع جبن وأربع سبانخ — للعائلة والضيوف.",
+        // ٤ × (٢٦٠ + ٣١٠ + ٢٣٠) — والصوديوم كذلك: للصينيّة كلّها لا للحبّة.
+        calories: 3200,
+        sodium_mg: 5520,
+        allergens: ["جلوتين", "حليب", "سمسم"],
+      }),
+      dish("k6", "كرواسون بالزبدة", "Butter Croissant", "الكرواسون", 7, "🥐", {
+        description: "سبعٌ وعشرون طبقة بالزبدة، يُخبز كل ساعتين.",
+        featured: true,
+        calories: 280,
+        sodium_mg: 320,
+        allergens: ["جلوتين", "حليب", "بيض"],
+        options: JSON.stringify([{ name: "سخّنه", price: 0 }]),
+      }),
+      dish("k7", "كرواسون زعتر وجبنة", "Zaatar & Cheese Croissant", "الكرواسون", 9, "🥐", {
+        description: "كرواسون بالزبدة محشوّ جبنةً بيضاء وزعتراً.",
+        calories: 370,
+        sodium_mg: 560,
+        allergens: ["جلوتين", "حليب", "بيض", "سمسم"],
+      }),
+      dish("k8", "كرواسون بالشوكولاتة", "Chocolate Croissant", "الكرواسون", 9, "🍫", {
+        description: "عودا شوكولاتة داكنة داخل العجينة.",
+        calories: 390,
+        sodium_mg: 280,
+        allergens: ["جلوتين", "حليب", "بيض"],
+        available: false,
+      }),
+      dish("k9", "شريك بالسمسم", "Sesame Shurayk", "من الفرن", 3, "🥯", {
+        description: "حلقة الشريك بالسمسم والحبّة السوداء، طريّةٌ من الفرن.",
+        calories: 290,
+        sodium_mg: 330,
+        allergens: ["جلوتين", "سمسم", "حليب"],
+      }),
+      dish("k10", "خبز بُرّ", "Whole Wheat Bread", "من الفرن", 2, "🍞", {
+        description: "رغيف بُرّ قصيمي من الفرن الحجري.",
+        calories: 240,
+        sodium_mg: 380,
+        allergens: ["جلوتين"],
+      }),
+      dish("k11", "كليجا — ٤ حبّات", "Kleija (4 pcs)", "حلا الفرن", 10, "🍪", {
+        description: "كليجا القصيم بالتمر والهيل والقرفة.",
+        calories: 440,
+        sodium_mg: 190,
+        allergens: ["جلوتين", "حليب", "بيض"],
+      }),
+      dish("k12", "كعك بالسمسم", "Sesame Kaak", "حلا الفرن", 6, "🥨", {
+        description: "كعك هشّ بالسمسم والمحلب — خمس حلقات.",
+        calories: 320,
+        sodium_mg: 210,
+        allergens: ["جلوتين", "سمسم", "حليب"],
+      }),
+      dish("k13", "كرك", "Karak", "المشروبات", 4, "☕", {
+        description: "شاي بالحليب والهيل والزعفران، يُغلى على مهل.",
+        calories: 150,
+        sodium_mg: 60,
+        caffeine_mg: 45,
+        allergens: ["حليب"],
+      }),
+      dish("k14", "لبن بارد", "Cold Laban", "المشروبات", 4, "🥛", {
+        description: "٢٥٠ مل.",
+        calories: 120,
+        sodium_mg: 140,
+        allergens: ["حليب"],
+      }),
+    ],
+  };
+}
+
+/* ── فطور شعبي — لطابع «فوّال» (٢٠٢٦/١١/٠٧) ────────────────────────────────
+ * غير «بيت الحارة»: ذاك مندي ومظبي وفطورٌ قسمٌ بينها، وهذا فوّالٌ من الفجر — فول
+ * وتميس وبيض ومطبّق وشاهي. و«صحن الحارة» فولٌ وتميسٌ وشاهي حليب، أرخص من أجزائه
+ * وسعراته وصوديومه مجموعها (يحرسه `demo-menus.test.ts`). */
+
+function breakfast(): DemoData {
+  const R = "demo-breakfast";
+  const M = "demo-breakfast-menu";
+  const dish = dishMaker(R, M);
+  // من الفجر إلى ما بعد العشاء، كلّ الأيام — فول العشاء عادةُ جدّة أيضاً.
+  const hours = JSON.stringify(
+    Object.fromEntries(["sat", "sun", "mon", "tue", "wed", "thu", "fri"].map((d) => [d, { open: true, from: "05:00", to: "01:00" }]))
+  );
+  return {
+    restaurant: restaurantOf(R, {
+      name: "فوّال باب مكة",
+      type: "فول وتميس ومطبّق وشاهي حليب — من الفجر",
+      address: "جدة — البلد، باب مكة",
+      logo: "🫘",
+      allergens_text: "التميس والمطبّق فيهما جلوتين وسمسم، والسمن البلدي من الحليب.",
+      working_hours: hours,
+      loyalty_goal: 8,
+      loyalty_reward: "صحن الحارة مجاناً",
+      prep_minutes: 6,
+      category_order: JSON.stringify(["الفول", "التميس", "البيض", "المطبّق", "الشاهي"]),
+    }),
+    menus: [menuOf(R, M, "breakfast")],
+    dishes: [
+      dish("q1", "فول بالسمن", "Foul with Ghee", "الفول", 9, "🫘", {
+        description: "فول مدمّس من القدرة، بالسمن البلدي والكمّون والشطّة.",
+        calories: 380,
+        sodium_mg: 640,
+        allergens: ["حليب"],
+        options: JSON.stringify([
+          { name: "زيادة سمن", price: 2, kcal: 90 },
+          { name: "بدون شطّة", price: 0 },
+        ]),
+      }),
+      dish("q2", "فول بزيت الزيتون", "Foul with Olive Oil", "الفول", 8, "🫒", {
+        description: "فول بزيت الزيتون والليمون والطماطم المقطّعة.",
+        calories: 350,
+        sodium_mg: 580,
+      }),
+      dish("q3", "فول بالطحينة", "Foul with Tahini", "الفول", 10, "🫘", {
+        description: "فول بالطحينة والثوم والبقدونس.",
+        calories: 450,
+        sodium_mg: 620,
+        allergens: ["سمسم"],
+      }),
+      dish("q4", "صحن الحارة", "Hara Breakfast Plate", "الفول", 12, "🫘", {
+        description: "فول بالسمن وتميس كامل وشاهي حليب — فطورٌ واحد بسعرٍ واحد.",
+        featured: true,
+        // ٣٨٠ فول + ٤٣٠ تميس + ١١٠ شاهي — والصوديوم مجموعها كذلك.
+        calories: 920,
+        sodium_mg: 1290,
+        allergens: ["حليب", "جلوتين", "سمسم"],
+      }),
+      dish("q5", "تميس", "Tamees", "التميس", 2, "🫓", {
+        description: "تميس حارّ من التنّور بالسمسم والحبّة السوداء.",
+        calories: 430,
+        sodium_mg: 600,
+        allergens: ["جلوتين", "سمسم"],
+      }),
+      dish("q6", "تميس بالجبن والعسل", "Tamees with Cheese & Honey", "التميس", 7, "🍯", {
+        description: "تميس مفتوح بالجبنة البيضاء والعسل السدر.",
+        featured: true,
+        calories: 610,
+        sodium_mg: 760,
+        allergens: ["جلوتين", "سمسم", "حليب"],
+      }),
+      dish("q7", "شكشوكة", "Shakshuka", "البيض", 12, "🍳", {
+        description: "بيض بالطماطم والفلفل والبصل في المقلاة.",
+        calories: 330,
+        sodium_mg: 780,
+        allergens: ["بيض"],
+      }),
+      dish("q8", "بيض عيون بالسمن", "Fried Eggs in Ghee", "البيض", 9, "🍳", {
+        description: "بيضتان بالسمن البلدي والفلفل الأسود.",
+        calories: 280,
+        sodium_mg: 360,
+        allergens: ["بيض", "حليب"],
+      }),
+      dish("q9", "مطبّق لحم", "Meat Mutabbaq", "المطبّق", 14, "🥟", {
+        description: "عجينة رقيقة محشوّة لحماً وبيضاً وكرّاثاً، على الصاج.",
+        calories: 680,
+        sodium_mg: 1120,
+        allergens: ["جلوتين", "بيض"],
+      }),
+      dish("q10", "مطبّق موز", "Banana Mutabbaq", "المطبّق", 12, "🍌", {
+        description: "موز وحليب مكثّف وعسل.",
+        calories: 590,
+        sodium_mg: 240,
+        allergens: ["جلوتين", "حليب", "بيض"],
+      }),
+      dish("q11", "مطبّق جبن", "Cheese Mutabbaq", "المطبّق", 12, "🧀", {
+        description: "جبنة بيضاء وموزاريلا وبيض.",
+        calories: 620,
+        sodium_mg: 880,
+        allergens: ["جلوتين", "حليب", "بيض"],
+        available: false,
+      }),
+      dish("q12", "شاهي حليب", "Milk Tea", "الشاهي", 3, "🫖", {
+        description: "شاهي مخدّر بالحليب والهيل في استكانة.",
+        calories: 110,
+        sodium_mg: 50,
+        caffeine_mg: 40,
+        allergens: ["حليب"],
+        options: JSON.stringify([
+          { name: "استكانة كبيرة", price: 1, kcal: 55 },
+          { name: "بدون سكر", price: 0 },
+        ]),
+      }),
+      dish("q13", "شاهي أحمر بالنعناع", "Mint Tea", "الشاهي", 2, "🫖", {
+        description: "شاهي أحمر بالنعناع الحساوي.",
+        calories: 35,
+        sodium_mg: 5,
+        caffeine_mg: 35,
+      }),
+      dish("q14", "حليب بالزنجبيل", "Ginger Milk", "الشاهي", 4, "🥛", {
+        description: "حليب ساخن بالزنجبيل والقرفة.",
+        calories: 150,
+        sodium_mg: 95,
+        allergens: ["حليب"],
+      }),
+    ],
+  };
+}
+
+/* ── مشويات وشاورما على الفحم — لطابع «جمر» (٢٠٢٦/١١/٠٧) ─────────────────────
+ * غير «الديوان» (ستيكٌ وعشاءٌ فاخر) وغير «بيت الحارة» (مندي ومظبي): منقلُ حيٍّ في
+ * الرياض — أسياخٌ بالحصّة (سيخان)، وشاورما بسعر الشارع، ومقبلات. و«المشكّل» حصّةٌ
+ * من كلّ سيخ، أرخص من الثلاث وسعراته وصوديومه مجموعها (يحرسه `demo-menus.test.ts`)
+ * — وصوديومه فوق حدّ الهيئة، فتظهر علامة الملح على صنفٍ حقيقيّ لا مصطنع. */
+
+function grill(): DemoData {
+  const R = "demo-grill";
+  const M = "demo-grill-menu";
+  const dish = dishMaker(R, M);
+  return {
+    restaurant: restaurantOf(R, {
+      name: "مشويات المنقل",
+      type: "مشويات وشاورما على الفحم",
+      address: "الرياض — حي النسيم",
+      logo: "🔥",
+      allergens_text: "الخبز فيه جلوتين، والطحينة سمسم، وتتبيلة الطاووق فيها لبن — ونشوي كلّ الأسياخ على المنقل نفسه.",
+      working_hours: WEEK("16:00", "01:00", "02:00"),
+      loyalty_goal: 8,
+      loyalty_reward: "سيخ كباب مجاناً",
+      prep_minutes: 18,
+      category_order: JSON.stringify(["المشويات", "الشاورما", "المقبلات", "المشروبات"]),
+    }),
+    menus: [menuOf(R, M, "grill")],
+    dishes: [
+      dish("g1", "كباب لحم", "Lamb Kebab", "المشويات", 32, "🍢", {
+        description: "سيخان من لحم الغنم المفروم بالبصل والبقدونس، على الفحم، مع خبز وبصل بالسمّاق.",
+        featured: true,
+        calories: 620,
+        sodium_mg: 980,
+        allergens: ["جلوتين"],
+        options: JSON.stringify([
+          { name: "سيخ إضافي", price: 14, kcal: 260 },
+          { name: "حار", price: 0 },
+        ]),
+      }),
+      dish("g2", "شيش طاووق", "Shish Tawook", "المشويات", 28, "🍢", {
+        description: "صدر دجاج متبّل باللبن والثوم والليمون، سيخان مع ثومية.",
+        calories: 540,
+        sodium_mg: 1100,
+        allergens: ["حليب", "جلوتين"],
+        options: JSON.stringify([{ name: "ثومية إضافية", price: 2, kcal: 90 }]),
+      }),
+      dish("g3", "تكّة لحم", "Lamb Tikka", "المشويات", 38, "🥩", {
+        description: "مكعّبات لحم غنم متبّلة بالبهارات والبصل، سيخان.",
+        calories: 580,
+        sodium_mg: 760,
+        allergens: ["جلوتين"],
+      }),
+      dish("g4", "ريش غنم", "Lamb Chops", "المشويات", 65, "🍖", {
+        description: "ستّ ريشات على الفحم بالملح والفلفل الأسود.",
+        calories: 720,
+        sodium_mg: 640,
+        available: false,
+      }),
+      dish("g5", "مشكّل مشاوي — لشخصين", "Mixed Grill for Two", "المشويات", 85, "🔥", {
+        description: "حصّة كباب وحصّة طاووق وحصّة تكّة، مع خبز وطماطم وبصل مشوي.",
+        // ٦٢٠ + ٥٤٠ + ٥٨٠ — والصوديوم ٩٨٠ + ١١٠٠ + ٧٦٠: فوق حدّ الهيئة (٢٠٠٠).
+        calories: 1740,
+        sodium_mg: 2840,
+        allergens: ["جلوتين", "حليب"],
+      }),
+      dish("g6", "دجاج مشوي على الفحم", "Charcoal Chicken", "المشويات", 26, "🍗", {
+        description: "نصف دجاجة متبّلة بالليمون والثوم، مع بطاطس وثومية.",
+        calories: 680,
+        sodium_mg: 1150,
+        options: JSON.stringify([{ name: "حبّة كاملة", price: 22, kcal: 680 }]),
+      }),
+      dish("g7", "شاورما لحم", "Meat Shawarma", "الشاورما", 12, "🌯", {
+        description: "لحم من السيخ بالطحينة والبصل والبقدونس في خبز صاج.",
+        featured: true,
+        calories: 520,
+        sodium_mg: 1250,
+        allergens: ["جلوتين", "سمسم"],
+      }),
+      dish("g8", "شاورما دجاج", "Chicken Shawarma", "الشاورما", 10, "🌯", {
+        description: "دجاج من السيخ بالثومية والمخلّل والبطاطس.",
+        calories: 480,
+        sodium_mg: 1180,
+        allergens: ["جلوتين"],
+        options: JSON.stringify([
+          { name: "دبل لحم", price: 5, kcal: 180 },
+          { name: "بدون مخلّل", price: 0 },
+        ]),
+      }),
+      dish("g9", "صحن شاورما عربي", "Arabic Shawarma Plate", "الشاورما", 24, "🥙", {
+        description: "شاورما دجاج مقطّعة مع بطاطس وثومية ومخلّل.",
+        calories: 980,
+        sodium_mg: 1960,
+        allergens: ["جلوتين"],
+      }),
+      dish("g10", "حمّص", "Hummus", "المقبلات", 9, "🧆", {
+        description: "حمّص بالطحينة وزيت الزيتون.",
+        calories: 250,
+        sodium_mg: 420,
+        allergens: ["سمسم"],
+      }),
+      dish("g11", "متبّل", "Moutabal", "المقبلات", 10, "🍆", {
+        description: "باذنجان مشوي على الفحم بالطحينة والليمون.",
+        calories: 220,
+        sodium_mg: 380,
+        allergens: ["سمسم"],
+      }),
+      dish("g12", "سلطة بصل بالسمّاق", "Sumac Onion Salad", "المقبلات", 5, "🧅", {
+        description: "بصل وبقدونس بالسمّاق ودبس الرمّان — رفيق كلّ سيخ.",
+        calories: 60,
+        sodium_mg: 290,
+      }),
+      dish("g13", "لبن", "Laban", "المشروبات", 4, "🥛", {
+        description: "٢٥٠ مل.",
+        calories: 120,
+        sodium_mg: 140,
+        allergens: ["حليب"],
+      }),
+      dish("g14", "ليمون بالنعناع", "Lemon Mint", "المشروبات", 9, "🍋", {
+        description: "ليمون طازج بالنعناع والثلج.",
+        calories: 150,
+        sodium_mg: 10,
+      }),
+      dish("g15", "مشروب غازي", "Soft Drink", "المشروبات", 4, "🥤", {
+        description: "علبة ٣٣٠ مل.",
+        calories: 140,
+        sodium_mg: 30,
+      }),
+    ],
+  };
+}
+
+/* ── بيتزيريا — لطابع «ريحان» (٢٠٢٦/١١/٠٧) ───────────────────────────────────
+ * غير «برجر الحارة»: بيتزا نابولية ١٢ إنش بسعر بيتزيريا حيٍّ في الخبر، ومعكرونة،
+ * ومقبلات وحلى. و«عرض الاثنين» مارغريتا وأرابياتا وخبزٌ بالثوم، أرخص من الثلاثة
+ * وسعراته وصوديومه مجموعها (يحرسه `demo-menus.test.ts`). وأسماء البيتزا تبدأ بـ
+ * «بيتزا» حين يضلّل غيرها رمزَ الرسم («دجاج بيستو» دجاجٌ مقليّ في `foodGlyph`). */
+
+function pizza(): DemoData {
+  const R = "demo-pizza";
+  const M = "demo-pizza-menu";
+  const dish = dishMaker(R, M);
+  return {
+    restaurant: restaurantOf(R, {
+      name: "بيتزيريا ريحانة",
+      type: "بيتزا نابولية ومعكرونة طازجة",
+      address: "الخبر — حي العقربية",
+      logo: "🍕",
+      allergens_text: "العجينة والمعكرونة فيهما جلوتين، وأغلب أصنافنا حليب — والبيستو فيه صنوبر.",
+      working_hours: WEEK("13:00", "00:00", "01:00"),
+      loyalty_goal: 8,
+      loyalty_reward: "بيتزا مارغريتا مجاناً",
+      prep_minutes: 15,
+      category_order: JSON.stringify(["البيتزا", "المعكرونة", "المقبلات", "الحلى", "المشروبات"]),
+    }),
+    menus: [menuOf(R, M, "pizza")],
+    dishes: [
+      dish("p1", "مارغريتا", "Margherita", "البيتزا", 32, "🍕", {
+        description: "صلصة طماطم وموزاريلا طازجة وريحان وزيت زيتون — ١٢ إنش.",
+        featured: true,
+        calories: 860,
+        sodium_mg: 1650,
+        allergens: ["جلوتين", "حليب"],
+        options: JSON.stringify([
+          { name: "موزاريلا مضاعفة", price: 8, kcal: 180 },
+          { name: "فلفل حار", price: 2, kcal: 10 },
+        ]),
+      }),
+      dish("p2", "بيبروني بقري", "Beef Pepperoni", "البيتزا", 42, "🍕", {
+        description: "بيبروني بقري مدخّن على موزاريلا وصلصة طماطم.",
+        calories: 1080,
+        sodium_mg: 2350,
+        allergens: ["جلوتين", "حليب"],
+      }),
+      dish("p3", "بيتزا الخضار المشوية", "Grilled Veggie Pizza", "البيتزا", 38, "🍕", {
+        description: "كوسا وباذنجان وفلفل مشوي وزيتون أسود.",
+        calories: 820,
+        sodium_mg: 1380,
+        allergens: ["جلوتين", "حليب"],
+      }),
+      dish("p4", "أربع أجبان", "Quattro Formaggi", "البيتزا", 46, "🍕", {
+        description: "موزاريلا وغورغونزولا وبارميزان وريكوتا، بلا صلصة.",
+        calories: 1180,
+        sodium_mg: 1940,
+        allergens: ["جلوتين", "حليب"],
+      }),
+      dish("p5", "بيتزا دجاج بيستو", "Chicken Pesto Pizza", "البيتزا", 44, "🍕", {
+        description: "دجاج مشوي وبيستو الريحان وطماطم كرزية.",
+        calories: 1020,
+        sodium_mg: 1720,
+        allergens: ["جلوتين", "حليب", "مكسرات"],
+      }),
+      dish("p6", "عرض الاثنين", "Pizza for Two", "البيتزا", 69, "🍕", {
+        description: "مارغريتا وبيني أرابياتا وخبز بالثوم.",
+        // ٨٦٠ + ٦٤٠ + ٣٨٠ — والصوديوم ١٦٥٠ + ٩٨٠ + ٥٢٠.
+        calories: 1880,
+        sodium_mg: 3150,
+        allergens: ["جلوتين", "حليب"],
+      }),
+      dish("p7", "بيني أرابياتا", "Penne Arrabbiata", "المعكرونة", 34, "🍝", {
+        description: "صلصة طماطم حارّة بالثوم والبقدونس.",
+        calories: 640,
+        sodium_mg: 980,
+        allergens: ["جلوتين"],
+      }),
+      dish("p8", "فيتوتشيني ألفريدو بالدجاج", "Chicken Fettuccine Alfredo", "المعكرونة", 42, "🍝", {
+        description: "كريمة وبارميزان وفطر ودجاج مشوي.",
+        calories: 1050,
+        sodium_mg: 1300,
+        allergens: ["جلوتين", "حليب", "بيض"],
+      }),
+      dish("p9", "لازانيا لحم", "Beef Lasagna", "المعكرونة", 45, "🍝", {
+        description: "طبقات لحم بقري بالصلصة وبشاميل وموزاريلا، من الفرن.",
+        calories: 780,
+        sodium_mg: 1250,
+        allergens: ["جلوتين", "حليب", "بيض"],
+        available: false,
+      }),
+      dish("p10", "خبز بالثوم", "Garlic Bread", "المقبلات", 14, "🥖", {
+        description: "عجينة البيتزا بالزبدة والثوم والبقدونس.",
+        calories: 380,
+        sodium_mg: 520,
+        allergens: ["جلوتين", "حليب"],
+        options: JSON.stringify([{ name: "مع موزاريلا", price: 5, kcal: 140 }]),
+      }),
+      dish("p11", "سلطة كابريزي", "Caprese Salad", "المقبلات", 26, "🥗", {
+        description: "طماطم وموزاريلا طازجة وريحان وزيت زيتون.",
+        calories: 340,
+        sodium_mg: 420,
+        allergens: ["حليب"],
+      }),
+      dish("p12", "تيراميسو", "Tiramisu", "الحلى", 22, "🍰", {
+        description: "بسكويت بالقهوة وكريمة ماسكاربوني وكاكاو.",
+        calories: 420,
+        sodium_mg: 110,
+        caffeine_mg: 30,
+        allergens: ["حليب", "بيض", "جلوتين"],
+      }),
+      dish("p13", "بانا كوتا بالتوت", "Berry Panna Cotta", "الحلى", 19, "🍮", {
+        description: "كريمة مطبوخة بالفانيلا وصوص توت.",
+        calories: 360,
+        sodium_mg: 70,
+        allergens: ["حليب"],
+      }),
+      dish("p14", "ليمونادة بالريحان", "Basil Lemonade", "المشروبات", 12, "🍋", {
+        description: "ليمون طازج وريحان وثلج.",
+        calories: 140,
+        sodium_mg: 10,
+      }),
+      dish("p15", "إسبريسو", "Espresso", "المشروبات", 9, "☕", {
+        description: "شوت واحد.",
+        calories: 5,
+        sodium_mg: 5,
+        caffeine_mg: 63,
+      }),
+      dish("p16", "مياه فوّارة", "Sparkling Water", "المشروبات", 7, "💧", {
+        description: "٥٠٠ مل.",
+        calories: 0,
+        sodium_mg: 15,
+      }),
+    ],
+  };
+}
+
 /**
  * المنيو الذي يُعاين به طابعٌ ما وحده (`/demo?theme=…` من «عاينه كاملاً»):
- * أوّل نوعٍ في `suits` ⇒ منيو ذلك النوع. فـ«مرفأ» يُعاين على مطعم أسماك لا على
- * ستيك واقيو، و«حلواني» على حلويات. وما لا نوع له ⇒ «الديوان».
+ * منيوه إن كان له (`KIND_BY_THEME`)، وإلا أوّل نوعٍ في `suits` ⇒ منيو ذلك النوع.
+ * فـ«مرفأ» يُعاين على مطعم أسماك لا على ستيك واقيو، و«حلواني» على حلويات. وما لا
+ * نوع له ⇒ «الديوان».
  *
  * و«مطعم سريع» ⇒ محلّ البرجر لا العربة (٠٧/١١): أوّل طوابع النوع صار «صاج»،
  * فمنيو النوع منيوه. والعربة باقيةٌ لصفحة عربات الطعام (`segments.ts`) و`?kind=truck`.
@@ -922,8 +1436,25 @@ const KIND_BY_TYPE: Record<string, DemoKind> = {
   عصائر: "juice",
 };
 
-export function demoKindForSuits(suits: readonly string[] | undefined): DemoKind {
-  return KIND_BY_TYPE[suits?.[0] ?? ""] ?? "restaurant";
+/**
+ * طابعٌ منيوه غير منيو نوعه الأوّل (٠٧/١١): «فرن» و«فوّال» شارتاهما «مخبز وحلويات»
+ * و«شعبي» — ومنيو النوعين لـ«حلواني» و«نجدي». و«عسير» خرج من الشعبي وبقي يُعاين على
+ * منيوه (المندي والإيدامات أقرب إليه من ستيك الديوان).
+ *
+ * و«جمر» و«ريحان» شارتاهما «مشويات» و«مطعم» — ولا منيو لنوعيهما (فيعاينهما «الديوان»).
+ * و«مشويات» **لا** تُضاف إلى `KIND_BY_TYPE`: «فاخر» شارته الأولى «مشويات»، فيصير
+ * منيوه منيو المنقل لا ستيك الديوان.
+ */
+const KIND_BY_THEME: Readonly<Record<string, DemoKind>> = {
+  bakery: "bakery",
+  breakfast: "breakfast",
+  asir: "shaabi",
+  grill: "grill",
+  pizza: "pizza",
+};
+
+export function demoKindForSuits(suits: readonly string[] | undefined, themeId?: string | null): DemoKind {
+  return (themeId ? KIND_BY_THEME[themeId] : undefined) ?? KIND_BY_TYPE[suits?.[0] ?? ""] ?? "restaurant";
 }
 
 const BUILDERS: Record<DemoKind, () => DemoData> = {
@@ -935,6 +1466,10 @@ const BUILDERS: Record<DemoKind, () => DemoData> = {
   sweets,
   juice,
   burger,
+  bakery,
+  breakfast,
+  grill,
+  pizza,
 };
 
 /** المنيو التجريبي لنوعٍ ما — والمجهول يسقط إلى «الديوان». */

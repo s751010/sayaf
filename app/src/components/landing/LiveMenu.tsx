@@ -127,7 +127,11 @@ export function BrandControls({ brand, onChange }: { brand: Brand; onChange: (b:
       </div>
 
       <p className="mt-4 text-xs font-bold text-dim">الطابع</p>
-      <div className="mt-2 grid grid-cols-3 gap-2" role="radiogroup" aria-label="طابع المنيو">
+      {/* أربعة أعمدة (خمسة على الشاشة العريضة): عشرون طابعاً صفوفٌ تامّة في الاثنين —
+          والثلاثة والستّة (للثمانية عشر) كانت ستترك «جمر» و«ريحان» وحدهما في صفّ.
+          وفي الخانة يعلو الاسمَ قرصُ لون الطابع: أرضيته وحلقة تمييزه، فتُقرأ الشبكة
+          لوحةَ ألوانٍ قبل أن تُقرأ أسماءً (تدقيق ٢٠٢٦/١١/٠٧). */}
+      <div className="mt-2 grid grid-cols-4 gap-1.5 sm:grid-cols-5 sm:gap-2" role="radiogroup" aria-label="طابع المنيو">
         {ALL_THEMES.map((t) => {
           const on = brand.theme === t.id;
           return (
@@ -139,16 +143,23 @@ export function BrandControls({ brand, onChange }: { brand: Brand; onChange: (b:
               onClick={() => set({ theme: t.id })}
               title={t.tagline}
               className={cn(
-                "press flex h-11 items-center justify-center gap-2 rounded-[11px] border text-sm font-bold transition-colors",
+                "press flex h-[3.6rem] min-w-0 flex-col items-center justify-center gap-1 rounded-[11px] border px-1 text-[12.5px] font-bold leading-none transition-colors",
                 on ? "border-ink bg-ink text-page" : "border-line bg-page text-dim hover:text-ink"
               )}
             >
               <span
                 aria-hidden="true"
-                className="h-3.5 w-3.5 shrink-0 rounded-full"
-                style={{ background: t.vars["--m-bg"], boxShadow: `inset 0 0 0 3px ${t.vars["--m-accent"]}` }}
+                className="h-4 w-4 shrink-0 rounded-full"
+                style={{
+                  background: t.vars["--m-bg"],
+                  boxShadow: `inset 0 0 0 3.5px ${t.vars["--m-accent"]}, 0 0 0 1px rgba(0,0,0,.08)`,
+                }}
               />
-              {t.name}
+              {/* يلتفّ ولا يُقصّ: «لوحة حروف» أعرض من خانتها على ٣٦٠ — سطران فيها
+                  أوضح من «لوحة حـ…». */}
+              <span className="max-w-full text-center leading-[1.15] [text-wrap:balance] max-[359px]:text-[11.5px]">
+                {t.name}
+              </span>
             </button>
           );
         })}

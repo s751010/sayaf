@@ -39,14 +39,23 @@ export function DishOfTheDay({
         borderRadius: "var(--m-radius)",
       }}
     >
+      {/* الصورة بطول البطاقة لا مربّعٌ ثابت: البطاقة يطولها الوصف والسعر، فكان
+          المربّع يقف في أعلاها ويترك تحته شريطاً فارغاً في كل طابع (تدقيق
+          ٢٠٢٦/١١/٠٧). `self-stretch` يمدّها، و`min-h` يحفظ المربّع إن قصر النصّ. */}
       <SafeImage
         src={dish.image}
         alt={name}
-        className="m-img h-28 w-28 shrink-0 object-cover sm:h-40 sm:w-40"
-        wrapperClassName="h-28 w-28 shrink-0 text-4xl sm:h-40 sm:w-40"
+        className="m-img min-h-28 w-28 shrink-0 self-stretch object-cover sm:min-h-40 sm:w-40"
+        wrapperClassName="min-h-28 w-28 shrink-0 self-stretch text-4xl sm:min-h-40 sm:w-40"
         style={{ background: "var(--m-bg-2)" } as CSSProperties}
         fallback={
-          <DishArtwork name={dish.name} emoji={dish.emoji} glyphSize={26} className="m-img h-28 w-28 shrink-0 sm:h-40 sm:w-40" />
+          <DishArtwork
+            name={dish.name}
+            emoji={dish.emoji}
+            category={dish.category}
+            glyphSize={26}
+            className="m-img h-full w-full"
+          />
         }
       />
 

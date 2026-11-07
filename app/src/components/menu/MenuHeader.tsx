@@ -19,8 +19,9 @@ import { restaurantTypeLabel } from "@/lib/menuText";
 import type { Restaurant } from "@/lib/types";
 import { LogoMark } from "./LogoMark";
 import {
-  ArcadeHead, AsirHead, BagHead, BurgerHead, Corner, DukkanHead, FolioHead, GridHead, HarborHead, JuiceHead,
-  LetterboardHead, MastheadHead, MudHead, PaperHead, PatisserieHead, PosterHead, SignHead,
+  ArcadeHead, AsirHead, BagHead, BakeryHead, BreakfastHead, BurgerHead, Corner, DukkanHead, FolioHead, GridHead,
+  GrillHead, HarborHead, JuiceHead, LetterboardHead, MastheadHead, MudHead, PaperHead, PatisserieHead, PizzaHead,
+  PosterHead, SignHead,
   type HeadProps,
 } from "./SkinHeads";
 
@@ -42,6 +43,10 @@ const SKIN_HEADS: Partial<Record<HeaderShape, ComponentType<HeadProps>>> = {
   awning: PatisserieHead,
   slice: JuiceHead,
   griddle: BurgerHead,
+  oven: BakeryHead,
+  tray: BreakfastHead,
+  brazier: GrillHead,
+  table: PizzaHead,
 };
 
 /** قوس الروشان — لطابعٍ قديم قد يكون مخزَّناً بشكل `arch`. */

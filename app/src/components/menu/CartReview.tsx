@@ -288,6 +288,7 @@ export function CartReview({
                 <DishArtwork
                   name={r.dish?.name ?? ""}
                   emoji={r.dish?.emoji}
+                  category={r.dish?.category}
                   glyphSize={24}
                   className="m-o-thumb h-14 w-14 shrink-0"
                 />

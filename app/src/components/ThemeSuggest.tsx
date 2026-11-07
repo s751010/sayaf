@@ -8,15 +8,14 @@
  */
 import { useState } from "react";
 import { DESIGN_THEMES, type MenuTheme } from "@/lib/themes";
-import { aliasType } from "@/lib/starterMenus";
 import { cafeFlavor, rankThemes, type CafeFlavor } from "@/lib/themeSuggest";
 import { cn } from "@/lib/utils";
 
 export function useThemeOrder(rawType: string | null | undefined) {
   const [flavor, setFlavor] = useState<CafeFlavor>(() => cafeFlavor(rawType));
   const order = rankThemes(DESIGN_THEMES, rawType, flavor);
-  const type = aliasType(rawType);
-  const typeLabel = order.isCafe ? (flavor === "popular" ? "كافيه شعبي" : "كافيه مختصّ") : type;
+  // مفتاح الصفّ نفسه لغير الكافيه: النوع، أو صفّه الفرعيّ («مخبز ومعجّنات» · «فطور شعبي»).
+  const typeLabel = order.isCafe ? (flavor === "popular" ? "كافيه شعبي" : "كافيه مختصّ") : order.key;
   return { ...order, flavor, setFlavor, typeLabel };
 }
 

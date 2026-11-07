@@ -9,6 +9,7 @@
  */
 import type { Dish } from "./types";
 import type { IconName } from "./icons";
+import { guessGlyph } from "./foodGlyph";
 
 /* ══ قاموس التصنيفات ══════════════════════════════════════════════════
  *
@@ -101,10 +102,20 @@ export const CANON: Canon[] = [
     id: "burgers", ar: "البرجر", en: "Burgers", icon: "burger", rank: 62,
     alias: ["برجر", "برغر", "برقر", "همبرجر", "هامبرجر", "burger", "burgers"],
   },
+  // ٠٧/١١ (منيو «ريحان»): البيتزا والمعكرونة قسمان في كلّ بيتزيريا — وكانا معنىً واحداً
+  // هنا، فيُكتب القسمان «Pizza & Pasta» مرّتين للزبون الإنجليزي، وتلتقط `matchKnownCategory`
+  // «المعكرونة» المستوردة إلى قسم «البيتزا». والقسم المجمَّع باقٍ بمعناه واسمه.
   {
-    id: "pizza", ar: "البيتزا والباستا", en: "Pizza & Pasta", icon: "pizza", rank: 65,
-    alias: ["بيتزا", "البيتزا", "باستا", "الباستا", "مكرونة", "معكرونة", "بيتزا وباستا",
-      "pizza", "pasta"],
+    id: "pizza-pasta", ar: "البيتزا والباستا", en: "Pizza & Pasta", icon: "pizza", rank: 65,
+    alias: ["بيتزا وباستا", "بيتزا ومعكرونة", "البيتزا والمعكرونة", "pizza & pasta", "pizza and pasta"],
+  },
+  {
+    id: "pizza", ar: "البيتزا", en: "Pizza", icon: "pizza", rank: 65,
+    alias: ["بيتزا", "pizza", "pizzas"],
+  },
+  {
+    id: "pasta", ar: "المعكرونة", en: "Pasta", icon: "pizza", rank: 66,
+    alias: ["معكرونة", "مكرونة", "المكرونة", "باستا", "الباستا", "pasta"],
   },
   {
     id: "fried", ar: "البروست والمقليات", en: "Fried", icon: "fries", rank: 68,
@@ -186,9 +197,15 @@ export function categoryLabel(raw: string, en: boolean): string {
   return en ? (canonOf(raw)?.en ?? raw) : raw;
 }
 
-/** رمز التصنيف — يسقط إلى الصحن العامّ لما لا نعرفه. */
+/**
+ * رمز التصنيف: القاموس أولاً، ثم التخمين بالكلمة («عصير طازج» عصيرٌ وإن لم
+ * يكن «عصائر طازجة» حرفاً — `lib/foodGlyph.ts`)، ثم الصحن العامّ.
+ *
+ * ⚠️ التخمين **للرمز وحده**: الترتيب والاسم الإنجليزي على `canonOf` بمطابقته
+ * الكاملة كما هي.
+ */
 export function categoryIcon(raw: string | null | undefined): IconName {
-  return canonOf(raw)?.icon ?? "plate";
+  return canonOf(raw)?.icon ?? guessGlyph(raw) ?? "plate";
 }
 
 /** مفتاح المقارنة: بلا «ال» التعريف ولا تشكيل، بهمزات وتاء مربوطة موحّدة. */

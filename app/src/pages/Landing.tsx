@@ -336,14 +336,19 @@ export default function Landing() {
             title={`${THEMES_LABEL} — اختر ما يشبه مكانك`}
             sub="كلٌّ منها تصميمٌ كامل يلبس شعارك ولون علامتك، وتحته الأماكن التي يناسبها. اضغط أيّها لتراه على منيوك أعلاه."
           />
-          <div className="-mx-5 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-3 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-3">
+          {/* أربعة على الحاسوب: عشرون صفوفٌ تامّة في الاثنين والأربعة — والثلاثة (للثمانية
+              عشر) كانت ستترك «جمر» و«ريحان» وحدهما في الصفّ الأخير. */}
+          <div className="-mx-5 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-3 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-4">
             {ALL_THEMES.map((t, i) => (
-              <Reveal key={t.id} delay={(i % 3) * 70} className="w-[78%] shrink-0 snap-start sm:w-auto">
+              <Reveal key={t.id} delay={(i % 4) * 70} className="w-[78%] shrink-0 snap-start sm:w-auto">
                 <button
                   type="button"
                   onClick={() => tryTheme(t.id)}
                   className={cn(
-                    "press group block w-full overflow-hidden rounded-[18px] border bg-panel text-start transition-colors",
+                    // ‏`h-full`: بطاقات الصفّ بطولٍ واحد — وصفٌ بثلاثة أسطر كان يُطيل
+                    // حدّ بطاقته وحدها فيتعرّج الصفّ. و`flex-col` لا `block`: الزرّ
+                    // يوسّط محتواه رأسياً، فكانت المعاينة تنزل عن حافّة البطاقة الأطول.
+                    "press group flex h-full w-full flex-col overflow-hidden rounded-[18px] border bg-panel text-start transition-colors",
                     brand.theme === t.id ? "border-ink" : "border-line hover:border-ink/35"
                   )}
                 >

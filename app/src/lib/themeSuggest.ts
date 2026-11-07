@@ -15,6 +15,10 @@
  *   والجدول هنا بمفاتيحه حرفياً — فحصٌ في `theme-suggest.test.ts` يسقط لو تباعدا.
  * - **لا عمود للكافيه**: «مختصّ أم شعبي» تلميحٌ من نصّ `restaurants.type` الحرّ
  *   (`cafeFlavor`)، والتاجر يبدّله بزرّ في المُنتقي ولا يُحفظ.
+ * - **ولا نوعٌ جديد للمخبز ولا للفطور** (٠٧/١١): صفّان فرعيّان (`SUB_ROWS`) يقرآن
+ *   نصّ النوع نفسه كما يقرؤه `cafeFlavor` — «مخبز تميس» و«فطائر» و«فول وتميس» —
+ *   وشارتاهما من المفردات القائمة (`badgeTypeOf`). وكذلك المشاوي والبيتزا بعدهما:
+ *   «شاورما» و«كباب» و«على الفحم» · «بيتزا» و«إيطالي» و«باستا».
  *
  * كلّها دوالّ خالصة: بلا حالة ولا شبكة ولا DOM.
  */
@@ -26,13 +30,28 @@ export type CafeFlavor = "specialty" | "popular";
 export const POPULAR_CAFE = "كافيه شعبي";
 
 /**
+ * صفّان فرعيّان (٠٧/١١) — المفتاح هو ما يُعرض للتاجر («رتّبناها حسب نوع نشاطك
+ * (مخبز ومعجّنات)»)، والشارة التي يحملها أوّلهما من المفردات القائمة.
+ */
+export const BAKERY = "مخبز ومعجّنات";
+export const BREAKFAST = "فطور شعبي";
+/**
+ * وصفّان آخران (٠٧/١١، «جمر» و«ريحان»): الشاورما والكباب لا كلمة لهما في `aliasType`
+ * فيصيران «مطعماً» أوّلُه «فاخر»، والبيتزا «مطعمٌ سريع» أوّلُه «صاج».
+ */
+export const GRILL = "مشاوي وشاورما";
+export const PIZZA = "بيتزا وإيطالي";
+
+/**
  * أوّل ثلاثة لكل نوع — نصّ النمو (`copy.md` §٢) حرفياً. والباقي بعدها بترتيب
  * `DESIGN_THEMES`. **قاعدتا الاتّساق** (يحرسهما الفحص):
  * ١. أوّل طابعٍ لكل نوع يحمل شارة ذلك النوع في `suits`.
  * ٢. كلّ شارةٍ على طابع تعني أنه بين الثلاثة الأولى لذلك النوع.
  */
 export const SUGGESTED: Readonly<Record<string, readonly [string, string, string]>> = {
-  مطعم: ["dark-gold", "modern", "editorial"],
+  // ٠٧/١١: «ريحان» ثالثَ المطعم (المطعم الإيطالي «مطعم» في `aliasType`) — فخرجت «مجلّة»
+  // وشارة المطعم معها (قاعدة ٢)، وبقيت ثالثةَ الحلويات.
+  مطعم: ["dark-gold", "modern", "pizza"],
   كافيه: ["roastery", "letterboard", "sticker"],
   [POPULAR_CAFE]: ["najdi", "sticker", "receipt"],
   // ٠٣/١١: «عصّارة» و«مرفأ» و«حلواني» أوّلَ أنواعها — وما كان أوّلاً صار ثانياً
@@ -44,15 +63,92 @@ export const SUGGESTED: Readonly<Record<string, readonly [string, string, string
   // «مطعم سريع» في `aliasType`)، ونيون وفاتورة بعده بشارتيهما، وخرج «دكّان» من
   // الصفّ وشارتُه معه (قاعدة ٢) — وبقي ثاني الشعبي.
   "مطعم سريع": ["burger", "neon", "receipt"],
-  مشويات: ["dark-gold", "najdi", "asir"],
-  شعبي: ["najdi", "dukkan", "asir"],
+  [PIZZA]: ["pizza", "burger", "editorial"],
+  // ٠٧/١١: «جمر» أوّلَ المشويات و«فاخر» ثانيه بشارته، و«عسير» ثالثه كما كان — فخرج
+  // «نجدي» وشارة المشويات معه (قاعدة ٢)، وبقي أوّلَ الشعبي.
+  مشويات: ["grill", "dark-gold", "asir"],
+  [GRILL]: ["grill", "dark-gold", "burger"],
+  // ٠٧/١١: «فوّال» ثالثَ الشعبي — فخرج «عسير» وشارتُه (قاعدة ٢)، وبقي ثالثَ المشويات.
+  شعبي: ["najdi", "dukkan", "breakfast"],
+  [BREAKFAST]: ["breakfast", "dukkan", "najdi"],
   بحري: ["harbor", "roshan", "dark-gold"],
-  "مخبز وحلويات": ["patisserie", "editorial", "letterboard"],
+  // ٠٧/١١: «حلواني» أوّلُ الحلويات كما كان، و«فرن» ثانيه — وخرجت «لوحة حروف» وشارتها
+  // (قاعدة ٢) وبقيت ثانيةَ الكافيه. والمخبز نفسه (`BAKERY`) يبدأ بـ«فرن».
+  "مخبز وحلويات": ["patisserie", "bakery", "editorial"],
+  [BAKERY]: ["bakery", "patisserie", "letterboard"],
 };
 
-/** الشارة التي يجب أن يحملها أوّل الصفّ — الكافيه الشعبي مكانٌ شعبي. */
+/**
+ * الشارة التي يجب أن يحملها أوّل الصفّ — الكافيه الشعبي مكانٌ شعبي، والفطور كذلك،
+ * والشاورما مشويات. والبيتزا «مطعم»: شارة «مطعم سريع» توجب أن يكون «ريحان» بين
+ * ثلاثته (قاعدة ٢)، ولا مكان فيها إلا بإخراج «نيون» أو «فاتورة» بلا شارةٍ تبقى لهما.
+ */
 export function badgeTypeOf(key: string): string {
-  return key === POPULAR_CAFE ? "شعبي" : key;
+  if (key === POPULAR_CAFE || key === BREAKFAST) return "شعبي";
+  if (key === BAKERY) return "مخبز وحلويات";
+  if (key === GRILL) return "مشويات";
+  if (key === PIZZA) return "مطعم";
+  return key;
+}
+
+/**
+ * الصفّان الفرعيّان: يُقرآن من النصّ الحرّ **بعد** `norm`، وداخل نوعٍ يحتملهما
+ * وحده — «فطائر» و«فول» لا كلمة لهما في `aliasType` فيصيران «مطعم»، و«مخبز» هناك
+ * «مخبز وحلويات». والفطور قبل المخبز: «تميس» خبزٌ يُؤكل فطوراً، و«مخبز تميس» مخبزٌ
+ * (نوعه «مخبز وحلويات» فلا يدخل صفّ الفطور أصلاً).
+ *
+ * ⚠️ **الاسم المجرّد لنوعٍ قائم لا يدخل صفّاً فرعياً**: «مخبز وحلويات» كما يختاره
+ * التاجر من القائمة يبقى على صفّه («حلواني» أوّلاً) — فيه «مخبز» حرفاً ولم يقل شيئاً
+ * أكثر ممّا قاله النوع.
+ *
+ * والمشاوي والبيتزا (٠٧/١١) **داخل «مطعم» و«مطعم سريع» وحدهما**: «مطعم مشويات» نوعه
+ * «مشويات» وأوّله «جمر» أصلاً، و«مخبز بيتزا» مخبز. والمشاوي قبل البيتزا: «شاورما
+ * وبيتزا» محلّ شاورما يبيع البيتزا أكثر ممّا هو بيتزيريا تبيع الشاورما.
+ */
+interface SubRow {
+  key: string;
+  /** الأنواع التي يحتمله نصّها — من مفردات `aliasType`. */
+  within: readonly string[];
+  /** يكفي أن يحتويها النصّ. */
+  hints: readonly string[];
+  /** كلمةٌ كاملة لا جزءُ كلمة: «فرن» في «مطعم فرنسي» ليس فرناً. */
+  words?: readonly string[];
+}
+
+const SUB_ROWS: readonly SubRow[] = [
+  {
+    key: BREAKFAST,
+    within: ["شعبي", "مطعم"],
+    hints: ["فطور", "افطار", "فول", "فوال", "تميس", "مطبق", "breakfast"],
+  },
+  {
+    key: BAKERY,
+    within: ["مخبز وحلويات", "مطعم"],
+    hints: ["مخبز", "مخابز", "خباز", "معجنات", "فطائر", "فطاير", "كرواسون", "bakery", "bakehouse"],
+    words: ["فرن", "الفرن", "افران", "الافران"],
+  },
+  {
+    key: GRILL,
+    within: ["مطعم", "مطعم سريع"],
+    // ‏«شيش» ليست هنا: «شيشة» مقهى لا مشوى. و«مشوي» تلتقط «دجاج مشوي».
+    hints: ["شاورما", "شاورمه", "shawarma", "كباب", "kebab", "فحم", "charcoal", "شواء", "مشوي", "bbq", "باربكيو"],
+    words: ["جمر", "الجمر", "منقل", "المنقل"],
+  },
+  {
+    key: PIZZA,
+    within: ["مطعم سريع", "مطعم"],
+    hints: ["بيتزا", "pizza", "بيتزيريا", "pizzeria", "ايطالي", "italian", "باستا", "pasta", "معكرونه", "مكرونه", "تراتوريا", "trattoria"],
+  },
+];
+
+function subRowOf(rawType: string | null | undefined, type: string): string | null {
+  const v = norm(rawType ?? "");
+  if (!v || v === norm(type)) return null;
+  const words = v.split(" ");
+  const row = SUB_ROWS.find(
+    (r) => r.within.includes(type) && (r.hints.some((h) => v.includes(h)) || !!r.words?.some((w) => words.includes(w)))
+  );
+  return row?.key ?? null;
 }
 
 /** كلماتٌ تجعل الكافيه شعبياً — بعد `norm` (التاء المربوطة هاء، والألف موحّدة). */
@@ -70,8 +166,8 @@ export function cafeFlavor(rawType: string | null | undefined): CafeFlavor {
 /** مفتاح الترتيب لنوعٍ خام — و`flavor` يغلب التلميح حين يختاره التاجر بالزرّ. */
 export function suggestionKey(rawType: string | null | undefined, flavor?: CafeFlavor): string {
   const type = aliasType(rawType);
-  if (type !== "كافيه") return SUGGESTED[type] ? type : "مطعم";
-  return (flavor ?? cafeFlavor(rawType)) === "popular" ? POPULAR_CAFE : "كافيه";
+  if (type === "كافيه") return (flavor ?? cafeFlavor(rawType)) === "popular" ? POPULAR_CAFE : "كافيه";
+  return subRowOf(rawType, type) ?? (SUGGESTED[type] ? type : "مطعم");
 }
 
 export interface ThemeOrder<T> {

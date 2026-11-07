@@ -178,6 +178,28 @@
   border-radius: 4px;
 }
 
+/* ── الطبق بلا صورة: شارةُ مينا على صندوق الدكّان ──
+   قرصٌ مدهونٌ بلون اللوحة وحافّته بيضاء، والرمز عليه بلونه المقروء — كشارات
+   المينا القديمة على صناديق البضاعة. وكان صحناً باهتاً على أرضيةٍ بيج يطابق
+   «نجدي» حتى لا يُفرَّق بينهما إلا بالترويسة (تدقيق ٢٠٢٦/١١/٠٧). ولون الرمز على
+   `.m-art-well` لأن المضمَّن على الصحن يحمل لون التمييز. */
+.m-skin-dukkan .m-art {
+  --m-art-plate: var(--m-accent);
+  --m-art-ring:
+    inset 0 0 0 2px color-mix(in srgb, var(--m-on-accent) 85%, transparent),
+    0 0 0 3px var(--m-surface),
+    0 0 0 4px color-mix(in srgb, var(--m-text) 22%, transparent);
+  --m-art-well: inset 0 0 0 1px color-mix(in srgb, var(--m-on-accent) 35%, transparent);
+  --m-art-mark: color-mix(in srgb, var(--m-text) 7%, transparent);
+  /* ألواح الصندوق: فواصل خشبٍ أفقية خافتة تحت الشارة. */
+  --m-art-bg:
+    repeating-linear-gradient(180deg, transparent 0 30px, color-mix(in srgb, var(--m-wood) 22%, transparent) 30px 31px),
+    linear-gradient(180deg, var(--m-bg-2), color-mix(in srgb, var(--m-wood) 14%, var(--m-bg-2)));
+}
+.m-skin-dukkan .m-art-well {
+  color: var(--m-on-accent);
+}
+
 /* ── «نفد اليوم»: ورقةٌ بخطّ اليد مثبّتة بشريطٍ لاصق ── */
 .m-skin-dukkan .m-soldout {
   border-radius: 1px;

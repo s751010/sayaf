@@ -1,7 +1,7 @@
 /*
  * ══ عصّارة — محلّ العصير (٢٠٢٦/١١/٠٣) ═════════════════════════════════════
- * الطابع الخامس عشر. شريحة برتقالٍ خلف الشعار، وعناوين الأقسام بلاطاتٌ بمربّع
- * فاكهةٍ يتبدّل، والسعر دائرةُ غطاءِ كوبٍ بلون التمييز، والأرضية بلاطٌ أبيض.
+ * الطابع الخامس عشر. شريحة برتقالٍ خلف الشعار، وعناوين الأقسام بلاطاتٌ عليها
+ * شريحة فاكهةٍ يتبدّل لونها، والسعر دائرةُ غطاءِ كوبٍ بلون التمييز، والأرضية بلاطٌ أبيض.
  * الترويسة وعنوان القسم في `components/menu/heads/JuiceHead.tsx`.
  *
  * ⚠️ مستورَدٌ من **رأس** `menu-skins.css` — كلّ انتقائيٍّ يبدأ بـ`.m-skin-juice`.
@@ -43,18 +43,30 @@
   background: var(--m-surface);
   box-shadow: inset 0 0 0 1px var(--m-border), 0 4px 10px -8px rgba(29, 42, 23, 0.4);
 }
+/* شريحة الفاكهة: فصوصٌ بلونها ولبٌّ فاتح بينها وقلبٌ أبيض، وقشرٌ بلونها
+   الصريح — شريحة الترويسة نفسها مصغّرة، فالعنوان من عائلة الشعار. */
 .m-skin-juice .m-tile-swatch {
-  border-radius: 12px;
-  background: var(--m-fruit-0);
+  --fruit: var(--m-fruit-0);
+  background:
+    radial-gradient(circle, #fff8e6 0 11%, transparent 11.5%),
+    repeating-conic-gradient(
+      from 10deg,
+      color-mix(in srgb, var(--fruit) 70%, #fff3d6) 0 40deg,
+      #fff4dc 40deg 45deg
+    );
+  box-shadow:
+    inset 0 0 0 3.5px #fff4dc,
+    0 0 0 3px var(--fruit),
+    0 4px 8px -5px rgba(29, 42, 23, 0.5);
 }
 .m-skin-juice .m-tile-swatch[data-fruit="1"] {
-  background: var(--m-fruit-1);
+  --fruit: var(--m-fruit-1);
 }
 .m-skin-juice .m-tile-swatch[data-fruit="2"] {
-  background: var(--m-fruit-2);
+  --fruit: var(--m-fruit-2);
 }
 .m-skin-juice .m-tile-swatch[data-fruit="3"] {
-  background: var(--m-fruit-3);
+  --fruit: var(--m-fruit-3);
 }
 .m-skin-juice .m-jc-photo .m-img,
 .m-skin-juice .m-jc-window {
@@ -130,9 +142,9 @@
 
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
-    /* مربّع الفاكهة يمتلئ حين يدخل القسم. */
+    /* شريحة الفاكهة تدور إلى مكانها حين يدخل القسم — كشريحة الشعار. */
     .m-skin-juice .m-tile-swatch {
-      animation: m-jc-fill linear both;
+      animation: m-jc-spin linear both;
       animation-timeline: view();
       animation-range: entry 15% cover 30%;
     }
@@ -149,13 +161,5 @@
   from {
     opacity: 0;
     transform: translateY(12px) scale(0.94);
-  }
-}
-@keyframes m-jc-fill {
-  from {
-    clip-path: inset(100% 0 0 0 round 12px);
-  }
-  to {
-    clip-path: inset(0 round 12px);
   }
 }

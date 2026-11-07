@@ -1141,7 +1141,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
                     }
                   >
                     {/* الرمز يرث لون الشريحة عبر `currentColor` — وهذا ما لا
-                        يفعله الإيموجي: كان `💛` أصفر فوق كل طابع من الستّة عشر. */}
+                        يفعله الإيموجي: كان `💛` أصفر فوق كل طابع. */}
                     <Icon name={categoryIcon(c.name)} size={15} />
                     {categoryLabel(c.name, en)}
                   </a>
