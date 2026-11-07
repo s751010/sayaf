@@ -2,8 +2,8 @@
 -- علامة الملح على حدّ الهيئة: صوديوم فوق ٢٠٠٠ ملغم (= ٥ غرامات ملح)، لا فوق ٦٠٠
 -- ═══════════════════════════════════════════════════════════════════════
 --
--- ⚠️ **مجهَّزة لا مطبَّقة** (٢٠٢٦/١١/٠٧): الهجرات في القائمة الحمراء —
--- يطبّقها المالك بعد المراجعة، لا الفريق.
+-- ✅ **مطبَّقة على claudmenu في ٢٠٢٦/١١/٠٧** بإذن المالك («لك كامل الصلاحية»)،
+-- وباسم `salt_mark_2000mg` في سجلّ هجرات المشروع.
 --
 -- ما كان: `is_high_sodium = sodium_mg > 600` — رقمٌ بلا مصدر مكتوب، وصفه
 -- `lib/sfdaChecklist.ts` للتاجر بأنه «معيار الهيئة». فكان المنيو يَسِم بالملح
@@ -23,43 +23,28 @@
 --
 -- «تتجاوز» ⇒ `>` لا `>=`: صنفٌ صوديومه ٢٠٠٠ تماماً لا يُوسَم.
 --
--- ═══ لماذا إسقاطٌ وإعادة إنشاء ═══
+-- ═══ لماذا `set expression` لا إسقاطٌ وإعادة إنشاء ═══
 --
--- تعبير العمود `GENERATED ALWAYS AS … STORED` لا يُعدَّل بـ`ALTER` قبل
--- Postgres 17. فإن كانت القاعدة على 17 فما فوق، فالسطر الواحد
---   alter table public.dishes alter column is_high_sodium set expression as (sodium_mg > 2000);
--- يغني عن هذا كلّه ويُبقي المنح والموضع. وما هنا يعمل على كل نسخة.
+-- القاعدة على Postgres 17، وفيه يتغيّر تعبير العمود المحسوب في مكانه: تبقى
+-- منحه على مستوى العمود كما هي (القاعدة «و» — العمود في `PUBLIC_DISH_COLS`،
+-- وبلا منحة `anon` يُطفأ كل منيو)، ويبقى موضعه، ويُعاد حسابه لكل صف. أمّا
+-- الإسقاط فكان يُسقط المنح كلّها ويحتاج إعادتها يدوياً.
 --
--- ═══ ما يجب ألّا يضيع (القاعدة «و») ═══
---
--- العمود في `PUBLIC_DISH_COLS` (`lib/data.ts`)، وصلاحية `anon` على `dishes`
--- **على مستوى الأعمدة**. إسقاط العمود يُسقط منحته معه، وبلا إعادتها يفشل كل
--- استعلامٍ عامّ على الأصناف بـ«permission denied» — أي **يُطفئ منيو كل مطعم**.
--- فالمنحة داخل المعاملة نفسها، لا خطوةً تُنسى بعدها.
---
--- والإسقاط بلا `cascade` عمداً: إن كان عرضٌ أو سياسةٌ يعتمد على العمود سقطت
--- المعاملة كلّها بخطأ صريح بدل أن يُحذف ذلك الكائن بصمت. (فهرسٌ على العمود
--- — إن وُجد — يسقط معه دون خطأ؛ لا فهرس عليه في المستودع.)
+-- والصيغة `case … else false` هي صيغة العمود الأصلية: الصوديوم الفارغ ⇒ `false`
+-- لا `null`، كما تفعل `isHighSodium` في `lib/nutrition.ts`.
 --
 -- الواجهة تحسب الحدّ نفسه قبل الحفظ (`HIGH_SODIUM_MG` في `lib/nutrition.ts`)،
 -- و`invariants.test.ts` يقرأ هذا الملفّ ويطابق الرقمين.
 
-begin;
-
-alter table public.dishes drop column if exists is_high_sodium;
-
 alter table public.dishes
-  add column is_high_sodium boolean
-  generated always as (sodium_mg > 2000) stored;
+  alter column is_high_sodium set expression as (
+    case when sodium_mg is not null and sodium_mg > 2000 then true else false end
+  );
 
-grant select (is_high_sodium) on public.dishes to anon;
-grant select (is_high_sodium) on public.dishes to authenticated;
-
-commit;
-
--- PostgREST يقرأ مخطّط الأعمدة من ذاكرته — أعِد تحميله كي يرى العمود الجديد.
+-- PostgREST يقرأ مخطّط الأعمدة من ذاكرته.
 notify pgrst, 'reload schema';
 
--- ✅ تحقّق بعد التطبيق (بمفتاح anon، كما يفعل canary.yml):
---   GET /rest/v1/dishes?select=id,is_high_sodium&limit=1   ⇒ 200 لا 401/403
---   select count(*) filter (where is_high_sodium) from public.dishes;
+-- ✅ تحقّق بعد التطبيق (٢٠٢٦/١١/٠٧):
+--   التعبير: CASE WHEN sodium_mg IS NOT NULL AND sodium_mg > 2000 THEN true ELSE false END
+--   منحة anon على العمود: باقية (select) · ‏`set role anon` يقرأ أعمدة المنيو العامّة
+--   الأصناف الموسومة: ١ من ٢٧ قبله ⇐ ٠ بعده (لا صنف يتجاوز ٢٠٠٠ اليوم)

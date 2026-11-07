@@ -596,9 +596,11 @@ describe("nutrition يطابق الأعمدة المحسوبة في Postgres", (
       fileURLToPath(new URL("../../supabase/migrations/20261107_salt_mark_2000mg.sql", import.meta.url)),
       "utf8"
     );
-    expect(sql).toMatch(/generated always as \(sodium_mg > 2000\) stored/i);
-    // العمود في PUBLIC_DISH_COLS: إسقاطه يُسقط منحته، وبلا إعادتها يُطفأ كل منيو (القاعدة و).
-    expect(sql).toMatch(/grant select \(is_high_sodium\) on public\.dishes to anon/i);
+    expect(sql).toMatch(/alter column is_high_sodium set expression as/i);
+    expect(sql).toMatch(/sodium_mg > 2000/);
+    // العمود في PUBLIC_DISH_COLS: إسقاطه يُسقط منحة anon فيُطفأ كل منيو (القاعدة و) —
+    // فالتعبير يتغيّر في مكانه ولا يُسقط العمود.
+    expect(sql).not.toMatch(/^\s*alter table[^;]*drop column/im);
   });
 
   it("sfda_compliant = كلاهما ليس NULL", () => {

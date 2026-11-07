@@ -380,7 +380,7 @@ cd app && npm run typecheck
 | العمود | يُحسب من |
 |---|---|
 | `burn_minutes` | `round(calories / 4)` |
-| `is_high_sodium` | `sodium_mg > 600` |
+| `is_high_sodium` | `sodium_mg > 2000` — حدّ لائحة الهيئة (٥ غ ملح)، كان ٦٠٠ حتى ٢٠٢٦/١١/٠٧ |
 | `sfda_compliant` | `calories IS NOT NULL AND sodium_mg IS NOT NULL` |
 
 اعرضها للتاجر عبر `lib/nutrition.ts` (يُكرّر التعبيرات حرفياً) ولا تطلبها منه.
