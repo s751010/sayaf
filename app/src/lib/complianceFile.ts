@@ -18,6 +18,7 @@
 import { displayAllergens } from "@/lib/allergens";
 import { groupByCategory } from "@/lib/categories";
 import { DAILY_CAFFEINE_MAX_MG, DAILY_KCAL, isHighSodium } from "@/lib/nutrition";
+import { MORE_INFO_STATEMENT, SALT_STATEMENT, needsMoreInfoStatement, needsSaltStatement } from "@/lib/sfdaStatements";
 import type { Dish, Menu } from "@/lib/types";
 
 /** ما يُكتب مكان الرقم الغائب — واحدٌ في كل الأعمدة. */
@@ -144,6 +145,10 @@ export function buildComplianceFile(
   if (mine.some((d) => (d.caffeine_mg ?? 0) > 0)) {
     statements.push(`الحدّ الأعلى اليومي من الكافيين للبالغ ${DAILY_CAFFEINE_MAX_MG} ملغم.`);
   }
+  // وعبارتا الملح و«متاحة عند الطلب» بشرطهما في المنيو نفسه — بعد الكافيين،
+  // فلا يتبدّل موضع ما قبلها.
+  if (needsMoreInfoStatement(mine)) statements.push(MORE_INFO_STATEMENT.ar);
+  if (needsSaltStatement(mine)) statements.push(SALT_STATEMENT.ar);
 
   return {
     sections,

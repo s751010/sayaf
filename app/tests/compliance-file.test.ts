@@ -108,7 +108,7 @@ describe("الغائب يُسمّى «غير مُدخَل»", () => {
     [
       dish("a"),
       dish("b", { calories: 0, sodium_mg: 0, caffeine_mg: 0, allergens: [] }),
-      dish("c", { calories: 250, sodium_mg: 700, caffeine_mg: 95, allergens: ["milk", "gluten"] }),
+      dish("c", { calories: 250, sodium_mg: 2100, caffeine_mg: 95, allergens: ["milk", "gluten"] }),
     ],
     [ACTIVE],
     []
@@ -125,12 +125,17 @@ describe("الغائب يُسمّى «غير مُدخَل»", () => {
     expect(rows.b.allergens).toBe(NOT_ENTERED);
   });
   it("الأرقام كما أُدخلت، والحساسية بأسمائها، والصوديوم المرتفع معلَّم", () => {
-    expect(rows.c).toMatchObject({ calories: "250", sodium: "700", caffeine: "95", highSodium: true });
+    expect(rows.c).toMatchObject({ calories: "250", caffeine: "95", highSodium: true });
     expect(rows.c.allergens).toContain("حليب");
     expect(rows.a.highSodium).toBe(false);
   });
   it("العدّ أرقامٌ لا حكم", () => {
     expect(f).toMatchObject({ total: 3, withCalories: 2, withSodium: 2 });
+  });
+  it("صوديوم ٧٠٠ يُكتب بلا علامة — دون حدّ الهيئة (٢٠٠٠)، وكان يُعلَّم على الحدّ القديم", () => {
+    const g = buildComplianceFile([dish("d", { calories: 300, sodium_mg: 700 })], [ACTIVE], []);
+    const d = g.sections.flatMap((s) => s.rows).find((r) => r.id === "d");
+    expect(d).toMatchObject({ sodium: "700", highSodium: false });
   });
 });
 

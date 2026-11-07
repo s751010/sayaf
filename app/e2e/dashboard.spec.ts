@@ -131,6 +131,10 @@ test("المنيو المطبوع يُقلع بورقته وكوده", async ({ 
   await expect(page.getByRole("heading", { name: "المنيو المطبوع" })).toBeVisible();
   await expect(page.getByText("مقهى الفحص").first()).toBeVisible();
   await expect(page.getByRole("button", { name: /CSV/ })).toBeVisible();
+  // عبارتا الهيئة بشرطهما: صنفٌ بسعرات ⇒ «متاحة عند الطلب»؛ ولا صنف بعلامة الملح ⇒ لا عبارة ملح.
+  const sheet = page.locator(".print-sheet");
+  await expect(sheet.getByText("البيانات التغذوية الإضافية متاحة عند الطلب.")).toBeVisible();
+  await expect(sheet.locator("[data-salt-statement]")).toHaveCount(0);
 
   await page.waitForTimeout(1000);
   expect(crashes, crashes.join("\n")).toEqual([]);

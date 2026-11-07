@@ -113,10 +113,14 @@ describe("الحساب", () => {
     expect(two.servingGrams).toBe(350);
   });
 
-  it("تنبيه الصوديوم فوق ٦٠٠ ملغم", () => {
-    const r = nutritionFromText("جبنة حلوم 60 غ\nخبز عربي 1");
-    expect(r.sodium).toBeGreaterThan(600);
-    expect(r.highSodium).toBe(true);
+  it("علامة الملح فوق ٢٠٠٠ ملغم صوديوم (٥ غ ملح) — لا دونها", () => {
+    const salty = nutritionFromText("جبنة حلوم 60 غ\nخبز عربي 1\nملح ملعقة صغيرة");
+    expect(salty.sodium).toBeGreaterThan(2000);
+    expect(salty.highSodium).toBe(true);
+    // حلوم وخبز وحدهما (~٩٨٠) كانا يُوسَمان على حدّ ٦٠٠ القديم، والهيئة لا تطلب وسمهما.
+    const mild = nutritionFromText("جبنة حلوم 60 غ\nخبز عربي 1");
+    expect(mild.sodium).toBeGreaterThan(600);
+    expect(mild.highSodium).toBe(false);
   });
 
   it("سطرٌ مجهول لا يدخل الحساب ويُعاد للتصحيح", () => {
@@ -279,9 +283,10 @@ describe("أمثلة البطل تُفهم كاملة", () => {
     expect(readyToApply(lines, r)).toBe(true);
   });
 
-  it("الشاورما تُظهر تنبيه الصوديوم، واللاتيه كافيينه", () => {
+  it("الشاورما تُظهر صوديومها بلا علامة ملح (دون ٢٠٠٠)، واللاتيه كافيينه", () => {
     const [latte, shawarma] = RECIPE_EXAMPLES.map((e) => nutritionFromText(e.text));
     expect(latte.caffeine).toBeGreaterThan(100);
-    expect(shawarma.highSodium).toBe(true);
+    expect(shawarma.sodium).toBeGreaterThan(600);
+    expect(shawarma.highSodium).toBe(false);
   });
 });

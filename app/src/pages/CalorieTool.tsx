@@ -21,7 +21,7 @@ import { useSeo } from "@/lib/seo";
 import { STATIC_SEO } from "@/lib/routeSeo";
 import { CTA_PRIMARY, CTA_SECONDARY } from "@/lib/facts";
 import { INGREDIENTS } from "@/lib/ingredients";
-import { DAILY_CAFFEINE_MAX_MG, DAILY_KCAL } from "@/lib/nutrition";
+import { DAILY_CAFFEINE_MAX_MG, DAILY_KCAL, HIGH_SODIUM_MG } from "@/lib/nutrition";
 
 const HeroCalculator = lazy(() =>
   import("@/components/landing/HeroCalculator").then((m) => ({ default: m.HeroCalculator }))
@@ -59,7 +59,7 @@ export default function CalorieTool() {
             <h2 className="font-display text-xl font-bold text-ink">ماذا تطلب هيئة الغذاء في المنيو؟</h2>
             <ul className="grid list-disc gap-2 ps-5 text-[15px] leading-relaxed text-dim">
               <li>السعرات الحرارية لكل صنف.</li>
-              <li>علامة الملح على الصنف الذي يزيد صوديومه عن ٦٠٠ ملغم.</li>
+              <li>علامة الملح على الصنف الذي يزيد صوديومه عن {NUM(HIGH_SODIUM_MG)} ملغم (٥ غرامات ملح).</li>
               <li>كمية الكافيين في المشروبات.</li>
               <li>
                 جملة الاحتياج اليومي: {NUM(DAILY_KCAL)} سعرة للبالغ، وحدّ {NUM(DAILY_CAFFEINE_MAX_MG)} ملغم
