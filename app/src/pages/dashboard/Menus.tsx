@@ -33,7 +33,8 @@ import {
   themeIdOf,
 } from "@/lib/themes";
 import { ThemePreview } from "@/components/menu/ThemePreview";
-import { SuggestBadge, SuitsLine, ThemeOrderNote, useThemeOrder } from "@/components/ThemeSuggest";
+import { SuggestBadge, SuitsLine, ThemeOrderNote, pickerCols, useThemeOrder } from "@/components/ThemeSuggest";
+import { ThemeCategoryTabs } from "@/components/ThemeCategoryTabs";
 import { LAYOUT_OPTIONS, LayoutGlyph } from "@/components/LayoutOptions";
 import { cn } from "@/lib/utils";
 import type { Menu } from "@/lib/types";
@@ -310,13 +311,22 @@ export default function Menus() {
           isCafe={themeOrder.isCafe}
           flavor={themeOrder.flavor}
           setFlavor={themeOrder.setFlavor}
+          home={themeOrder.home}
         />
           </div>
           <PreviewMenuButton slug={restaurant.slug} label="عاين النتيجة" />
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {themeOrder.ordered.map((t) => {
+        <ThemeCategoryTabs
+          value={themeOrder.category}
+          onChange={themeOrder.setCategory}
+          home={themeOrder.home}
+          label="أقسام الطوابع حسب نوع المطعم"
+          panelId="menus-themes"
+          className="-mx-3 mt-3 sm:mx-0"
+        />
+        <div id="menus-themes" role="tabpanel" className={cn("mt-3 grid gap-3", pickerCols(themeOrder.visible.length))}>
+          {themeOrder.visible.map((t) => {
             const on = activeBase === t.id;
             return (
               <button

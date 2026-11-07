@@ -9,7 +9,8 @@
 import { useState } from "react";
 import { Button, ErrorNote } from "@/components/ui";
 import { ThemePreview } from "@/components/menu/ThemePreview";
-import { SuggestBadge, SuitsLine, ThemeOrderNote, useThemeOrder } from "@/components/ThemeSuggest";
+import { SuggestBadge, SuitsLine, ThemeOrderNote, pickerCols, useThemeOrder } from "@/components/ThemeSuggest";
+import { ThemeCategoryTabs } from "@/components/ThemeCategoryTabs";
 import { applyThemeToAllMenus } from "@/lib/data";
 import { getTheme, splitThemeId, themeBaseOf, themeIdOf } from "@/lib/themes";
 import { cn } from "@/lib/utils";
@@ -55,9 +56,19 @@ export function StepLook({ onDone, onSkip }: { onDone: () => void; onSkip: () =>
         isCafe={themeOrder.isCafe}
         flavor={themeOrder.flavor}
         setFlavor={themeOrder.setFlavor}
+        home={themeOrder.home}
       />
-      <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-3" data-setup-themes>
-        {themeOrder.ordered.map((t) => {
+      {/* قسم نشاطه مفتوحٌ أوّلاً، و«الكل» بترتيب نشاطه — والاختيار يبقى وإن بدّل القسم. */}
+      <ThemeCategoryTabs
+        value={themeOrder.category}
+        onChange={themeOrder.setCategory}
+        home={themeOrder.home}
+        label="أقسام الطوابع حسب نوع المطعم"
+        panelId="setup-themes"
+        className="-mx-3 mt-3 sm:mx-0"
+      />
+      <div id="setup-themes" role="tabpanel" className={cn("mt-3 grid gap-2.5", pickerCols(themeOrder.visible.length))} data-setup-themes>
+        {themeOrder.visible.map((t) => {
           const on = selected === t.id;
           const id = themeIdOf(t.id, parsed.hex, parsed.layout);
           return (

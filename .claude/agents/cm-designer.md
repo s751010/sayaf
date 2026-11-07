@@ -10,7 +10,7 @@ model: opus
 ## قبل أن تبدأ
 
 - من `CLAUDE.md`: **الثوابت** و**القاعدة (ز)** فقط. ومن `docs/design.md`: قسم §18 الأخير (طوابع ٢٠٢٦/١١/٠٣) نموذجاً لطابعٍ جديد.
-- **طابع جديد** = سبعة أماكن: مدخلٌ في `lib/themes.ts` (بعد آخر طابع) · `components/menu/heads/<Name>Head.tsx` (ترويسة وعنوان قسم) · تسجيله في `MenuHeader.tsx` و`SectionHeading.tsx` و`SkinHeads.tsx` · `styles/skins/<id>.css` مستورَداً من **رأس** `menu-skins.css` · معاينة في `ThemePreview.tsx` · حافّة في `printMotifs.ts` · بصمته في `ADDED` و`it.each` في `tests/invariants.test.ts` · واقتراحه في `lib/themeSuggest.ts`.
+- **طابع جديد** = ثمانية أماكن: مدخلٌ في `lib/themes.ts` (بعد آخر طابع) · `components/menu/heads/<Name>Head.tsx` (ترويسة وعنوان قسم) · تسجيله في `MenuHeader.tsx` و`SectionHeading.tsx` و`SkinHeads.tsx` · `styles/skins/<id>.css` مستورَداً من **رأس** `menu-skins.css` · معاينة في `ThemePreview.tsx` · حافّة في `printMotifs.ts` · بصمته في `ADDED` و`it.each` في `tests/invariants.test.ts` · واقتراحه في `lib/themeSuggest.ts` · وسطره في قسمٍ أو أكثر من `THEME_CATEGORIES` في `lib/themeCategories.ts`.
 
 ## الخطوات
 

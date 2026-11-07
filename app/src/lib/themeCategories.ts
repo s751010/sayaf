@@ -1,0 +1,135 @@
+/**
+ * أقسام الطوابع حسب نوع المطعم — **مصدرٌ واحد** للوحة والهبوط و`/demo` (اختيار المالك ٢٠٢٦/١١/٠٧).
+ *
+ * ═══ لماذا ═══
+ *
+ * عشرون طابعاً في شبكةٍ واحدة تُقرأ كتالوجاً لا اختياراً: صاحب الفوّال يمرّر
+ * دفتر جلدٍ ومجلّة وكيس بنّ قبل أن يصل إلى صينيّته. والأقسام تختصر الطريق إلى
+ * ثلاثةٍ أو أربعة تشبه مكانه، و«الكل» باقٍ بترتيب `themeSuggest` لمن أراد الكلّ.
+ *
+ * ═══ ما ليس هذا ═══
+ *
+ * - **ليس `suits`**: الشارة على الطابع (≤ ٢، بمفردات `aliasType`) حكمٌ على الطابع
+ *   «لمن يناسب»، وترتيب المُنتقي مبنيٌّ عليها. والقسم رفٌّ في المعرض: الطابع يقف
+ *   على أكثر من رفّ («عصري» في المقاهي والبيتزا والبحري)، والرفّ ثلاثةٌ فأكثر.
+ * - **لا يطبّق شيئاً**: فتح قسمٍ يعرض ولا يكتب طابعاً (قرار ٢٥/١٠).
+ * - **ولا مفردات نوعٍ جديدة**: قسم التاجر من `suggestionKey` نفسه (`aliasType`
+ *   والصفوف الفرعية والكافيه الشعبي) — جدولٌ من مفاتيحه إلى الأقسام لا قاموسٌ ثانٍ.
+ *
+ * كلّها خالصة: بلا حالة ولا شبكة ولا DOM. والأيقونة اسمٌ من `lib/icons.tsx` لا رسم.
+ */
+import type { DemoKind } from "./demoMenus";
+import type { IconName } from "./icons";
+import { norm } from "./starterMenus";
+import { BAKERY, BREAKFAST, GRILL, PIZZA, POPULAR_CAFE, suggestionKey, type CafeFlavor } from "./themeSuggest";
+
+export type ThemeCategoryId =
+  | "cafe" | "bakery" | "breakfast" | "fast" | "pizza"
+  | "grill" | "shaabi" | "seafood" | "juice" | "upscale";
+
+export interface ThemeCategory {
+  id: ThemeCategoryId;
+  name: string;
+  nameEn: string;
+  /** من `lib/icons.tsx` — لا إيموجي في الواجهة (§20). */
+  icon: IconName;
+  /** معرّفات `DESIGN_THEMES` **بترتيب المالك** — الأوّل بيت القسم. */
+  themes: readonly string[];
+  /** منيو `/demo` الذي يُعاين عليه القسم (`lib/demoMenus.ts`). */
+  kind: DemoKind;
+}
+
+/** بترتيب المالك: الأقسام، وطوابع كلّ قسم. */
+export const THEME_CATEGORIES: readonly ThemeCategory[] = [
+  { id: "cafe", name: "مقاهي", nameEn: "Cafés", icon: "dallah", themes: ["roastery", "letterboard", "editorial", "modern"], kind: "cafe" },
+  { id: "bakery", name: "مخابز وحلويات", nameEn: "Bakeries & sweets", icon: "croissant", themes: ["bakery", "patisserie", "letterboard"], kind: "bakery" },
+  { id: "breakfast", name: "فطور", nameEn: "Breakfast", icon: "egg", themes: ["breakfast", "dukkan", "bakery"], kind: "breakfast" },
+  { id: "fast", name: "وجبات سريعة", nameEn: "Fast food", icon: "burger", themes: ["burger", "neon", "receipt", "sticker"], kind: "burger" },
+  { id: "pizza", name: "بيتزا وإيطالي", nameEn: "Pizza & Italian", icon: "pizza", themes: ["pizza", "editorial", "modern"], kind: "pizza" },
+  { id: "grill", name: "مشاوي وشاورما", nameEn: "Grills & shawarma", icon: "skewer", themes: ["grill", "dark-gold", "asir"], kind: "grill" },
+  { id: "shaabi", name: "شعبي", nameEn: "Traditional", icon: "pot", themes: ["najdi", "dukkan", "breakfast", "asir"], kind: "shaabi" },
+  { id: "seafood", name: "بحري", nameEn: "Seafood", icon: "fish", themes: ["harbor", "modern", "dark-gold"], kind: "seafood" },
+  { id: "juice", name: "عصائر", nameEn: "Juices", icon: "juice", themes: ["juice", "sticker", "neon"], kind: "juice" },
+  { id: "upscale", name: "راقي ومناسبات", nameEn: "Fine dining & occasions", icon: "sparkle", themes: ["dark-gold", "roshan", "editorial"], kind: "restaurant" },
+];
+
+/** أقلّ ما يكون في قسم — قسمٌ بطابعين قائمةٌ لا رفّ. */
+export const MIN_PER_CATEGORY = 3;
+
+export function categoryById(id: string | null | undefined): ThemeCategory | null {
+  return THEME_CATEGORIES.find((c) => c.id === id) ?? null;
+}
+
+/**
+ * مفتاح `SUGGESTED` ⇒ القسم الذي ينفتح أوّلاً. **كلّ مفتاحٍ مذكور** (الفحص يسقط
+ * لمفتاحٍ بلا سطر)، و«مطعم» وحده `null`: هو سقوط `aliasType` لكلّ نصٍّ لا يُعرف
+ * («مأكولات سعودية وعالمية» · `general`) — فلا نعرف نشاطه، فيفتح «الكل».
+ *
+ * والكافيه الشعبي ⇒ «شعبي» لا «مقاهي»: ترتيبه يبدأ بـ«نجدي» (`themeSuggest`)،
+ * وشارة «يناسب نوع نشاطك» يجب أن تقع داخل القسم المفتوح.
+ */
+export const CATEGORY_BY_KEY: Readonly<Record<string, ThemeCategoryId | null>> = {
+  مطعم: null,
+  كافيه: "cafe",
+  [POPULAR_CAFE]: "shaabi",
+  عصائر: "juice",
+  "مطعم سريع": "fast",
+  [PIZZA]: "pizza",
+  مشويات: "grill",
+  [GRILL]: "grill",
+  شعبي: "shaabi",
+  [BREAKFAST]: "breakfast",
+  بحري: "seafood",
+  "مخبز وحلويات": "bakery",
+  [BAKERY]: "bakery",
+};
+
+/**
+ * قسم التاجر من نوع نشاطه — `null` ⇒ «الكل». و`flavor` زرّ «مختصّ أم شعبي؟» حين
+ * يضغطه: يبدّل القسم كما يبدّل الترتيب.
+ */
+export function categoryForType(rawType: string | null | undefined, flavor?: CafeFlavor): ThemeCategoryId | null {
+  if (!norm(rawType ?? "")) return null;
+  return CATEGORY_BY_KEY[suggestionKey(rawType, flavor)] ?? null;
+}
+
+/** طوابع القسم كائناتٍ بترتيبه — والمعرّف المجهول يُسقط (الفحص يمنعه أصلاً). */
+export function themesOf<T extends { id: string }>(id: ThemeCategoryId | null, all: readonly T[]): T[] {
+  const cat = categoryById(id);
+  if (!cat) return [...all];
+  const byId = new Map(all.map((t) => [t.id, t]));
+  return cat.themes.map((t) => byId.get(t)).filter((t): t is T => !!t);
+}
+
+/**
+ * قسم `/demo` من معاملَيه — **ولا يغيّر ما يعرضانه**: `?kind=` و`?theme=` يبقيان
+ * يعملان كما كانا، وهذا يقرأ منهما أيّ رفٍّ يُضاء.
+ *
+ * ١. القسم الذي منيوه هذا النوع **وفيه** هذا الطابع (ما يكتبه الشريط نفسه).
+ * ٢. القسم الذي هذا الطابع **أوّله** (بيته): `?theme=harbor` ⇒ «بحري».
+ * ٣. أوّل قسمٍ فيه الطابع: `?theme=letterboard` ⇒ «مقاهي».
+ * ٤. القسم الذي منيوه هذا النوع.
+ *
+ * و`theme` هنا الطابع المعروض فعلاً: المعامل، أو طابع منيو النوع إن جاء `kind` وحده
+ * (`?kind=sweets` ⇒ «حلواني» ⇒ «مخابز وحلويات»). وبلا معاملٍ إطلاقاً لا قسم.
+ */
+export function demoCategoryOf(kind: string | null | undefined, theme: string | null | undefined): ThemeCategoryId | null {
+  const t = theme ?? "";
+  return (
+    THEME_CATEGORIES.find((c) => c.kind === kind && c.themes.includes(t)) ??
+    THEME_CATEGORIES.find((c) => c.themes[0] === t) ??
+    THEME_CATEGORIES.find((c) => c.themes.includes(t)) ??
+    THEME_CATEGORIES.find((c) => c.kind === kind)
+  )?.id ?? null;
+}
+
+/**
+ * عدد الأعمدة لشبكة من `n` بطاقة — **بلا بطاقةٍ وحيدة في آخر صفّ** قدر الإمكان.
+ * `choices` بترتيب التفضيل: أوّل عددٍ **لا يزيد على البطاقات** ولا يترك واحدةً وحدها،
+ * ثم أوّل ما لا يزيد عليها، ثم أصغرها. (ثلاثة من [4،3] ⇒ ثلاثة لا صفٌّ بخانةٍ فارغة ·
+ * أربعة من [3،2] ⇒ اثنان · عشرون من [3،2] ⇒ ثلاثة: آخر صفٍّ اثنتان لا واحدة.)
+ */
+export function fillColumns<C extends number>(n: number, choices: readonly C[]): C {
+  const fits = choices.filter((c) => c <= n);
+  return fits.find((c) => n % c !== 1) ?? fits[0] ?? choices.reduce((a, b) => (b < a ? b : a));
+}

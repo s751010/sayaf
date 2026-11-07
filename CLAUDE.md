@@ -75,7 +75,7 @@ app/src/
                         في `lib/segments.ts` ولكل وعدٍ دليلٌ في الشيفرة (`segments.test.ts`)،
                         والأسماء وحدها في `lib/segmentLinks.ts` (يقرؤها الذيل)؛ و`/for` وحدها **غير** محجوزة — تبقى لمسار المنيو
     OrderStatus.tsx     متابعة الطلب /o/:id
-    Demo.tsx            منيو تجريبي حي /demo (بيانات محلية، بدون شبكة) — `?kind=cafe|shaabi|truck|seafood|sweets|juice|burger|bakery|breakfast|grill|pizza` منيو كل نوع من `lib/demoMenus.ts`، و`?theme=` وحده يفتح منيو عالم الطابع
+    Demo.tsx            منيو تجريبي حي /demo (بيانات محلية، بدون شبكة) — `?kind=cafe|shaabi|truck|seafood|sweets|juice|burger|bakery|breakfast|grill|pizza` منيو كل نوع من `lib/demoMenus.ts`، و`?theme=` وحده يفتح منيو عالم الطابع؛ وفوقه شريط الأقسام (`DemoPicker`)
     CalorieTool.tsx     حاسبة السعرات مجاناً بلا تسجيل /tools/calorie-calculator — مقطعان فلا تصطدم برابط مطعم ولا تحتاج حجزاً
     Login.tsx  ResetPassword.tsx  Stamp.tsx (وضع الكاشير العام)
     Blog.tsx  BlogPost.tsx  Help.tsx  ApiDocs.tsx  NotFound.tsx
@@ -118,6 +118,8 @@ app/src/
     landing/Reveal.tsx  كشف الأقسام عند التمرير
     MenuScan.tsx        قراءة المنيو من صورة (تنادي دالّة `menu-scan`)
     TrialBar.tsx        شريط أيام التجربة المتبقّية
+    ThemeCategoryTabs.tsx شريط أقسام الطوابع (tablist، ≥44px) — «التصميم» و«إعداد منيوك» و«القوائم» والهبوط و`/demo`
+    DemoPicker.tsx      شريط `/demo`: القسم ⇐ منيو نوعه ⇐ طوابعه؛ يكتب `?kind=`/`?theme=` نفسيهما، ويُطوى، ولا يُرسم في الإطار (`?embed=1`)
     ThemeSuggest.tsx    شارة «يناسب نوع نشاطك» وسؤال «مختصّ أم شعبي؟» — لصفحتَي التصميم والقوائم
     LayoutOptions.tsx   خيارات شكل عرض الأطباق ورسمها — لصفحتَي التصميم والقوائم معاً
     ImageUploader.tsx   رفع صورة واحدة (يستورد الضغط من lib/image)
@@ -147,6 +149,7 @@ app/src/
     data.ts             كل الاستعلامات + whitelists الكتابة
     session.ts auth.tsx GoTrue بدون SDK + سياق React (+ استعادة كلمة المرور)
     config.ts plans.ts entitlements.ts themes.ts types.ts utils.ts
+    themeCategories.ts  أقسام الطوابع حسب نوع المطعم (عشرة، اختيار المالك ٢٠٢٦/١١/٠٧) — مصدرٌ واحد للوحة والهبوط و`/demo`: طوابع كلّ قسمٍ بالترتيب و`kind` منيوه، وقسم التاجر من `suggestionKey` نفسه (`categoryForType`) — **طابعٌ جديد بلا قسمٍ يُسقط `theme-categories.test.ts`**
     themeSuggest.ts     ترتيب مُنتقي الطوابع حسب نوع النشاط (`aliasType` + `cafeFlavor` + صفوفٌ فرعية من نصّ النوع: مخبز · فطور · مشاوي وشاورما · بيتزا) — **يرتّب ولا يطبّق**
     allergens.ts hours.ts nutrition.ts options.ts
     ingredients.ts      ١٦١ مكوّناً بقيم USDA لكل ١٠٠غ — جدول الحاسبة (§26)
