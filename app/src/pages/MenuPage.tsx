@@ -38,7 +38,6 @@ import { DishModal } from "@/components/menu/DishModal";
 import { LoyaltyCard } from "@/components/menu/LoyaltyCard";
 import {
   DAYS,
-  inTimeWindow,
   openState,
   parseWeek,
   riyadhTodayId,
@@ -72,6 +71,8 @@ import { loadSession } from "@/lib/session";
 import { getBillingSettings } from "@/lib/billing";
 import { absoluteUrl, dietOf, priceRangeOf, schemaHours, useJsonLd, useSeo } from "@/lib/seo";
 import { K, getItem, getJSON, setItem } from "@/lib/storage";
+import { clearMenuCache, readMenuCache, saveMenuCache, visibleMenu } from "@/lib/menuCache";
+import { menuManifest, swapManifest } from "@/lib/menuManifest";
 import { categoryId, cn, httpUrl, whatsappUrl } from "@/lib/utils";
 import type { Dish, Menu, Restaurant } from "@/lib/types";
 import { Icon, type IconName } from "@/lib/icons";
@@ -87,7 +88,11 @@ type LoadState =
   | { status: "error" }
   /** المطعم موجود لكن صاحبه غير مشترك — المنيو غير منشور. */
   | { status: "unpublished"; name: string }
-  | { status: "ready"; restaurant: Restaurant; menus: Menu[]; dishes: Dish[] };
+  /**
+   * ‏`savedAt` = هذه نسخةٌ محفوظة على الجهاز (`lib/menuCache.ts`) لأن الشبكة
+   * فشلت، ومتى حُمّلت آخر مرّة. غيابها = بياناتٌ حيّة من الخادم الآن.
+   */
+  | { status: "ready"; restaurant: Restaurant; menus: Menu[]; dishes: Dish[]; savedAt?: number };
 
 /** بيانات جاهزة تتخطّى الشبكة — تستخدمها صفحة الديمو (/demo). */
 export type MenuData = { restaurant: Restaurant; menus: Menu[]; dishes: Dish[] };
@@ -208,7 +213,11 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
           getBillingSettings(),
         ]);
         if (cancelled) return;
-        if (!restaurant) return setState({ status: "notfound" });
+        if (!restaurant) {
+          // رابطٌ تغيّر أو مطعمٌ حُذف: نسخته المحفوظة لا تُعرض بعد اليوم.
+          clearMenuCache(slug);
+          return setState({ status: "notfound" });
+        }
         const previewing =
           tryOwner && !!restaurant.user_id && session!.user.id === restaurant.user_id;
         setPreview(previewing);
@@ -233,28 +242,19 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
         ]);
         if (cancelled) return;
         if (!published) {
+          // وإلا عاد المنيو المقفل من الجهاز عند أوّل انقطاع.
+          clearMenuCache(slug);
           document.title = `${restaurant.name} — كلاود منيو`;
           return setState({ status: "unpublished", name: restaurant.name });
         }
+        // نافذة العرض وترشيح الأطباق بقوائمها — انظر `visibleMenu`: الشرط نفسه
+        // يُطبَّق على النسخة المحفوظة حين تُعرض، فلا يتباعد الحيّ والمحفوظ.
+        const { menus, dishes } = visibleMenu(active, allDishes);
         /**
-         * نافذة العرض (قائمة فطور رمضان مثلاً). لو أسقط الترشيح كل القوائم
-         * نعرضها كلها: منيو فارغ أمام زبون على الطاولة أسوأ بكثير من قائمة
-         * تظهر خارج وقتها.
+         * آخر منيو ناجح على الجهاز — لما يراه الزائر المجهول وحده: ما جُلب
+         * بجلسة المالك (`select=*`) لا يُخزَّن في متصفّحٍ قد يكون مشتركاً.
          */
-        const inWindow = active.filter((m) => inTimeWindow(m.window_from, m.window_to));
-        const menus = inWindow.length ? inWindow : active;
-        /**
-         * ⚠️ الترشيح هنا **يعوّض `menu_id=in.(…)` الذي كان على الخادم**، ولا
-         * يجوز أن يتساهل عنه: `getRestaurantDishes` تُعيد أطباق كل القوائم بما
-         * فيها المعطّلة وخارج نافذتها، فبلا هذا السطر يرى الزبون أصنافاً أطفأها
-         * التاجر. والترتيب محفوظ لأن الخادم رتّب أصلاً بـ`sort_order` ثم
-         * `created_at`، و`filter` لا يعيد الترتيب.
-         */
-        const shown = new Set(menus.map((m) => m.id));
-        // ⚠️ `menu_id` قابل لأن يكون `null` (صنف يتيم بلا قائمة)، و
-        // `menu_id=in.(…)` على الخادم كان **يستبعده** — فالشرط هنا يستبعده
-        // كذلك. إسقاط هذا الفحص كان سيُظهر للزبون أصنافاً لم يرها قطّ.
-        const dishes = allDishes.filter((d) => d.menu_id !== null && shown.has(d.menu_id));
+        if (!tryOwner) saveMenuCache(slug, { restaurant, menus: active, dishes: allDishes });
         document.title = `${restaurant.name} — المنيو`;
         setState({ status: "ready", restaurant, menus, dishes });
         // معاينات التاجر لا تُحتسب مشاهدات، وإلا لوّثت تحليلاته بنفسه.
@@ -263,7 +263,22 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
           trackMenuView(menus[0].id, restaurant.user_id, { table, lang });
         }
       } catch {
-        if (!cancelled) setState({ status: "error" });
+        if (cancelled) return;
+        /**
+         * فشلت الشبكة: آخر منيو ناجح على هذا الجهاز مع «قد يكون قديماً» — وإلا
+         * فحالة الفشل كما هي. ⚠️ الفشل ≠ الفارغ (القاعدة «ج»): لا منيو فارغ
+         * مكان «تعذّر التحميل» حين لا نسخة.
+         */
+        const cached = readMenuCache(slug);
+        if (!cached) return setState({ status: "error" });
+        try {
+          const { menus, dishes } = visibleMenu(cached.menus, cached.dishes);
+          document.title = `${cached.restaurant.name} — المنيو`;
+          setState({ status: "ready", restaurant: cached.restaurant, menus, dishes, savedAt: cached.savedAt });
+        } catch {
+          // نسخةٌ لا تُقرأ لا تُبقي الزبون على هيكل التحميل إلى الأبد.
+          setState({ status: "error" });
+        }
       }
     })();
     return () => {
@@ -473,6 +488,25 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
       document.body.style.backgroundColor = prevBody;
     };
   }, [pageBg, preview]);
+
+  /**
+   * «أضف إلى الشاشة الرئيسية» يفتح المطعم لا المنصّة — بيانٌ باسم المطعم ولون
+   * طابعه و`start_url` رابطه (`lib/menuManifest.ts`)، ويُعاد الأصلي عند المغادرة.
+   * لا للديمو ولا للمعاينة: الأوّل مطعمٌ لا وجود له، والثانية نسخة التاجر.
+   */
+  const manifestName = state.status === "ready" && !demo && !preview ? state.restaurant.name : null;
+  const manifestStart = manifestName ? menuUrl(slug) : null;
+  useEffect(() => {
+    if (!manifestName || !manifestStart || !pageBg) return;
+    return swapManifest(
+      menuManifest({
+        name: manifestName,
+        startUrl: manifestStart,
+        color: pageBg,
+        origin: window.location.origin,
+      })
+    );
+  }, [manifestName, manifestStart, pageBg]);
 
   /**
    * السلة تُستدعى بلا شرط (قاعدة الخطّافات) وتبقى معطّلة حتى يفتح التاجر الدفع
@@ -872,7 +906,9 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
    * شريحةٌ واحدة لكل ما تحت الاسم — كانت خمسة أشكال (شريحة · زرّان ممتلئان
    * بعرض الشاشة · شريط · مبدّل) فتقرأ العين خمسة أنظمة لا واجهةً واحدة.
    */
-  const pill = "inline-flex h-9 items-center gap-1.5 rounded-full px-3.5 text-[13px] font-bold transition-opacity hover:opacity-85";
+  // ‏`m-hit`: الشريحة ٣٦ شكلاً و٤٤ لمساً (`menu-skins.css`) — صفّ الشرائح
+  // بفجوة ٨ فلا يتداخل امتداد صفٍّ بصفّ.
+  const pill = "m-hit inline-flex h-9 items-center gap-1.5 rounded-full px-3.5 text-[13px] font-bold transition-opacity hover:opacity-85";
   const pillQuiet: CSSProperties = {
     background: "var(--m-surface)",
     color: "var(--m-text)",
@@ -925,6 +961,31 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
           <Link to="/dashboard" className="underline underline-offset-2">
             ← عُد للوحة
           </Link>
+        </div>
+      )}
+
+      {/* نسخةٌ محفوظة على الجهاز لأن الشبكة فشلت (`lib/menuCache.ts`). يقولها
+          صراحةً: سعرٌ تغيّر أو صنفٌ نفد بعد الحفظ لا يُعرض كأنه الآن.
+          غير لاصق كشريط المعاينة، وبألوان الطابع لا بلون تحذير يصرخ. */}
+      {state.savedAt != null && (
+        <div
+          role="status"
+          data-stale-menu
+          className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 px-4 py-2 text-center text-xs font-bold"
+          style={{ background: "var(--m-bg-2)", color: "var(--m-text)", borderBottom: "1px solid var(--m-border)" }}
+        >
+          <span className="inline-flex items-center gap-1.5">
+            <Icon name="warn" size={14} />
+            {en ? "May be out of date — no connection right now" : "قد يكون قديماً — لا اتصال الآن"}
+          </span>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="m-hit min-h-8 rounded-full px-3 font-black underline underline-offset-2"
+            style={{ color: "var(--m-accent-ink, var(--m-accent))" }}
+          >
+            {en ? "Retry" : "أعد المحاولة"}
+          </button>
         </div>
       )}
 
@@ -1048,8 +1109,10 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
             >
               {/* تلاشٍ عند الحافّة التي يُمرَّر إليها: تصنيفٌ مقطوعٌ بحدٍّ حادّ يُقرأ
                   خللاً في الرسم، والمتلاشي يُقرأ «هناك المزيد». */}
+              {/* ‏`py-0.5 -my-0.5`: الشريط المتمرِّر يقصّ ما يخرج منه، فحشوته تترك
+                  لامتداد اللمس (`m-hit`) مكانه، والهامش السالب يبقي ارتفاعه كما كان. */}
               <div
-                className="flex flex-1 gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                className="-my-0.5 flex flex-1 gap-2 overflow-x-auto py-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                 style={{
                   maskImage: `linear-gradient(to ${en ? "left" : "right"}, transparent 0, #000 28px)`,
                   WebkitMaskImage: `linear-gradient(to ${en ? "left" : "right"}, transparent 0, #000 28px)`,
@@ -1061,7 +1124,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
                     href={`#${categoryId(c.name)}`}
                     ref={(el) => { catRefs.current[c.name] = el; }}
                     aria-current={activeCat === c.name ? "true" : undefined}
-                    className="m-tab flex h-10 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-sm font-bold transition-colors"
+                    className="m-tab m-hit flex h-10 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-sm font-bold transition-colors"
                     // متغيّراتٌ لا ألوانٌ صريحة: الطابع يعيد رسم التبويب النشط بلا
                     // `!important` (المجلّة خطٌّ تحته، ولوحة الحروف حروفٌ ملوّنة).
                     style={
