@@ -15,9 +15,12 @@ test("البطل يحسب وصفة الزائر بلا تسجيل", async ({ pag
   const recipe = page.locator("#hero-recipe");
   await expect(recipe).toBeVisible();
 
-  // مثالٌ جاهز: الشاورما صوديومها فوق ٦٠٠ ⇒ تنبيه «مرتفع» على الملصق.
+  // مثالٌ جاهز: الشاورما صوديومها ٨٨٠ ⇒ يظهر رقمه، **بلا** «مرتفع» —
+  // علامة الملح فوق ٢٠٠٠ ملغم (٥ غ ملح) بنصّ الهيئة، لا فوق ٦٠٠.
   await page.getByRole("button", { name: "شاورما دجاج" }).click();
-  await expect(page.getByText("مرتفع").first()).toBeVisible();
+  const sodium = page.locator(".nlabel-row").filter({ hasText: "الصوديوم" }).first();
+  await expect(sodium).toContainText("880");
+  await expect(sodium).not.toContainText("مرتفع");
 
   // وصفة الزائر نفسه: سطرٌ واحد يُفهم ويُحسب.
   await recipe.fill("حليب كامل الدسم 200 مل");

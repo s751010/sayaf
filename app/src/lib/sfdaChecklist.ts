@@ -17,7 +17,7 @@
  */
 import type { Dish, Restaurant } from "./types";
 import { isDrinkText } from "./recipe";
-import { DAILY_CAFFEINE_MAX_MG, DAILY_KCAL } from "./nutrition";
+import { DAILY_CAFFEINE_MAX_MG, DAILY_KCAL, HIGH_SODIUM_MG } from "./nutrition";
 
 export type CheckState = "done" | "todo" | "auto";
 
@@ -68,7 +68,7 @@ export function sfdaChecklist(
     },
     {
       id: "sodium",
-      label: "الصوديوم لكل صنف، وعلامة الملح على ما يزيد عن ٦٠٠ ملغم",
+      label: `الصوديوم لكل صنف، وعلامة الملح على ما يزيد عن ${NUM(HIGH_SODIUM_MG)} ملغم`,
       state: total > 0 && withSodium === total ? "done" : "todo",
       detail: total === 0 ? "أضف أصنافك أوّلاً" : `${ofTotal(withSodium, total, "الأصناف")} — والعلامة تظهر تلقائياً`,
       ...(total > 0 && withSodium < total ? { fix: toNutrition } : {}),

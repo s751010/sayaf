@@ -9,7 +9,7 @@ import { ALL_THEMES, getTheme, splitThemeId, themeBaseOf, bestOnAccent, isHex, n
 import { canonOf, matchKnownCategory, sortCategories } from "@/lib/categories";
 import { inTimeWindow } from "@/lib/hours";
 import { checkPassword, MIN_PASSWORD } from "@/lib/password";
-import { burnMinutes, isHighSodium, isSfdaCompliant } from "@/lib/nutrition";
+import { burnMinutes, HIGH_SODIUM_MG, isHighSodium, isSfdaCompliant } from "@/lib/nutrition";
 import { aliasType } from "@/lib/starterMenus";
 import { itemsLabel, sectionCover } from "@/components/menu/SectionHeading";
 import { monogramOf } from "@/components/menu/LogoMark";
@@ -581,10 +581,24 @@ describe("nutrition يطابق الأعمدة المحسوبة في Postgres", (
     expect(burnMinutes(null)).toBeNull();
   });
 
-  it("is_high_sodium = sodium_mg > 600", () => {
-    expect(isHighSodium(601)).toBe(true);
-    expect(isHighSodium(600)).toBe(false);
+  it("is_high_sodium = sodium_mg > 2000 (٥ غ ملح — حدّ لائحة الهيئة)", () => {
+    expect(HIGH_SODIUM_MG).toBe(2000);
+    expect(isHighSodium(2001)).toBe(true);
+    expect(isHighSodium(2000)).toBe(false); // «تتجاوز» — الحدّ نفسه لا يُوسَم
+    expect(isHighSodium(880)).toBe(false); // كان يُوسَم على حدّ ٦٠٠ القديم
     expect(isHighSodium(null)).toBe(false);
+  });
+
+  it("هجرة العمود المحسوب تطابق الحدّ نفسه", async () => {
+    const { readFileSync } = await import("node:fs");
+    const { fileURLToPath } = await import("node:url");
+    const sql = readFileSync(
+      fileURLToPath(new URL("../../supabase/migrations/20261107_salt_mark_2000mg.sql", import.meta.url)),
+      "utf8"
+    );
+    expect(sql).toMatch(/generated always as \(sodium_mg > 2000\) stored/i);
+    // العمود في PUBLIC_DISH_COLS: إسقاطه يُسقط منحته، وبلا إعادتها يُطفأ كل منيو (القاعدة و).
+    expect(sql).toMatch(/grant select \(is_high_sodium\) on public\.dishes to anon/i);
   });
 
   it("sfda_compliant = كلاهما ليس NULL", () => {
