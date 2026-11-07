@@ -8,13 +8,16 @@
 import { describe, expect, it } from "vitest";
 import { ALL_THEMES } from "@/lib/themes";
 import { STARTER_TYPES } from "@/lib/starterMenus";
-import { ARABIC_COFFEE, BAKERY, BREAKFAST, GRILL, PIZZA, POPULAR_CAFE, SPECIALTY, SUGGESTED, badgeTypeOf, cafeFlavor, rankThemes, suggestionKey } from "@/lib/themeSuggest";
+import {
+  ARABIC_COFFEE, BAKERY, BREAKFAST, GRILL, KARAK, PIZZA, POPULAR_CAFE, SPECIALTY, SUGGESTED, TEA_HOUSE,
+  badgeTypeOf, cafeFlavor, rankThemes, suggestionKey,
+} from "@/lib/themeSuggest";
 
 const byId = new Map(ALL_THEMES.map((t) => [t.id, t]));
 
 describe("مفردات واحدة مع `aliasType`", () => {
-  it("مفاتيح الجدول = أنواع `STARTERS` + الكافيه الشعبي + المخبز والفطور والمشاوي والبيتزا والقهوة", () => {
-    const extra = [POPULAR_CAFE, BAKERY, BREAKFAST, GRILL, PIZZA, ARABIC_COFFEE, SPECIALTY];
+  it("مفاتيح الجدول = أنواع `STARTERS` + الكافيه الشعبي + المخبز والفطور والمشاوي والبيتزا والقهوة والشاي", () => {
+    const extra = [POPULAR_CAFE, BAKERY, BREAKFAST, GRILL, PIZZA, ARABIC_COFFEE, SPECIALTY, KARAK, TEA_HOUSE];
     const keys = Object.keys(SUGGESTED).filter((k) => !extra.includes(k)).sort();
     expect(keys).toEqual([...STARTER_TYPES].sort());
     for (const k of extra) expect(SUGGESTED[k], k).toBeDefined();
@@ -50,6 +53,18 @@ describe("قاعدتا الاتّساق", () => {
     const seen = new Set(Object.values(SUGGESTED).flat());
     for (const t of ALL_THEMES) expect(seen.has(t.id), t.id).toBe(true);
   });
+
+  it("المقاعد امتلأت (٠٧/١١): أربعةٌ وعشرون طابعاً على أربعة وعشرين مقعداً — شارةٌ واحدة لكلّ طابع", () => {
+    // ثمانية أنواع × ثلاثة. وطابعٌ بشارتين يأخذ مقعدين، فلا يبقى لآخر مقعد — هذا الفحص يقول
+    // ذلك صريحاً قبل أن تسقط قاعدة ٢ على طابعٍ بعيد.
+    const seats = STARTER_TYPES.length * 3;
+    const badges = ALL_THEMES.reduce((n, t) => n + (t.suits?.length ?? 0), 0);
+    expect(badges).toBeLessThanOrEqual(seats);
+    for (const type of STARTER_TYPES) {
+      const holders = ALL_THEMES.filter((t) => t.suits?.includes(type)).map((t) => t.id).sort();
+      expect([...SUGGESTED[type]].sort(), type).toEqual(holders);
+    }
+  });
 });
 
 describe("الكافيه: مختصّ أم شعبي — تلميحٌ من النصّ", () => {
@@ -66,6 +81,10 @@ describe("الكافيه: مختصّ أم شعبي — تلميحٌ من الن�
     ["قهوة خولاني", "popular"],
     ["قهوة سعودية", "popular"],
     ["كافيه مختص", "specialty"],
+    // ٠٧/١١: الشاي شعبيّ — بالكلمة كاملةً: «الشايع» اسم عائلة لا شاي.
+    ["مقهى شاي", "popular"],
+    ["كافيه كرك", "popular"],
+    ["كافيه الشايع", "specialty"],
     [null, "specialty"],
   ] as const)("«%s» ⇒ %s", (raw, flavor) => {
     expect(cafeFlavor(raw)).toBe(flavor);
@@ -163,6 +182,45 @@ describe("صفّا القهوة (٠٧/١١، «دلّة» و«باريستا»)"
   });
 });
 
+describe("صفّا الشاي (٠٧/١١، «كرك» و«سماور»)", () => {
+  it("من نصّ النوع — الكرك قبل بيت الشاي، والشاي بعد القهوة", () => {
+    expect(suggestionKey("كرك")).toBe(KARAK);
+    expect(suggestionKey("شاي كرك")).toBe(KARAK);
+    expect(suggestionKey("كشك كرك وشاي")).toBe(KARAK);
+    expect(suggestionKey("Karak Chai")).toBe(KARAK);
+    expect(suggestionKey("شاي حليب")).toBe(KARAK);
+    expect(suggestionKey("شاي")).toBe(TEA_HOUSE);
+    expect(suggestionKey("شاهي")).toBe(TEA_HOUSE);
+    expect(suggestionKey("سماور")).toBe(TEA_HOUSE);
+    expect(suggestionKey("بيت شاي تراثي")).toBe(TEA_HOUSE);
+    expect(suggestionKey("مقهى شاي")).toBe(TEA_HOUSE);
+    expect(suggestionKey("قهوة وشاي")).toBe(TEA_HOUSE);
+    // القهوة العربية تسبق الشاي: مجلس قهوةٍ يقدّم الشاي.
+    expect(suggestionKey("قهوة عربية وشاي")).toBe(ARABIC_COFFEE);
+  });
+
+  it("كلماتٌ كاملة: «الشايع» و«شاهين» و«كركم» ليست شاياً — و«شاي على الجمر» ليس مشوى", () => {
+    expect(suggestionKey("مطعم الشايع")).toBe("مطعم");
+    expect(suggestionKey("مطعم شاهين")).toBe("مطعم");
+    expect(suggestionKey("مطعم كركم")).toBe("مطعم");
+    expect(suggestionKey("شاي على الجمر")).toBe(TEA_HOUSE);
+    expect(suggestionKey("مطعم الجمر")).toBe(GRILL);
+    // «حليب» وحده ليس كركاً.
+    expect(suggestionKey("حليب بالزنجبيل")).toBe("مطعم");
+  });
+
+  it("زرّ «مختصّ أم شعبي؟» يغلب النصّ — «مقهى شاي» المختصّ كافيه", () => {
+    expect(suggestionKey("مقهى شاي", "specialty")).toBe("كافيه");
+    expect(suggestionKey("كافيه كرك", "popular")).toBe(KARAK);
+  });
+
+  it("الشارتان من المفردات القائمة: الكرك «عصائر» وبيت الشاي «شعبي»", () => {
+    expect(badgeTypeOf(KARAK)).toBe("عصائر");
+    expect(badgeTypeOf(TEA_HOUSE)).toBe("شعبي");
+    expect(SUGGESTED["كافيه"]).toEqual(["roastery", "barista", "dallah"]);
+  });
+});
+
 describe("`rankThemes` يرتّب ولا يحذف", () => {
   it.each([
     ["كافيه", "roastery", true],
@@ -172,6 +230,12 @@ describe("`rankThemes` يرتّب ولا يحذف", () => {
     ["خولاني", "dallah", false],
     ["كافيه مختص", "barista", true],
     ["Espresso Bar", "barista", false],
+    // ٠٧/١١: الشاي — الكشك والبيت.
+    ["كرك", "karak", false],
+    ["كافيه كرك", "karak", true],
+    ["شاهي", "samovar", false],
+    ["بيت شاي تراثي", "samovar", false],
+    ["مقهى شاي", "samovar", true],
     ["مطعم شعبي", "najdi", false],
     // ٠٧/١١: للمشاوي طابعها («جمر») — و«فاخر» ثانيه بشارته.
     ["مشاوي", "grill", false],

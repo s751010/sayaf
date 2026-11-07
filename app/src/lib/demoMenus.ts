@@ -22,11 +22,12 @@ export type DemoKind =
   | "restaurant" | "cafe" | "shaabi" | "truck" | "seafood" | "sweets" | "juice" | "burger"
   | "bakery" | "breakfast"
   | "grill" | "pizza"
-  | "qahwa" | "espresso";
+  | "qahwa" | "espresso"
+  | "karak" | "teahouse";
 
 export const DEMO_KINDS: readonly DemoKind[] = [
   "restaurant", "cafe", "shaabi", "truck", "seafood", "sweets", "juice", "burger", "bakery", "breakfast", "grill", "pizza",
-  "qahwa", "espresso",
+  "qahwa", "espresso", "karak", "teahouse",
 ];
 
 export function isDemoKind(v: string | null | undefined): v is DemoKind {
@@ -1691,6 +1692,303 @@ function espresso(): DemoData {
   };
 }
 
+/* ── كشك كرك — لطابع «كرك» (٢٠٢٦/١١/٠٧) ─────────────────────────────────────────
+ * عربة كركٍ على كورنيش الخبر تفتح العصر وتسهر: الكاسة ١٥٠ مل والكوب ٢٥٠ للطريق، والبراتا
+ * والفطائر معها. والسعرات تقديرٌ لشايٍ أسود مغليّ بحليبٍ مبخّر (≈ ٤٠ مل في الكاسة) وملعقتي
+ * سكّر: ≈ ٩٥ سعرة، والصوديوم من الحليب. والكافيين لشايٍ مغليٍّ ثقيل (≈ ٣٠ ملغم لكلّ ١٠٠ مل).
+ * و«عرض السهرة» كاستان وبراتا بالجبن، أرخص من الثلاثة وسعراته وصوديومه مجموعها. */
+
+function karak(): DemoData {
+  const R = "demo-karak";
+  const M = "demo-karak-menu";
+  const dish = dishMaker(R, M);
+  const KARAK = JSON.stringify([
+    { name: "زعفران زيادة", price: 2 },
+    { name: "هيل زيادة", price: 0 },
+    { name: "حليب مكثّف محلّى", price: 1, kcal: 60 },
+  ]);
+  return {
+    restaurant: restaurantOf(R, {
+      name: "كرك سهر",
+      type: "كشك كرك وشاي",
+      address: "الخبر — الكورنيش",
+      logo: "☕",
+      allergens_text: "الكرك بالحليب، والبراتا والفطائر فيها جلوتين، وبعضها بيض وسمسم — اسألنا قبل الطلب.",
+      working_hours: WEEK("16:00", "03:00", "04:00"),
+      loyalty_goal: 10,
+      loyalty_reward: "كاسة كرك مجاناً",
+      prep_minutes: 4,
+      category_order: JSON.stringify(["الكرك", "شاي وأعشاب", "البراتا والفطائر", "الحلى"]),
+    }),
+    menus: [menuOf(R, M, "karak")],
+    dishes: [
+      dish("k1", "كرك — كاسة", "Karak — Glass", "الكرك", 3, "🫖", {
+        description: "١٥٠ مل شاي مغليّ بالحليب والهيل والزعفران، كما يُصبّ من البرّاد.",
+        featured: true,
+        calories: 95,
+        sodium_mg: 45,
+        caffeine_mg: 45,
+        allergens: ["حليب"],
+        options: KARAK,
+      }),
+      dish("k2", "كرك — كوب كبير", "Karak — Large Cup", "الكرك", 6, "🫖", {
+        description: "٢٥٠ مل في كوب للطريق.",
+        calories: 160,
+        sodium_mg: 75,
+        caffeine_mg: 75,
+        allergens: ["حليب"],
+        options: KARAK,
+      }),
+      dish("k3", "كرك زعفران", "Saffron Karak", "الكرك", 5, "🫖", {
+        description: "كاسة ١٥٠ مل بزعفرانٍ أكثر.",
+        calories: 100,
+        sodium_mg: 45,
+        caffeine_mg: 45,
+        allergens: ["حليب"],
+      }),
+      dish("k4", "كرك زنجبيل", "Ginger Karak", "الكرك", 4, "🫖", {
+        description: "كاسة ١٥٠ مل بالزنجبيل الطازج.",
+        calories: 100,
+        sodium_mg: 45,
+        caffeine_mg: 45,
+        allergens: ["حليب"],
+      }),
+      dish("k5", "كرك بدون سكر", "Karak, No Sugar", "الكرك", 3, "🫖", {
+        description: "كاسة ١٥٠ مل، والسكّر جانباً لمن أراد.",
+        calories: 60,
+        sodium_mg: 45,
+        caffeine_mg: 45,
+        allergens: ["حليب"],
+      }),
+      // نافدٌ الليلة — الحليب المكثّف ينتهي، و«نفد اليوم» أصدق من أن يختفي الصنف.
+      dish("k6", "كرك بالحليب المكثّف", "Condensed-Milk Karak", "الكرك", 4, "🫖", {
+        description: "كاسة ١٥٠ مل، أحلى وأثقل.",
+        calories: 150,
+        sodium_mg: 60,
+        caffeine_mg: 45,
+        allergens: ["حليب"],
+        available: false,
+      }),
+      dish("k8", "ترمس كرك — لتر", "Karak Thermos — 1 L", "الكرك", 18, "🫖", {
+        description: "لترٌ في ترمس يكفي ستّة — للجلسة على البحر.",
+        calories: 630,
+        sodium_mg: 300,
+        caffeine_mg: 300,
+        allergens: ["حليب"],
+      }),
+      dish("k7", "عرض السهرة", "Late-Night Deal", "الكرك", 10, "🫖", {
+        description: "كاستا كرك وبراتا بالجبن.",
+        featured: true,
+        // ٩٥ × ٢ + ٣٨٠ — والصوديوم ٤٥ × ٢ + ٥٦٠.
+        calories: 570,
+        sodium_mg: 650,
+        caffeine_mg: 90,
+        allergens: ["حليب", "جلوتين"],
+      }),
+      dish("t1", "شاي أحمر — كاسة", "Black Tea — Glass", "شاي وأعشاب", 2, "🫖", {
+        description: "١٥٠ مل بملعقتي سكّر.",
+        calories: 30,
+        sodium_mg: 5,
+        caffeine_mg: 30,
+      }),
+      dish("t2", "شاي بالنعناع", "Mint Tea", "شاي وأعشاب", 3, "🫖", {
+        description: "كاسة ١٥٠ مل بنعناعٍ طازج.",
+        calories: 30,
+        sodium_mg: 5,
+        caffeine_mg: 30,
+      }),
+      dish("t3", "شاي عدني", "Adeni Tea", "شاي وأعشاب", 4, "🫖", {
+        description: "شاي بالحليب والهيل والقرنفل، كاسة ١٥٠ مل.",
+        calories: 110,
+        sodium_mg: 50,
+        caffeine_mg: 40,
+        allergens: ["حليب"],
+      }),
+      dish("t4", "زنجبيل بالليمون", "Ginger & Lemon", "شاي وأعشاب", 4, "🍋", {
+        description: "٢٠٠ مل ساخن بالعسل — بلا كافيين.",
+        calories: 45,
+        sodium_mg: 5,
+        caffeine_mg: 0,
+      }),
+      dish("b1", "براتا بالجبن", "Cheese Paratha", "البراتا والفطائر", 6, "🫓", {
+        description: "براتا مقرمشة بجبنةٍ كريمية، مطويّة في ورق.",
+        calories: 380,
+        sodium_mg: 560,
+        allergens: ["جلوتين", "حليب"],
+      }),
+      dish("b2", "براتا بالبيض", "Egg Paratha", "البراتا والفطائر", 6, "🫓", {
+        description: "براتا ببيضةٍ وفلفل.",
+        calories: 400,
+        sodium_mg: 520,
+        allergens: ["جلوتين", "بيض"],
+      }),
+      dish("b3", "براتا بالعسل", "Honey Paratha", "البراتا والفطائر", 5, "🫓", {
+        description: "براتا ساخنة بالعسل والسمن.",
+        calories: 360,
+        sodium_mg: 380,
+        allergens: ["جلوتين", "حليب"],
+      }),
+      dish("b4", "فطيرة زعتر", "Zaatar Pie", "البراتا والفطائر", 4, "🥙", {
+        description: "زعتر بزيت الزيتون والسمسم.",
+        calories: 300,
+        sodium_mg: 480,
+        allergens: ["جلوتين", "سمسم"],
+      }),
+      dish("b5", "سمبوسة خضار — ٣ حبّات", "Vegetable Samosa (3)", "البراتا والفطائر", 5, "🥟", {
+        description: "بطاطس وبازلاء وبهارات.",
+        calories: 270,
+        sodium_mg: 420,
+        allergens: ["جلوتين"],
+      }),
+      dish("s1", "كيك الشاي", "Tea Cake", "الحلى", 4, "🍰", {
+        description: "شريحة كيك بالهيل والزعفران.",
+        calories: 290,
+        sodium_mg: 210,
+        allergens: ["جلوتين", "بيض", "حليب"],
+      }),
+      dish("s2", "بسكويت شاي", "Tea Biscuits", "الحلى", 2, "🍪", {
+        description: "خمس حبّات تُغمّس في الكرك.",
+        calories: 140,
+        sodium_mg: 90,
+        allergens: ["جلوتين", "حليب"],
+      }),
+    ],
+  };
+}
+
+/* ── بيت شاي تراثي — لطابع «سماور» (٢٠٢٦/١١/٠٧) ───────────────────────────────────
+ * بيت شاي في المدينة المنورة: الاستكانة ١٠٠ مل بالسكّر، والإبريق ستّ استكانات والسكّر جانباً،
+ * والنعناع والحبق من مزارع قباء، والحلى بقصم وحلاوة وغُريبة. والكافيين لشايٍ أسود مخدّر (≈ ٢٥
+ * ملغم للاستكانة)، والأعشاب بلا كافيين — صفرٌ مكتوب لا خانةٌ فارغة. و«جلسة الشاي» إبريقٌ
+ * وبقصم وحلاوة، أرخص من الثلاثة وسعراتها وصوديومها مجموعها. */
+
+function teahouse(): DemoData {
+  const R = "demo-teahouse";
+  const M = "demo-teahouse-menu";
+  const dish = dishMaker(R, M);
+  const HERB = JSON.stringify([
+    { name: "نعناع المدينة", price: 0 },
+    { name: "حبق", price: 0 },
+    { name: "هيل", price: 0 },
+    { name: "زعفران", price: 3 },
+  ]);
+  return {
+    restaurant: restaurantOf(R, {
+      name: "بيت شاي الحبق",
+      type: "بيت شاي تراثي",
+      address: "المدينة المنورة — قباء",
+      logo: "🫖",
+      allergens_text: "الحلى فيها جلوتين وسمسم وحليب، والمكسّرات مكسّرات — اسألنا قبل الطلب.",
+      working_hours: WEEK("15:00", "01:00", "02:00"),
+      loyalty_goal: 8,
+      loyalty_reward: "إبريق شاي مجاناً",
+      prep_minutes: 5,
+      category_order: JSON.stringify(["الشاي", "أعشاب ومشروبات", "الحلى والمكسّرات"]),
+    }),
+    menus: [menuOf(R, M, "samovar")],
+    dishes: [
+      dish("h1", "استكانة شاي", "Istikan of Tea", "الشاي", 2, "🫖", {
+        description: "١٠٠ مل شاي مخدّر من السماور بملعقةٍ ونصف سكّر.",
+        featured: true,
+        calories: 25,
+        sodium_mg: 3,
+        caffeine_mg: 25,
+        options: HERB,
+      }),
+      dish("h2", "إبريق شاي — ستّ استكانات", "Teapot — Six Glasses", "الشاي", 14, "🫖", {
+        description: "٦٠٠ مل للجلسة، والسكّر جانباً.",
+        calories: 5,
+        sodium_mg: 15,
+        caffeine_mg: 150,
+        options: HERB,
+      }),
+      dish("h3", "شاي مخدّر", "Slow-Steeped Tea", "الشاي", 3, "🫖", {
+        description: "استكانة يُترك شايها على السماور حتى يحمرّ.",
+        calories: 25,
+        sodium_mg: 3,
+        caffeine_mg: 35,
+      }),
+      dish("h4", "شاي بالحبق", "Basil-Mint Tea", "الشاي", 3, "🌿", {
+        description: "استكانة بحبق المدينة.",
+        calories: 25,
+        sodium_mg: 3,
+        caffeine_mg: 25,
+      }),
+      // نافدٌ الآن — الجمر يُوقد بعد المغرب، و«نفد اليوم» أصدق من أن يختفي الصنف.
+      dish("h5", "شاي على الجمر", "Ember-Brewed Tea", "الشاي", 4, "🫖", {
+        description: "يغلي في برّادٍ على الفحم فيأخذ دخانه.",
+        calories: 25,
+        sodium_mg: 3,
+        caffeine_mg: 30,
+        available: false,
+      }),
+      dish("h6", "شاي زعفران", "Saffron Tea", "الشاي", 5, "🫖", {
+        description: "استكانة بخيوط زعفران.",
+        calories: 27,
+        sodium_mg: 3,
+        caffeine_mg: 25,
+      }),
+      dish("h7", "شاي أخضر بالنعناع", "Green Tea with Mint", "الشاي", 3, "🍵", {
+        description: "استكانة شاي أخضر بالنعناع وملعقة سكّر.",
+        calories: 18,
+        sodium_mg: 2,
+        caffeine_mg: 20,
+      }),
+      dish("e1", "بابونج", "Chamomile", "أعشاب ومشروبات", 6, "🌼", {
+        description: "إبريق صغير ٢٠٠ مل بالعسل جانباً — بلا كافيين.",
+        calories: 2,
+        sodium_mg: 2,
+        caffeine_mg: 0,
+      }),
+      dish("e2", "زنجبيل وقرفة", "Ginger & Cinnamon", "أعشاب ومشروبات", 6, "🫚", {
+        description: "٢٠٠ مل — بلا كافيين.",
+        calories: 4,
+        sodium_mg: 3,
+        caffeine_mg: 0,
+      }),
+      dish("e3", "سحلب", "Sahlab", "أعشاب ومشروبات", 9, "🥛", {
+        description: "٢٥٠ مل حليب بالسحلب والقرفة والفستق.",
+        calories: 220,
+        sodium_mg: 110,
+        allergens: ["حليب", "مكسرات"],
+      }),
+      dish("d1", "بقصم المدينة — ٤ حبّات", "Madinah Buqsum (4)", "الحلى والمكسّرات", 6, "🥨", {
+        description: "كعكٌ مقرمش بالسمسم يُغمّس في الشاي.",
+        calories: 220,
+        sodium_mg: 160,
+        allergens: ["جلوتين", "سمسم"],
+      }),
+      dish("d2", "حلاوة طحينية", "Tahini Halva", "الحلى والمكسّرات", 7, "🍯", {
+        description: "٥٠ غ حلاوة بالفستق.",
+        calories: 260,
+        sodium_mg: 95,
+        allergens: ["سمسم", "مكسرات"],
+      }),
+      dish("d3", "غُريبة — ٣ حبّات", "Ghraybeh (3)", "الحلى والمكسّرات", 6, "🍪", {
+        description: "بالسمن البلدي والهيل.",
+        calories: 270,
+        sodium_mg: 60,
+        allergens: ["جلوتين", "حليب"],
+      }),
+      dish("d4", "مكسّرات مشكّلة", "Mixed Nuts", "الحلى والمكسّرات", 8, "🌰", {
+        description: "٥٠ غ لوز وكاجو وفستق محمّص.",
+        calories: 300,
+        sodium_mg: 180,
+        allergens: ["مكسرات"],
+      }),
+      dish("x1", "جلسة الشاي", "Tea Majlis Set", "الشاي", 24, "🫖", {
+        description: "إبريق شاي وبقصم وحلاوة طحينية — لثلاثة أو أربعة.",
+        featured: true,
+        // ٥ + ٢٢٠ + ٢٦٠ — والصوديوم ١٥ + ١٦٠ + ٩٥.
+        calories: 485,
+        sodium_mg: 270,
+        caffeine_mg: 150,
+        allergens: ["جلوتين", "سمسم", "مكسرات"],
+      }),
+    ],
+  };
+}
+
 /**
  * المنيو الذي يُعاين به طابعٌ ما وحده (`/demo?theme=…` من «عاينه كاملاً»):
  * منيوه إن كان له (`KIND_BY_THEME`)، وإلا أوّل نوعٍ في `suits` ⇒ منيو ذلك النوع.
@@ -1715,11 +2013,16 @@ const KIND_BY_TYPE: Record<string, DemoKind> = {
  * منيوه (المندي والإيدامات أقرب إليه من ستيك الديوان).
  *
  * و«جمر» و«ريحان» شارتاهما «مشويات» و«مطعم» — ولا منيو لنوعيهما (فيعاينهما «الديوان»).
- * و«مشويات» **لا** تُضاف إلى `KIND_BY_TYPE`: «فاخر» شارته الأولى «مشويات»، فيصير
- * منيوه منيو المنقل لا ستيك الديوان.
+ * و«مشويات» **لا** تُضاف إلى `KIND_BY_TYPE`: كانت شارة «فاخر» الأولى فيصير منيوه منيو
+ * المنقل لا ستيك الديوان — واليوم (٠٧/١١) شارتُه «مطعم» وحدها، و«مشويات» على «فاتورة»
+ * وهي تُعاين على البرجر كما كانت (أدناه).
  *
  * و«دلّة» و«باريستا» (٠٧/١١) شارتهما «كافيه» ومنيو الكافيه لـ«محمصة» — فلكلٍّ منيوه. و«لوحة
  * حروف» و«عصري» تبدّلت شارتاهما معهما (`themeSuggest`) وبقي كلٌّ يُعاين على منيوه كما كان.
+ *
+ * و«كرك» و«سماور» (٠٧/١١) شارتاهما «عصائر» و«شعبي» ومنيو النوعين لـ«عصّارة» و«نجدي» — فلكلٍّ
+ * منيوه. وتبدّلت معهما شاراتُ «فاتورة» و«دكّان» و«مجلّة» (ولوحة الحروف وعصري ثانيةً)، وبقي كلٌّ
+ * يُعاين على منيوه كما كان: البرجر، والشعبي، والحلويات.
  */
 const KIND_BY_THEME: Readonly<Record<string, DemoKind>> = {
   bakery: "bakery",
@@ -1731,6 +2034,11 @@ const KIND_BY_THEME: Readonly<Record<string, DemoKind>> = {
   barista: "espresso",
   letterboard: "cafe",
   modern: "juice",
+  karak: "karak",
+  samovar: "teahouse",
+  receipt: "burger",
+  dukkan: "shaabi",
+  editorial: "sweets",
 };
 
 export function demoKindForSuits(suits: readonly string[] | undefined, themeId?: string | null): DemoKind {
@@ -1752,6 +2060,8 @@ const BUILDERS: Record<DemoKind, () => DemoData> = {
   pizza,
   qahwa,
   espresso,
+  karak,
+  teahouse,
 };
 
 /** المنيو التجريبي لنوعٍ ما — والمجهول يسقط إلى «الديوان». */

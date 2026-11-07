@@ -55,6 +55,11 @@ const PAGES = [
   { path: "/demo?kind=qahwa", anchor: "ضيافة المجلس", role: "text", label: "منيو القهوة السعودية التجريبي" },
   { path: "/demo?theme=barista", anchor: "رغوة", role: "text", label: "باريستا على منيو الإسبريسو" },
   { path: "/demo?kind=espresso", anchor: "فلات وايت", role: "text", label: "منيو الإسبريسو التجريبي" },
+  // ٠٧/١١: طابعا الشاي — «كرك» على كشك الكرك الليلي، و«سماور» على بيت الشاي التراثي.
+  { path: "/demo?theme=karak", anchor: "كرك سهر", role: "text", label: "كرك على منيو كشك الكرك" },
+  { path: "/demo?kind=karak", anchor: "عرض السهرة", role: "text", label: "منيو كشك الكرك التجريبي" },
+  { path: "/demo?theme=samovar", anchor: "بيت شاي الحبق", role: "text", label: "سماور على منيو بيت الشاي" },
+  { path: "/demo?kind=teahouse", anchor: "جلسة الشاي", role: "text", label: "منيو بيت الشاي التجريبي" },
   // مقالٌ ثابت: نصّه يُحمَّل كسولاً (`import.meta.glob`) ويمرّ على المنقّي في
   // متصفّح حقيقي — ويُعرض ولو سقطت الشبكة. والمرساة عنوانٌ **داخل النصّ** لا
   // عنوان المقال: هي ما يثبت أن الملفّ الكسول وصل ومرّ على المنقّي سليماً.
