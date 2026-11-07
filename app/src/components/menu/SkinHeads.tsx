@@ -18,8 +18,8 @@
  * - `FolioHead`    دفتر منيو من جلد (فاخر): خيطٌ ذهبيّ مخيط، والاسم مختومٌ بالذهب.
  * - `GridHead`     شبكةٌ طباعيّة (عصري): شريطٌ أسود، وخليّة الشعار، ومسطرةٌ مقيسة.
  * - `DukkanHead` · `AsirHead` · `HarborHead` · `PatisserieHead` · `JuiceHead` · `BurgerHead` ·
- *   `BakeryHead` · `BreakfastHead` · `GrillHead` · `PizzaHead` — كلٌّ في ملفّه (`heads/`) كي لا
- *   تتزاحم الطوابع على ملفّ.
+ *   `BakeryHead` · `BreakfastHead` · `GrillHead` · `PizzaHead` · `DallahHead` · `BaristaHead` ·
+ *   `KarakHead` · `SamovarHead` — كلٌّ في ملفّه (`heads/`) كي لا تتزاحم الطوابع على ملفّ.
  *
  * والحركة كلّها في `styles/menu-skins.css` — CSS خالص، ولا تعمل إلا لمن يقبل الحركة.
  * وكلّ ما هنا يُلوَّن بـ`--m-*`، فيلبس لون علامة التاجر كما تلبسه واجهة المتجر.
@@ -588,6 +588,10 @@ export { BakeryHead } from "./heads/BakeryHead";
 export { BreakfastHead } from "./heads/BreakfastHead";
 export { GrillHead } from "./heads/GrillHead";
 export { PizzaHead } from "./heads/PizzaHead";
+export { DallahHead } from "./heads/DallahHead";
+export { BaristaHead } from "./heads/BaristaHead";
+export { KarakHead } from "./heads/KarakHead";
+export { SamovarHead } from "./heads/SamovarHead";
 export { AsirHead } from "./heads/AsirHead";
 
 /* ══ فاخر — دفتر جلدٍ بخيطٍ ذهبيّ ══════════════════════════════════════ */

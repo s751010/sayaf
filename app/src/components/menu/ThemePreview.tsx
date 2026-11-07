@@ -9,7 +9,9 @@
  * مجلّة، وأقواس، وبيت طين، وكيس بنّ، ولوحة دكّان على رفّ، وجدارٌ بالقطّ العسيري،
  * ودفتر جلدٍ بخيطٍ ذهبيّ (فاخر)، وورق شبكةٍ بمسطرة (عصري)، ولوح كاونترٍ يسيل منه
  * الجبن فوق صاجٍ حديديّ (صاج)، وفوهة فرنٍ متّقدة فوق ختمٍ (فرن)، وصينيّة نحاسٍ تطلع
- * فوق بلاطٍ مزخرف (فوّال)، وسيخٌ فوق منقلٍ متّقد (جمر)، وبيتزا على مفرشٍ مائل (ريحان).
+ * فوق بلاطٍ مزخرف (فوّال)، وسيخٌ فوق منقلٍ متّقد (جمر)، وبيتزا على مفرشٍ مائل (ريحان)،
+ * وصفُّ دلالٍ على رفٍّ بمساميرَ نحاس (دلّة)، وآلة إسبريسو بعدّاد ضغطٍ (باريستا)، وعربة كركٍ تحت
+ * حبل مصابيح (كرك)، وسجّادةٌ معلّقة أمامها سماورٌ واستكانات (سماور).
  *
  * ⚠️ أشكالٌ لا نصوص: خطوط الطوابع لا تُحمَّل في اللوحة ولا في الهبوط، وحرفٌ
  * بخطٍّ احتياطي يكذب على التاجر في أوّل ما يراه من الطابع.
@@ -618,6 +620,191 @@ function PizzaMini({ v }: { v: Record<string, string> }) {
   );
 }
 
+/** صورة الدلّة الظلّية للمعاينة — القطع نفسها في `heads/DallahHead.tsx` مختصرةً في مسارٍ واحد. */
+const DALLAH_PATH =
+  "M70 .5 72.6 6H67.4ZM56 30C56 20 62 13 70 13S84 20 84 30ZM52 29.5H88V33H52ZM55 33H85C82 44 80.5 54 81.5 64H58.5C59.5 54 58 44 55 33Z" +
+  "M55.5 63H84.5V67H55.5ZM57 67C40 72 31 88 33 104 35 119 50 127 70 127S105 119 107 104C109 88 100 72 83 67Z" +
+  "M55 125C55 129 51 132.5 48.5 135H91.5C89 132.5 85 129 85 125Z" +
+  "M45 76C33 71 25 60 19.5 47.5 15.5 38.5 12 29.5 6.5 21.5 15 27.5 21 37 26.5 45.5 33 55.5 41.5 63 52.5 68.5Z";
+
+function MiniPot({ h, flip, style }: { h: number; flip?: boolean; style?: CSSProperties }) {
+  return (
+    <svg viewBox="0 0 120 136" className="absolute block" style={{ height: h, width: (h * 120) / 136, transform: flip ? "scaleX(-1)" : undefined, ...style }}>
+      <path d="M84 38C103 37 112 53 106.5 71 103 83 99 89 99.5 95" fill="none" stroke="#7a5214" strokeWidth="6" />
+      <path d={DALLAH_PATH} fill="#c8973a" stroke="#6b4710" strokeWidth="2" />
+      <ellipse cx="54" cy="94" rx="6" ry="17" fill="#f4dc96" opacity=".55" />
+    </svg>
+  );
+}
+
+/** دلّة: صفّ دلالٍ من نحاسٍ على رفٍّ بمساميرَ والشعار في بطن الكبيرة، والاسم، وفنجال القسم
+    وعدده تمرة. */
+function DallahMini({ v }: { v: Record<string, string> }) {
+  return (
+    <div className="relative h-28 overflow-hidden" style={{ background: v["--m-bg"] }} aria-hidden="true">
+      <span
+        className="absolute inset-x-0 top-0 block h-[80px]"
+        style={{ background: `radial-gradient(45% 55% at 50% 55%, rgba(255,226,150,.6), transparent 75%), linear-gradient(180deg, #e7e1c6, ${v["--m-bg"]})` }}
+      />
+      <MiniPot h={38} style={{ left: "calc(50% - 50px)", top: 34 }} />
+      <MiniPot h={32} flip style={{ left: "calc(50% + 24px)", top: 40 }} />
+      <MiniPot h={64} style={{ left: "calc(50% - 32px)", top: 8 }} />
+      <span
+        className="absolute block h-[21px] w-[21px] rounded-full"
+        style={{ left: "calc(50% + 2.5px - 10.5px)", top: 44, background: v["--m-surface"], boxShadow: "0 0 0 2px #e9c873, 0 0 0 3px #6b4710" }}
+      />
+      <span
+        className="absolute inset-x-0 top-[72px] block h-[8px]"
+        style={{
+          background: `radial-gradient(circle, #f6de98 0 1px, transparent 1.6px) 3px 50% / 11px 100% repeat-x, linear-gradient(${v["--m-accent"]}, ${v["--m-accent"]}) 0 100% / 100% 2px no-repeat, linear-gradient(#6b4426, #3a2212)`,
+        }}
+      />
+      <span className="absolute left-1/2 top-[88px] block h-2 w-20 -translate-x-1/2 rounded-full" style={{ background: v["--m-text"] }} />
+      <span className="absolute inset-x-5 bottom-[6px] flex items-center gap-1.5">
+        <span className="block h-[8px] w-[11px]" style={{ background: "#fbf7ef", clipPath: "polygon(0 0,100% 0,72% 100%,28% 100%)", boxShadow: "inset 0 2px 0 #d7a443" }} />
+        <span className="block h-1.5 w-10 rounded-full" style={{ background: v["--m-text"] }} />
+        <span className="block h-[3px] flex-1" style={{ background: "radial-gradient(circle, #6f8a35 0 1.2px, transparent 1.7px) 0 50% / 7px 100% repeat-x" }} />
+        <span className="block h-[9px] w-5 rounded-[50%]" style={{ background: "#4f240f" }} />
+      </span>
+    </div>
+  );
+}
+
+/** باريستا: آلة إسبريسو بلون العلامة بإطار ستيل وعدّاد ضغطٍ وجهه الشعار، ورأسان يصبّان في
+    فنجانين، وصينيّة تقطير، وكاونتر سنديان، والاسم، وكوب القسم الورقيّ بختمه. */
+function BaristaMini({ v }: { v: Record<string, string> }) {
+  const chrome = "linear-gradient(180deg, #f4f6f7, #9aa1a7)";
+  return (
+    <div className="relative h-28 overflow-hidden" style={{ background: v["--m-bg"] }} aria-hidden="true">
+      <span className="absolute inset-x-[22%] top-[5px] flex justify-between">
+        {[0, 1, 2, 3].map((i) => (
+          <span key={i} className="block h-[5px] w-[8px]" style={{ background: "#fff", clipPath: "polygon(18% 0,82% 0,100% 100%,0 100%)" }} />
+        ))}
+      </span>
+      <span
+        className="absolute inset-x-[12%] top-[12px] block h-[38px] rounded-t-[8px] rounded-b-[2px]"
+        style={{
+          background: `${chrome} 0 0 / 100% 4px no-repeat, linear-gradient(180deg, #e9ecee, #8d949a) 0 100% / 100% 5px no-repeat, linear-gradient(104deg, transparent 16%, rgba(255,255,255,.3) 20%, transparent 26%), ${v["--m-accent"]}`,
+          boxShadow: "0 6px 8px -5px rgba(0,0,0,.5)",
+        }}
+      />
+      <span
+        className="absolute left-1/2 top-[15px] flex h-[28px] w-[28px] -translate-x-1/2 items-center justify-center rounded-full"
+        style={{ background: "radial-gradient(circle closest-side, #fbfaf7 0 70%, #8a9096 72%, #f6f7f8 78%, #8a9096 100%)" }}
+      >
+        <span className="block h-[18px] w-[18px] rounded-full" style={{ background: v["--m-surface"], boxShadow: "inset 0 0 0 1px rgba(0,0,0,.12)" }} />
+      </span>
+      <span className="absolute inset-x-[15%] top-[50px] block h-[20px]" style={{ background: "linear-gradient(#2f3337, #1d2023)" }} />
+      {[27, 73].map((x) => (
+        <span key={x} className="absolute top-[48px] block" style={{ left: `${x}%` }}>
+          <span className="absolute -left-[8px] top-0 block h-[6px] w-[16px] rounded-b-[3px]" style={{ background: "linear-gradient(90deg,#6f757b,#fff 45%,#6c7277)" }} />
+          <span className="absolute -left-[1px] top-[6px] block h-[7px] w-[2px]" style={{ background: "#8a4f26" }} />
+          <span className="absolute -left-[5px] top-[13px] block h-[6px] w-[10px] rounded-b-[2px]" style={{ background: "#fbfaf7" }} />
+        </span>
+      ))}
+      <span className="absolute inset-x-[13%] top-[69px] block h-[3px]" style={{ background: "repeating-linear-gradient(90deg,#5d6268 0 1px,#dfe2e4 1px 3px)" }} />
+      <span className="absolute inset-x-0 top-[72px] block h-[7px]" style={{ background: "linear-gradient(180deg, #f0dcb6, #c9a774)" }} />
+      <span className="absolute left-1/2 top-[88px] block h-2 w-20 -translate-x-1/2 rounded-full" style={{ background: v["--m-text"] }} />
+      <span className="absolute inset-x-5 bottom-[5px] flex items-center gap-1.5">
+        <span className="relative block h-[12px] w-[9px]" style={{ background: "#fdfcf9", clipPath: "polygon(0 0,100% 0,85% 100%,15% 100%)", boxShadow: "inset 0 3px 0 #2b2420" }}>
+          <span className="absolute left-1/2 top-[5px] block h-[4px] w-[4px] -translate-x-1/2 rounded-full" style={{ boxShadow: `inset 0 0 0 1px ${v["--m-accent"]}` }} />
+        </span>
+        <span className="block h-1.5 w-12 rounded-full" style={{ background: v["--m-text"] }} />
+        <span className="block h-px flex-1" style={{ background: v["--m-muted"], opacity: 0.4 }} />
+        <span className="block h-[8px] w-5 rounded-[2px]" style={{ background: "#fff", boxShadow: "0 0 0 1px rgba(0,0,0,.08)" }} />
+      </span>
+    </div>
+  );
+}
+
+/** كرك: حبل مصابيح فوق عربةٍ بلون العلامة على الليل، وشبّاكٌ مضاءٌ فيه برّادٌ وكاسات، ولوحة
+    الشعار المضيئة على الواجهة وعجلتان، والاسم، وكاسة القسم وسلكها إلى بطاقة الصفيح. */
+function KarakMini({ v }: { v: Record<string, string> }) {
+  const a = v["--m-accent"];
+  return (
+    <div className="relative h-28 overflow-hidden" style={{ background: `linear-gradient(180deg, #08121a, ${v["--m-bg"]} 70%)` }} aria-hidden="true">
+      <svg viewBox="0 0 200 22" className="absolute inset-x-0 top-0 block w-full">
+        <path d="M-6 2Q50 14 100 3T206 2" fill="none" stroke="#000" strokeWidth="1" />
+        {[[20, 6], [42, 8.4], [64, 7.6], [136, 6.6], [158, 8.4], [180, 6.8]].map(([x, y]) => (
+          <g key={x}>
+            <circle cx={x} cy={y + 3} r="6" fill="#ffd27a" opacity=".22" />
+            <circle cx={x} cy={y + 3} r="2.4" fill="#ffe2a0" />
+          </g>
+        ))}
+      </svg>
+      <span className="absolute left-1/2 top-[20px] block h-[6px] w-[104px] -translate-x-1/2" style={{ background: `color-mix(in srgb, ${a} 60%, #000)`, clipPath: "polygon(0 0,100% 0,93% 100%,7% 100%)" }} />
+      <span className="absolute left-1/2 top-[26px] block h-[34px] w-[96px] -translate-x-1/2 rounded-t-[3px] p-[3px] pb-0" style={{ background: a }}>
+        <span className="relative block h-full w-full overflow-hidden rounded-t-[2px]" style={{ background: "radial-gradient(70% 90% at 50% 20%, #ffeec4, #f7cd7c 45%, #d98d3e)" }}>
+          <span className="absolute right-[10px] top-[10px] block h-[14px] w-[22px] rounded-t-[11px]" style={{ background: "linear-gradient(90deg,#5b6168,#e9edf0 40%,#8d949a)" }} />
+          <span className="absolute bottom-0 right-[8px] block h-[3px] w-[26px] bg-[#24282c]" />
+          {[8, 18, 28].map((x) => (
+            <span key={x} className="absolute bottom-0 block h-[9px] w-[7px]" style={{ left: x, background: "linear-gradient(#f3dfba 0 2px, #c98a4c 2px)", clipPath: "polygon(0 0,100% 0,88% 100%,12% 100%)" }} />
+          ))}
+        </span>
+      </span>
+      <span className="absolute left-1/2 top-[60px] block h-[3px] w-[104px] -translate-x-1/2" style={{ background: "linear-gradient(#f2f4f5,#7c838a)" }} />
+      <span
+        className="absolute left-1/2 top-[63px] block h-[18px] w-[96px] -translate-x-1/2 rounded-b-[3px]"
+        style={{ background: `repeating-linear-gradient(90deg, color-mix(in srgb, ${a} 78%, #000) 0 1px, ${a} 1px 5px)` }}
+      />
+      <span
+        className="absolute left-1/2 top-[57px] block h-[22px] w-[22px] -translate-x-1/2 rounded-full"
+        style={{ background: v["--m-text"], boxShadow: "0 0 0 3px #3a4046, 0 0 0 4px #ffe2a0, 0 0 10px rgba(255,196,102,.7)" }}
+      />
+      {["calc(50% - 40px)", "calc(50% + 30px)"].map((left) => (
+        <span key={left} className="absolute top-[76px] block h-[10px] w-[10px] rounded-full" style={{ left, background: "radial-gradient(circle,#c9ced2 0 20%,#16191c 26%)" }} />
+      ))}
+      <span className="absolute left-1/2 top-[92px] block h-2 w-20 -translate-x-1/2 rounded-full" style={{ background: v["--m-text"] }} />
+      <span className="absolute inset-x-5 bottom-[4px] flex items-center gap-1.5">
+        <span className="block h-[10px] w-[7px]" style={{ background: "linear-gradient(#f3dfba 0 2px, #c98a4c 2px)", clipPath: "polygon(0 0,100% 0,85% 100%,15% 100%)" }} />
+        <span className="block h-1.5 w-10 rounded-full" style={{ background: v["--m-text"] }} />
+        <span className="block h-[4px] flex-1" style={{ background: "radial-gradient(circle, #ffe2a0 0 1.3px, transparent 1.8px) 0 50% / 8px 100% repeat-x" }} />
+        <span className="block h-[8px] w-5 rounded-[2px]" style={{ background: "#f4e6c8", rotate: "-4deg" }} />
+      </span>
+    </div>
+  );
+}
+
+/** سماور: سجّادةٌ معلّقة ميدانها بلون العلامة والشعار في ترنجها، وسماور نحاسٍ واستكاناتٌ أمامها
+    على حاشية سجّاد، والاسم، واستكانة القسم وحاشيتها إلى صحنها. */
+function SamovarMini({ v }: { v: Record<string, string> }) {
+  const a = v["--m-accent"];
+  const zig = "linear-gradient(135deg, #f3e9d2 25%, transparent 25%) -3px 0 / 6px 6px repeat-x, linear-gradient(225deg, #f3e9d2 25%, transparent 25%) -3px 0 / 6px 6px repeat-x";
+  return (
+    <div className="relative h-28 overflow-hidden" style={{ background: `linear-gradient(180deg, #dfe8dc, ${v["--m-bg"]})` }} aria-hidden="true">
+      <span className="absolute left-1/2 top-[5px] block h-[3px] w-[82px] -translate-x-1/2 rounded-full bg-[#6b3d1c]" />
+      <span className="absolute left-1/2 top-[7px] block h-[54px] w-[74px] -translate-x-1/2 p-[4px]" style={{ background: `${zig}, #a63c27`, boxShadow: "0 4px 6px -2px rgba(29,26,43,.3)" }}>
+        <span className="relative block h-full w-full" style={{ background: a, boxShadow: "inset 0 0 0 1px #f3e9d2" }}>
+          <span className="absolute left-1/2 top-1/2 block h-[26px] w-[34px] -translate-x-1/2 -translate-y-1/2 bg-[#f3e9d2]" style={{ clipPath: "polygon(50% 0,100% 50%,50% 100%,0 50%)" }} />
+          <span className="absolute left-1/2 top-1/2 block h-[15px] w-[15px] -translate-x-1/2 -translate-y-1/2 rounded-full" style={{ background: v["--m-surface"], boxShadow: "0 0 0 1px #a63c27" }} />
+        </span>
+      </span>
+      <span className="absolute left-1/2 top-[61px] block h-[4px] w-[74px] -translate-x-1/2" style={{ background: "repeating-linear-gradient(90deg,#f3e9d2 0 1px,transparent 1px 3px)" }} />
+      <svg viewBox="0 0 100 172" className="absolute block" style={{ height: 50, width: 29, left: "calc(50% + 26px)", top: 24 }}>
+        <path d="M30 38C28 28 36 15 52 15S76 28 74 38Z" fill="#f8f5ef" />
+        <path d="M31 27H73" stroke={a} strokeWidth="5" />
+        <path d="M30 50H70C76 54 84 64 86 84 88 104 80 120 66 128H34C20 120 12 104 14 84 16 64 24 54 30 50Z" fill="#c06a32" />
+        <ellipse cx="38" cy="86" rx="6" ry="18" fill="#ffd1a0" opacity=".6" />
+        <path d="M38 38H66L62 50H42ZM38 128H62L59 142H41ZM24 142H76L80 158H20Z" fill="#9a4a1e" />
+      </svg>
+      {[0, 1].map((i) => (
+        <span key={i} className="absolute top-[54px] block" style={{ left: `calc(50% - ${52 - i * 12}px)` }}>
+          <span className="block h-[14px] w-[9px]" style={{ background: "linear-gradient(#d6a944 0 2px, #b4461c 2px)", clipPath: "polygon(0 0,100% 0,72% 50%,100% 100%,0 100%,28% 50%)" }} />
+          <span className="-mx-[2px] block h-[3px] w-[13px] rounded-[50%] bg-[#fbf8f1]" style={{ boxShadow: "0 0 0 .5px #c9a04a" }} />
+        </span>
+      ))}
+      <span className="absolute inset-x-0 top-[72px] block h-[7px]" style={{ background: `${zig}, ${a}`, boxShadow: "inset 0 1px 0 #a63c27, inset 0 -1px 0 #a63c27" }} />
+      <span className="absolute left-1/2 top-[88px] block h-2 w-20 -translate-x-1/2 rounded-full" style={{ background: v["--m-text"] }} />
+      <span className="absolute inset-x-5 bottom-[5px] flex items-center gap-1.5">
+        <span className="block h-[11px] w-[7px]" style={{ background: "linear-gradient(#d6a944 0 2px, #b4461c 2px)", clipPath: "polygon(0 0,100% 0,72% 50%,100% 100%,0 100%,28% 50%)" }} />
+        <span className="block h-1.5 w-10 rounded-full" style={{ background: v["--m-text"] }} />
+        <span className="block h-[5px] flex-1" style={{ background: `${zig}, ${a}` }} />
+        <span className="block h-[8px] w-5 rounded-[50%] bg-[#fbf8f1]" style={{ boxShadow: "inset 0 0 0 1px #c9a04a" }} />
+      </span>
+    </div>
+  );
+}
+
 /** عسير: شريطٌ ومثلّثات بألوان القطّ، والشعار في حلقات، وسطران بخطٍّ متعرّج. */
 function AsirMini({ v }: { v: Record<string, string> }) {
   const band = `repeating-linear-gradient(90deg, ${v["--m-accent"]} 0 12px, #e8b51f 12px 24px, #17704a 24px 36px, #2b5a9e 36px 48px)`;
@@ -838,6 +1025,14 @@ export function ThemePreview({ theme }: { theme: MenuTheme }) {
       return <GrillMini v={v} />;
     case "pizza":
       return <PizzaMini v={v} />;
+    case "dallah":
+      return <DallahMini v={v} />;
+    case "barista":
+      return <BaristaMini v={v} />;
+    case "karak":
+      return <KarakMini v={v} />;
+    case "samovar":
+      return <SamovarMini v={v} />;
     case "gold":
       return <GoldMini theme={theme} />;
     case "modern":

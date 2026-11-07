@@ -262,9 +262,13 @@ export function segmentBySlug(slug: string | undefined): Segment | null {
   return SEGMENTS.find((s) => s.slug === slug) ?? null;
 }
 
-/** معرّفات الطوابع الثلاثة التي يضعها المُنتقي أوّلاً لنوع الشريحة. */
+/**
+ * معرّفات الطوابع الثلاثة التي يضعها المُنتقي أوّلاً لنوع الشريحة. والصفّ أربعة منذ ٠٧/١١ (الحدّ
+ * أربعة في `themeSuggest`)، والصفحة ثلاثةٌ كما كُتب نصّها وصُفّت أزرارها (ثلاثة أعمدة).
+ */
+export const SEGMENT_THEMES = 3;
 export function segmentThemeIds(seg: Segment): readonly string[] {
-  return SUGGESTED[suggestionKey(seg.typeKey)];
+  return SUGGESTED[suggestionKey(seg.typeKey)].slice(0, SEGMENT_THEMES);
 }
 
 /** الطوابع نفسها بترتيب الاقتراح — والمعرّف المجهول يسقط ولا يكسر الصفحة. */

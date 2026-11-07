@@ -60,7 +60,9 @@ describe("الأقسام والطوابع", () => {
   });
 
   it("`themesOf` يحفظ ترتيب المالك، و«الكل» يعيد الكلّ كما هو", () => {
-    expect(themesOf("cafe", DESIGN_THEMES).map((t) => t.id)).toEqual(["roastery", "letterboard", "editorial", "modern"]);
+    expect(themesOf("cafe", DESIGN_THEMES).map((t) => t.id)).toEqual(["roastery", "barista", "dallah", "letterboard", "editorial", "modern"]);
+    // ٠٧/١١: قسم الشاي — الكشك ثم البيت ثم «دلّة» ثم «ملصقات».
+    expect(themesOf("tea", DESIGN_THEMES).map((t) => t.id)).toEqual(["karak", "samovar", "dallah", "sticker"]);
     expect(themesOf(null, DESIGN_THEMES)).toEqual(DESIGN_THEMES);
     expect(categoryById("nope")).toBeNull();
   });
@@ -85,6 +87,17 @@ describe("قسم التاجر من نوع نشاطه — مفردات `themeSugg
     ["كافيه", "cafe"],
     ["محمصة قهوة مختصة", "cafe"],
     ["مقهى شعبي", "shaabi"],
+    // ٠٧/١١: صفّا القهوة على رفّ المقاهي.
+    ["قهوة عربية", "cafe"],
+    ["خولاني", "cafe"],
+    ["إسبريسو بار", "cafe"],
+    // ٠٧/١١: الشاي — نوعاً («شاي» في `aliasType`) أو بيتَ شاي — على رفّ الشاي.
+    ["شاي", "tea"],
+    ["كرك", "tea"],
+    ["كشك كرك وشاي", "tea"],
+    ["شاهي", "tea"],
+    ["بيت شاي تراثي", "tea"],
+    ["مقهى شاي", "tea"],
     ["مخبز وحلويات", "bakery"],
     ["مخبز تميس", "bakery"],
     ["فول وتميس", "breakfast"],
@@ -128,6 +141,13 @@ describe("`/demo`: القسم من `?kind=` و`?theme=` — ولا يغيّر م
     // `?kind=` وحده: طابع منيو النوع.
     ["sweets", "patisserie", "bakery"],
     ["truck", "neon", "fast"],
+    // ٠٧/١١: طابعا القهوة على منيويهما ⇒ رفّ المقاهي.
+    [demoKindForSuits(ALL_THEMES.find((t) => t.id === "dallah")!.suits, "dallah"), "dallah", "cafe"],
+    [demoKindForSuits(ALL_THEMES.find((t) => t.id === "barista")!.suits, "barista"), "barista", "cafe"],
+    // ٠٧/١١: طابعا الشاي على منيويهما ⇒ رفّ الشاي (الكرك بيته، وسماور أوّل رفٍّ يقف عليه).
+    [demoKindForSuits(ALL_THEMES.find((t) => t.id === "karak")!.suits, "karak"), "karak", "tea"],
+    [demoKindForSuits(ALL_THEMES.find((t) => t.id === "samovar")!.suits, "samovar"), "samovar", "tea"],
+    ["karak", null, "tea"],
   ] as const)("kind=%s theme=%s ⇒ %s", (kind, theme, cat) => {
     expect(demoCategoryOf(kind, theme)).toBe(cat);
   });

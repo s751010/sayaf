@@ -43,6 +43,27 @@ const CAFE: StarterDish[] = [
   { name: "تشيز كيك", price: 24, category: "الحلويات", icon: "cake" },
 ];
 
+/**
+ * محلّ الشاي (٠٧/١١، «كرك» و«سماور» — نوعٌ تاسع بقرار المالك): الكرك وأخواته بالكاسة، والإبريق
+ * للجلسة، والبراتا والفطائر التي تُباع معه.
+ */
+const TEA: StarterDish[] = [
+  { name: "شاي كرك", price: 4, category: "الشاي", icon: "istikana" },
+  { name: "كرك زعفران", price: 6, category: "الشاي", icon: "istikana" },
+  { name: "كرك زنجبيل", price: 5, category: "الشاي", icon: "istikana" },
+  { name: "شاي أحمر", price: 3, category: "الشاي", icon: "istikana" },
+  { name: "شاي بالنعناع", price: 4, category: "الشاي", icon: "istikana" },
+  { name: "شاي حليب بالهيل", price: 5, category: "الشاي", icon: "istikana" },
+  { name: "شاي أخضر", price: 5, category: "الشاي", icon: "istikana" },
+  { name: "إبريق شاي", price: 15, category: "الشاي", icon: "istikana" },
+  { name: "زنجبيل بالليمون", price: 7, category: "المشروبات", icon: "juice" },
+  { name: "مياه", price: 2, category: "المشروبات", icon: "juice" },
+  { name: "براتا بالجبن", price: 8, category: "المخبوزات والمعجنات", icon: "bread" },
+  { name: "فطيرة زعتر", price: 6, category: "المخبوزات والمعجنات", icon: "croissant" },
+  { name: "كيك الشاي", price: 7, category: "الحلويات", icon: "cake" },
+  { name: "بسكويت شاي", price: 3, category: "الحلويات", icon: "cake" },
+];
+
 const STARTERS: Record<string, StarterDish[]> = {
   مطعم: [
     { name: "حمص بالطحينة", price: 18, category: "المقبلات", icon: "mezze" },
@@ -62,6 +83,7 @@ const STARTERS: Record<string, StarterDish[]> = {
     { name: "مياه", price: 3, category: "المشروبات", icon: "juice" },
   ],
   كافيه: CAFE,
+  شاي: TEA,
   عصائر: [
     { name: "عصير برتقال طازج", price: 15, category: "العصائر الطازجة", icon: "juice" },
     { name: "عصير مانجو", price: 17, category: "العصائر الطازجة", icon: "juice" },
@@ -188,6 +210,19 @@ export function norm(v: string): string {
  * `hasStarter` تعيد `false` فلا يُعرض قالب لأحد تقريباً — وهذه هي النقطة التي
  * توقّف عندها ١٣ من ١٩ عند صفر طبق.
  */
+/**
+ * كلمات الشاي (٠٧/١١) — **كلماتٌ كاملة لا احتواء**، وتُفحص قبل `HINTS` كلّها: «الشايع» اسم عائلة،
+ * و«شاهين» طير، و«كركم» بهار، و«steak» فيها «tea». وتُقبل بـ«ال» وبواو العطف («قهوة وشاي»).
+ * والشاي قبل الكافيه كما الكافيه قبل المخبز: «مقهى شاي» و«كافيه كرك» و«قهوة وشاي» محلّات شاي.
+ */
+const TEA_WORDS = ["شاي", "شاهي", "كرك", "سماور", "استكانه", "استكانات", "چاي", "tea", "chai", "karak", "samovar", "teahouse"];
+
+function isTea(v: string): boolean {
+  return v
+    .split(/[\s,،/\-—]+/)
+    .some((w) => TEA_WORDS.some((t) => w === t || w === `ال${t}` || w === `و${t}` || w === `وال${t}`));
+}
+
 const HINTS: [string, string][] = [
   ["كافيه", "كافيه"], ["كوفي", "كافيه"], ["قهوه", "كافيه"], ["مقهي", "كافيه"],
   ["cafe", "كافيه"], ["coffee", "كافيه"],
@@ -212,6 +247,7 @@ export function aliasType(type: string | null | undefined): string {
   const v = norm(type ?? "");
   if (!v) return "مطعم";
   for (const key of STARTER_TYPES) if (norm(key) === v) return key;
+  if (isTea(v)) return "شاي";
   for (const [hint, key] of HINTS) if (v.includes(hint)) return key;
   return "مطعم";
 }
