@@ -9,7 +9,7 @@
  * مجلّة، وأقواس، وبيت طين، وكيس بنّ، ولوحة دكّان على رفّ، وجدارٌ بالقطّ العسيري،
  * ودفتر جلدٍ بخيطٍ ذهبيّ (فاخر)، وورق شبكةٍ بمسطرة (عصري)، ولوح كاونترٍ يسيل منه
  * الجبن فوق صاجٍ حديديّ (صاج)، وفوهة فرنٍ متّقدة فوق ختمٍ (فرن)، وصينيّة نحاسٍ تطلع
- * فوق بلاطٍ مزخرف (فوّال).
+ * فوق بلاطٍ مزخرف (فوّال)، وسيخٌ فوق منقلٍ متّقد (جمر)، وبيتزا على مفرشٍ مائل (ريحان).
  *
  * ⚠️ أشكالٌ لا نصوص: خطوط الطوابع لا تُحمَّل في اللوحة ولا في الهبوط، وحرفٌ
  * بخطٍّ احتياطي يكذب على التاجر في أوّل ما يراه من الطابع.
@@ -521,6 +521,103 @@ function BreakfastMini({ v }: { v: Record<string, string> }) {
   );
 }
 
+/** جمر: ليلٌ يضيئه الفحم، وسيخٌ بقطعه والشعار قطعةٌ منه، ومنقلٌ بلون العلامة بفتحاتٍ تتّقد،
+    وكاونتر ستيل، والاسم، وسيخ القسم. */
+function GrillMini({ v }: { v: Record<string, string> }) {
+  const steel = "#d3d7da";
+  const piece = (c: string, i: number) => (
+    <span key={i} className="relative block h-[14px] w-[11px] rounded-[3px]" style={{ background: c, boxShadow: "inset 0 -2px 0 rgba(0,0,0,.25)" }} />
+  );
+  return (
+    <div className="relative h-28 overflow-hidden" style={{ background: v["--m-bg"] }} aria-hidden="true">
+      <span
+        className="absolute inset-x-0 top-0 block h-[68px]"
+        style={{ background: "radial-gradient(55% 60% at 50% 100%, rgba(255,118,38,.45), transparent 75%), linear-gradient(180deg, #2b2421, #13100e)" }}
+      />
+      {[28, 47, 66].map((x, i) => (
+        <span
+          key={x}
+          className="absolute top-0 block h-9 w-3 rounded-full"
+          style={{ left: `${x}%`, background: "rgba(236,229,221,.13)", filter: "blur(3px)", transform: `rotate(${i % 2 ? 8 : -8}deg)` }}
+        />
+      ))}
+      <span className="absolute inset-x-[8%] top-[20px] z-[1] flex items-center justify-center gap-[2px]">
+        <span className="absolute inset-x-0 top-1/2 block h-[2px] -translate-y-1/2" style={{ background: steel }} />
+        <span className="absolute start-[-4px] top-1/2 block h-2.5 w-2.5 -translate-y-1/2 rounded-full" style={{ boxShadow: `inset 0 0 0 2px ${steel}` }} />
+        {["#c7341c", "#8a4320", "#efe2c4", "#8a4320"].map(piece)}
+        <span
+          className="relative mx-0.5 block h-[30px] w-[30px] rounded-full p-[3px]"
+          style={{ background: "radial-gradient(circle at 35% 30%, #c0703a, #8a4320 55%, #5a2810)", boxShadow: "0 3px 8px rgba(255,120,40,.5)" }}
+        >
+          <span className="block h-full w-full rounded-full" style={{ background: v["--m-surface"] }} />
+        </span>
+        {["#8a4320", "#4f7d2a", "#8a4320", "#efe2c4"].map(piece)}
+      </span>
+      <span
+        className="absolute left-1/2 top-[40px] block h-[9px] w-[76%] -translate-x-1/2 rounded-t-[3px]"
+        style={{ background: "radial-gradient(circle, #ffd27a 0 1px, transparent 1.6px) 0 0 / 7px 5px, linear-gradient(#c2410c, #6e1c08)" }}
+      />
+      <span
+        className="absolute left-1/2 top-[49px] flex h-[15px] w-[76%] -translate-x-1/2 items-center justify-center gap-[8px]"
+        style={{ background: v["--m-accent"], clipPath: "polygon(0 0, 100% 0, 95% 100%, 5% 100%)" }}
+      >
+        {[0, 1, 2, 3, 4, 5].map((i) => (
+          <span key={i} className="block h-[4px] w-[4px] rounded-full" style={{ background: "#ffb04a" }} />
+        ))}
+      </span>
+      <span className="absolute inset-x-0 top-[65px] block h-[3px]" style={{ background: "linear-gradient(#f3f5f6, #959ba0)" }} />
+      <span className="absolute left-1/2 top-[77px] block h-2 w-20 -translate-x-1/2 rounded-full" style={{ background: v["--m-text"] }} />
+      <span className="absolute inset-x-6 bottom-[11px] flex items-center gap-[2px]">
+        <span className="absolute inset-x-1 top-1/2 block h-[2px] -translate-y-1/2" style={{ background: "#8d9399" }} />
+        <span className="relative block h-2.5 w-2.5 rounded-full" style={{ boxShadow: "inset 0 0 0 2px #8d9399" }} />
+        {["#8a4320", "#efe2c4"].map(piece)}
+        <span className="relative mx-1 block h-1.5 w-12 rounded-full" style={{ background: v["--m-text"], boxShadow: `0 0 0 3px ${v["--m-bg"]}` }} />
+        {["#c7341c", "#8a4320"].map(piece)}
+      </span>
+    </div>
+  );
+}
+
+/** ريحان: مفرش مربّعاتٍ مائلٌ بلون العلامة على رخام، وبيتزا من فوق مقطّعةً والشعار في
+    قلبها، وورقتا ريحانٍ على المفرش، والاسم تحت رأسه. */
+function PizzaMini({ v }: { v: Record<string, string> }) {
+  const ck = `color-mix(in srgb, ${v["--m-accent"]} 44%, transparent)`;
+  const cloth = `repeating-linear-gradient(0deg, ${ck} 0 6px, transparent 6px 12px), repeating-linear-gradient(90deg, ${ck} 0 6px, transparent 6px 12px), #fbf6ea`;
+  // الصلصة والموزاريلا، وستّ قطعاتٍ رفيعة فوقهما.
+  const pie =
+    "repeating-conic-gradient(from 30deg, rgba(110,45,15,.55) 0 1.5deg, transparent 1.5deg 60deg), " +
+    "radial-gradient(circle, #fff3d6 0 3px, transparent 3.6px) 2px 3px / 12px 11px, #c4361f";
+  return (
+    <div className="relative h-28 overflow-hidden" style={{ background: v["--m-bg"] }} aria-hidden="true">
+      <span className="absolute left-1/2 top-[44px] block h-0 w-0">
+        <span
+          className="absolute -left-[36px] -top-[36px] block h-[72px] w-[72px] rotate-45"
+          style={{ background: cloth, outline: `2.5px dotted ${v["--m-accent"]}`, boxShadow: "0 8px 12px -8px rgba(60,40,20,.5)" }}
+        />
+      </span>
+      <span
+        className="absolute left-1/2 top-[17px] flex h-[54px] w-[54px] -translate-x-1/2 items-center justify-center rounded-full"
+        style={{ background: "radial-gradient(circle closest-side, #f2c47e 0 78%, #d99a4e 88%, #a5622a)", boxShadow: "0 5px 8px -4px rgba(70,40,15,.5)" }}
+      >
+        <span className="flex h-[44px] w-[44px] items-center justify-center rounded-full" style={{ background: pie }}>
+          <span className="block h-4 w-4 rounded-full" style={{ background: v["--m-surface"], boxShadow: "0 0 0 2.5px #f7e7c2" }} />
+        </span>
+      </span>
+      {[
+        [38, 26, 35],
+        [-46, 50, -50],
+      ].map(([dx, y, r]) => (
+        <span
+          key={dx}
+          className="absolute block h-[11px] w-[7px]"
+          style={{ left: `calc(50% + ${dx}px)`, top: y, background: "#2f7a3a", borderRadius: "50% 50% 50% 50% / 65% 65% 35% 35%", transform: `rotate(${r}deg)` }}
+        />
+      ))}
+      <span className="absolute left-1/2 top-[99px] block h-2 w-20 -translate-x-1/2 rounded-full" style={{ background: v["--m-text"] }} />
+    </div>
+  );
+}
+
 /** عسير: شريطٌ ومثلّثات بألوان القطّ، والشعار في حلقات، وسطران بخطٍّ متعرّج. */
 function AsirMini({ v }: { v: Record<string, string> }) {
   const band = `repeating-linear-gradient(90deg, ${v["--m-accent"]} 0 12px, #e8b51f 12px 24px, #17704a 24px 36px, #2b5a9e 36px 48px)`;
@@ -737,6 +834,10 @@ export function ThemePreview({ theme }: { theme: MenuTheme }) {
       return <BakeryMini v={v} />;
     case "breakfast":
       return <BreakfastMini v={v} />;
+    case "grill":
+      return <GrillMini v={v} />;
+    case "pizza":
+      return <PizzaMini v={v} />;
     case "gold":
       return <GoldMini theme={theme} />;
     case "modern":

@@ -8,13 +8,13 @@
 import { describe, expect, it } from "vitest";
 import { ALL_THEMES } from "@/lib/themes";
 import { STARTER_TYPES } from "@/lib/starterMenus";
-import { BAKERY, BREAKFAST, POPULAR_CAFE, SUGGESTED, badgeTypeOf, cafeFlavor, rankThemes, suggestionKey } from "@/lib/themeSuggest";
+import { BAKERY, BREAKFAST, GRILL, PIZZA, POPULAR_CAFE, SUGGESTED, badgeTypeOf, cafeFlavor, rankThemes, suggestionKey } from "@/lib/themeSuggest";
 
 const byId = new Map(ALL_THEMES.map((t) => [t.id, t]));
 
 describe("مفردات واحدة مع `aliasType`", () => {
-  it("مفاتيح الجدول = أنواع `STARTERS` + الكافيه الشعبي + المخبز والفطور", () => {
-    const extra = [POPULAR_CAFE, BAKERY, BREAKFAST];
+  it("مفاتيح الجدول = أنواع `STARTERS` + الكافيه الشعبي + المخبز والفطور والمشاوي والبيتزا", () => {
+    const extra = [POPULAR_CAFE, BAKERY, BREAKFAST, GRILL, PIZZA];
     const keys = Object.keys(SUGGESTED).filter((k) => !extra.includes(k)).sort();
     expect(keys).toEqual([...STARTER_TYPES].sort());
     for (const k of extra) expect(SUGGESTED[k], k).toBeDefined();
@@ -98,6 +98,31 @@ describe("الصفّان الفرعيّان: المخبز والفطور", () =>
   it("شارة الصفّ الفرعيّ من المفردات القائمة", () => {
     expect(badgeTypeOf(BAKERY)).toBe("مخبز وحلويات");
     expect(badgeTypeOf(BREAKFAST)).toBe("شعبي");
+    expect(badgeTypeOf(GRILL)).toBe("مشويات");
+    expect(badgeTypeOf(PIZZA)).toBe("مطعم");
+  });
+});
+
+describe("والصفّان بعدهما: المشاوي والبيتزا (٠٧/١١)", () => {
+  it("داخل «مطعم» و«مطعم سريع» وحدهما — «مطعم مشويات» على صفّ نوعه", () => {
+    expect(suggestionKey("مطعم مشويات")).toBe("مشويات");
+    expect(suggestionKey("شاورما")).toBe(GRILL);
+    expect(suggestionKey("شاورما وبرجر")).toBe(GRILL);
+    expect(suggestionKey("بيتزا")).toBe(PIZZA);
+    expect(suggestionKey("مطعم إيطالي")).toBe(PIZZA);
+    // المخبز يبقى مخبزاً ولو خبز البيتزا، والبرجر برجراً.
+    expect(suggestionKey("مخبز وبيتزا")).toBe(BAKERY);
+    expect(suggestionKey("برجر")).toBe("مطعم سريع");
+  });
+
+  it("«جمر» كلمةً، و«شيشة» مقهى لا مشوى", () => {
+    expect(suggestionKey("مطعم الجمر")).toBe(GRILL);
+    expect(suggestionKey("كافيه وشيشة")).toBe("كافيه");
+    expect(suggestionKey("مندي ومظبي")).toBe("مطعم");
+  });
+
+  it("المشاوي قبل البيتزا حين يذكرهما النصّ معاً", () => {
+    expect(suggestionKey("بيتزا وشاورما")).toBe(GRILL);
   });
 });
 
@@ -106,7 +131,17 @@ describe("`rankThemes` يرتّب ولا يحذف", () => {
     ["كافيه", "roastery", true],
     ["مقهى شعبي", "najdi", true],
     ["مطعم شعبي", "najdi", false],
-    ["مشاوي", "dark-gold", false],
+    // ٠٧/١١: للمشاوي طابعها («جمر») — و«فاخر» ثانيه بشارته.
+    ["مشاوي", "grill", false],
+    ["مشويات على الفحم", "grill", false],
+    ["شاورما", "grill", false],
+    ["كباب وتكّة", "grill", false],
+    ["دجاج مشوي", "grill", false],
+    // ٠٧/١١: وللبيتزا والمطبخ الإيطالي «ريحان».
+    ["بيتزا", "pizza", false],
+    ["بيتزا نابولية ومعكرونة", "pizza", false],
+    ["مطعم إيطالي", "pizza", false],
+    ["Pizza House", "pizza", false],
     // ٠٣/١١: للبحري طابعه («مرفأ») — وروشان ثانيه.
     ["أسماك", "harbor", false],
     ["حلويات", "patisserie", false],

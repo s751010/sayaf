@@ -450,6 +450,41 @@ function breakfast(ctx: Ctx, b: MotifBox, k: MotifInk): void {
   });
 }
 
+/** جمر — سيخٌ على الضلعين: قضيبٌ بالخافت بحلقةٍ في أوّله، وقطعٌ مربّعة بالتمييز والخافت. */
+function grill(ctx: Ctx, b: MotifBox, k: MotifInk): void {
+  const room = b.reach - b.outer;
+  const s = Math.min(b.mm * 2.2, room * 0.5);
+  for (const y of [b.outer + room * 0.5, b.H - b.outer - room * 0.5]) {
+    ctx.fillStyle = k.muted;
+    ctx.fillRect(b.outer + s, y - b.mm * 0.18, b.W - b.outer * 2 - s, b.mm * 0.36);
+    ctx.strokeStyle = k.muted;
+    ctx.lineWidth = b.mm * 0.45;
+    ctx.beginPath();
+    ctx.arc(b.outer + s * 0.5, y, s * 0.42, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  alongTopBottom(b, s * 1.9, (x, w, top) => {
+    if (x < b.outer + s * 1.5) return;
+    const cy = top ? b.outer + room * 0.5 : b.H - b.outer - room * 0.5;
+    const i = Math.round((x - b.outer) / w);
+    ctx.fillStyle = i % 3 === 1 ? k.muted : k.accent;
+    rrect(ctx, x + (w - s) / 2, cy - s / 2, s, s, s * 0.25);
+    ctx.fill();
+  });
+}
+
+/** ريحان — حاشيةُ مفرشٍ على الضلعين: صفّان من المربّعات بالتمييز متناوبان. */
+function pizza(ctx: Ctx, b: MotifBox, k: MotifInk): void {
+  const room = b.reach - b.outer;
+  const c = Math.min(b.mm * 1.6, room * 0.32);
+  alongTopBottom(b, c, (x, w, top) => {
+    const i = Math.round((x - b.outer) / w);
+    const y0 = top ? b.outer + room * 0.5 - c : b.H - b.outer - room * 0.5 - c;
+    ctx.fillStyle = k.accent;
+    ctx.fillRect(x, y0 + (i % 2 ? c : 0), w, c);
+  });
+}
+
 const MOTIFS: Record<MenuSkin, ((ctx: Ctx, b: MotifBox, k: MotifInk) => void) | null> = {
   gold: folio,
   receipt,
@@ -469,6 +504,8 @@ const MOTIFS: Record<MenuSkin, ((ctx: Ctx, b: MotifBox, k: MotifInk) => void) | 
   burger,
   bakery,
   breakfast,
+  grill,
+  pizza,
   // «لون علامتي» محايدٌ عمداً على الشاشة — وكذلك على الورق.
   store: null,
 };

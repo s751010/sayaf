@@ -36,6 +36,13 @@ describe("guessGlyph — اسم الطبق", () => {
     ["مطبّق جبن", "croissant"],
     ["مطبّق لحم", "croissant"],
     ["شريك بالسمسم", "bread"],
+    // ٠٧/١١: منيو «جمر» و«ريحان».
+    ["دجاج مشوي على الفحم", "skewer"],
+    ["شيش طاووق", "skewer"],
+    ["صحن شاورما عربي", "sandwich"],
+    ["فيتوتشيني ألفريدو بالدجاج", "pizza"],
+    ["لازانيا لحم", "pizza"],
+    ["بيتزا دجاج بيستو", "pizza"],
   ] as const)("«%s» ⇐ %s", (name, icon) => {
     expect(guessGlyph(name)).toBe(icon);
   });

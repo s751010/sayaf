@@ -1,0 +1,447 @@
+/*
+ * ══ جمر — منقل الحارة بعد المغرب (٢٠٢٦/١١/٠٧) ═══════════════════════════════════
+ * الطابع التاسع عشر. شريطٌ من ليل الدخان، وسيخٌ واحدٌ بعرضه يمرّ بالشعار كأنّه قطعةٌ
+ * منه، فوق منقلٍ مدهونٍ بلون العلامة يتّقد فحمه وتلمع فتحات واجهته، والدخان والشرر
+ * يعلوان، والمنقل على كاونترٍ من ستيل. والأقسام أسياخ، والسعر تحته علامات الشوي، والطبق
+ * بلا صورة خبزةٌ مشوّحة على صينيّة ستيل.
+ * الترويسة وعنوان القسم في `components/menu/heads/GrillHead.tsx`.
+ *
+ * ⚠️ مستورَدٌ من **رأس** `menu-skins.css` — فكلّ انتقائيٍّ هنا يبدأ بـ
+ * `.m-skin-grill` ليغلب نظيره العامّ بالخصوصية لا بالترتيب.
+ *
+ * ما يتبع العلامة: دهان المنقل (`--m-accent`)، والسعر (`--m-accent-ink`)، والأزرار.
+ * وما لا يتبعها خامة: ليل الدخان والجمر والشرر والستيل وقطع السيخ والخبز.
+ * والنصّ الوحيد على خامةٍ عددُ أصناف القسم: جمرٌ فاتح على فحم ‎12:1 — ثابتٌ أيّاً كان
+ * لون التاجر. واسم المطعم تحت الكاونتر على الأرضية لا على الليل، بحبر الطابع كاملاً.
+ */
+.m-skin-grill {
+  display: flow-root;
+  --m-gr-night: #221c19;
+  --m-gr-night-2: #13100e;
+  --m-gr-steel: #d3d7da;
+  --m-gr-steel-2: #8d9399;
+  --m-gr-iron: #2b2522;
+  --m-gr-char: #1a1210;
+  --m-gr-ember: #ff7a2e;
+  --m-gr-ember-light: #ffc58f;
+  /* رمادُ الفحم على الأرضية: ذرّاتٌ داكنة وفاتحة بثلاث شبكاتٍ أوّليّة المقاس فلا تُقرأ نقشاً. */
+  background-image:
+    radial-gradient(circle at 21% 31%, rgba(40, 32, 28, 0.1) 0 0.7px, transparent 1.2px),
+    radial-gradient(circle at 67% 74%, rgba(40, 32, 28, 0.07) 0 0.9px, transparent 1.4px),
+    radial-gradient(circle at 83% 17%, rgba(255, 255, 255, 0.55) 0 0.8px, transparent 1.3px);
+  background-size: 41px 37px, 53px 61px, 31px 43px;
+}
+
+/* ── الليل: دخانٌ داكن يضيئه الفحم من تحت ── */
+.m-skin-grill .m-gr-night {
+  background:
+    radial-gradient(40% 30% at 18% 18%, rgba(255, 255, 255, 0.05), transparent 70%),
+    linear-gradient(180deg, #2b2421 0%, var(--m-gr-night) 45%, var(--m-gr-night-2) 100%);
+}
+.m-skin-grill .m-gr-glow {
+  pointer-events: none;
+  background: radial-gradient(55% 50% at 50% 92%, rgba(255, 118, 38, 0.42), rgba(255, 90, 20, 0.12) 55%, transparent 75%);
+}
+.m-skin-grill .m-gr-smoke {
+  filter: blur(4px);
+  pointer-events: none;
+}
+.m-skin-grill .m-gr-wisp {
+  stroke: rgba(236, 229, 221, 0.16);
+}
+.m-skin-grill .m-gr-spark {
+  background: #ffb14d;
+  box-shadow: 0 0 6px 1px rgba(255, 140, 50, 0.85);
+  pointer-events: none;
+}
+.m-skin-grill .m-gr-spark-0 {
+  top: 5.5rem;
+}
+.m-skin-grill .m-gr-spark-1 {
+  top: 3.8rem;
+  opacity: 0.7;
+}
+.m-skin-grill .m-gr-spark-2 {
+  top: 4.6rem;
+}
+.m-skin-grill .m-gr-spark-3 {
+  top: 6.2rem;
+  opacity: 0.6;
+}
+
+/* ── السيخ: قضيبٌ من ستيل بحلقةٍ في أوّله ورأسٍ مدبّب في آخره ── */
+.m-skin-grill .m-gr-rod {
+  height: 4px;
+  margin-top: -2px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #f1f3f4, var(--m-gr-steel) 45%, var(--m-gr-steel-2));
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+}
+.m-skin-grill .m-gr-spit .m-gr-rod {
+  inset-inline-start: 10px;
+  inset-inline-end: 4px;
+}
+/* حلقة المقبض والرأس على السيخ الكبير. */
+.m-skin-grill .m-gr-spit::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: -4px;
+  top: 50%;
+  width: 22px;
+  height: 22px;
+  margin-top: -11px;
+  border-radius: 50%;
+  border: 3.5px solid var(--m-gr-steel);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.55),
+    inset 0 1px 1px rgba(0, 0, 0, 0.35);
+}
+.m-skin-grill .m-gr-spit::after,
+.m-skin-grill .m-gr-tip {
+  background: linear-gradient(180deg, #f1f3f4, var(--m-gr-steel) 45%, var(--m-gr-steel-2));
+  /* الرأس نحو آخر السطر — يسار العربية. */
+  clip-path: polygon(100% 0, 0 50%, 100% 100%);
+}
+.m-skin-grill .m-gr-spit::after {
+  content: "";
+  position: absolute;
+  inset-inline-end: -6px;
+  top: 50%;
+  width: 12px;
+  height: 8px;
+  margin-top: -4px;
+}
+[dir="ltr"].m-skin-grill .m-gr-spit::after,
+[dir="ltr"].m-skin-grill .m-gr-tip {
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+}
+.m-skin-grill .m-gr-chunk {
+  filter: drop-shadow(0 3px 2px rgba(0, 0, 0, 0.4));
+}
+/* الشعار قطعةٌ مشويّة على السيخ: حلقةٌ بنّية بعلامات الشوي، وجمرٌ يضيئها من تحت. */
+.m-skin-grill .m-gr-medal {
+  background:
+    repeating-linear-gradient(-35deg, transparent 0 7px, rgba(30, 12, 4, 0.55) 7px 9.5px),
+    radial-gradient(circle at 35% 30%, #c0703a, #8a4320 55%, #5a2810);
+  box-shadow:
+    0 0 0 1.5px #3a1a0a,
+    0 6px 12px -4px rgba(0, 0, 0, 0.7),
+    0 12px 26px -6px rgba(255, 120, 40, 0.6);
+}
+
+/* ── المنقل: فمٌ من جمر، وواجهةٌ مدهونة بفتحاتٍ تتّقد، وقائمتان ── */
+.m-skin-grill .m-gr-coals {
+  position: relative;
+  border-radius: 7px 7px 0 0;
+  /* قطعُ فحمٍ داكنة بثلاثة مقاساتٍ على شبكاتٍ أوّليّة (فلا تصطفّ نقشاً)، وبينها جمرٌ
+     يتوهّج من القاع، وذرّاتٌ بيضاء الحرارة على حوافّها. */
+  background:
+    radial-gradient(circle, rgba(255, 228, 150, 0.95) 0 0.9px, transparent 1.7px) 3px 2px / 19px 13px,
+    radial-gradient(circle, rgba(255, 200, 110, 0.8) 0 0.8px, transparent 1.5px) 9px 6px / 23px 11px,
+    radial-gradient(11px 6px, #2e1f1a 0 60%, transparent 72%) 0 1px / 23px 13px,
+    radial-gradient(9px 5px, #3a2720 0 58%, transparent 72%) 11px 8px / 29px 15px,
+    radial-gradient(6px 4px, #1f1512 0 58%, transparent 72%) 17px 3px / 17px 11px,
+    radial-gradient(70% 140% at 50% 100%, #ffb347 0%, #f06a1e 35%, #a52a0a 70%, #4a1205 100%);
+  box-shadow:
+    inset 0 3px 6px rgba(0, 0, 0, 0.55),
+    0 -12px 26px rgba(255, 110, 30, 0.42);
+}
+/* وهج الجمر — طبقةٌ تتنفّس بالشفافية وحدها. */
+.m-skin-grill .m-gr-coals::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(60% 90% at 50% 100%, rgba(255, 196, 92, 0.55), transparent 75%);
+}
+.m-skin-grill .m-gr-front {
+  clip-path: polygon(0 0, 100% 0, 95% 100%, 5% 100%);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.2), transparent 30%, rgba(0, 0, 0, 0.28)),
+    var(--m-accent);
+  box-shadow: inset 0 3px 0 rgba(0, 0, 0, 0.3);
+}
+/* فتحات الهواء: ثقبٌ داكن وفي قلبه جمرٌ يُرى. */
+.m-skin-grill .m-gr-vents {
+  background: radial-gradient(circle, #ffc060 0 1.8px, #e2601b 2.6px 3.4px, #160d09 4px 5px, transparent 5.5px) 0 50% / 24px 11px space no-repeat;
+}
+.m-skin-grill .m-gr-legs {
+  background:
+    linear-gradient(var(--m-gr-iron), var(--m-gr-iron)) 0 0 / 6px 100% no-repeat,
+    linear-gradient(var(--m-gr-iron), var(--m-gr-iron)) 100% 0 / 6px 100% no-repeat;
+}
+/* الكاونتر: ستيلٌ مصقول، وظلّه على الأرضية. */
+.m-skin-grill .m-gr-counter {
+  position: relative;
+  background: linear-gradient(180deg, #f3f5f6, #c3c8cc 45%, #959ba0);
+  box-shadow: 0 7px 10px -6px rgba(0, 0, 0, 0.4);
+}
+
+/* صورة الغلاف: في إطارٍ من حديد. */
+.m-skin-grill .m-gr-window {
+  border-radius: 10px;
+  box-shadow:
+    0 0 0 4px var(--m-gr-iron),
+    0 14px 22px -14px rgba(0, 0, 0, 0.6);
+}
+
+/* ── عنوان القسم: سيخ — حلقةٌ وقطعتان، والاسم، ثم القطع إلى الرأس ── */
+.m-skin-grill .m-gr-skewer {
+  min-height: 2.75rem;
+}
+.m-skin-grill .m-gr-skewer .m-gr-rod {
+  inset-inline-start: 18px;
+  inset-inline-end: 6px;
+}
+.m-skin-grill .m-gr-ring {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 3px solid var(--m-gr-steel-2);
+  box-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.25),
+    inset 0 1px 1px rgba(0, 0, 0, 0.2);
+}
+/* الاسم على أرضيّته: القضيب يمرّ خلفه ولا يقطع حرفاً. */
+.m-skin-grill .m-gr-label {
+  background: var(--m-bg);
+  border-radius: 6px;
+}
+.m-skin-grill .m-gr-tip {
+  width: 12px;
+  height: 8px;
+  margin-inline-start: -1px;
+}
+/* العدد جمرة: فحمٌ يتّقد حوله، والرقم بلون الجمر الفاتح. */
+.m-skin-grill .m-gr-count {
+  border-radius: 999px;
+  background: var(--m-gr-char);
+  color: var(--m-gr-ember-light);
+  box-shadow:
+    0 0 0 1px rgba(255, 120, 40, 0.5),
+    0 0 10px rgba(255, 110, 30, 0.3);
+}
+.m-skin-grill .m-gr-photo {
+  padding: 4px;
+  border-radius: 12px;
+  background: var(--m-gr-iron);
+  box-shadow: 0 12px 20px -14px rgba(0, 0, 0, 0.6);
+}
+.m-skin-grill .m-gr-photo .m-img {
+  border-radius: 9px;
+}
+
+/* ── السعر: علامات الشوي تحته — خطوطٌ مائلة كما يتركها الشبك على اللحم ── */
+.m-skin-grill .m-card .m-price:not(.m-shine),
+.m-skin-grill .m-feature .m-price {
+  position: relative;
+  display: inline-block;
+  width: fit-content;
+  padding-bottom: 6px;
+}
+.m-skin-grill .m-card .m-price:not(.m-shine)::after,
+.m-skin-grill .m-feature .m-price::after {
+  content: "";
+  position: absolute;
+  inset-inline: 1px;
+  bottom: 0;
+  height: 4px;
+  border-radius: 1px;
+  background: repeating-linear-gradient(115deg, transparent 0 3px, #3a2216 3px 5.5px);
+  opacity: 0.7;
+}
+
+/* ── الطبق بلا صورة: خبزةٌ مشوّحة على صينيّة ستيل ──
+   الأرضية الصينيّة نفسها: ستيلٌ مصقول بخطوط السحب وحافّةٌ مرفوعة (`inset` على `.m-art`).
+   والصحن **خبزة**: قمحيّةٌ ببقعٍ محروقة من الصاج، وضوءٌ في قلبها حيث يجلس الرمز. */
+.m-skin-grill .m-art {
+  box-shadow:
+    inset 0 0 0 3px rgba(255, 255, 255, 0.4),
+    inset 0 0 0 4px rgba(0, 0, 0, 0.1);
+  --m-art-bg:
+    radial-gradient(60% 55% at 50% 48%, rgba(255, 255, 255, 0.35), transparent 72%),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.14) 0 1px, transparent 1px 3px),
+    linear-gradient(135deg, #e1e4e6, #babfc4 48%, #d6d9dc 52%, #b0b5ba);
+  /* الخبزة: فقاعاتٌ محروقة متفرّقة بأحجامٍ مختلفة (لا نقاطٌ منتظمة — تلك بسكويت)، وانتفاخٌ
+     فاتح في قلبها، وحافّةٌ أغمق حيث لامست الصاج. */
+  --m-art-plate:
+    radial-gradient(9% 7% at 24% 30%, rgba(90, 40, 12, 0.55), rgba(90, 40, 12, 0.18) 60%, transparent),
+    radial-gradient(7% 9% at 71% 24%, rgba(90, 40, 12, 0.5), rgba(90, 40, 12, 0.15) 60%, transparent),
+    radial-gradient(11% 8% at 78% 66%, rgba(90, 40, 12, 0.45), rgba(90, 40, 12, 0.14) 60%, transparent),
+    radial-gradient(6% 6% at 33% 74%, rgba(90, 40, 12, 0.55), transparent),
+    radial-gradient(5% 4% at 52% 86%, rgba(90, 40, 12, 0.5), transparent),
+    radial-gradient(4% 5% at 14% 55%, rgba(90, 40, 12, 0.45), transparent),
+    radial-gradient(circle closest-side, #f6e2b8 0 45%, #ecca8e 72%, #d29d58 94%, #b9803f);
+  --m-art-ring: 0 0 0 1px rgba(120, 70, 25, 0.45);
+  --m-art-lift: 0 10px 14px -8px rgba(20, 22, 26, 0.55);
+  --m-art-well: inset 0 0 16px rgba(255, 242, 210, 0.6);
+  --m-art-mark: color-mix(in srgb, var(--m-text) 9%, transparent);
+}
+
+/* ── البطاقة والشرائح: حوافّ حديدٍ قصيرة الانحناء ── */
+.m-skin-grill .m-card,
+.m-skin-grill .m-feature {
+  --m-border: color-mix(in srgb, var(--m-text) 12%, transparent);
+}
+.m-skin-grill .m-chips > *,
+.m-skin-grill .m-tab {
+  border-radius: 6px;
+}
+/* زرّ الإضافة: هالةُ جمرٍ حوله. */
+.m-skin-grill .m-add {
+  box-shadow:
+    0 0 0 2px var(--m-surface),
+    0 0 0 3.5px color-mix(in srgb, var(--m-accent-2) 65%, transparent),
+    0 4px 12px -2px color-mix(in srgb, var(--m-accent-2) 45%, transparent);
+}
+
+/* «نفد اليوم»: فحمٌ انطفأ — لوحٌ أسود والكلمة بلون الجمر الفاتح (‎12:1). */
+.m-skin-grill .m-soldout {
+  border-radius: 4px;
+  background: var(--m-gr-char);
+  color: var(--m-gr-ember-light);
+  transform: rotate(-3deg);
+}
+
+/* ── شاشات الطلب ── */
+.m-skin-grill .m-o-card {
+  border-radius: 12px;
+  box-shadow: 0 8px 18px -14px rgba(20, 15, 10, 0.5);
+}
+.m-skin-grill .m-o-cta {
+  border-radius: 10px;
+  box-shadow:
+    0 0 0 2px var(--m-surface),
+    0 0 0 3.5px color-mix(in srgb, var(--m-accent-2) 55%, transparent),
+    0 12px 20px -14px rgba(20, 15, 10, 0.7);
+}
+.m-skin-grill .m-o-field,
+.m-skin-grill .m-o-ghost,
+.m-skin-grill .m-o-opt,
+.m-skin-grill .m-o-soldout,
+.m-skin-grill .m-o-step,
+.m-skin-grill .m-o-chip {
+  border-radius: 8px;
+}
+.m-skin-grill .m-o-thumb {
+  border-radius: 8px;
+}
+
+/* ── الحركة: السيخ يوضع على المنقل مرّة، والجمر يتنفّس ثلاثاً، والدخان يعلو مرّتين،
+ * والشرر يطير مرّتين ثم يختفي، والنافذة تُقدَّم كصينيّة — كلّها تنتهي. */
+@media (prefers-reduced-motion: no-preference) {
+  .m-skin-grill .m-gr-spit {
+    animation: m-gr-lay 0.75s cubic-bezier(0.2, 0.8, 0.2, 1) 0.15s both;
+  }
+  [dir="ltr"].m-skin-grill .m-gr-spit {
+    animation-name: m-gr-lay-ltr;
+  }
+  .m-skin-grill .m-gr-glow,
+  .m-skin-grill .m-gr-coals::after {
+    animation: m-gr-breathe 1.7s ease-in-out 0.2s 3 both;
+  }
+  .m-skin-grill .m-gr-wisp {
+    transform-box: fill-box;
+    animation: m-gr-rise 2.6s ease-out 0.4s 2 both;
+  }
+  .m-skin-grill .m-gr-wisp:nth-child(2) {
+    animation-delay: 0.9s;
+  }
+  .m-skin-grill .m-gr-wisp:nth-child(3) {
+    animation-delay: 1.4s;
+  }
+  .m-skin-grill .m-gr-spark {
+    animation: m-gr-fly 1.9s ease-out 0.6s 2 both;
+  }
+  .m-skin-grill .m-gr-spark-1 {
+    animation-delay: 1.1s;
+  }
+  .m-skin-grill .m-gr-spark-2 {
+    animation-delay: 0.85s;
+  }
+  .m-skin-grill .m-gr-spark-3 {
+    animation-delay: 1.4s;
+  }
+  .m-skin-grill .m-sheet.anim-fade-up {
+    animation: m-gr-serve 0.3s cubic-bezier(0.2, 0.9, 0.25, 1) backwards;
+  }
+  .m-skin-grill .m-card.m-surface:active,
+  .m-skin-grill .m-feature:active {
+    transform: translateY(1px) scale(0.99);
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    /* السيخ يُدفع على المنقل حين يدخل القسم الشاشة. */
+    .m-skin-grill .m-skewer-h .m-gr-skewer {
+      animation: m-gr-push linear both;
+      animation-timeline: view();
+      animation-range: entry 10% cover 30%;
+    }
+    [dir="ltr"].m-skin-grill .m-skewer-h .m-gr-skewer {
+      animation-name: m-gr-push-ltr;
+    }
+  }
+}
+
+/* يوضع من جهة المقبض (يمين العربية) ويستقرّ. */
+@keyframes m-gr-lay {
+  from {
+    opacity: 0;
+    transform: translateX(48px);
+  }
+}
+@keyframes m-gr-lay-ltr {
+  from {
+    opacity: 0;
+    transform: translateX(-48px);
+  }
+}
+@keyframes m-gr-breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+@keyframes m-gr-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scaleX(0.8);
+  }
+  55% {
+    opacity: 1;
+  }
+}
+@keyframes m-gr-fly {
+  from {
+    opacity: 1;
+    transform: translateY(46px);
+  }
+  to {
+    opacity: 0;
+    transform: translate(6px, -22px);
+  }
+}
+/* الصينيّة تُقدَّم: تنزلق إلى مكانها وتستقرّ بلا ارتداد. */
+@keyframes m-gr-serve {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+}
+@keyframes m-gr-push {
+  from {
+    opacity: 0.35;
+    transform: translateX(36px);
+  }
+}
+@keyframes m-gr-push-ltr {
+  from {
+    opacity: 0.35;
+    transform: translateX(-36px);
+  }
+}

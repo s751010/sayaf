@@ -239,7 +239,7 @@ test("علامة الملح على ٣٢٠ في الطوابع كلّها: داخ
   test.slow();
   const { crashes } = watch(page);
   await page.setViewportSize({ width: 320, height: 720 });
-  expect(ALL_THEMES.length).toBeGreaterThanOrEqual(18);
+  expect(ALL_THEMES.length).toBeGreaterThanOrEqual(20);
   for (const t of ALL_THEMES) {
     await openSaltMenu(page, t.id);
     const salty = card(page, "مندي لحم");

@@ -71,6 +71,9 @@ describe("demoMenus", () => {
     // [الوجبة، أجزاؤها]: الصينيّة أربعٌ من كلّ فطيرة، وصحن الحارة فولٌ وتميسٌ وشاهي.
     ["bakery", "k5", [["k1", 4], ["k2", 4], ["k3", 4]]],
     ["breakfast", "q4", [["q1", 1], ["q5", 1], ["q12", 1]]],
+    // ٠٧/١١: «المشكّل» حصّةٌ من كلّ سيخ، و«عرض الاثنين» مارغريتا وأرابياتا وخبزٌ بالثوم.
+    ["grill", "g5", [["g1", 1], ["g2", 1], ["g3", 1]]],
+    ["pizza", "p6", [["p1", 1], ["p7", 1], ["p10", 1]]],
   ] as const)("«%s»: «%s» أرخص من أجزائه، وسعراته وصوديومه مجموعها", (kind, combo, parts) => {
     const { dishes } = demoData(kind);
     const by = (id: string) => dishes.find((d) => d.id === id)!;
@@ -91,6 +94,10 @@ describe("demoMenus", () => {
     expect(kindOf("bakery")).toBe("bakery");
     expect(kindOf("breakfast")).toBe("breakfast");
     expect(kindOf("asir")).toBe("shaabi");
+    // ٠٧/١١: «جمر» و«ريحان» على منيويهما — و«فاخر» (شارته الأولى «مشويات») على الديوان كما كان.
+    expect(kindOf("grill")).toBe("grill");
+    expect(kindOf("pizza")).toBe("pizza");
+    expect(kindOf("editorial")).toBe("sweets");
     expect(kindOf("patisserie")).toBe("sweets");
     expect(kindOf("najdi")).toBe("shaabi");
     expect(kindOf("roastery")).toBe("cafe");
@@ -98,7 +105,7 @@ describe("demoMenus", () => {
     // ولكلّ طابعٍ منيوٌ موجود — لا معاينة على بيانات ناقصة.
     for (const t of ALL_THEMES) expect(isDemoKind(demoKindForSuits(t.suits, t.id)), t.id).toBe(true);
     // والطابع الجديد يُعاين على منيوٍ طابعُه هو نفسه.
-    for (const id of ["harbor", "patisserie", "juice", "burger", "bakery", "breakfast"]) {
+    for (const id of ["harbor", "patisserie", "juice", "burger", "bakery", "breakfast", "grill", "pizza"]) {
       expect(demoData(kindOf(id)).menus[0].theme).toBe(id);
     }
   });

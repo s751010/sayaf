@@ -1,0 +1,315 @@
+/*
+ * ══ ريحان — بيتزيريا الحيّ (٢٠٢٦/١١/٠٧) ═══════════════════════════════════════
+ * الطابع العشرون. طاولةٌ من رخام، وعليها مفرشُ مربّعاتٍ ملقىً بزاويته (معيّنٌ رأسه إلى
+ * الاسم)، وبيتزا كاملة من فوق وشعارك في قلبها، وشريحةٌ مسحوبةٌ والجبن ممدود. والأقسام
+ * أغطية علب بيتزا مطبوعة، والسعر بورقة ريحان، والطبق بلا صورة صحنُ مطعمٍ على المفرش.
+ * الترويسة وعنوان القسم في `components/menu/heads/PizzaHead.tsx`.
+ *
+ * ⚠️ مستورَدٌ من **رأس** `menu-skins.css` — فكلّ انتقائيٍّ هنا يبدأ بـ
+ * `.m-skin-pizza` ليغلب نظيره العامّ بالخصوصية لا بالترتيب.
+ *
+ * ⚠️ **المفرش ليس مفرش سلسلةٍ معروفة**: لا أحمر وأبيض بخاناتٍ متساوية. هو مربّعاتٌ بلون
+ * العلامة (أخضر الريحان افتراضاً) **مائلةٌ ٤٥°** لأنّ المفرش نفسه مائل، وخيطٌ أحمر كلّ
+ * أربع خانات كخيوط النسيج، وحاشيةُ كُراتٍ على أطرافه.
+ *
+ * ما يتبع العلامة: مربّعات المفرش، وحبر العلبة (`--m-accent-ink`)، واللاصق، والسعر.
+ * وما لا يتبعها خامة: البيتزا والرخام والكرتون والريحان. والنصوص على الخامة اسمُ القسم على
+ * غطاء العلبة (`--m-surface` — فتباينه تباين السعر نفسه ≥ ٤٫٥ أيّاً كان اللون)، والعدد
+ * على اللاصق (`--m-on-accent`).
+ */
+.m-skin-pizza {
+  display: flow-root;
+  --m-pz-cream: #fbf6ea;
+  --m-pz-thread: rgba(200, 55, 28, 0.62);
+  --m-pz-basil: #2f7a3a;
+  --m-pz-kraft: #c9a26e;
+  --m-pz-kraft-2: #9f7a48;
+  --m-pz-check: color-mix(in srgb, var(--m-accent) 44%, transparent);
+  --m-pz-leaf: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-9 -11 18 22'%3E%3Cpath d='M0-11C5-8 7-1 5 4C3.6 7.5 1.6 9.3 0 10C-1.6 9.3-3.6 7.5-5 4C-7-1-5-8 0-11Z'/%3E%3C/svg%3E");
+  /* عروق الرخام: خطوطٌ مائلة خافتة بثلاث شبكاتٍ كبيرة المقاس، فلا تتكرّر في شاشةٍ واحدة. */
+  background-image:
+    linear-gradient(118deg, transparent 0 46%, rgba(120, 112, 100, 0.05) 46.6%, transparent 47.4%),
+    linear-gradient(64deg, transparent 0 60%, rgba(120, 112, 100, 0.035) 60.5%, transparent 61.2%),
+    linear-gradient(152deg, transparent 0 30%, rgba(255, 255, 255, 0.4) 30.8%, transparent 32%);
+  background-size: 520px 760px, 640px 540px, 460px 680px;
+}
+
+/* ── المفرش: مربّعاتٌ بلون العلامة وخيطٌ أحمر كلّ أربع، مائلٌ بزاويته على الرخام ── */
+.m-skin-pizza .m-pz-cloth {
+  left: -6.5rem;
+  top: -6.5rem;
+  transform: rotate(45deg);
+  background:
+    repeating-linear-gradient(0deg, transparent 0 46px, var(--m-pz-thread) 46px 48px),
+    repeating-linear-gradient(90deg, transparent 0 46px, var(--m-pz-thread) 46px 48px),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.1) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(0deg, var(--m-pz-check) 0 12px, transparent 12px 24px),
+    repeating-linear-gradient(90deg, var(--m-pz-check) 0 12px, transparent 12px 24px),
+    var(--m-pz-cream);
+  /* حاشية الكُرات: نقاطٌ مستديرة بلون المربّعات على حافّة القماش. */
+  outline: 5px dotted color-mix(in srgb, var(--m-accent) 80%, var(--m-pz-cream));
+  box-shadow: 0 16px 26px -14px rgba(60, 40, 20, 0.5);
+}
+
+/* البيتزا: ظلّها على المفرش، والموزاريلا حول الشعار. */
+.m-skin-pizza .m-pz-pie {
+  filter: drop-shadow(0 10px 10px rgba(70, 40, 15, 0.38));
+}
+.m-skin-pizza .m-pz-slice {
+  /* على منصِّف الشريحة (١٢٠°) بعيداً عن القرص. */
+  transform: translate(-6px, 10.4px);
+}
+.m-skin-pizza .m-pz-mozz {
+  background: radial-gradient(circle at 40% 35%, #fffdf6, #f7e7c2 70%, #ecd29a);
+  box-shadow:
+    0 0 0 1px rgba(160, 110, 40, 0.35),
+    0 4px 10px -4px rgba(80, 40, 10, 0.5);
+}
+/* ورقتا ريحانٍ سقطتا على المفرش. */
+.m-skin-pizza .m-pz-loose {
+  color: var(--m-pz-basil);
+  filter: drop-shadow(0 2px 1.5px rgba(30, 50, 20, 0.35));
+}
+.m-skin-pizza .m-pz-loose-1 {
+  left: calc(50% + 5.5rem);
+  top: 4.4rem;
+  rotate: 38deg;
+}
+.m-skin-pizza .m-pz-loose-2 {
+  left: calc(50% - 7rem);
+  top: 8.2rem;
+  rotate: -52deg;
+}
+
+/* صورة الغلاف: على المفرش. */
+.m-skin-pizza .m-pz-window {
+  border-radius: 14px;
+  padding: 6px;
+  background:
+    repeating-linear-gradient(0deg, var(--m-pz-check) 0 8px, transparent 8px 16px),
+    repeating-linear-gradient(90deg, var(--m-pz-check) 0 8px, transparent 8px 16px),
+    var(--m-pz-cream);
+  box-shadow: 0 14px 22px -16px rgba(60, 40, 20, 0.6);
+}
+.m-skin-pizza .m-pz-window > * {
+  border-radius: 9px;
+  overflow: hidden;
+}
+
+/* ── عنوان القسم: غطاء علبة بيتزا — كرتونٌ أبيض بحبرٍ واحد وحافّةٌ مضلّعة ── */
+.m-skin-pizza .m-pz-lid {
+  border-radius: 6px 6px 3px 3px;
+  background: var(--m-surface);
+  box-shadow:
+    inset 0 0 0 1px rgba(150, 120, 80, 0.22),
+    0 -1px 0 rgba(255, 255, 255, 0.8);
+}
+/* المطبوع على طرفي الغطاء: شريطا مربّعاتٍ بحبر العلبة — المفرش نفسه على الكرتون. */
+.m-skin-pizza .m-pz-lid::before,
+.m-skin-pizza .m-pz-lid::after {
+  content: "";
+  position: absolute;
+  top: 7px;
+  bottom: 7px;
+  width: 10px;
+  background: repeating-conic-gradient(var(--m-accent-ink, var(--m-accent)) 0 25%, transparent 0 50%) 0 0 / 10px 10px;
+  opacity: 0.85;
+}
+.m-skin-pizza .m-pz-lid::before {
+  inset-inline-start: 9px;
+}
+.m-skin-pizza .m-pz-lid::after {
+  inset-inline-end: 7px;
+}
+/* حافّة الكرتون المضلّع تحت الغطاء، وظلّ العلبة على الرخام. */
+.m-skin-pizza .m-pz-flutes {
+  border-radius: 0 0 5px 5px;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.2), transparent 45%),
+    repeating-linear-gradient(90deg, #dcbd8f 0 2px, var(--m-pz-kraft-2) 2px 3px, var(--m-pz-kraft) 3px 5px);
+  box-shadow: 0 9px 14px -9px rgba(70, 45, 15, 0.55);
+}
+/* اللاصق على الغطاء: بلون العلامة، مائلٌ كما يُلصق باليد. */
+.m-skin-pizza .m-pz-seal {
+  border-radius: 999px;
+  background: var(--m-accent);
+  color: var(--m-on-accent);
+  transform: rotate(-4deg);
+  box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+}
+.m-skin-pizza .m-pz-photo {
+  padding: 6px;
+  border-radius: 16px;
+  background:
+    repeating-linear-gradient(0deg, var(--m-pz-check) 0 8px, transparent 8px 16px),
+    repeating-linear-gradient(90deg, var(--m-pz-check) 0 8px, transparent 8px 16px),
+    var(--m-pz-cream);
+  box-shadow: 0 12px 20px -16px rgba(60, 40, 20, 0.6);
+}
+.m-skin-pizza .m-pz-photo .m-img {
+  border-radius: 11px;
+}
+
+/* ── السعر: ورقة ريحانٍ قبله ── */
+.m-skin-pizza .m-card .m-price:not(.m-shine)::before,
+.m-skin-pizza .m-feature .m-price::before {
+  content: "";
+  display: inline-block;
+  width: 0.62em;
+  height: 0.8em;
+  margin-inline-end: 0.3em;
+  vertical-align: -0.06em;
+  background: var(--m-pz-basil);
+  -webkit-mask: var(--m-pz-leaf) center / contain no-repeat;
+  mask: var(--m-pz-leaf) center / contain no-repeat;
+  rotate: -18deg;
+}
+
+/* ── الطبق بلا صورة: صحنُ مطعمٍ بخطٍّ ملوّن على المفرش ──
+   الأرضية المفرش نفسه بمربّعاتٍ أخفّ، والصحن خزفٌ أبيض بخطٍّ رفيع بلون الطماطم قرب
+   حافّته (`--m-accent-2`) كصحون التراتوريا، وقاعه أبيض يجلس عليه الرمز. */
+.m-skin-pizza .m-art {
+  --m-pz-check-soft: color-mix(in srgb, var(--m-accent) 19%, transparent);
+  --m-art-bg:
+    radial-gradient(56% 52% at 50% 50%, rgba(255, 253, 246, 0.55), transparent 75%),
+    repeating-linear-gradient(0deg, var(--m-pz-check-soft) 0 14px, transparent 14px 28px),
+    repeating-linear-gradient(90deg, var(--m-pz-check-soft) 0 14px, transparent 14px 28px),
+    var(--m-pz-cream);
+  --m-art-plate: radial-gradient(
+    circle closest-side,
+    #fffefb 0 80%,
+    color-mix(in srgb, var(--m-accent-2) 88%, #ffffff) 80.5% 84%,
+    #fffefb 84.5% 92%,
+    #efe9de 100%
+  );
+  --m-art-ring: 0 0 0 1px rgba(60, 45, 30, 0.12);
+  --m-art-lift: 0 12px 16px -10px rgba(60, 40, 20, 0.45);
+  --m-art-well: inset 0 1px 3px rgba(60, 40, 20, 0.1);
+  --m-art-mark: color-mix(in srgb, var(--m-accent) 12%, transparent);
+}
+
+/* ── البطاقة: خزفٌ أبيض، والشرائح حبّاتٌ مستديرة ── */
+.m-skin-pizza .m-card,
+.m-skin-pizza .m-feature {
+  --m-border: color-mix(in srgb, var(--m-text) 11%, transparent);
+}
+.m-skin-pizza .m-chips > *,
+.m-skin-pizza .m-tab {
+  border-radius: 999px;
+}
+.m-skin-pizza .m-add {
+  box-shadow:
+    0 0 0 2px var(--m-surface),
+    0 0 0 3.5px color-mix(in srgb, var(--m-accent) 40%, transparent);
+}
+
+/* «نفد اليوم»: لاصقٌ أبيض بحدٍّ مزدوج بحبر العلبة. */
+.m-skin-pizza .m-soldout {
+  border-radius: 999px;
+  background: var(--m-surface);
+  color: var(--m-accent-ink, var(--m-accent));
+  box-shadow:
+    inset 0 0 0 1.5px currentColor,
+    0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  transform: rotate(-4deg);
+}
+
+/* ── شاشات الطلب ── */
+.m-skin-pizza .m-o-card {
+  border-radius: 16px;
+  box-shadow: 0 8px 18px -14px rgba(60, 40, 20, 0.5);
+}
+.m-skin-pizza .m-o-cta {
+  border-radius: 999px;
+  box-shadow:
+    0 0 0 2px var(--m-surface),
+    0 0 0 3.5px color-mix(in srgb, var(--m-accent) 45%, transparent),
+    0 12px 20px -14px rgba(60, 40, 20, 0.7);
+}
+.m-skin-pizza .m-o-field,
+.m-skin-pizza .m-o-ghost,
+.m-skin-pizza .m-o-opt,
+.m-skin-pizza .m-o-soldout,
+.m-skin-pizza .m-o-step,
+.m-skin-pizza .m-o-chip {
+  border-radius: 12px;
+}
+.m-skin-pizza .m-o-thumb {
+  border-radius: 10px;
+}
+
+/* ── الحركة: البيتزا تُوضع على المفرش، ثم تُسحب شريحةٌ ويمتدّ الجبن، ثم يسقط الريحان،
+ * والنافذة تنفتح كغطاء العلبة — كلّها مرّةً وتنتهي. */
+@media (prefers-reduced-motion: no-preference) {
+  .m-skin-pizza .m-pz-pie {
+    animation: m-pz-serve 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) 0.1s both;
+  }
+  .m-skin-pizza .m-pz-slice {
+    animation: m-pz-pull 0.8s cubic-bezier(0.3, 0, 0.2, 1) 0.85s both;
+  }
+  .m-skin-pizza .m-pz-strings {
+    animation: m-pz-stretch 0.8s ease-out 0.85s both;
+  }
+  .m-skin-pizza .m-pz-loose {
+    animation: m-pz-drop 0.6s cubic-bezier(0.3, 0.7, 0.3, 1) 1.2s both;
+  }
+  .m-skin-pizza .m-pz-loose-2 {
+    animation-delay: 1.4s;
+  }
+  .m-skin-pizza .m-sheet.anim-fade-up {
+    transform-origin: 50% 100%;
+    animation: m-pz-open 0.3s cubic-bezier(0.2, 0.9, 0.25, 1) backwards;
+  }
+  .m-skin-pizza .m-card.m-surface:active,
+  .m-skin-pizza .m-feature:active {
+    transform: translateY(1px) scale(0.99);
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    /* اللاصق يُلصق على الغطاء حين يدخل القسم الشاشة. */
+    .m-skin-pizza .m-box-h .m-pz-seal {
+      animation: m-pz-stick linear both;
+      animation-timeline: view();
+      animation-range: entry 5% cover 25%;
+    }
+  }
+}
+
+@keyframes m-pz-serve {
+  from {
+    opacity: 0;
+    transform: translateY(-14px) scale(1.06);
+  }
+}
+/* الشريحة تبدأ في مكانها من القرص ثم تُسحب إلى مكانها المرسوم. */
+@keyframes m-pz-pull {
+  from {
+    transform: none;
+  }
+}
+@keyframes m-pz-stretch {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes m-pz-drop {
+  from {
+    opacity: 0;
+    translate: 0 -22px;
+  }
+}
+/* الغطاء ينفتح: النافذة تميل من حافّتها السفلى ثم تستقيم. */
+@keyframes m-pz-open {
+  from {
+    opacity: 0;
+    transform: perspective(700px) rotateX(-14deg) translateY(16px);
+  }
+}
+@keyframes m-pz-stick {
+  from {
+    opacity: 0;
+    transform: rotate(-16deg) scale(1.45);
+  }
+}

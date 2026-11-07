@@ -336,11 +336,11 @@ export default function Landing() {
             title={`${THEMES_LABEL} — اختر ما يشبه مكانك`}
             sub="كلٌّ منها تصميمٌ كامل يلبس شعارك ولون علامتك، وتحته الأماكن التي يناسبها. اضغط أيّها لتراه على منيوك أعلاه."
           />
-          {/* ثلاثة على الحاسوب: ثمانية عشر صفوفٌ تامّة في الاثنين والثلاثة — والأربعة
-              (للستّة عشر) كانت ستترك «فرن» و«فوّال» وحدهما في الصفّ الأخير. */}
-          <div className="-mx-5 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-3 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-3">
+          {/* أربعة على الحاسوب: عشرون صفوفٌ تامّة في الاثنين والأربعة — والثلاثة (للثمانية
+              عشر) كانت ستترك «جمر» و«ريحان» وحدهما في الصفّ الأخير. */}
+          <div className="-mx-5 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-3 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-4">
             {ALL_THEMES.map((t, i) => (
-              <Reveal key={t.id} delay={(i % 3) * 70} className="w-[78%] shrink-0 snap-start sm:w-auto">
+              <Reveal key={t.id} delay={(i % 4) * 70} className="w-[78%] shrink-0 snap-start sm:w-auto">
                 <button
                   type="button"
                   onClick={() => tryTheme(t.id)}

@@ -102,10 +102,20 @@ export const CANON: Canon[] = [
     id: "burgers", ar: "البرجر", en: "Burgers", icon: "burger", rank: 62,
     alias: ["برجر", "برغر", "برقر", "همبرجر", "هامبرجر", "burger", "burgers"],
   },
+  // ٠٧/١١ (منيو «ريحان»): البيتزا والمعكرونة قسمان في كلّ بيتزيريا — وكانا معنىً واحداً
+  // هنا، فيُكتب القسمان «Pizza & Pasta» مرّتين للزبون الإنجليزي، وتلتقط `matchKnownCategory`
+  // «المعكرونة» المستوردة إلى قسم «البيتزا». والقسم المجمَّع باقٍ بمعناه واسمه.
   {
-    id: "pizza", ar: "البيتزا والباستا", en: "Pizza & Pasta", icon: "pizza", rank: 65,
-    alias: ["بيتزا", "البيتزا", "باستا", "الباستا", "مكرونة", "معكرونة", "بيتزا وباستا",
-      "pizza", "pasta"],
+    id: "pizza-pasta", ar: "البيتزا والباستا", en: "Pizza & Pasta", icon: "pizza", rank: 65,
+    alias: ["بيتزا وباستا", "بيتزا ومعكرونة", "البيتزا والمعكرونة", "pizza & pasta", "pizza and pasta"],
+  },
+  {
+    id: "pizza", ar: "البيتزا", en: "Pizza", icon: "pizza", rank: 65,
+    alias: ["بيتزا", "pizza", "pizzas"],
+  },
+  {
+    id: "pasta", ar: "المعكرونة", en: "Pasta", icon: "pizza", rank: 66,
+    alias: ["معكرونة", "مكرونة", "المكرونة", "باستا", "الباستا", "pasta"],
   },
   {
     id: "fried", ar: "البروست والمقليات", en: "Fried", icon: "fries", rank: 68,

@@ -6,7 +6,7 @@
 import { describe, expect, it } from "vitest";
 
 import { ALL_THEMES, getTheme, splitThemeId, themeBaseOf, bestOnAccent, isHex, normalizeHex } from "@/lib/themes";
-import { canonOf, matchKnownCategory, sortCategories } from "@/lib/categories";
+import { canonOf, categoryLabel, matchKnownCategory, sortCategories } from "@/lib/categories";
 import { inTimeWindow } from "@/lib/hours";
 import { checkPassword, MIN_PASSWORD } from "@/lib/password";
 import { burnMinutes, HIGH_SODIUM_MG, isHighSodium, isSfdaCompliant } from "@/lib/nutrition";
@@ -82,6 +82,9 @@ describe("ثابت §18 — ألوان الطوابع", () => {
     // «فرن» و«فوّال» (٢٠٢٦/١١/٠٧) — المخبز والفطور الشعبي، باختيار المالك.
     bakery: "5ba38ca",
     breakfast: "a254b3e",
+    // «جمر» و«ريحان» (٢٠٢٦/١١/٠٧) — المشاوي والبيتزا، باختيار المالك.
+    grill: "ed6450a1",
+    pizza: "d7f3647c",
   };
 
   it("بصمة التسعة المجمّدة لم تتغيّر", () => {
@@ -110,7 +113,8 @@ describe("ثابت §18 — ألوان الطوابع", () => {
     // ١٢ ⇒ ١٥ (٢٠٢٦/١١/٠٣): «مرفأ» و«حلواني» و«عصّارة» — طلب المالك «طوابع جديدة».
     // ١٥ ⇒ ١٦ (٢٠٢٦/١١/٠٧): «صاج» — البرجر والوجبات السريعة بلا طابعٍ من عالمها.
     // ١٦ ⇒ ١٨ (٢٠٢٦/١١/٠٧): «فرن» و«فوّال» — المخبز والفطور الشعبي، باختيار المالك.
-    expect(ALL_THEMES.length).toBe(18);
+    // ١٨ ⇒ ٢٠ (٢٠٢٦/١١/٠٧): «جمر» و«ريحان» — المشاوي والشاورما، والبيتزا والإيطالي.
+    expect(ALL_THEMES.length).toBe(20);
   });
 
   /**
@@ -412,7 +416,7 @@ describe("الطوابع الثلاث بعد الرفع — الضغط والس�
     expect(css).toMatch(/\.m-price \{\s*font-family: var\(--font-cairo\)/);
   });
 
-  it.each(["receipt", "neon", "sticker", "letterboard", "editorial", "roshan", "najdi", "roastery", "dukkan", "asir", "harbor", "patisserie", "juice", "burger", "bakery", "breakfast", "gold", "modern"])(
+  it.each(["receipt", "neon", "sticker", "letterboard", "editorial", "roshan", "najdi", "roastery", "dukkan", "asir", "harbor", "patisserie", "juice", "burger", "bakery", "breakfast", "grill", "pizza", "gold", "modern"])(
     "«%s» له حركة نافذةٍ خاصّة داخل `no-preference`",
     (skin) => {
       const block = css.split("@media (prefers-reduced-motion: no-preference)").slice(1).join("");
@@ -503,6 +507,14 @@ describe("bestOnAccent — حدّ WCAG AA", () => {
 describe("التصنيفات", () => {
   it("«فطور» و«إفطار» كلمتان لمعنى واحد", () => {
     expect(canonOf("فطور")?.ar).toBe(canonOf("الإفطار")?.ar);
+  });
+
+  it("«البيتزا» و«المعكرونة» قسمان لا معنىً واحد — والمجمَّع باقٍ (٠٧/١١، «ريحان»)", () => {
+    expect(categoryLabel("البيتزا", true)).toBe("Pizza");
+    expect(categoryLabel("المعكرونة", true)).toBe("Pasta");
+    expect(categoryLabel("بيتزا وباستا", true)).toBe("Pizza & Pasta");
+    expect(matchKnownCategory("معكرونة", ["البيتزا"])).toBeNull();
+    expect(matchKnownCategory("مكرونة", ["المعكرونة", "البيتزا"])).toBe("المعكرونة");
   });
 
   it("المجهول يبقى مجهولاً — لا نخمّن على التاجر", () => {
