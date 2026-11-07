@@ -1272,7 +1272,7 @@ export type DishPayload = {
  * الثلاثة أعمدة `GENERATED ALWAYS AS … STORED` في Postgres، تحسبها قاعدة
  * البيانات من `calories` و`sodium_mg`:
  *   burn_minutes   = round(calories / 4)
- *   is_high_sodium = sodium_mg > 600
+ *   is_high_sodium = sodium_mg > 2000   (حدّ الهيئة — `HIGH_SODIUM_MG`)
  *   sfda_compliant = calories IS NOT NULL AND sodium_mg IS NOT NULL
  *
  * إرسال أي قيمة لعمود محسوب يجعل Postgres يرفض الطلب كاملاً:

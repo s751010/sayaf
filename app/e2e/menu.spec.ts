@@ -167,7 +167,7 @@ test("عبارتا الهيئة تظهران بشرطهما في الذيل، و
   const { crashes } = watch(page);
   const salty = [
     { ...dishes[0], calories: 127, sodium_mg: 95, caffeine_mg: 126, is_high_sodium: false },
-    { id: "d3", menu_id: MID, restaurant_id: RID, name: "شاورما", category: "رئيسية", price: 22, available: true, sort_order: 2, calories: 640, sodium_mg: 1200, is_high_sodium: true },
+    { id: "d3", menu_id: MID, restaurant_id: RID, name: "شاورما", category: "رئيسية", price: 22, available: true, sort_order: 2, calories: 640, sodium_mg: 2400, is_high_sodium: true },
   ];
   await mockMenu(page, { offline: false }, salty);
   await openMenu(page);

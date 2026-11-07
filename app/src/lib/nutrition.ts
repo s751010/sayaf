@@ -15,9 +15,22 @@ export function burnMinutes(calories: number | null): number | null {
   return Math.round(calories / 4);
 }
 
-/** `sodium_mg > 600` — تنبيه صوديوم مرتفع (معيار هيئة الغذاء والدواء). */
+/**
+ * حدّ علامة الملح: ٥ غرامات ملح = ٢٠٠٠ ملغم صوديوم — **بنصّ الهيئة**:
+ * «يُوضع الوسم واضحًا بحجم ولون بارز بجانب الأصناف التي تتجاوز كمية الملح
+ * فيها 5 جرام (ما يعادل 2000 ملليجرام صوديوم)» — «أبرز متطلبات لائحة وسم
+ * الوجبات الغذائية عالية المحتوى بالملح»، مرفق اللائحة نفسها على موقع الهيئة:
+ * https://www.sfda.gov.sa/ar/regulations/19819
+ *
+ * ⚠️ كان ٦٠٠ حتى ٢٠٢٦/١١/٠٧ بلا مصدر — فكان المنيو يَسِم بالملح صنفاً
+ * صوديومه ٨٨٠ (الشاورما في مثال البطل) والهيئة لا تطلب وسمه. والعمود المحسوب
+ * في القاعدة يُعاد تعريفه معه (`20261107_salt_mark_2000mg.sql`).
+ */
+export const HIGH_SODIUM_MG = 2000;
+
+/** `sodium_mg > 2000` — علامة الملح (`HIGH_SODIUM_MG`). */
 export function isHighSodium(sodiumMg: number | null): boolean {
-  return sodiumMg !== null && Number.isFinite(sodiumMg) && sodiumMg > 600;
+  return sodiumMg !== null && Number.isFinite(sodiumMg) && sodiumMg > HIGH_SODIUM_MG;
 }
 
 /** `calories IS NOT NULL AND sodium_mg IS NOT NULL` — اكتمال بيانات SFDA. */

@@ -173,7 +173,7 @@ export function DishModal({
           )}
 
           {/* تنبيه الصوديوم المرتفع — عمود محسوب في قاعدة البيانات
-              (sodium_mg > 600) لم يكن يُعرض للزبون إطلاقاً. */}
+              (sodium_mg > 2000، حدّ الهيئة) لم يكن يُعرض للزبون إطلاقاً. */}
           {dish.is_high_sodium && (
             <p className="m-o-card m-o-fact mt-2 flex items-center gap-2 px-3 py-2 text-xs font-bold" style={{ color: "var(--m-text)" }}>
               <span className="shrink-0" style={{ color: "var(--m-accent-ink, var(--m-accent))" }}>

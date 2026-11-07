@@ -14,6 +14,7 @@ import { Card } from "@/components/ui";
 import { Navbar, Footer } from "@/components/site";
 import { SUPABASE_URL } from "@/lib/config";
 import { useSeo } from "@/lib/seo";
+import { HIGH_SODIUM_MG } from "@/lib/nutrition";
 
 const BASE = `${SUPABASE_URL}/functions/v1/api/v1`;
 
@@ -190,7 +191,8 @@ export default function ApiDocs() {
               • <code dir="ltr">burn_minutes</code> = السعرات ÷ ٤
             </li>
             <li>
-              • <code dir="ltr">is_high_sodium</code> = الصوديوم أكثر من ٦٠٠ ملغم
+              • <code dir="ltr">is_high_sodium</code> = الصوديوم أكثر من{" "}
+              {HIGH_SODIUM_MG.toLocaleString("ar-SA-u-nu-latn")} ملغم
             </li>
             <li>
               • <code dir="ltr">sfda_compliant</code> = السعرات والصوديوم كلاهما

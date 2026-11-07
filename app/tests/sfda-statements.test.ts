@@ -45,7 +45,7 @@ describe("النصّ الرسمي", () => {
 
 describe("عبارة الملح — شرطها علامة الملح نفسها", () => {
   it("يظهر: صنفٌ واحد فوق العتبة يكفي", () => {
-    expect(needsSaltStatement([{ sodium_mg: 120 }, { sodium_mg: 950 }])).toBe(true);
+    expect(needsSaltStatement([{ sodium_mg: 120 }, { sodium_mg: 2400 }])).toBe(true);
   });
   it("لا يظهر: لا صنف عليه العلامة — ولا صوديوم مُدخَل، ولا منيو فارغ", () => {
     expect(needsSaltStatement([{ sodium_mg: 120 }, { sodium_mg: null }])).toBe(false);
@@ -85,7 +85,7 @@ const dish = (id: string, extra: Partial<ComplianceDish> = {}): ComplianceDish =
 
 describe("ملفّ التفتيش يحمل العبارتين بشرطهما", () => {
   it("يظهران: صنفٌ بسعرات وملحٍ مرتفع", () => {
-    const f = buildComplianceFile([dish("a", { calories: 640, sodium_mg: 1200 })], [ACTIVE], []);
+    const f = buildComplianceFile([dish("a", { calories: 640, sodium_mg: 2400 })], [ACTIVE], []);
     expect(f.statements).toContain(MORE_INFO_STATEMENT.ar);
     expect(f.statements).toContain(SALT_STATEMENT.ar);
   });
@@ -96,7 +96,7 @@ describe("ملفّ التفتيش يحمل العبارتين بشرطهما", (
     expect(f.statements).toHaveLength(2);
   });
   it("صنفٌ في قائمةٍ مطفأة لا يُظهر عبارة الملح", () => {
-    const f = buildComplianceFile([dish("a", { menu_id: "m2", sodium_mg: 1200 })], [ACTIVE, { id: "m2", active: false }], []);
+    const f = buildComplianceFile([dish("a", { menu_id: "m2", sodium_mg: 2400 })], [ACTIVE, { id: "m2", active: false }], []);
     expect(f.statements).not.toContain(SALT_STATEMENT.ar);
   });
 });
@@ -113,7 +113,7 @@ const byId = (items: ReturnType<typeof sfdaChecklist>) => Object.fromEntries(ite
 
 describe("لو دخل المفتّش اليوم: بندٌ لكلّ عبارة، جاهزٌ لأن المنصّة تكتبها", () => {
   it("يظهران الآن ⇒ البندان «تلقائي» بسطر «تظهر أسفل منيوك»", () => {
-    const items = byId(sfdaChecklist([cd(640, 1200)], { allergens_text: "x" }));
+    const items = byId(sfdaChecklist([cd(640, 2400)], { allergens_text: "x" }));
     expect(items.onRequest.state).toBe("auto");
     expect(items.saltNote.state).toBe("auto");
     expect(items.onRequest.detail).toContain("تظهر تلقائياً أسفل منيوك");

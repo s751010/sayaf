@@ -25,6 +25,12 @@ describe("sfdaChecklist", () => {
     expect(byId(items).daily.state).toBe("auto");
   });
 
+  it("بند الصوديوم يَعِد بحدّ الهيئة (٢٠٠٠ ملغم = ٥ غ ملح) لا بحدّ ٦٠٠ القديم", () => {
+    const { sodium } = byId(sfdaChecklist([d("كرواسون", "مخبوزات", 310, 380)], { allergens_text: "x" }));
+    expect(sodium.label).toContain(`${(2000).toLocaleString("ar-SA-u-nu-latn")} ملغم`);
+    expect(sodium.label).not.toMatch(/٦٠٠|600/);
+  });
+
   it("صنفٌ بلا سعرات ⇒ بند السعرات ناقص، ورابطه إلى الحاسبة", () => {
     const items = byId(sfdaChecklist([d("لاتيه", "مشروبات", null, null), d("كرواسون", "مخبوزات", 310, 380)], { allergens_text: "x" }));
     expect(items.calories.state).toBe("todo");
