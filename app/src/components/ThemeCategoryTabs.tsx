@@ -108,7 +108,8 @@ export function ThemeCategoryTabs({
                 tone === "gold"
                   ? on
                     ? "border-gold bg-gold/10 text-gold"
-                    : "border-line bg-panel text-dim hover:border-gold/40 hover:text-ink"
+                    : // لمسة الرمز (§20) بالذهب والخطّ بحبر الشريحة — كما في شريط المنيو.
+                      "border-line bg-panel text-dim hover:border-gold/40 hover:text-ink [--cm-tint:color-mix(in_srgb,var(--color-gold)_30%,transparent)]"
                   : on
                     ? "border-ink bg-ink text-page"
                     : "border-line bg-panel text-dim hover:border-ink/35 hover:text-ink"

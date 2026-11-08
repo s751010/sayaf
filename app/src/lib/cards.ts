@@ -797,7 +797,9 @@ async function paintLogo(
   const color = p.frugal ? p.text : glyph;
   const icon = iconNameOf(input.emoji);
   if (icon) {
-    paintIcon(ctx, icon, cx, cy, r * 1.5, color, { weight: 1.9 });
+    // اللمسة (§20) من حبر الرمز نفسه فوق القرص — القرص لون الطابع، فلمسةٌ بلونه
+    // تختفي فيه. و«المقتصد» بلا لمسة: حلقةٌ وخطٌّ وحدهما، والخطّ طبقة القراءة.
+    paintIcon(ctx, icon, cx, cy, r * 1.5, color, { weight: 1.9, tint: p.frugal ? false : undefined });
   } else {
     ctx.fillStyle = color;
     ctx.textBaseline = "middle";
