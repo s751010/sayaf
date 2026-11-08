@@ -115,7 +115,7 @@ function arc(x1: number, y1: number, rx: number, ry: number, deg: number, fa: nu
 
 export type InkBox = { x0: number; y0: number; x1: number; y1: number; w: number; h: number; cx: number; cy: number };
 
-/** صندوق الحبر: المسارات المُحدَّدة ممدودةً بنصف الحدّ، والمملوءة كما هي. */
+/** صندوق الحبر: المسارات المُحدَّدة ممدودةً بنصف الحدّ، والمملوءة واللمسة كما هي. */
 export function inkBox(g: Glyph, stroke = 1.75): InkBox {
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
   const take = (d: string, pad: number) => {
@@ -126,5 +126,6 @@ export function inkBox(g: Glyph, stroke = 1.75): InkBox {
   };
   for (const d of g.s ?? []) take(d, stroke / 2);
   for (const d of g.f ?? []) take(d, 0);
+  for (const d of g.t ?? []) take(d, 0);
   return { x0, y0, x1, y1, w: x1 - x0, h: y1 - y0, cx: (x0 + x1) / 2, cy: (y0 + y1) / 2 };
 }
