@@ -79,7 +79,7 @@ const EMOJI_GLYPH: Record<string, IconName> = {
   "☕": "cup", "🍵": "istikana", "🫖": "istikana", "🧋": "icedcup", "🥤": "icedcup", "🧊": "icedcup",
   "🍹": "juice", "🧃": "juice", "🍊": "juice", "🍋": "juice", "🥭": "juice", "🍓": "juice", "🫐": "juice", "🍍": "juice", "🍉": "juice",
   "🥛": "bottle", "💧": "bottle", "🍼": "bottle", "🫗": "bottle",
-  "🍔": "burger", "🍕": "pizza", "🍝": "pizza", "🍟": "fries", "🧅": "fries",
+  "🍔": "burger", "🍕": "pizza", "🍝": "pasta", "🍟": "fries", "🧅": "fries",
   "🥐": "croissant", "🥖": "bread", "🍞": "bread", "🫓": "bread", "🥯": "bread",
   "🥪": "sandwich", "🌯": "sandwich", "🥙": "sandwich", "🌮": "sandwich",
   "🥣": "soup", "🧆": "mezze", "🫒": "mezze", "🧀": "mezze",

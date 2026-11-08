@@ -168,8 +168,8 @@ function toPayload(f: DishForm): DishPayload {
  * هو محفوظ — بيانات ١٩ مطعماً لا تُبدَّل من تحت أصحابها.
  */
 const QUICK_ICONS: IconName[] = [
-  "burger", "pizza", "sandwich", "skewer", "fish", "kabsa", "pot", "salad",
-  "mezze", "egg", "fries", "bread", "croissant", "cake", "dallah", "cup",
+  "burger", "pizza", "pasta", "sandwich", "skewer", "fish", "kabsa", "pot", "salad",
+  "mezze", "egg", "fries", "bread", "croissant", "cake", "dates", "dallah", "cup",
   "istikana", "icedcup", "juice", "bottle",
 ];
 

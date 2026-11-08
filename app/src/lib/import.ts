@@ -56,7 +56,8 @@ function stripPrice(raw: string, price: number): string {
 const ICON_HINTS: [RegExp, IconName][] = [
   [/آيس|ايس|مثلج|كولد برو|بارد|iced|cold/i, "icedcup"],
   [/برجر|برغر|برقر|burger/i, "burger"],
-  [/بيتزا|باستا|مكرونة|معكرونة|pizza|pasta/i, "pizza"],
+  [/بيتزا|pizza/i, "pizza"],
+  [/باستا|مكرونة|معكرونة|سباغيتي|لازانيا|pasta|spaghetti|lasagna/i, "pasta"],
   [/شاورما|ساندوي|سندوي|راب|sandwich|wrap/i, "sandwich"],
   [/بروست|مقلي|بطاطس|كرسبي|broast|fries/i, "fries"],
   [/شيش|كباب|تكة|مشوي|مشاوي|ريش|ستيك|kebab|grill|steak/i, "skewer"],
@@ -72,8 +73,10 @@ const ICON_HINTS: [RegExp, IconName][] = [
   [/قهوة سعودية|قهوه سعوديه|دلة|دله/i, "dallah"],
   [/قهوة|قهوه|إسبريسو|اسبريسو|لاتيه|كابتشينو|أمريكانو|امريكانو|coffee|latte/i, "cup"],
   [/شاي|شاهي|كرك|ماتشا|نعناع ساخن|tea|matcha/i, "istikana"],
-  [/عصير|ليمون|فريش|كوكتيل|موكتيل|سموذي|شيك|juice|smoothie|shake/i, "juice"],
+  [/عصير|ليمون|فريش|كوكتيل|موكتيل|سموذي|شيك|تمر هندي|juice|smoothie|shake/i, "juice"],
   [/مشروب|صودا|بيبسي|كولا|ماء|مياه|غازي|soda|water/i, "bottle"],
+  // آخراً: «كيكة التمر» كعكة و«تمر هندي» عصير قبلها.
+  [/تمر|تمور|عجوة|dates/i, "dates"],
 ];
 
 /**

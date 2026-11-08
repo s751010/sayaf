@@ -105,6 +105,7 @@ export const CANON: Canon[] = [
   // ٠٧/١١ (منيو «ريحان»): البيتزا والمعكرونة قسمان في كلّ بيتزيريا — وكانا معنىً واحداً
   // هنا، فيُكتب القسمان «Pizza & Pasta» مرّتين للزبون الإنجليزي، وتلتقط `matchKnownCategory`
   // «المعكرونة» المستوردة إلى قسم «البيتزا». والقسم المجمَّع باقٍ بمعناه واسمه.
+  // ٠٨/١١: وصار للمعكرونة رمزها — كانت تلبس شريحة البيتزا فيتكرّر الرمز في شريطٍ واحد.
   {
     id: "pizza-pasta", ar: "البيتزا والباستا", en: "Pizza & Pasta", icon: "pizza", rank: 65,
     alias: ["بيتزا وباستا", "بيتزا ومعكرونة", "البيتزا والمعكرونة", "pizza & pasta", "pizza and pasta"],
@@ -114,7 +115,7 @@ export const CANON: Canon[] = [
     alias: ["بيتزا", "pizza", "pizzas"],
   },
   {
-    id: "pasta", ar: "المعكرونة", en: "Pasta", icon: "pizza", rank: 66,
+    id: "pasta", ar: "المعكرونة", en: "Pasta", icon: "pasta", rank: 66,
     alias: ["معكرونة", "مكرونة", "المكرونة", "باستا", "الباستا", "pasta"],
   },
   {
@@ -197,15 +198,33 @@ export function categoryLabel(raw: string, en: boolean): string {
   return en ? (canonOf(raw)?.en ?? raw) : raw;
 }
 
+/** أوعية المشروبات — داخلها الكلمة أدقّ من القسم (انظر `categoryIcon`). */
+const DRINK_GLYPHS: ReadonlySet<IconName> = new Set<IconName>([
+  "dallah", "cup", "icedcup", "istikana", "juice", "bottle",
+]);
+
 /**
  * رمز التصنيف: القاموس أولاً، ثم التخمين بالكلمة («عصير طازج» عصيرٌ وإن لم
  * يكن «عصائر طازجة» حرفاً — `lib/foodGlyph.ts`)، ثم الصحن العامّ.
  *
  * ⚠️ التخمين **للرمز وحده**: الترتيب والاسم الإنجليزي على `canonOf` بمطابقته
  * الكاملة كما هي.
+ *
+ * ── وفي المشروبات الكلمة تُدقّق القسم (٢٠٢٦/١١/٠٨) ──────────────────────
+ * أقسام المشروبات في القاموس **دلاء**: «المشروبات» تجمع الماء والسموذي
+ * و«باردة»، و«القهوة الساخنة» تجمع الإسبريسو. فكان منيو الإسبريسو التجريبي
+ * يلبس **دلّةً** على «إسبريسو» و**قارورتين** على «بالحليب» و«باردة»، ومنيو
+ * العصير قارورةً على «سموذي» و«كوكتيلات». والوعاء هنا هو المحتوى: فإن سمّت
+ * الكلمة وعاءً أدقّ من وعاء القسم أخذناه. والقارورة — أعمّ الأوعية — لا تُدقّق
+ * شيئاً، فـ«مشروبات ساخنة» تبقى دلّة. والطعام خارج هذا: أقسامه ليست دلاء.
  */
 export function categoryIcon(raw: string | null | undefined): IconName {
-  return canonOf(raw)?.icon ?? guessGlyph(raw) ?? "plate";
+  const canon = canonOf(raw)?.icon;
+  const word = guessGlyph(raw);
+  if (canon && word && word !== "bottle" && DRINK_GLYPHS.has(canon) && DRINK_GLYPHS.has(word)) {
+    return word;
+  }
+  return canon ?? word ?? "plate";
 }
 
 /** مفتاح المقارنة: بلا «ال» التعريف ولا تشكيل، بهمزات وتاء مربوطة موحّدة. */
