@@ -15,6 +15,7 @@ import { RAIL, ThemeCategoryTabs } from "@/components/ThemeCategoryTabs";
 import { Icon } from "@/lib/icons";
 import { ALL_THEMES, getTheme } from "@/lib/themes";
 import { categoryById, themesOf, type ThemeCategory, type ThemeCategoryId } from "@/lib/themeCategories";
+import { isSpecialtyBadge } from "@/lib/themeSuggest";
 import { cn } from "@/lib/utils";
 
 export function DemoPicker({
@@ -32,6 +33,8 @@ export function DemoPicker({
   const cat = categoryById(category);
   const themes = themesOf(category, ALL_THEMES);
   const current = getTheme(theme);
+  // شارة التخصّص (٠٩/١١، «شارة بتخصّصه»): «حطب · بيتزا» — لمن يقلّب طوابع القسم.
+  const specialty = current.suits?.find(isSpecialtyBadge);
 
   return (
     <div data-demo-picker className="border-b border-line bg-panel">
@@ -44,6 +47,7 @@ export function DemoPicker({
                 {cat.name}
                 <span className="text-faint"> · </span>
                 {current.name}
+                {specialty && <span className="text-gold"> · {specialty}</span>}
               </>
             ) : (
               "اختر نوع مطعمك — يتبدّل المنيو وطوابعه"

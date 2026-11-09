@@ -9,15 +9,15 @@ import { describe, expect, it } from "vitest";
 import { ALL_THEMES } from "@/lib/themes";
 import { STARTER_TYPES, aliasType } from "@/lib/starterMenus";
 import {
-  ARABIC_COFFEE, BAKERY, BREAKFAST, BREW_BAR, DRIVE_THRU, GRILL, PIZZA, POPULAR_CAFE, ROW_SIZE, SPECIALTY, SUGGESTED, TEA_HOUSE,
-  badgeTypeOf, cafeFlavor, rankThemes, suggestionKey,
+  ARABIC_COFFEE, BAKERY, BREAKFAST, BREW_BAR, DRIVE_THRU, GRILL, ITALIAN, PIZZA, POPULAR_CAFE, ROW_SIZE, SPECIALTY, SPECIALTY_BADGES,
+  SUGGESTED, TEA_HOUSE, badgeTypeOf, cafeFlavor, isSpecialtyBadge, rankThemes, suggestionKey,
 } from "@/lib/themeSuggest";
 
 const byId = new Map(ALL_THEMES.map((t) => [t.id, t]));
 
 describe("مفردات واحدة مع `aliasType`", () => {
   it("مفاتيح الجدول = أنواع `STARTERS` + الكافيه الشعبي + المخبز والفطور والمشاوي والبيتزا والقهوة وبيت الشاي", () => {
-    const extra = [POPULAR_CAFE, BAKERY, BREAKFAST, GRILL, PIZZA, ARABIC_COFFEE, SPECIALTY, TEA_HOUSE, BREW_BAR, DRIVE_THRU];
+    const extra = [POPULAR_CAFE, BAKERY, BREAKFAST, GRILL, PIZZA, ITALIAN, ARABIC_COFFEE, SPECIALTY, TEA_HOUSE, BREW_BAR, DRIVE_THRU];
     const keys = Object.keys(SUGGESTED).filter((k) => !extra.includes(k)).sort();
     expect(keys).toEqual([...STARTER_TYPES].sort());
     for (const k of extra) expect(SUGGESTED[k], k).toBeDefined();
@@ -25,10 +25,20 @@ describe("مفردات واحدة مع `aliasType`", () => {
     for (const k of extra) expect(STARTER_TYPES).not.toContain(k);
   });
 
-  it.each(ALL_THEMES.map((t) => [t.id, t] as const))("«%s»: شاراته من المفردات نفسها، ولا تزيد على اثنتين", (_, t) => {
+  it.each(ALL_THEMES.map((t) => [t.id, t] as const))("«%s»: شاراته من المفردات نفسها (نوعٌ أو تخصّص)، واحدةٌ إلى اثنتين", (_, t) => {
     expect(t.suits?.length ?? 0).toBeGreaterThan(0);
     expect(t.suits!.length).toBeLessThanOrEqual(2);
-    for (const s of t.suits!) expect(STARTER_TYPES).toContain(s);
+    expect(new Set(t.suits).size).toBe(t.suits!.length);
+    for (const s of t.suits!) expect([...STARTER_TYPES, ...SPECIALTY_BADGES]).toContain(s);
+  });
+
+  it("كلّ تخصّصٍ مفتاحُ صفٍّ فرعيّ — لا نوعٌ ولا نصٌّ حرّ", () => {
+    for (const s of SPECIALTY_BADGES) {
+      expect(SUGGESTED[s], s).toBeDefined();
+      expect(STARTER_TYPES).not.toContain(s);
+      expect(isSpecialtyBadge(s)).toBe(true);
+    }
+    for (const type of STARTER_TYPES) expect(isSpecialtyBadge(type), type).toBe(false);
   });
 
   it("كلّ معرّفٍ في الجدول طابعٌ موجود، وبلا تكرار في الصفّ — والصفّ أربعة", () => {
@@ -56,17 +66,17 @@ describe("قاعدتا الاتّساق", () => {
     for (const t of ALL_THEMES) expect(seen.has(t.id), t.id).toBe(true);
   });
 
-  it("الحدّ أربعة (٠٧/١١، بقرار المالك): لا يحمل شارةَ نوعٍ أكثرُ من أربعة طوابع", () => {
+  it("الحدّ أربعة (٠٧/١١، بقرار المالك): لا يحمل شارةَ نوعٍ **أو تخصّصٍ** أكثرُ من أربعة طوابع", () => {
     // كانت ثلاثة، فامتلأت المقاعد عند الطابع الرابع والعشرين وصارت كلّ إضافةٍ تُخرج شارةً
     // طبيعية من طابعٍ قائم. هذا الفحص يقول صريحاً أيّ نوعٍ امتلأ — قبل أن تسقط قاعدة ٢ على
-    // طابعٍ بعيد — والحاملون كلّهم في صفّ نوعهم.
-    for (const type of STARTER_TYPES) {
+    // طابعٍ بعيد — والحاملون كلّهم في صفّ نوعهم. و(٠٩/١١) التخصّص صفٌّ بأربعة مقاعد كالنوع.
+    for (const type of [...STARTER_TYPES, ...SPECIALTY_BADGES]) {
       const holders = ALL_THEMES.filter((t) => t.suits?.includes(type)).map((t) => t.id);
       expect(holders.length, `${type}: ${holders.join(" · ")}`).toBeLessThanOrEqual(ROW_SIZE);
       for (const id of holders) expect(SUGGESTED[type], `${type} ⇐ ${id}`).toContain(id);
     }
     const badges = ALL_THEMES.reduce((n, t) => n + (t.suits?.length ?? 0), 0);
-    expect(badges).toBeLessThanOrEqual(STARTER_TYPES.length * ROW_SIZE);
+    expect(badges).toBeLessThanOrEqual((STARTER_TYPES.length + SPECIALTY_BADGES.length) * ROW_SIZE);
   });
 });
 
@@ -121,7 +131,8 @@ describe("الصفّان الفرعيّان: المخبز والفطور", () =>
     expect(badgeTypeOf(BAKERY)).toBe("مخبز وحلويات");
     expect(badgeTypeOf(BREAKFAST)).toBe("شعبي");
     expect(badgeTypeOf(GRILL)).toBe("مشويات");
-    expect(badgeTypeOf(PIZZA)).toBe("مطعم");
+    // ٠٩/١١ («شارة بتخصّصه»): البيتزا تخصّصها لا «مطعم».
+    expect(badgeTypeOf(PIZZA)).toBe(PIZZA);
   });
 });
 
@@ -131,7 +142,8 @@ describe("والصفّان بعدهما: المشاوي والبيتزا (٠٧/�
     expect(suggestionKey("شاورما")).toBe(GRILL);
     expect(suggestionKey("شاورما وبرجر")).toBe(GRILL);
     expect(suggestionKey("بيتزا")).toBe(PIZZA);
-    expect(suggestionKey("مطعم إيطالي")).toBe(PIZZA);
+    expect(suggestionKey("مطعم إيطالي")).toBe(ITALIAN);
+    expect(suggestionKey("بيتزا ومعكرونة")).toBe(PIZZA);
     // المخبز يبقى مخبزاً ولو خبز البيتزا، والبرجر برجراً.
     expect(suggestionKey("مخبز وبيتزا")).toBe(BAKERY);
     expect(suggestionKey("برجر")).toBe("مطعم سريع");
@@ -175,24 +187,26 @@ describe("صفّا القهوة (٠٧/١١، «دلّة» و«باريستا»)"
     expect(suggestionKey("كافيه مختص", "specialty")).toBe(SPECIALTY);
   });
 
-  it("المختصّ «كافيه»، والقهوة العربية والكافيه الشعبي «شعبي» (٠٩/١١ — شارة «دلّة»)", () => {
-    expect(badgeTypeOf(SPECIALTY)).toBe("كافيه");
-    for (const k of [ARABIC_COFFEE, POPULAR_CAFE]) expect(badgeTypeOf(k)).toBe("شعبي");
-    expect(byId.get("dallah")!.suits).toEqual(["شعبي"]);
-    expect(SUGGESTED["شعبي"]).toContain("dallah");
+  it("صفّا القهوة بتخصّصهما (٠٩/١١، «شارة بتخصّصه») — و«دلّة» «قهوة عربية» أوّلَ صفّيها", () => {
+    expect(badgeTypeOf(SPECIALTY)).toBe(SPECIALTY);
+    for (const k of [ARABIC_COFFEE, POPULAR_CAFE]) expect(badgeTypeOf(k)).toBe(ARABIC_COFFEE);
+    expect(byId.get("dallah")!.suits).toEqual([ARABIC_COFFEE]);
+    expect(byId.get("barista")!.suits).toEqual(["كافيه", SPECIALTY]);
   });
 });
 
 describe("طوابع القهوة الأربعة (٠٩/١١، اختيار المالك)", () => {
-  it("الكافيه أربعة أشكالٍ للقهوة بشارتها — «محمصة» أوّلاً كما كان", () => {
-    expect(SUGGESTED["كافيه"]).toEqual(["roastery", "barista", "v60", "grinder"]);
-    for (const id of SUGGESTED["كافيه"]) expect(byId.get(id)!.suits, id).toContain("كافيه");
+  it("الكافيه: «محمصة» أوّلاً كما كان، و«لوحة حروف» عادت بشارتها — والقمع بتخصّصه", () => {
+    expect(SUGGESTED["كافيه"]).toEqual(["roastery", "barista", "v60", "letterboard"]);
+    for (const id of ["roastery", "barista", "letterboard"]) expect(byId.get(id)!.suits, id).toContain("كافيه");
   });
 
-  it("الشارات التي انتقلت إلى نوعها الثاني: «لوحة حروف» عصائر، و«لاتيه» حلويات، و«درايف» عصائر", () => {
-    expect(byId.get("letterboard")!.suits).toEqual(["عصائر"]);
-    expect(byId.get("latte")!.suits).toEqual(["مخبز وحلويات"]);
-    expect(byId.get("drive")!.suits).toEqual(["عصائر"]);
+  it("شارات التخصّص (٠٩/١١): «تقطير» مقطّرة، و«لاتيه» و«مطحنة» مختصّة، و«درايف» سريعة", () => {
+    expect(byId.get("v60")!.suits).toEqual([BREW_BAR]);
+    expect(byId.get("latte")!.suits).toEqual([SPECIALTY]);
+    expect(byId.get("grinder")!.suits).toEqual([SPECIALTY, BREW_BAR]);
+    expect(byId.get("drive")!.suits).toEqual([DRIVE_THRU]);
+    expect(byId.get("letterboard")!.suits).toEqual(["كافيه"]);
   });
 
   it("بار التقطير من نصّ النوع — داخل الكافيه، أو «V60» صريحةً", () => {
@@ -203,7 +217,7 @@ describe("طوابع القهوة الأربعة (٠٩/١١، اختيار ال�
     // المحمصة محمصة، و«فلتر» خارج الكافيه ليس قهوة.
     expect(suggestionKey("محمصة قهوة وتقطير")).toBe("كافيه");
     expect(suggestionKey("مطعم فلتر")).toBe("مطعم");
-    expect(badgeTypeOf(BREW_BAR)).toBe("كافيه");
+    expect(badgeTypeOf(BREW_BAR)).toBe(BREW_BAR);
   });
 
   it("كشك القهوة السريع — «كشك» كلمةً، وداخل الكافيه وحده", () => {
@@ -215,37 +229,41 @@ describe("طوابع القهوة الأربعة (٠٩/١١، اختيار ال�
     expect(suggestionKey("برجر درايف ثرو")).toBe("مطعم سريع");
     // زرّ «شعبي» يغلبه كما يغلب المختصّ.
     expect(suggestionKey("كشك قهوة", "popular")).toBe(POPULAR_CAFE);
-    expect(badgeTypeOf(DRIVE_THRU)).toBe("عصائر");
+    expect(badgeTypeOf(DRIVE_THRU)).toBe(DRIVE_THRU);
   });
 });
 
-describe("طوابع البيتزا الأربعة (٠٩/١١، الموجة ٢)", () => {
-  it("المطعم: «فاخر» أوّلاً كما كان، ثم «نابولي» و«حطب» بشارتيهما و«ريحان»", () => {
-    expect(SUGGESTED["مطعم"]).toEqual(["dark-gold", "napoli", "woodfire", "pizza"]);
-    for (const id of ["napoli", "woodfire", "pizza"]) expect(byId.get(id)!.suits, id).toEqual(["مطعم"]);
+describe("«شارة بتخصّصه» (٠٩/١١، قرار المالك)", () => {
+  it("المطعم المجهول: طوابع عامّة بشارة «مطعم» — «فاخر» أوّلاً، و«عصري» عاد، ولا بيتزا", () => {
+    expect(SUGGESTED["مطعم"]).toEqual(["dark-gold", "modern", "editorial", "roshan"]);
+    for (const id of SUGGESTED["مطعم"]) {
+      expect(byId.get(id)!.suits, id).toContain("مطعم");
+      expect(byId.get(id)!.suits!.some(isSpecialtyBadge), id).toBe(false);
+    }
+    expect(rankThemes(ALL_THEMES, null).ordered.slice(0, ROW_SIZE).map((t) => t.id)).toEqual(SUGGESTED["مطعم"]);
   });
 
-  it("البيتزا السريعة «مطعم سريع» — وصفحة العربات تعرض صاج · فاتورة · شريحة", () => {
-    expect(SUGGESTED["مطعم سريع"]).toEqual(["burger", "receipt", "slices", "pizzabox"]);
-    for (const id of ["slices", "pizzabox"]) expect(byId.get(id)!.suits, id).toEqual(["مطعم سريع"]);
+  it("الوجبات السريعة عامّة — و«نيون» عاد؛ وصفحة العربات تعرض صاج · فاتورة · نيون", () => {
+    expect(SUGGESTED["مطعم سريع"].slice(0, 3)).toEqual(["burger", "receipt", "neon"]);
+    expect(byId.get("neon")!.suits).toEqual(["مطعم سريع", "عصائر"]);
+    for (const id of SUGGESTED["مطعم سريع"]) expect(byId.get(id)!.suits!.some(isSpecialtyBadge), id).toBe(false);
   });
 
-  it("صفّ البيتزا: «ريحان» أوّلاً (بيته ومنيوه)، ثم الفرن والمطعم الإيطالي والعلبة", () => {
-    expect(SUGGESTED[PIZZA]).toEqual(["pizza", "woodfire", "napoli", "pizzabox"]);
-    expect(rankThemes(ALL_THEMES, "بيتزا").suggested).toBe("pizza");
+  it("البيتزا أربعة بشارة «بيتزا» — وصاحب البيتزا يراها أوّلاً كما كان", () => {
+    expect(SUGGESTED[PIZZA]).toEqual(["pizza", "woodfire", "slices", "pizzabox"]);
+    for (const id of SUGGESTED[PIZZA]) expect(byId.get(id)!.suits, id).toContain(PIZZA);
+    expect(rankThemes(ALL_THEMES, "بيتزا").ordered.slice(0, ROW_SIZE).map((t) => t.id)).toEqual(SUGGESTED[PIZZA]);
   });
 
-  it("الشارات التي انتقلت: «عصري» بحري، و«نيون» عصائر، و«ملصقات» شاي وحدها", () => {
-    expect(byId.get("modern")!.suits).toEqual(["بحري"]);
-    expect(byId.get("neon")!.suits).toEqual(["عصائر"]);
-    expect(byId.get("sticker")!.suits).toEqual(["شاي"]);
+  it("المطعم الإيطالي صفٌّ وحده أوّلُه «نابولي» بشارته", () => {
+    expect(byId.get("napoli")!.suits).toEqual([ITALIAN]);
+    expect(rankThemes(ALL_THEMES, "مطعم إيطالي").suggested).toBe("napoli");
+    expect(rankThemes(ALL_THEMES, "Trattoria").suggested).toBe("napoli");
   });
 
-  it("ثلاثٌ وثلاثون شارة — والمقاعد الباقية للمشاوي: مشويات · بحري · شاي", () => {
-    // الموجة التالية (أربعة مشاوي) تملأ الثلاثة، ومقعدٌ رابع في «مشويات» إن سقطت شارة «فاخر» الثانية.
-    expect(ALL_THEMES.reduce((n, t) => n + (t.suits?.length ?? 0), 0)).toBe(33);
-    const free = STARTER_TYPES.filter((type) => ALL_THEMES.filter((t) => t.suits?.includes(type)).length < ROW_SIZE);
-    expect([...free].sort()).toEqual(["بحري", "شاي", "مشويات"].sort());
+  it("الطابع المتخصّص لا يحمل إلا شارة تخصّصه — والعامّ لا يحمل تخصّصاً إلا مع نوعه", () => {
+    const specialized = ["v60", "latte", "drive", "woodfire", "pizzabox", "slices", "napoli", "dallah"];
+    for (const id of specialized) expect(byId.get(id)!.suits!.every(isSpecialtyBadge), id).toBe(true);
   });
 });
 
@@ -314,7 +332,7 @@ describe("`rankThemes` يرتّب ولا يحذف", () => {
     // ٠٧/١١: وللبيتزا والمطبخ الإيطالي «ريحان».
     ["بيتزا", "pizza", false],
     ["بيتزا نابولية ومعكرونة", "pizza", false],
-    ["مطعم إيطالي", "pizza", false],
+    ["مطعم إيطالي", "napoli", false],
     ["Pizza House", "pizza", false],
     // ٠٣/١١: للبحري طابعه («مرفأ») — وروشان ثانيه.
     ["أسماك", "harbor", false],

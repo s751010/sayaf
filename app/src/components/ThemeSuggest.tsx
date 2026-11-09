@@ -8,7 +8,7 @@
  */
 import { useState } from "react";
 import { DESIGN_THEMES, type MenuTheme } from "@/lib/themes";
-import { POPULAR_CAFE, cafeFlavor, rankThemes, type CafeFlavor } from "@/lib/themeSuggest";
+import { POPULAR_CAFE, cafeFlavor, isSpecialtyBadge, rankThemes, type CafeFlavor } from "@/lib/themeSuggest";
 import { categoryById, categoryForType, fillColumns, themesOf, type ThemeCategoryId } from "@/lib/themeCategories";
 import { cn } from "@/lib/utils";
 
@@ -107,8 +107,21 @@ export function SuggestBadge({ on }: { on: boolean }) {
   );
 }
 
-/** «يناسب: …» — تحت سطر الطابع في بطاقته. */
-export function SuitsLine({ theme }: { theme: MenuTheme }) {
+/**
+ * «يناسب: …» — تحت سطر الطابع في بطاقته (اللوحة والهبوط). وشارة **التخصّص** («بيتزا» · «قهوة
+ * مقطّرة» · «شاورما»… ٠٩/١١، قرار المالك) بلون المنصّة: هي ما يقول للتاجر «هذا لمكانٍ مثل مكانك».
+ */
+export function SuitsLine({ theme, className }: { theme: MenuTheme; className?: string }) {
   if (!theme.suits?.length) return null;
-  return <p className="mt-1 text-[10px] leading-snug text-dim">يناسب: {theme.suits.join(" · ")}</p>;
+  return (
+    <p className={cn("mt-1 text-[10px] leading-snug text-dim", className)}>
+      يناسب:{" "}
+      {theme.suits.map((s, i) => (
+        <span key={s}>
+          {i > 0 && " · "}
+          <span className={isSpecialtyBadge(s) ? "font-bold text-gold" : undefined}>{s}</span>
+        </span>
+      ))}
+    </p>
+  );
 }

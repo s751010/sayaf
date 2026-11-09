@@ -9,7 +9,7 @@
  *
  * ═══ ما ليس هذا ═══
  *
- * - **ليس `suits`**: الشارة على الطابع (≤ ٢، بمفردات `aliasType`) حكمٌ على الطابع
+ * - **ليس `suits`**: الشارة على الطابع (≤ ٢، نوعٌ من `aliasType` أو تخصّصٌ — ٠٩/١١) حكمٌ على الطابع
  *   «لمن يناسب»، وترتيب المُنتقي مبنيٌّ عليها. والقسم رفٌّ في المعرض: الطابع يقف
  *   على أكثر من رفّ («عصري» في المقاهي والبيتزا والبحري)، والرفّ ثلاثةٌ فأكثر.
  * - **لا يطبّق شيئاً**: فتح قسمٍ يعرض ولا يكتب طابعاً (قرار ٢٥/١٠).
@@ -22,7 +22,7 @@ import type { DemoKind } from "./demoMenus";
 import type { IconName } from "./icons";
 import { norm } from "./starterMenus";
 import {
-  ARABIC_COFFEE, BAKERY, BREAKFAST, BREW_BAR, DRIVE_THRU, GRILL, PIZZA, POPULAR_CAFE, SPECIALTY, TEA_HOUSE, suggestionKey,
+  ARABIC_COFFEE, BAKERY, BREAKFAST, BREW_BAR, DRIVE_THRU, GRILL, ITALIAN, PIZZA, POPULAR_CAFE, SPECIALTY, TEA_HOUSE, suggestionKey,
   type CafeFlavor,
 } from "./themeSuggest";
 
@@ -108,6 +108,7 @@ export const CATEGORY_BY_KEY: Readonly<Record<string, ThemeCategoryId | null>> =
   عصائر: "juice",
   "مطعم سريع": "fast",
   [PIZZA]: "pizza",
+  [ITALIAN]: "pizza",
   مشويات: "grill",
   [GRILL]: "grill",
   شعبي: "shaabi",
