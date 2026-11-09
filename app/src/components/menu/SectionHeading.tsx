@@ -38,6 +38,10 @@ import { DallahHeading } from "./heads/DallahHead";
 import { BaristaHeading } from "./heads/BaristaHead";
 import { KarakHeading } from "./heads/KarakHead";
 import { SamovarHeading } from "./heads/SamovarHead";
+import { V60Heading } from "./heads/V60Head";
+import { LatteHeading } from "./heads/LatteHead";
+import { GrinderHeading } from "./heads/GrinderHead";
+import { DriveHeading } from "./heads/DriveHead";
 import { AsirHeading } from "./heads/AsirHead";
 
 /** خطّ العناوين — يسقط إلى خطّ النصّ لكل طابع لا يذكر `--m-display` (§18). */
@@ -314,7 +318,9 @@ export function SectionHeading({
         حلواني (مفرش دانتيل) · عصّارة (بلاطة فاكهة) · صاج (جبنٌ يسيل من الصاج) ·
         فرن (مطرحة خبّاز) · فوّال (صحن نحاس) · جمر (سيخ) · ريحان (غطاء علبة بيتزا) ·
         دلّة (فنجالٌ والعدد تمرة) · باريستا (كوبٌ ورقيّ بختم المحلّ) ·
-        كرك (كاسةٌ وسلك مصابيح إلى بطاقة صفيح) · سماور (استكانةٌ وحاشية سجّادٍ إلى صحنها):
+        كرك (كاسةٌ وسلك مصابيح إلى بطاقة صفيح) · سماور (استكانةٌ وحاشية سجّادٍ إلى صحنها) ·
+        تقطير (قمعٌ صغير وقطرته) · لاتيه (فنجانٌ ورسمة القسم) · مطحنة (قرص درجة الطحن وكومته) ·
+        درايف (كوبٌ بكمّه ولوحة مسار):
         كلٌّ في ملفّه (`heads/`) ── */
   const FILE_HEADINGS = {
     shelf: DukkanHeading,
@@ -331,6 +337,10 @@ export function SectionHeading({
     cup: BaristaHeading,
     glass: KarakHeading,
     istikan: SamovarHeading,
+    brew: V60Heading,
+    art: LatteHeading,
+    grind: GrinderHeading,
+    sleeve: DriveHeading,
   } as const;
   if (style in FILE_HEADINGS) {
     const Skin = FILE_HEADINGS[style as keyof typeof FILE_HEADINGS];

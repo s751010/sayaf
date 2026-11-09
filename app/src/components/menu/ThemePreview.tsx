@@ -11,7 +11,9 @@
  * الجبن فوق صاجٍ حديديّ (صاج)، وفوهة فرنٍ متّقدة فوق ختمٍ (فرن)، وصينيّة نحاسٍ تطلع
  * فوق بلاطٍ مزخرف (فوّال)، وسيخٌ فوق منقلٍ متّقد (جمر)، وبيتزا على مفرشٍ مائل (ريحان)،
  * وصفُّ دلالٍ على رفٍّ بمساميرَ نحاس (دلّة)، وآلة إسبريسو بعدّاد ضغطٍ (باريستا)، وعربة كركٍ تحت
- * حبل مصابيح (كرك)، وسجّادةٌ معلّقة أمامها سماورٌ واستكانات (سماور).
+ * حبل مصابيح (كرك)، وسجّادةٌ معلّقة أمامها سماورٌ واستكانات (سماور)، وقمعٌ يقطر في إبريق زجاج
+ * (تقطير)، وفنجانٌ من فوق بوردة حليب (لاتيه)، ومطحنة جوزٍ ونحاس (مطحنة)، وكشكٌ عند نافذة سيارة
+ * (درايف) — والأربعة الأخيرة في `previews/CoffeeMinis.tsx`.
  *
  * ⚠️ أشكالٌ لا نصوص: خطوط الطوابع لا تُحمَّل في اللوحة ولا في الهبوط، وحرفٌ
  * بخطٍّ احتياطي يكذب على التاجر في أوّل ما يراه من الطابع.
@@ -19,6 +21,7 @@
 import type { CSSProperties } from "react";
 import { patternImage, PATTERN_SIZE } from "@/lib/patterns";
 import { isDarkTheme, type MenuTheme } from "@/lib/themes";
+import { DriveMini, GrinderMini, LatteMini, V60Mini } from "./previews/CoffeeMinis";
 
 type Vars = Record<string, string>;
 
@@ -1033,6 +1036,14 @@ export function ThemePreview({ theme }: { theme: MenuTheme }) {
       return <KarakMini v={v} />;
     case "samovar":
       return <SamovarMini v={v} />;
+    case "v60":
+      return <V60Mini v={v} />;
+    case "latte":
+      return <LatteMini v={v} />;
+    case "grinder":
+      return <GrinderMini v={v} />;
+    case "drive":
+      return <DriveMini v={v} />;
     case "gold":
       return <GoldMini theme={theme} />;
     case "modern":

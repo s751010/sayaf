@@ -9,7 +9,7 @@ import { describe, expect, it } from "vitest";
 import { ALL_THEMES } from "@/lib/themes";
 import { STARTER_TYPES, aliasType } from "@/lib/starterMenus";
 import {
-  ARABIC_COFFEE, BAKERY, BREAKFAST, GRILL, PIZZA, POPULAR_CAFE, ROW_SIZE, SPECIALTY, SUGGESTED, TEA_HOUSE,
+  ARABIC_COFFEE, BAKERY, BREAKFAST, BREW_BAR, DRIVE_THRU, GRILL, PIZZA, POPULAR_CAFE, ROW_SIZE, SPECIALTY, SUGGESTED, TEA_HOUSE,
   badgeTypeOf, cafeFlavor, rankThemes, suggestionKey,
 } from "@/lib/themeSuggest";
 
@@ -17,7 +17,7 @@ const byId = new Map(ALL_THEMES.map((t) => [t.id, t]));
 
 describe("مفردات واحدة مع `aliasType`", () => {
   it("مفاتيح الجدول = أنواع `STARTERS` + الكافيه الشعبي + المخبز والفطور والمشاوي والبيتزا والقهوة وبيت الشاي", () => {
-    const extra = [POPULAR_CAFE, BAKERY, BREAKFAST, GRILL, PIZZA, ARABIC_COFFEE, SPECIALTY, TEA_HOUSE];
+    const extra = [POPULAR_CAFE, BAKERY, BREAKFAST, GRILL, PIZZA, ARABIC_COFFEE, SPECIALTY, TEA_HOUSE, BREW_BAR, DRIVE_THRU];
     const keys = Object.keys(SUGGESTED).filter((k) => !extra.includes(k)).sort();
     expect(keys).toEqual([...STARTER_TYPES].sort());
     for (const k of extra) expect(SUGGESTED[k], k).toBeDefined();
@@ -175,9 +175,47 @@ describe("صفّا القهوة (٠٧/١١، «دلّة» و«باريستا»)"
     expect(suggestionKey("كافيه مختص", "specialty")).toBe(SPECIALTY);
   });
 
-  it("شارتهما «كافيه» — والكافيه الشعبي معهما", () => {
-    for (const k of [ARABIC_COFFEE, SPECIALTY, POPULAR_CAFE]) expect(badgeTypeOf(k)).toBe("كافيه");
-    expect(SUGGESTED["كافيه"]).toEqual(["roastery", "barista", "dallah", "letterboard"]);
+  it("المختصّ «كافيه»، والقهوة العربية والكافيه الشعبي «شعبي» (٠٩/١١ — شارة «دلّة»)", () => {
+    expect(badgeTypeOf(SPECIALTY)).toBe("كافيه");
+    for (const k of [ARABIC_COFFEE, POPULAR_CAFE]) expect(badgeTypeOf(k)).toBe("شعبي");
+    expect(byId.get("dallah")!.suits).toEqual(["شعبي"]);
+    expect(SUGGESTED["شعبي"]).toContain("dallah");
+  });
+});
+
+describe("طوابع القهوة الأربعة (٠٩/١١، اختيار المالك)", () => {
+  it("الكافيه أربعة أشكالٍ للقهوة بشارتها — «محمصة» أوّلاً كما كان", () => {
+    expect(SUGGESTED["كافيه"]).toEqual(["roastery", "barista", "v60", "grinder"]);
+    for (const id of SUGGESTED["كافيه"]) expect(byId.get(id)!.suits, id).toContain("كافيه");
+  });
+
+  it("الشارات التي انتقلت إلى نوعها الثاني: «لوحة حروف» عصائر، و«لاتيه» حلويات، و«درايف» عصائر", () => {
+    expect(byId.get("letterboard")!.suits).toEqual(["عصائر"]);
+    expect(byId.get("latte")!.suits).toEqual(["مخبز وحلويات"]);
+    expect(byId.get("drive")!.suits).toEqual(["عصائر"]);
+  });
+
+  it("بار التقطير من نصّ النوع — داخل الكافيه، أو «V60» صريحةً", () => {
+    expect(suggestionKey("كافيه V60")).toBe(BREW_BAR);
+    expect(suggestionKey("قهوة مقطرة")).toBe(BREW_BAR);
+    expect(suggestionKey("Pour Over Bar")).toBe(BREW_BAR);
+    expect(suggestionKey("كافيه مختص وتقطير")).toBe(BREW_BAR);
+    // المحمصة محمصة، و«فلتر» خارج الكافيه ليس قهوة.
+    expect(suggestionKey("محمصة قهوة وتقطير")).toBe("كافيه");
+    expect(suggestionKey("مطعم فلتر")).toBe("مطعم");
+    expect(badgeTypeOf(BREW_BAR)).toBe("كافيه");
+  });
+
+  it("كشك القهوة السريع — «كشك» كلمةً، وداخل الكافيه وحده", () => {
+    expect(suggestionKey("كشك قهوة")).toBe(DRIVE_THRU);
+    expect(suggestionKey("كوفي درايف ثرو")).toBe(DRIVE_THRU);
+    expect(suggestionKey("قهوة سفري")).toBe(DRIVE_THRU);
+    // ‏«كشك كرك» شاي، و«مطعم درايف ثرو» ليس كافيه.
+    expect(suggestionKey("كشك كرك")).toBe("شاي");
+    expect(suggestionKey("برجر درايف ثرو")).toBe("مطعم سريع");
+    // زرّ «شعبي» يغلبه كما يغلب المختصّ.
+    expect(suggestionKey("كشك قهوة", "popular")).toBe(POPULAR_CAFE);
+    expect(badgeTypeOf(DRIVE_THRU)).toBe("عصائر");
   });
 });
 
@@ -226,6 +264,10 @@ describe("`rankThemes` يرتّب ولا يحذف", () => {
     ["خولاني", "dallah", false],
     ["كافيه مختص", "barista", true],
     ["Espresso Bar", "barista", false],
+    // ٠٩/١١: بار التقطير يبدأ بالقمع، وكشك القهوة بالشبّاك.
+    ["كافيه V60", "v60", true],
+    ["كشك قهوة", "drive", true],
+    ["Pour Over Bar", "v60", false],
     // ٠٧/١١: الشاي نوعٌ تاسع — الكشك أوّلُه، والبيت التراثي أوّلُه «سماور». ولا سؤال «مختصّ أم شعبي؟».
     ["كرك", "karak", false],
     ["كافيه كرك", "karak", false],

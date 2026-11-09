@@ -1,0 +1,349 @@
+/*
+ * ══ مطحنة — زاوية الطحن اليدوي (٢٠٢٦/١١/٠٩) ════════════════════════════════════════
+ * الطابع السابع والعشرون. مطحنة صندوقٍ من خشب الجوز على رفٍّ تحت مصباحٍ دافئ، بوعاءٍ من نحاسٍ
+ * فيه البنّ، وذراعٌ نحاسيّ **يدور مع التمرير** — مداراً بيضويّاً كما يُرى ذراعٌ أفقيّ من أمامه
+ * (`cos()`/`sin()`/`atan2()`؛ والمتصفّح الذي لا يعرفها يرى الذراع ساكناً) — ويدور دورةً كاملة
+ * حين يُضاف صنف (`lib/skinMotion.ts`). وشعارك في إطارٍ نحاسيّ، والدرج بلون العلامة. والأقسام
+ * درجات طحن: قرصٌ يدور إلى درجته، وكومةُ بنٍّ تصغر حبيباتها قسماً بعد قسم.
+ * الترويسة وعنوان القسم في `components/menu/heads/GrinderHead.tsx`.
+ *
+ * ⚠️ مستورَدٌ من **رأس** `menu-skins.css` — فكلّ انتقائيٍّ هنا يبدأ بـ`.m-skin-grinder`.
+ *
+ * ما يتبع العلامة: دهان الدرج (`--m-accent`)، وحبر السعر (`--m-accent-ink`)، والأزرار. وما لا
+ * يتبعها خامة: الجوز والنحاس والبنّ والكتّان. والنصّ الوحيد على خامةٍ عددُ القسم على اللوح
+ * النحاسيّ: حبر الجوز على نحاسٍ فاتح (≥ ٧:١).
+ */
+/* زاوية الذراع — مسجَّلةٌ لتُحرَّك: دورة الفتح ودورة الإضافة. */
+@property --m-gr-turn {
+  syntax: "<angle>";
+  inherits: true;
+  initial-value: 0deg;
+}
+@property --m-gr-spin {
+  syntax: "<angle>";
+  inherits: true;
+  initial-value: 0deg;
+}
+
+.m-skin-grinder {
+  display: flow-root;
+  --m-gr-brass: linear-gradient(180deg, #f3dc98, #d9b866 45%, #b38a36);
+  --m-gr-ground: #4a2e1a;
+  /* الزخرفة: نسيج الكتّان — سداةٌ ولُحمةٌ خافتتان، وحبّات بنٍّ قليلة. */
+  background-image:
+    repeating-linear-gradient(0deg, rgba(90, 70, 40, 0.035) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(90, 70, 40, 0.03) 0 1px, transparent 1px 4px),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='190'%3E%3Cg fill='%234a2e1a' fill-opacity='.07'%3E%3Cellipse cx='40' cy='50' rx='6' ry='4' transform='rotate(30 40 50)'/%3E%3Cellipse cx='150' cy='30' rx='5' ry='3.4' transform='rotate(-20 150 30)'/%3E%3Cellipse cx='110' cy='140' rx='6' ry='4' transform='rotate(60 110 140)'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: auto, auto, 200px 190px;
+}
+
+/* ── الجدار والمصباح والرفّ ── */
+.m-skin-grinder .m-gr-wall {
+  background: linear-gradient(180deg, #e6dccb, color-mix(in srgb, #e6dccb 40%, var(--m-bg)) 64%, var(--m-bg));
+}
+.m-skin-grinder .m-gr-lamp {
+  pointer-events: none;
+  background: radial-gradient(46% 50% at 50% 30%, rgba(255, 214, 140, 0.55), rgba(255, 214, 140, 0.12) 55%, transparent 74%);
+}
+.m-skin-grinder .m-gr-shelf {
+  background:
+    repeating-linear-gradient(90deg, rgba(20, 10, 4, 0.12) 0 1px, transparent 1px 13px, rgba(20, 10, 4, 0.06) 13px 15px, transparent 15px 31px),
+    linear-gradient(180deg, #8a5a36 0 2px, #6b4227 2px 60%, #4a2d1a);
+  box-shadow: 0 9px 12px -8px rgba(30, 18, 8, 0.55);
+}
+.m-skin-grinder .m-gr-paint {
+  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.15));
+}
+/* الذراع والمقبض حول المحور (160، 40 في المشهد) — ساكنَين: الذراع إلى اليمين. */
+.m-skin-grinder .m-gr-arm,
+.m-skin-grinder .m-gr-knob {
+  transform-box: view-box;
+  transform-origin: 160px 40px;
+}
+.m-skin-grinder .m-gr-knob {
+  transform: translate(62px, 0);
+}
+/* الإطار النحاسيّ: الشعار في قلبه بحلقةٍ غائرة. */
+.m-skin-grinder .m-gr-plaque {
+  background: #fbf4e6;
+  box-shadow:
+    inset 0 1px 3px rgba(40, 25, 10, 0.4),
+    0 0 0 1px rgba(107, 79, 28, 0.6);
+}
+.m-skin-grinder .m-gr-window {
+  border-radius: 10px;
+  box-shadow:
+    0 0 0 4px #6b4227,
+    0 0 0 5px #3f2615,
+    0 14px 22px -14px rgba(30, 18, 8, 0.6);
+}
+
+/* ── عنوان القسم: درجة طحن ── */
+.m-skin-grinder .m-gr-dial {
+  filter: drop-shadow(0 2px 2px rgba(30, 18, 8, 0.25));
+}
+/* المؤشّر عند درجة القسم: الشُّرَط من -١٥٠° إلى -٣٠°، والمؤشّر مرسومٌ قائماً (-٩٠°). */
+.m-skin-grinder .m-gr-pointer {
+  transform-box: view-box;
+  transform-origin: 20px 20px;
+  rotate: calc(-60deg + var(--lvl, 0) * 30deg);
+}
+.m-skin-grinder .m-gr-rule {
+  background: color-mix(in srgb, var(--m-text) 18%, transparent);
+}
+/* كومة البنّ المطحون: حبيباتها تصغر بالدرجة — خشنٌ في القسم الأوّل وناعمٌ في الخامس. */
+.m-skin-grinder .m-gr-mound {
+  width: 2.2rem;
+  height: 0.95rem;
+  border-radius: 50% 50% 3px 3px / 100% 100% 3px 3px;
+  background:
+    radial-gradient(circle, #2a170b 0 calc(1.8px - var(--lvl, 0) * 0.3px), transparent calc(2.2px - var(--lvl, 0) * 0.3px))
+      0 0 / calc(4.6px - var(--lvl, 0) * 0.55px) calc(4.6px - var(--lvl, 0) * 0.55px),
+    linear-gradient(180deg, #7a4d2e, var(--m-gr-ground));
+  box-shadow: 0 2px 2px -1px rgba(30, 18, 8, 0.35);
+  transform-origin: 50% 100%;
+}
+/* اللوح النحاسيّ: العدد محفورٌ بحبر الجوز. */
+.m-skin-grinder .m-gr-brass {
+  border-radius: 3px;
+  background: var(--m-gr-brass);
+  color: #2a2118;
+  box-shadow:
+    inset 0 0 0 1px rgba(107, 79, 28, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    0 2px 3px -1px rgba(30, 18, 8, 0.35);
+}
+.m-skin-grinder .m-gr-photo {
+  padding: 5px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #7a4d2e, #4a2d1a);
+  box-shadow: 0 12px 20px -14px rgba(30, 18, 8, 0.6);
+}
+.m-skin-grinder .m-gr-photo .m-img {
+  border-radius: 8px;
+}
+
+/* ── الطبق بلا صورة: وعاء المطحنة من فوق ──
+   الأرضية خشب الجوز، والصحن **الوعاء النحاسيّ** وفيه البنّ: حبّاتٌ داكنة في القلب، ثم حافّةٌ
+   نحاسيّة بلمعتها. والرمز على البنّ بلون النحاس الفاتح. */
+.m-skin-grinder .m-art {
+  --m-art-bg:
+    radial-gradient(60% 55% at 50% 42%, rgba(255, 214, 140, 0.28), transparent 72%),
+    repeating-linear-gradient(92deg, rgba(20, 10, 4, 0.1) 0 2px, transparent 2px 10px, rgba(20, 10, 4, 0.05) 10px 12px, transparent 12px 24px),
+    linear-gradient(180deg, #7a4d2e, #5c3820);
+  --m-art-plate: radial-gradient(
+    circle closest-side,
+    #5a3820 0,
+    #3b2414 52%,
+    #24140a 64%,
+    #8a6a2a 66%,
+    #f3dc98 72%,
+    #d9b866 80%,
+    #9c7a32 90%,
+    #e9cf86 96%,
+    #7d5e22 100%
+  );
+  --m-art-ring: 0 0 0 1px rgba(20, 10, 4, 0.4);
+  --m-art-lift: 0 12px 16px -8px rgba(10, 5, 2, 0.6);
+  --m-art-well: 0 0 transparent;
+  --m-art-mark: rgba(255, 230, 170, 0.08);
+}
+.m-skin-grinder .m-art-plate {
+  position: relative;
+  --m-accent-ink: #f3dc98;
+}
+/* حبّات البنّ في الوعاء — نثرٌ داخل القلب وحده. */
+.m-skin-grinder .m-art-plate::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(ellipse 4px 2.6px at 30% 38%, #6b4227 90%, transparent),
+    radial-gradient(ellipse 4px 2.6px at 62% 30%, #6b4227 90%, transparent),
+    radial-gradient(ellipse 4px 2.6px at 70% 62%, #6b4227 90%, transparent),
+    radial-gradient(ellipse 4px 2.6px at 36% 70%, #6b4227 90%, transparent),
+    radial-gradient(ellipse 3.4px 2.2px at 50% 50%, #7a4d2e 90%, transparent);
+  -webkit-mask: radial-gradient(circle closest-side, #000 62%, transparent 63%);
+  mask: radial-gradient(circle closest-side, #000 62%, transparent 63%);
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* ── البطاقة والشرائح ── */
+.m-skin-grinder .m-card,
+.m-skin-grinder .m-feature {
+  --m-border: color-mix(in srgb, var(--m-text) 11%, transparent);
+}
+.m-skin-grinder .m-chips > *,
+.m-skin-grinder .m-tab {
+  border-radius: 8px;
+}
+/* زرّ الإضافة: صُرّةٌ نحاسيّة حول الحديد. */
+.m-skin-grinder .m-add {
+  border-radius: 12px;
+  box-shadow:
+    0 0 0 2px #e9cf86,
+    0 0 0 3px #8a6a2a,
+    0 5px 10px -3px rgba(30, 18, 8, 0.45);
+}
+/* «نفد اليوم»: لوحٌ نحاسيّ صغير محفور. */
+.m-skin-grinder .m-soldout {
+  border-radius: 3px;
+  background: var(--m-gr-brass);
+  color: #2a2118;
+  box-shadow: inset 0 0 0 1px rgba(107, 79, 28, 0.55);
+}
+
+/* ── شاشات الطلب ── */
+.m-skin-grinder .m-o-card {
+  border-radius: 12px;
+  box-shadow: 0 8px 18px -14px rgba(30, 18, 8, 0.55);
+}
+.m-skin-grinder .m-o-cta {
+  border-radius: 12px;
+  box-shadow:
+    0 0 0 2px var(--m-surface),
+    0 0 0 3.5px #c9a24a,
+    0 12px 20px -14px rgba(30, 18, 8, 0.7);
+}
+.m-skin-grinder .m-o-field,
+.m-skin-grinder .m-o-ghost,
+.m-skin-grinder .m-o-opt,
+.m-skin-grinder .m-o-soldout,
+.m-skin-grinder .m-o-step,
+.m-skin-grinder .m-o-chip {
+  border-radius: 10px;
+}
+.m-skin-grinder .m-o-thumb {
+  border-radius: 8px;
+}
+
+/* ── الحركة ──
+ * عند الفتح: المطحنة توضع على الرفّ، والذراع يدور دورتين ويهدأ (`--m-gr-turn`). ومع التمرير:
+ * الذراع يدور بما مُرِّر (`--m-scroll-y`)، وخطّ البنّ المطحون تحت الشريط يمتدّ (`--m-scroll`).
+ * وحين يدخل القسم يدور قرصه إلى درجته وتنهال كومته (`data-m-in`)، وحين يُضاف صنفٌ يدور الذراع
+ * دورةً ويدور الزرّ معه وتسقط حبيباتٌ على شريط الطلب (`data-m-added`). والنافذة تُفتح كالدرج. */
+@media (prefers-reduced-motion: no-preference) {
+  .m-skin-grinder .m-gr-scene {
+    --m-gr-a: calc(var(--m-gr-turn) + var(--m-gr-spin) + var(--m-scroll-y, 0) * 0.9deg);
+    animation:
+      m-gr-set 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) 0.1s both,
+      m-gr-crank 2.2s cubic-bezier(0.3, 0.6, 0.3, 1) 0.4s both;
+  }
+  .m-skin-grinder .m-gr-arm {
+    transform: rotate(atan2(calc(sin(var(--m-gr-a)) * 8), calc(cos(var(--m-gr-a)) * 62)))
+      scaleX(calc(hypot(calc(cos(var(--m-gr-a)) * 62), calc(sin(var(--m-gr-a)) * 8)) / 62));
+  }
+  .m-skin-grinder .m-gr-knob {
+    transform: translate(calc(cos(var(--m-gr-a)) * 62px), calc(sin(var(--m-gr-a)) * 8px)) scale(calc(1 + sin(var(--m-gr-a)) * 0.08));
+  }
+  /* خطّ البنّ المطحون تحت الشريط. */
+  .m-skin-grinder[data-m-motion] .m-nav::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: -1px;
+    height: 3px;
+    background: radial-gradient(circle, var(--m-gr-ground) 1.1px, transparent 1.6px) 0 50% / 4px 3px repeat-x;
+    transform-origin: 100% 50%;
+    transform: scaleX(var(--m-scroll, 0));
+    pointer-events: none;
+  }
+  [dir="ltr"].m-skin-grinder[data-m-motion] .m-nav::after {
+    transform-origin: 0 50%;
+  }
+  /* القسم يدخل: القرص يدور إلى درجته، والكومة تنهال. */
+  .m-skin-grinder .m-sec[data-m-in] .m-gr-pointer {
+    animation: m-gr-dial 1s cubic-bezier(0.3, 1.4, 0.5, 1) 0.2s both;
+  }
+  .m-skin-grinder[data-m-motion] .m-sec:not([data-m-in]) .m-gr-mound {
+    transform: scaleY(0);
+  }
+  .m-skin-grinder .m-sec[data-m-in] .m-gr-mound {
+    animation: m-gr-pile 0.8s cubic-bezier(0.2, 0.8, 0.3, 1) 0.5s both;
+  }
+  /* أُضيف: الذراع يدور دورةً (`--m-gr-spin` يسري من الجذر إلى المشهد)، والزرّ يدور معه. */
+  .m-skin-grinder[data-m-added] {
+    animation: m-gr-spin 0.9s cubic-bezier(0.3, 0.7, 0.3, 1) both;
+  }
+  .m-skin-grinder [data-m-added] > .m-add {
+    animation: m-gr-turnbtn 0.7s cubic-bezier(0.3, 0.7, 0.3, 1) both;
+  }
+  .m-skin-grinder[data-m-added] .m-cart::before {
+    content: "";
+    position: absolute;
+    top: -0.7rem;
+    left: calc(50% - 14px);
+    width: 28px;
+    height: 10px;
+    background: radial-gradient(circle, var(--m-gr-ground) 1.3px, transparent 1.8px) 0 0 / 7px 5px;
+    pointer-events: none;
+    animation: m-gr-sprinkle 0.8s cubic-bezier(0.55, 0, 0.9, 0.5) both;
+  }
+  .m-skin-grinder .m-sheet.anim-fade-up {
+    animation: m-gr-drawer 0.3s cubic-bezier(0.2, 0.9, 0.25, 1) backwards;
+  }
+  .m-skin-grinder .m-card.m-surface:active,
+  .m-skin-grinder .m-feature:active {
+    transform: translateY(1px);
+  }
+}
+
+@keyframes m-gr-set {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+@keyframes m-gr-crank {
+  from {
+    --m-gr-turn: -720deg;
+  }
+}
+@keyframes m-gr-spin {
+  from {
+    --m-gr-spin: 0deg;
+  }
+  to {
+    --m-gr-spin: 360deg;
+  }
+}
+@keyframes m-gr-turnbtn {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes m-gr-dial {
+  from {
+    rotate: -100deg;
+  }
+}
+@keyframes m-gr-pile {
+  from {
+    transform: scaleY(0);
+  }
+}
+@keyframes m-gr-sprinkle {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+/* النافذة تُسحب كالدرج: من تحت، ببطءٍ في آخرها. */
+@keyframes m-gr-drawer {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+}

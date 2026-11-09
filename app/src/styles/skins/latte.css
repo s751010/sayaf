@@ -1,0 +1,365 @@
+/*
+ * ══ لاتيه — بار الحليب (٢٠٢٦/١١/٠٩) ═══════════════════════════════════════════════
+ * الطابع السادس والعشرون. فنجانٌ من فوق على صحنه فوق طاولة سنديان: حافّته مطليّةٌ بلون
+ * العلامة، و**وردة الحليب تُرسم فيه عند الفتح** ورقةً ورقة، والرسمة تدور مع التمرير كأنّ
+ * الزبون يدير فنجانه، وشعارك على قاعدةٍ ورقية بجانبه. ولكلّ قسمٍ رسمته تُرسم حين يدخل الشاشة،
+ * وقلبٌ من الرغوة يطفو من زرّ الإضافة (`lib/skinMotion.ts`).
+ * الترويسة وعنوان القسم في `components/menu/heads/LatteHead.tsx`.
+ *
+ * ⚠️ مستورَدٌ من **رأس** `menu-skins.css` — فكلّ انتقائيٍّ هنا يبدأ بـ`.m-skin-latte`.
+ *
+ * ما يتبع العلامة: طلاء الفنجان (`--m-accent`)، وحبر السعر (`--m-accent-ink`)، والأزرار. وما
+ * لا يتبعها خامة: الخزف والقهوة والرغوة والسنديان وورق القاعدة. والنصّ الوحيد على خامةٍ عددُ
+ * القسم على الرغوة: حبر الطابع على كريميّ.
+ */
+.m-skin-latte {
+  display: flow-root;
+  --m-lt-foam: #fff7ea;
+  --m-lt-crema: #a8683a;
+  --m-lt-oak: #d9b98a;
+  /* الزخرفة: قلوبٌ صغيرة من الرغوة وحلقات فناجين متناثرة على الشوفان. */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='190' height='170'%3E%3Cg fill='none' stroke='%237a4524' stroke-opacity='.08' stroke-width='1.4'%3E%3Ccircle cx='40' cy='40' r='17'/%3E%3Ccircle cx='42' cy='42' r='17' stroke-opacity='.05'/%3E%3Ccircle cx='150' cy='120' r='14'/%3E%3C/g%3E%3Cg fill='%237a4524' fill-opacity='.07'%3E%3Cpath d='M120 34c-6-4-7-8-5-10s5-1 5 1c0-2 3-3 5-1s1 6-5 10z'/%3E%3Cpath d='M60 128c-6-4-7-8-5-10s5-1 5 1c0-2 3-3 5-1s1 6-5 10z'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 190px 170px;
+}
+
+/* ── الطاولة: ألواح سنديانٍ فاتحة بعروقها، تذوب في الأرضية تحت الفنجان ── */
+.m-skin-latte .m-lt-table {
+  background:
+    linear-gradient(180deg, transparent 0 70%, var(--m-bg)),
+    repeating-linear-gradient(180deg, rgba(110, 70, 30, 0.12) 0 1px, transparent 1px 44px),
+    repeating-linear-gradient(176deg, rgba(120, 80, 40, 0.06) 0 2px, transparent 2px 9px, rgba(120, 80, 40, 0.04) 9px 11px, transparent 11px 23px),
+    linear-gradient(180deg, #e6cfa8, #dcc196);
+}
+.m-skin-latte .m-lt-glaze {
+  filter: drop-shadow(0 2px 1.5px rgba(30, 20, 40, 0.25));
+}
+/* الرسمة تدور حول قلب الفنجان (184، 98 في المشهد). */
+.m-skin-latte .m-lt-art {
+  transform-box: view-box;
+  transform-origin: 184px 98px;
+}
+.m-skin-latte .m-lt-leaf,
+.m-skin-latte .m-lt-top,
+.m-skin-latte .m-lt-base {
+  transform-box: fill-box;
+  transform-origin: 50% 30%;
+}
+/* البخار: ثلاث خصلاتٍ بيضاء فوق الفنجان — مخفيّةٌ ساكنةً، تطلع في الحركة وحدها. */
+.m-skin-latte .m-lt-steam {
+  left: 57.5%;
+  top: 4%;
+  width: 0;
+  height: 20%;
+  pointer-events: none;
+}
+.m-skin-latte .m-lt-wisp {
+  bottom: 0;
+  left: -0.5rem;
+  width: 1rem;
+  height: 2.6rem;
+  border-radius: 999px;
+  background: radial-gradient(50% 50% at 50% 50%, rgba(255, 255, 255, 0.7), transparent 70%);
+  filter: blur(2px);
+  opacity: 0;
+}
+.m-skin-latte .m-lt-wisp-1 {
+  left: -1.4rem;
+}
+.m-skin-latte .m-lt-wisp-2 {
+  left: 0.4rem;
+}
+/* القاعدة الورقية: كرتونٌ مضغوط بحلقةٍ مطبوعة، والشعار في وسطها. */
+.m-skin-latte .m-lt-coaster {
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.35), transparent 60%),
+    radial-gradient(circle closest-side, #e9d7b8 0 80%, #d8c19a 81% 84%, #e9d7b8 85% 100%);
+  box-shadow:
+    0 0 0 1px rgba(110, 80, 40, 0.25),
+    0 6px 10px -4px rgba(60, 35, 15, 0.4);
+  rotate: -8deg;
+}
+.m-skin-latte .m-lt-coaster > span {
+  box-shadow: inset 0 0 0 1px rgba(110, 80, 40, 0.18);
+}
+.m-skin-latte .m-lt-window {
+  border-radius: 20px;
+  box-shadow:
+    0 0 0 4px #fffdf8,
+    0 14px 22px -14px rgba(60, 35, 15, 0.5);
+}
+
+/* ── عنوان القسم: الفنجان الصغير ورسمته، والاسم، والعدد على رغوة ── */
+.m-skin-latte .m-lt-cup svg {
+  filter: drop-shadow(0 2px 2px rgba(60, 35, 15, 0.12));
+}
+.m-skin-latte .m-lt-mark {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+}
+.m-skin-latte .m-lt-rule {
+  background: color-mix(in srgb, var(--m-text) 16%, transparent);
+}
+/* العدد على رغوةٍ كريميّة بحافّةٍ من الكراميل — كفقاعة حليب. */
+.m-skin-latte .m-lt-count {
+  border-radius: 999px;
+  background: var(--m-lt-foam);
+  color: var(--m-text);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--m-lt-crema) 40%, transparent),
+    0 2px 4px -2px rgba(60, 35, 15, 0.3);
+}
+.m-skin-latte .m-lt-photo {
+  padding: 4px;
+  border-radius: 22px;
+  background: #fffdf8;
+  box-shadow: 0 12px 20px -14px rgba(60, 35, 15, 0.5);
+}
+.m-skin-latte .m-lt-photo .m-img {
+  border-radius: 18px;
+}
+
+/* ── الطبق بلا صورة: لاتيه على صحنه من فوق ──
+   الأرضية السنديان، والصحن **الفنجان على صحنه**: الإسبريسو في القلب، وهالةُ رغوةٍ حوله، ثم
+   جدار الخزف، ثم الطلاء بلون العلامة، ثم الصحن الأبيض بحلقته. والرمز برغوة الحليب، والأذن على
+   حافّة الطلاء. */
+.m-skin-latte .m-art {
+  --m-art-bg:
+    radial-gradient(60% 55% at 50% 46%, rgba(255, 250, 240, 0.5), transparent 72%),
+    repeating-linear-gradient(176deg, rgba(120, 80, 40, 0.07) 0 2px, transparent 2px 9px, rgba(120, 80, 40, 0.04) 9px 11px, transparent 11px 21px),
+    linear-gradient(180deg, #e6cfa8, #d8bb8d);
+  --m-art-plate: radial-gradient(
+    circle closest-side,
+    #c58a55 0,
+    var(--m-lt-crema) 36%,
+    #8a5129 44%,
+    var(--m-lt-foam) 47% 51%,
+    #f2ece2 52% 58%,
+    color-mix(in srgb, var(--m-accent) 80%, #000) 59%,
+    var(--m-accent) 61% 70%,
+    #e7e0d5 71% 73%,
+    #fbf8f3 74% 92%,
+    #e4ddd2 93%,
+    #fbf8f3 95% 100%
+  );
+  --m-art-ring: 0 0 0 1px rgba(60, 35, 15, 0.12);
+  --m-art-lift: 0 12px 16px -8px rgba(60, 35, 15, 0.42);
+  --m-art-well: 0 0 transparent;
+  --m-art-mark: color-mix(in srgb, var(--m-accent) 9%, transparent);
+}
+.m-skin-latte .m-art-plate {
+  position: relative;
+  --m-accent-ink: var(--m-lt-foam);
+}
+/* الأذن: من حافّة الطلاء إلى الصحن، بفتحتها. */
+.m-skin-latte .m-art-plate::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  inset-inline-end: 3%;
+  width: 21%;
+  height: 13%;
+  translate: 0 -50%;
+  border-radius: 999px;
+  background: radial-gradient(closest-side, #fbf8f3 0 46%, transparent 50%) 62% 50% / 60% 70% no-repeat, var(--m-accent);
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.18);
+}
+[dir="ltr"].m-skin-latte .m-art-plate::after {
+  background-position: 38% 50%, 0 0;
+}
+/* على البطاقة الفنجان أكبر: الدائرة واسعةٌ والفنجان بصحنه يملؤها قليلاً. */
+.m-skin-latte .m-card .m-art-plate,
+.m-skin-latte .m-feature .m-art-plate {
+  scale: 1.45;
+}
+
+/* ── البطاقة والشرائح ── */
+.m-skin-latte .m-card,
+.m-skin-latte .m-feature {
+  --m-border: color-mix(in srgb, var(--m-text) 9%, transparent);
+}
+.m-skin-latte .m-chips > *,
+.m-skin-latte .m-tab {
+  border-radius: 999px;
+}
+/* زرّ الإضافة: فنجانٌ صغير — حلقةٌ من الخزف حول الطلاء. */
+.m-skin-latte .m-add {
+  box-shadow:
+    0 0 0 3px #fbf8f3,
+    0 0 0 4px rgba(60, 35, 15, 0.14),
+    0 5px 10px -3px rgba(60, 35, 15, 0.4);
+}
+/* «نفد اليوم»: رغوةٌ ذابت — شارةٌ كريميّة بحبر الطابع. */
+.m-skin-latte .m-soldout {
+  border-radius: 999px;
+  background: var(--m-lt-foam);
+  color: var(--m-text);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--m-text) 22%, transparent);
+}
+
+/* ── شاشات الطلب ── */
+.m-skin-latte .m-o-card {
+  border-radius: 22px;
+  box-shadow: 0 8px 18px -14px rgba(60, 35, 15, 0.5);
+}
+.m-skin-latte .m-o-cta {
+  border-radius: 999px;
+}
+.m-skin-latte .m-o-field,
+.m-skin-latte .m-o-ghost,
+.m-skin-latte .m-o-opt,
+.m-skin-latte .m-o-soldout,
+.m-skin-latte .m-o-step,
+.m-skin-latte .m-o-chip {
+  border-radius: 16px;
+}
+.m-skin-latte .m-o-thumb {
+  border-radius: 999px;
+}
+
+/* ── الحركة ──
+ * عند الفتح: الفنجان يوضع، وقاع الرغوة ينتشر، والورقات تُرسم من القاع إلى القمّة، والقلب
+ * فوقها، ثم الخطّ يشقّها — والبخار يطلع مرّتين. ومع التمرير: الرسمة تدور كأنّ الفنجان يُدار
+ * (`--m-scroll-y`)، وخيط الكراميل تحت الشريط يمتدّ (`--m-scroll`). وحين يدخل القسم تُرسم
+ * رسمته (`data-m-in`)، وحين يُضاف صنفٌ يطفو قلبٌ من زرّه ومن شريط الطلب (`data-m-added`). */
+@media (prefers-reduced-motion: no-preference) {
+  .m-skin-latte .m-lt-scene {
+    animation: m-lt-set 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) 0.1s both;
+  }
+  .m-skin-latte .m-lt-art {
+    rotate: calc(var(--m-scroll-y, 0) * 0.07deg);
+  }
+  .m-skin-latte .m-lt-base {
+    animation: m-lt-spread 0.7s cubic-bezier(0.2, 0.8, 0.3, 1) 0.45s both;
+  }
+  .m-skin-latte .m-lt-leaf {
+    animation: m-lt-leaf 0.42s cubic-bezier(0.2, 0.9, 0.3, 1.15) both;
+  }
+  .m-skin-latte .m-lt-leaf-0 { animation-delay: 0.7s; }
+  .m-skin-latte .m-lt-leaf-1 { animation-delay: 0.82s; }
+  .m-skin-latte .m-lt-leaf-2 { animation-delay: 0.94s; }
+  .m-skin-latte .m-lt-leaf-3 { animation-delay: 1.06s; }
+  .m-skin-latte .m-lt-leaf-4 { animation-delay: 1.18s; }
+  .m-skin-latte .m-lt-leaf-5 { animation-delay: 1.3s; }
+  .m-skin-latte .m-lt-leaf-6 { animation-delay: 1.42s; }
+  .m-skin-latte .m-lt-top {
+    animation: m-lt-leaf 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2) 1.58s both;
+  }
+  .m-skin-latte .m-lt-line {
+    stroke-dasharray: 80;
+    animation: m-lt-cut 0.55s cubic-bezier(0.5, 0, 0.3, 1) 1.9s both;
+  }
+  .m-skin-latte .m-lt-wisp {
+    animation: m-lt-steam 2.6s ease-out 0.9s 2 both;
+  }
+  .m-skin-latte .m-lt-wisp-1 { animation-delay: 1.3s; }
+  .m-skin-latte .m-lt-wisp-2 { animation-delay: 1.7s; }
+  /* خيط الكراميل تحت الشريط. */
+  .m-skin-latte[data-m-motion] .m-nav::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: -1px;
+    height: 3px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--m-lt-crema), #e8c9a0, var(--m-lt-crema));
+    transform-origin: 100% 50%;
+    transform: scaleX(var(--m-scroll, 0));
+    pointer-events: none;
+  }
+  [dir="ltr"].m-skin-latte[data-m-motion] .m-nav::after {
+    transform-origin: 0 50%;
+  }
+  /* رسمة القسم: لا تُرى قبل أن يدخل، ثم تُصبّ قطعةً قطعة. */
+  .m-skin-latte[data-m-motion] .m-sec:not([data-m-in]) .m-lt-mark {
+    opacity: 0;
+  }
+  .m-skin-latte .m-sec[data-m-in] .m-lt-mark {
+    animation: m-lt-leaf 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2) calc(0.2s + var(--k, 0) * 0.12s) both;
+  }
+  /* أُضيف: قلبٌ من الرغوة يطفو من الزرّ، وآخر فوق شريط الطلب. */
+  .m-skin-latte [data-m-added] > .m-add::after,
+  .m-skin-latte[data-m-added] .m-cart::before {
+    content: "";
+    position: absolute;
+    width: 22px;
+    height: 20px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 22'%3E%3Cpath d='M12 20.5C3 14 1.2 9 3.6 5.2 5.9 1.8 10 2.6 12 6c2-3.4 6.1-4.2 8.4-.8C22.8 9 21 14 12 20.5z' fill='%23fff7ea' stroke='%23a8683a' stroke-width='1.6'/%3E%3C/svg%3E")
+      center / contain no-repeat;
+    pointer-events: none;
+    animation: m-lt-float 0.95s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+  }
+  .m-skin-latte [data-m-added] > .m-add::after {
+    left: calc(50% - 11px);
+    top: -8px;
+  }
+  .m-skin-latte[data-m-added] .m-cart::before {
+    left: calc(50% - 11px);
+    top: -0.4rem;
+  }
+  .m-skin-latte .m-sheet.anim-fade-up {
+    animation: m-lt-sheet 0.28s cubic-bezier(0.2, 0.9, 0.25, 1) backwards;
+  }
+  .m-skin-latte .m-card.m-surface:active,
+  .m-skin-latte .m-feature:active {
+    transform: scale(0.985);
+  }
+}
+
+@keyframes m-lt-set {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+}
+@keyframes m-lt-spread {
+  from {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+}
+/* الورقة تنبسط من خيط الحليب: ضيّقةٌ ثم تتّسع وترتدّ قليلاً. */
+@keyframes m-lt-leaf {
+  from {
+    opacity: 0;
+    transform: scale(0.25, 0.5);
+  }
+}
+@keyframes m-lt-cut {
+  from {
+    stroke-dashoffset: 80;
+  }
+}
+@keyframes m-lt-steam {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.6);
+  }
+  35% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-22px) scale(1.25, 1.4);
+  }
+}
+@keyframes m-lt-float {
+  0% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.4);
+  }
+  25% {
+    opacity: 1;
+    transform: translateY(0) scale(1.1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-34px) scale(0.9) rotate(-10deg);
+  }
+}
+@keyframes m-lt-sheet {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.99);
+  }
+}

@@ -60,6 +60,12 @@ const PAGES = [
   { path: "/demo?kind=karak", anchor: "عرض السهرة", role: "text", label: "منيو كشك الكرك التجريبي" },
   { path: "/demo?theme=samovar", anchor: "بيت شاي الحبق", role: "text", label: "سماور على منيو بيت الشاي" },
   { path: "/demo?kind=teahouse", anchor: "جلسة الشاي", role: "text", label: "منيو بيت الشاي التجريبي" },
+  // ٠٩/١١: طوابع القهوة الأربعة على منيوَي القهوة القائمين — «تقطير» و«مطحنة» على المحمصة،
+  // و«لاتيه» و«درايف» على الإسبريسو بار (`KIND_BY_THEME`).
+  { path: "/demo?theme=v60", anchor: "محمصة نخلة", role: "text", label: "تقطير على منيو المحمصة" },
+  { path: "/demo?theme=latte", anchor: "رغوة", role: "text", label: "لاتيه على منيو الإسبريسو" },
+  { path: "/demo?theme=grinder", anchor: "محمصة نخلة", role: "text", label: "مطحنة على منيو المحمصة" },
+  { path: "/demo?theme=drive", anchor: "رغوة", role: "text", label: "درايف على منيو الإسبريسو" },
   // مقالٌ ثابت: نصّه يُحمَّل كسولاً (`import.meta.glob`) ويمرّ على المنقّي في
   // متصفّح حقيقي — ويُعرض ولو سقطت الشبكة. والمرساة عنوانٌ **داخل النصّ** لا
   // عنوان المقال: هي ما يثبت أن الملفّ الكسول وصل ومرّ على المنقّي سليماً.

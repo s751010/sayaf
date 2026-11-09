@@ -3,7 +3,7 @@
  *
  * ═══ لماذا ═══
  *
- * أربعةٌ وعشرون طابعاً في شبكةٍ واحدة تُقرأ كتالوجاً لا اختياراً: صاحب الفوّال يمرّر
+ * ثمانيةٌ وعشرون طابعاً في شبكةٍ واحدة تُقرأ كتالوجاً لا اختياراً: صاحب الفوّال يمرّر
  * دفتر جلدٍ ومجلّة وكيس بنّ قبل أن يصل إلى صينيّته. والأقسام تختصر الطريق إلى
  * ثلاثةٍ أو أربعة تشبه مكانه، و«الكل» باقٍ بترتيب `themeSuggest` لمن أراد الكلّ.
  *
@@ -22,7 +22,8 @@ import type { DemoKind } from "./demoMenus";
 import type { IconName } from "./icons";
 import { norm } from "./starterMenus";
 import {
-  ARABIC_COFFEE, BAKERY, BREAKFAST, GRILL, PIZZA, POPULAR_CAFE, SPECIALTY, TEA_HOUSE, suggestionKey, type CafeFlavor,
+  ARABIC_COFFEE, BAKERY, BREAKFAST, BREW_BAR, DRIVE_THRU, GRILL, PIZZA, POPULAR_CAFE, SPECIALTY, TEA_HOUSE, suggestionKey,
+  type CafeFlavor,
 } from "./themeSuggest";
 
 export type ThemeCategoryId =
@@ -53,18 +54,23 @@ export interface ThemeCategory {
  * ⚠️ **ولا شايَ على رفّ المقاهي**: رفّ الشاي يجاوره. وسماورٌ هناك كان سيجعل `?theme=samovar`
  * يُضيء «مقاهي» لا «شاي» (`demoCategoryOf` ⇐ أوّل رفٍّ فيه الطابع)، والكرك وحده يجعل المقاهي
  * سبعةً تترك طابعاً وحيداً في عمودين.
+ *
+ * و**القهوة الأربعة** (٠٩/١١، اختيار المالك): المقاهي ثمانية أشكالٍ للقهوة — محمصة · تقطير ·
+ * لاتيه · باريستا · مطحنة · درايف · دلّة · لوحة حروف (صفّان تامّان على الأربعة) — وخرجت «مجلّة»
+ * و«عصري» من رفّ المقاهي (باقيتان على البيتزا والراقي والبحري). و«لاتيه» أيضاً على المخابز
+ * والحلويات (شارتها: كافيه الحلا)، و«درايف» على العصائر (شارتها: كشك الطريق).
  */
 export const THEME_CATEGORIES: readonly ThemeCategory[] = [
-  { id: "cafe", name: "مقاهي", nameEn: "Cafés", icon: "dallah", themes: ["roastery", "barista", "dallah", "letterboard", "editorial", "modern"], kind: "cafe" },
+  { id: "cafe", name: "مقاهي", nameEn: "Cafés", icon: "dallah", themes: ["roastery", "v60", "latte", "barista", "grinder", "drive", "dallah", "letterboard"], kind: "cafe" },
   { id: "tea", name: "شاي", nameEn: "Tea", icon: "istikana", themes: ["karak", "samovar", "dallah", "sticker"], kind: "karak" },
-  { id: "bakery", name: "مخابز وحلويات", nameEn: "Bakeries & sweets", icon: "croissant", themes: ["bakery", "patisserie", "letterboard"], kind: "bakery" },
+  { id: "bakery", name: "مخابز وحلويات", nameEn: "Bakeries & sweets", icon: "croissant", themes: ["bakery", "patisserie", "latte", "letterboard"], kind: "bakery" },
   { id: "breakfast", name: "فطور", nameEn: "Breakfast", icon: "egg", themes: ["breakfast", "dukkan", "bakery"], kind: "breakfast" },
   { id: "fast", name: "وجبات سريعة", nameEn: "Fast food", icon: "burger", themes: ["burger", "neon", "receipt", "sticker"], kind: "burger" },
   { id: "pizza", name: "بيتزا وإيطالي", nameEn: "Pizza & Italian", icon: "pizza", themes: ["pizza", "editorial", "modern"], kind: "pizza" },
   { id: "grill", name: "مشاوي وشاورما", nameEn: "Grills & shawarma", icon: "skewer", themes: ["grill", "dark-gold", "asir"], kind: "grill" },
   { id: "shaabi", name: "شعبي", nameEn: "Traditional", icon: "pot", themes: ["najdi", "dallah", "samovar", "dukkan", "breakfast", "asir"], kind: "shaabi" },
   { id: "seafood", name: "بحري", nameEn: "Seafood", icon: "fish", themes: ["harbor", "modern", "dark-gold"], kind: "seafood" },
-  { id: "juice", name: "عصائر", nameEn: "Juices", icon: "juice", themes: ["juice", "sticker", "neon"], kind: "juice" },
+  { id: "juice", name: "عصائر", nameEn: "Juices", icon: "juice", themes: ["juice", "drive", "sticker", "neon"], kind: "juice" },
   { id: "upscale", name: "راقي ومناسبات", nameEn: "Fine dining & occasions", icon: "sparkle", themes: ["dark-gold", "roshan", "dallah", "editorial"], kind: "restaurant" },
 ];
 
@@ -82,7 +88,8 @@ export function categoryById(id: string | null | undefined): ThemeCategory | nul
  *
  * والكافيه الشعبي ⇒ «شعبي» لا «مقاهي»: ترتيبه يبدأ بـ«دلّة» (`themeSuggest`، ٠٧/١١ — كان
  * «نجدي»)، و«دلّة» على رفّ الشعبي أيضاً؛ وشارة «يناسب نوع نشاطك» يجب أن تقع داخل القسم
- * المفتوح. وصفّا القهوة («قهوة عربية» · «قهوة مختصّة») ⇒ «مقاهي»، والشاي وبيته ⇒ «شاي».
+ * المفتوح. وصفوف القهوة («قهوة عربية» · «قهوة مختصّة» · «قهوة مقطّرة» · «قهوة سريعة») ⇒ «مقاهي»،
+ * والشاي وبيته ⇒ «شاي».
  */
 export const CATEGORY_BY_KEY: Readonly<Record<string, ThemeCategoryId | null>> = {
   مطعم: null,
@@ -90,6 +97,8 @@ export const CATEGORY_BY_KEY: Readonly<Record<string, ThemeCategoryId | null>> =
   [POPULAR_CAFE]: "shaabi",
   [ARABIC_COFFEE]: "cafe",
   [SPECIALTY]: "cafe",
+  [BREW_BAR]: "cafe",
+  [DRIVE_THRU]: "cafe",
   شاي: "tea",
   [TEA_HOUSE]: "tea",
   عصائر: "juice",

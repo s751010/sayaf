@@ -19,7 +19,7 @@
  * - `GridHead`     شبكةٌ طباعيّة (عصري): شريطٌ أسود، وخليّة الشعار، ومسطرةٌ مقيسة.
  * - `DukkanHead` · `AsirHead` · `HarborHead` · `PatisserieHead` · `JuiceHead` · `BurgerHead` ·
  *   `BakeryHead` · `BreakfastHead` · `GrillHead` · `PizzaHead` · `DallahHead` · `BaristaHead` ·
- *   `KarakHead` · `SamovarHead` — كلٌّ في ملفّه (`heads/`) كي لا تتزاحم الطوابع على ملفّ.
+ *   `KarakHead` · `SamovarHead` · `V60Head` · `LatteHead` · `GrinderHead` · `DriveHead` — كلٌّ في ملفّه (`heads/`) كي لا تتزاحم الطوابع على ملفّ.
  *
  * والحركة كلّها في `styles/menu-skins.css` — CSS خالص، ولا تعمل إلا لمن يقبل الحركة.
  * وكلّ ما هنا يُلوَّن بـ`--m-*`، فيلبس لون علامة التاجر كما تلبسه واجهة المتجر.
@@ -592,6 +592,10 @@ export { DallahHead } from "./heads/DallahHead";
 export { BaristaHead } from "./heads/BaristaHead";
 export { KarakHead } from "./heads/KarakHead";
 export { SamovarHead } from "./heads/SamovarHead";
+export { V60Head } from "./heads/V60Head";
+export { LatteHead } from "./heads/LatteHead";
+export { GrinderHead } from "./heads/GrinderHead";
+export { DriveHead } from "./heads/DriveHead";
 export { AsirHead } from "./heads/AsirHead";
 
 /* ══ فاخر — دفتر جلدٍ بخيطٍ ذهبيّ ══════════════════════════════════════ */

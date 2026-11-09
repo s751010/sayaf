@@ -29,6 +29,7 @@ import { cn, formatPrice } from "@/lib/utils";
 import { Icon } from "@/lib/icons";
 import { isSoldOut, soldOutLabel } from "@/lib/soldOut";
 import { isHighSodium } from "@/lib/nutrition";
+import { hasTasting, tastingOf, type Tasting } from "@/lib/tasting";
 import { DishArtwork } from "./DishArtwork";
 // ⚠️ يُستورد لا يُكتب: كان معرَّفاً هنا نسخةً ثانية من ثابت `chrome.tsx` نفسه.
 import { nameFont } from "./chrome";
@@ -239,6 +240,73 @@ function CaffeineGauge({ dish, en }: { dish: Dish; en: boolean }) {
         {mg} {unit}
       </span>
     </span>
+  );
+}
+
+/**
+ * الكافيين **رقماً بحبّة بنّ** — لطوابع القهوة بعد «محمصة» (٢٠٢٦/١١/٠٩: لاتيه · مطحنة · درايف).
+ * في مكانٍ ثابت: آخر سطر السعر، مقابل السعر — فلا يتنقّل بين بطاقةٍ وأخرى. وبلا `caffeine_mg`
+ * لا شيء (الصفر المكتوب يُعرض: «٠ ملغم» معلومةٌ للزبون لا فراغ).
+ */
+const CAFFEINE_TAG_SKINS: ReadonlySet<MenuDesign["skin"]> = new Set(["latte", "grinder", "drive"]);
+function CaffeineTag({ dish, en }: { dish: Dish; en: boolean }) {
+  const mg = dish.caffeine_mg;
+  if (mg == null) return null;
+  const unit = en ? "mg" : "ملغم";
+  return (
+    <span
+      role="img"
+      aria-label={`${en ? "Caffeine" : "كافيين"} ${mg} ${unit}`}
+      className="m-caf-tag inline-flex shrink-0 items-center gap-1 text-[11px] font-bold"
+      style={{ color: "var(--m-muted)" }}
+    >
+      <svg viewBox="0 0 12 12" aria-hidden="true" className="h-3 w-3">
+        <ellipse cx="6" cy="6" rx="3.6" ry="5" transform="rotate(30 6 6)" fill="currentColor" />
+        <path d="M7.6 1.8C5 3.6 7 8.4 4.4 10.2" fill="none" stroke="var(--m-surface)" strokeWidth="1" strokeLinecap="round" />
+      </svg>
+      <span aria-hidden="true" className="m-mono" dir="ltr">
+        {mg} {unit}
+      </span>
+    </span>
+  );
+}
+
+/**
+ * **بطاقة التذوّق** لطابع «تقطير» (٢٠٢٦/١١/٠٩) — المنشأ · النكهات · الكافيين في **ثلاثة أعمدةٍ
+ * ثابتة**: خانةٌ لا بيانات لها تبقى فارغةً في مكانها، فيقع الكافيين في عموده على كلّ صفّ.
+ * والقيم من البيانات الموجودة وحدها (`lib/tasting.ts`): ما لا يُذكر لا يُعرض، ولا يُخترع حقل.
+ */
+function TastingCard({ t, mg, en, stacked = false }: { t: Tasting; mg: number | null; en: boolean; stacked?: boolean }) {
+  // مكدَّسةً (الشبكة والعرض) لا عمود للكافيين: يقع في ذيل البطاقة مقابل السعر.
+  if (stacked ? !(t.origin || t.notes.length) : !hasTasting(t, mg)) return null;
+  const label = "block text-[10px] font-bold leading-4";
+  const value = "block truncate text-[12.5px] font-bold leading-5";
+  const cell = (k: string, title: string, v: string | null, dir?: "ltr") => (
+    <div key={k} className={cn("m-taste-cell min-w-0", `m-taste-${k}`)}>
+      {v && (
+        <>
+          <dt className={label} style={{ color: "var(--m-muted)" }}>
+            {title}
+          </dt>
+          <dd className={value} style={{ color: "var(--m-text)" }} dir={dir} title={v}>
+            {v}
+          </dd>
+        </>
+      )}
+    </div>
+  );
+  const unit = en ? "mg" : "ملغم";
+  return (
+    <dl
+      className={cn(
+        "m-taste mt-2 grid gap-x-3 pt-1.5",
+        stacked ? "grid-cols-1 gap-y-1" : "grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)_auto]"
+      )}
+    >
+      {cell("origin", en ? "Origin" : "المنشأ", t.origin)}
+      {cell("notes", en ? "Notes" : "النكهات", t.notes.length ? t.notes.join(" · ") : null)}
+      {!stacked && cell("caf", en ? "Caffeine" : "الكافيين", mg == null ? null : `${mg} ${unit}`, "ltr")}
+    </dl>
   );
 }
 
@@ -457,7 +525,15 @@ export function DishCard({
     borderRadius: "var(--m-radius)",
   };
   const radius = imageRadius(imageShape);
-  const caffeine = design.skin === "roastery" ? <CaffeineGauge dish={dish} en={en} /> : null;
+  /** «تقطير»: بطاقة التذوّق، والوصف بلا جملة النكهات (تُقرأ في عمودها). */
+  const tasting = design.skin === "v60" ? tastingOf(dish, en) : null;
+  const caffeine =
+    design.skin === "roastery" ? (
+      <CaffeineGauge dish={dish} en={en} />
+    ) : CAFFEINE_TAG_SKINS.has(design.skin) || (tasting && layout !== "list") ? (
+      <CaffeineTag dish={dish} en={en} />
+    ) : null;
+  const descText = tasting ? tasting.rest : desc(dish, en);
   const salt = isHighSodium(dish.sodium_mg ?? null) ? <SaltMark en={en} /> : null;
 
   /* ── قائمة رأسية أنيقة ─────────────────────────────────────────────── */
@@ -508,14 +584,19 @@ export function DishCard({
             />
             <Price dish={dish} big style={priceStyle} en={en} />
           </span>
-          {desc(dish, en) && (
+          {tasting && (
+            <span className={cn("block", addSlot && !hasImage && "pe-12")}>
+              <TastingCard t={tasting} mg={dish.caffeine_mg} en={en} />
+            </span>
+          )}
+          {descText && (
             // الحجز على الوصف أيضاً لا على سطر التفاصيل وحده: وصفٌ من سطرين
             // كان سطره الثاني يمتدّ تحت زرّ الإضافة فتختفي كلماته الأخيرة.
             <span
               className={cn("m-desc mt-1 line-clamp-2 block text-[13px] leading-relaxed", addSlot && !hasImage && "pe-12")}
               style={{ color: "var(--m-muted)" }}
             >
-              {desc(dish, en)}
+              {descText}
             </span>
           )}
           <span className={cn("mt-2 flex flex-wrap items-center gap-x-2 gap-y-1", addSlot && !hasImage && "pe-12")}>
@@ -594,9 +675,10 @@ export function DishCard({
             {salt}
             <NameText dish={dish} en={en} star={star} className="ms-0.5 mb-0.5 inline-block align-middle" />
           </p>
+          {tasting && <TastingCard t={tasting} mg={dish.caffeine_mg} en={en} stacked />}
           {showDesc && (
             <p className={cn(DESC_2_LINES, "m-desc text-xs leading-relaxed")} style={{ color: "var(--m-muted)" }}>
-              {desc(dish, en)}
+              {descText}
             </p>
           )}
           <div className="m-foot mt-auto flex items-center justify-between gap-3 pt-1">
@@ -652,9 +734,10 @@ export function DishCard({
           {salt}
           <NameText dish={dish} en={en} star={star} className="ms-0.5 mb-0.5 inline-block align-middle" />
         </p>
+        {tasting && <TastingCard t={tasting} mg={dish.caffeine_mg} en={en} stacked />}
         {showDesc && (
           <p className={cn(DESC_2_LINES, "m-desc text-xs leading-relaxed")} style={{ color: "var(--m-muted)" }}>
-            {desc(dish, en)}
+            {descText}
           </p>
         )}
         {/* التفاصيل الثانوية ثم السعر — سطران بارتفاع محسوم لا يتبع المحتوى.

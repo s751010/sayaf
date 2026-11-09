@@ -91,6 +91,11 @@ describe("ثابت §18 — ألوان الطوابع", () => {
     // «كرك» و«سماور» (٢٠٢٦/١١/٠٧) — كشك الكرك الليلي وبيت الشاي التراثي، بطلب المالك.
     karak: "34c2336a",
     samovar: "c7715eb1",
+    // «تقطير» و«لاتيه» و«مطحنة» و«درايف» (٢٠٢٦/١١/٠٩) — القهوة، اختيار المالك (الموجة ١).
+    v60: "4c479479",
+    latte: "fca39b0b",
+    grinder: "786e4d7",
+    drive: "8bc83c5c",
   };
 
   it("بصمة التسعة المجمّدة لم تتغيّر", () => {
@@ -122,7 +127,9 @@ describe("ثابت §18 — ألوان الطوابع", () => {
     // ١٨ ⇒ ٢٠ (٢٠٢٦/١١/٠٧): «جمر» و«ريحان» — المشاوي والشاورما، والبيتزا والإيطالي.
     // ٢٠ ⇒ ٢٢ (٢٠٢٦/١١/٠٧): «دلّة» و«باريستا» — «أبي للقهوة والمقاهي أشكال وأنواع».
     // ٢٢ ⇒ ٢٤ (٢٠٢٦/١١/٠٧): «كرك» و«سماور» — الشاي: «مرّه حلوه، أبي ابتكارية».
-    expect(ALL_THEMES.length).toBe(24);
+    // ٢٤ ⇒ ٢٨ (٢٠٢٦/١١/٠٩): «تقطير» و«لاتيه» و«مطحنة» و«درايف» — «ابي تصاميم مرتّبه اكثر وابتكاريه
+    // اكثر ومتفاعله اكثر» (الموجة ١ من القهوة والبيتزا والمشاوي).
+    expect(ALL_THEMES.length).toBe(28);
   });
 
   /**
@@ -424,7 +431,7 @@ describe("الطوابع الثلاث بعد الرفع — الضغط والس�
     expect(css).toMatch(/\.m-price \{\s*font-family: var\(--font-cairo\)/);
   });
 
-  it.each(["receipt", "neon", "sticker", "letterboard", "editorial", "roshan", "najdi", "roastery", "dukkan", "asir", "harbor", "patisserie", "juice", "burger", "bakery", "breakfast", "grill", "pizza", "dallah", "barista", "karak", "samovar", "gold", "modern"])(
+  it.each(["receipt", "neon", "sticker", "letterboard", "editorial", "roshan", "najdi", "roastery", "dukkan", "asir", "harbor", "patisserie", "juice", "burger", "bakery", "breakfast", "grill", "pizza", "dallah", "barista", "karak", "samovar", "v60", "latte", "grinder", "drive", "gold", "modern"])(
     "«%s» له حركة نافذةٍ خاصّة داخل `no-preference`",
     (skin) => {
       const block = css.split("@media (prefers-reduced-motion: no-preference)").slice(1).join("");

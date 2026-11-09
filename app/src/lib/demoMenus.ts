@@ -327,20 +327,20 @@ function cafe(): DemoData {
         options: MILK,
       }),
       dish("c5", "V60 — محصول اليوم", "V60 Pour-over", "تقطير", 19, "🫖", {
-        description: "تقطير يدوي ٣٠٠ مل. اسأل عن محصول اليوم ونوتاته.",
+        description: "تقطير يدوي ٣٠٠ مل من محصول إثيوبي (يرغاتشيفي) — نوتات: ياسمين، ليمون، شاي أسود.",
         featured: true,
         calories: 3,
         sodium_mg: 5,
         caffeine_mg: 150,
       }),
       dish("c6", "كيمكس للمشاركة", "Chemex for Two", "تقطير", 32, "⚗️", {
-        description: "٥٠٠ مل تكفي شخصين، من محصول تختاره.",
+        description: "٥٠٠ مل تكفي شخصين، من محصول كولومبي — نوتات: كراميل، تفّاح أحمر.",
         calories: 5,
         sodium_mg: 10,
         caffeine_mg: 250,
       }),
       dish("c7", "كولد برو", "Cold Brew", "باردة", 20, "🧊", {
-        description: "منقوع ١٨ ساعة، ٣٥٠ مل على الثلج.",
+        description: "منقوع ١٨ ساعة من محصول برازيلي، ٣٥٠ مل على الثلج — نوتات: كاكاو، بندق.",
         calories: 5,
         sodium_mg: 10,
         caffeine_mg: 200,
@@ -2023,6 +2023,8 @@ const KIND_BY_TYPE: Record<string, DemoKind> = {
  *
  * و«كرك» و«سماور» (٠٧/١١) شارتهما «شاي»، ومنيو النوع (`KIND_BY_TYPE`) كشك الكرك — فـ«كرك» يُعاين
  * عليه بلا سطرٍ هنا، و«سماور» على بيت الشاي.
+ *
+ * و«دلّة» و«لوحة حروف» تبدّلت شارتاهما (٠٩/١١: «شعبي» و«عصائر») وبقي كلٌّ على منيوه بسطره.
  */
 const KIND_BY_THEME: Readonly<Record<string, DemoKind>> = {
   bakery: "bakery",
@@ -2035,6 +2037,12 @@ const KIND_BY_THEME: Readonly<Record<string, DemoKind>> = {
   letterboard: "cafe",
   modern: "juice",
   samovar: "teahouse",
+  // ٠٩/١١: طوابع القهوة الأربعة على منيوَي القهوة القائمين — بلا منيو جديد: «تقطير» و«مطحنة»
+  // على المحمصة (قسم التقطير ومحاصيله)، و«لاتيه» و«درايف» على «رغوة» (الشوت وما يُبنى عليه).
+  v60: "cafe",
+  grinder: "cafe",
+  latte: "espresso",
+  drive: "espresso",
 };
 
 export function demoKindForSuits(suits: readonly string[] | undefined, themeId?: string | null): DemoKind {

@@ -60,7 +60,8 @@ describe("الأقسام والطوابع", () => {
   });
 
   it("`themesOf` يحفظ ترتيب المالك، و«الكل» يعيد الكلّ كما هو", () => {
-    expect(themesOf("cafe", DESIGN_THEMES).map((t) => t.id)).toEqual(["roastery", "barista", "dallah", "letterboard", "editorial", "modern"]);
+    // ٠٩/١١: المقاهي ثمانية أشكالٍ للقهوة — وخرجت «مجلّة» و«عصري» (باقيتان على رفوفٍ أخرى).
+    expect(themesOf("cafe", DESIGN_THEMES).map((t) => t.id)).toEqual(["roastery", "v60", "latte", "barista", "grinder", "drive", "dallah", "letterboard"]);
     // ٠٧/١١: قسم الشاي — الكشك ثم البيت ثم «دلّة» ثم «ملصقات».
     expect(themesOf("tea", DESIGN_THEMES).map((t) => t.id)).toEqual(["karak", "samovar", "dallah", "sticker"]);
     expect(themesOf(null, DESIGN_THEMES)).toEqual(DESIGN_THEMES);
@@ -91,6 +92,10 @@ describe("قسم التاجر من نوع نشاطه — مفردات `themeSugg
     ["قهوة عربية", "cafe"],
     ["خولاني", "cafe"],
     ["إسبريسو بار", "cafe"],
+    // ٠٩/١١: بار التقطير وكشك القهوة السريع على رفّ المقاهي.
+    ["كافيه V60", "cafe"],
+    ["كشك قهوة", "cafe"],
+    ["كوفي درايف ثرو", "cafe"],
     // ٠٧/١١: الشاي — نوعاً («شاي» في `aliasType`) أو بيتَ شاي — على رفّ الشاي.
     ["شاي", "tea"],
     ["كرك", "tea"],
@@ -133,7 +138,7 @@ describe("`/demo`: القسم من `?kind=` و`?theme=` — ولا يغيّر م
   it.each([
     // ما يكتبه الشريط نفسه.
     ["seafood", "modern", "seafood"],
-    ["cafe", "modern", "cafe"],
+    ["cafe", "latte", "cafe"],
     ["restaurant", "dark-gold", "upscale"],
     // `?theme=` وحده: النوع من `demoKindForSuits` كما كان.
     [demoKindForSuits(ALL_THEMES.find((t) => t.id === "harbor")!.suits, "harbor"), "harbor", "seafood"],
@@ -147,6 +152,12 @@ describe("`/demo`: القسم من `?kind=` و`?theme=` — ولا يغيّر م
     // ٠٧/١١: طابعا الشاي على منيويهما ⇒ رفّ الشاي (الكرك بيته، وسماور أوّل رفٍّ يقف عليه).
     [demoKindForSuits(ALL_THEMES.find((t) => t.id === "karak")!.suits, "karak"), "karak", "tea"],
     [demoKindForSuits(ALL_THEMES.find((t) => t.id === "samovar")!.suits, "samovar"), "samovar", "tea"],
+    // ٠٩/١١: طوابع القهوة الأربعة على منيوَي القهوة القائمين ⇒ رفّ المقاهي (و«لاتيه» و«درايف» على
+    // رفّين آخرين أيضاً — المقاهي أوّلهما).
+    [demoKindForSuits(ALL_THEMES.find((t) => t.id === "v60")!.suits, "v60"), "v60", "cafe"],
+    [demoKindForSuits(ALL_THEMES.find((t) => t.id === "latte")!.suits, "latte"), "latte", "cafe"],
+    [demoKindForSuits(ALL_THEMES.find((t) => t.id === "grinder")!.suits, "grinder"), "grinder", "cafe"],
+    [demoKindForSuits(ALL_THEMES.find((t) => t.id === "drive")!.suits, "drive"), "drive", "cafe"],
     ["karak", null, "tea"],
   ] as const)("kind=%s theme=%s ⇒ %s", (kind, theme, cat) => {
     expect(demoCategoryOf(kind, theme)).toBe(cat);
