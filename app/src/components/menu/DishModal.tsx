@@ -7,7 +7,8 @@
  * خطاطيف `m-o-*` نفسها التي تلبسها السلّة (`menu-skins.css`) — فالنافذة والسلّة
  * من نسيجٍ واحد. ولون العلامة على زرّ الإضافة والخيار المختار وحدهما.
  */
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
+import { useDialog } from "@/lib/useDialog";
 import { SafeImage } from "@/components/ui";
 import { DishArtwork } from "@/components/menu/DishArtwork";
 import { unitPrice, type Cart } from "@/components/menu/Cart";
@@ -41,26 +42,9 @@ export function DishModal({
   const [picked, setPicked] = useState<string[]>([]);
   const [qty, setQty] = useState(1);
   const dialogRef = useRef<HTMLDivElement>(null);
-  /**
-   * التركيز يدخل النافذة ويعود إلى البطاقة التي فتحتها: كان يبقى على البطاقة
-   * خلف الغطاء، فقارئ الشاشة يقرأ المنيو لا الطبق، و«Tab» يتجوّل خلف النافذة.
-   */
-  useEffect(() => {
-    const prev = document.activeElement as HTMLElement | null;
-    // النافذة نفسها لا زرّ الإغلاق: قارئ الشاشة يبدأ من اسم الطبق، ولا تظهر
-    // حلقة تركيز على الزرّ لمن فتح بلمسة.
-    dialogRef.current?.focus({ preventScroll: true });
-    return () => prev?.focus?.({ preventScroll: true });
-  }, []);
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    document.addEventListener("keydown", onKey);
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = "";
-    };
-  }, [onClose]);
+  // التركيز يدخل ويُحبس ويعود إلى البطاقة (`lib/useDialog.ts` — تدقيق
+  // ٢٠٢٦/١١/٠٩، البند ٢). و«رجوع» الجهاز يملكه `MenuPage` عبر `?dish=`.
+  useDialog(dialogRef, onClose);
 
   const options = parseOptions(dish.options);
   /**

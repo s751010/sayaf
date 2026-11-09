@@ -150,6 +150,68 @@ test("لوح الساعات يحبس «Tab» ويعيد التركيز إلى ز
   expect(crashes, crashes.join("\n")).toEqual([]);
 });
 
+/**
+ * تدقيق ٢٠٢٦/١١/٠٩ (البندان ١ و٢): «رجوع» الجهاز والطبق مفتوح كان يغادر المنيو
+ * كلّه، و«Tab» يهرب من نافذة الطبق خلف الغطاء.
+ */
+test("نافذة الطبق: «Tab» محبوس، و«رجوع» يغلقها ويبقى في المنيو، ولا تتراكم الإدخالات", async ({ page }) => {
+  const { crashes } = watch(page);
+  await mockMenu(page, { offline: false });
+  await openMenu(page);
+  const base = await page.evaluate(() => history.length);
+
+  const card = page.getByRole("button", { name: /لاتيه/ }).first();
+  await card.click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
+  const inside = () => dialog.evaluate((d) => d.contains(document.activeElement));
+  for (let i = 0; i < 25; i++) {
+    await page.keyboard.press("Tab");
+    expect(await inside(), `Tab ${i + 1}`).toBe(true);
+  }
+
+  await page.goBack();
+  await expect(dialog).toHaveCount(0);
+  expect(new URL(page.url()).pathname).toBe(`/${SLUG}`);
+  await expect(page.getByText("كرواسون").first()).toBeVisible();
+  // إدخالٌ واحد للطبق لا اثنان (`?dish=` في `MenuPage` وحده).
+  expect(await page.evaluate(() => history.state?.cmDialogs)).toBeUndefined();
+
+  // فتحٌ وإغلاقٌ بالزرّ ثلاثاً: إدخالٌ واحد على الأكثر فوق الأساس.
+  for (let i = 0; i < 3; i++) {
+    await card.click();
+    await expect(dialog).toBeVisible();
+    await dialog.getByRole("button", { name: "إغلاق" }).first().click();
+    await expect(dialog).toHaveCount(0);
+  }
+  await page.waitForTimeout(100);
+  expect(await page.evaluate(() => history.length)).toBeLessThanOrEqual(base + 1);
+  expect(new URL(page.url()).pathname).toBe(`/${SLUG}`);
+  expect(crashes, crashes.join("\n")).toEqual([]);
+});
+
+test("‏`/demo` مفتوحاً وحده: «رجوع» يغلق الطبق ولا يغادر", async ({ page }) => {
+  await page.goto("/demo");
+  const card = page.locator(".m-dishes").getByRole("button").first();
+  await card.click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
+  await page.goBack();
+  await expect(dialog).toHaveCount(0);
+  expect(new URL(page.url()).pathname).toBe("/demo");
+});
+
+test("لوح الساعات: «رجوع» الجهاز يغلقه ولا يغادر المنيو", async ({ page }) => {
+  await mockMenu(page, { offline: false });
+  await openMenu(page);
+  await page.getByRole("button", { name: /مفتوح الآن/ }).click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
+  await page.goBack();
+  await expect(dialog).toHaveCount(0);
+  expect(new URL(page.url()).pathname).toBe(`/${SLUG}`);
+});
+
 test("«أضف إلى الشاشة الرئيسية»: بيانٌ باسم المطعم ورابطه، والأصلي يعود عند المغادرة", async ({ page }) => {
   const { crashes } = watch(page);
   await mockMenu(page, { offline: false });
