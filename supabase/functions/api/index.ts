@@ -16,6 +16,7 @@
  *    `/v1/loyalty/summary` تعيد أعداداً فقط.
  */
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { publicDbError } from "../_shared/db-error.ts";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -34,15 +35,15 @@ const err = (message: string, status: number, extra?: Record<string, string>) =>
   json({ error: message }, status, extra);
 
 /**
- * خطأ القاعدة كما يصل المطوّر: أخطاء **مدخلاته** (صنفا Postgres ‎22 و23 —
- * قيمة غير صالحة، قيد مكسور) تمرّ بنصّها لأنها ما يحتاجه ليصلح طلبه؛ وما عداها
- * (صلاحيات، أعمدة، أعطال) يُسجَّل عندنا ويخرج عامّاً — نصّه يكشف بنية الجداول
- * والسياسات لمن يحمل مفتاحاً، وليس فيه ما يُصلحه هو.
+ * خطأ القاعدة كما يصل المطوّر: الرمز يُترجَم إلى جملة عامّة ثابتة
+ * (`_shared/db-error.ts`) — أخطاء مدخلاته (‎22 و23) بـ٤٠٠ وما عداها بـ٥٠٠.
+ * **ونصّ Postgres لا يخرج أبداً**: يحمل أسماء القيود والأعمدة (الأمن
+ * ٢٠٢٦/١١/٠٩، البند ١٢)، فيُسجَّل عندنا وحده.
  */
 const dbErr = (e: { code?: string; message: string }) => {
-  if (/^2[23]/.test(e.code ?? "")) return err(e.message, 400);
   console.error("api db:", e.code, e.message);
-  return err("تعذّر تنفيذ الطلب.", 500);
+  const out = publicDbError(e.code);
+  return err(out.message, out.status);
 };
 
 /** ٦٠ طلباً في الدقيقة لكل مفتاح — سخيّ لنقطة بيع، ضيّق على السحب الجماعي. */
