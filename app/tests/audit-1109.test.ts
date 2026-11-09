@@ -21,3 +21,16 @@ describe("السلّة: حقلا الاسم والجوال (البند ٧)", () 
     expect(s).toContain('type="tel"');
   });
 });
+
+describe("لا ابتلاع صامت في مسارين يراهما المستخدم (البند ٣٣)", () => {
+  it("‏`OrderAlerts`: فشل إشعار النظام يصير تنبيهاً داخل اللوحة", () => {
+    const s = src("components/OrderAlerts.tsx");
+    expect(s).not.toMatch(/\.catch\(\(\) => \{\}\)/);
+    expect(s).toMatch(/\.catch\(\(\) => onFail\(title\)\)/);
+  });
+  it("‏`ActiveOrderStrip`: فشل الشبكة يُبقي الطريق إلى الطلب", () => {
+    const s = src("components/menu/Cart.tsx");
+    expect(s).not.toMatch(/\.catch\(\(\) => \{\}\)/);
+    expect(s).toMatch(/setOrder\(\{ id, view: null \}\)/);
+  });
+});
