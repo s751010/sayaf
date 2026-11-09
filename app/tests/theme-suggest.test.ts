@@ -219,6 +219,36 @@ describe("طوابع القهوة الأربعة (٠٩/١١، اختيار ال�
   });
 });
 
+describe("طوابع البيتزا الأربعة (٠٩/١١، الموجة ٢)", () => {
+  it("المطعم: «فاخر» أوّلاً كما كان، ثم «نابولي» و«حطب» بشارتيهما و«ريحان»", () => {
+    expect(SUGGESTED["مطعم"]).toEqual(["dark-gold", "napoli", "woodfire", "pizza"]);
+    for (const id of ["napoli", "woodfire", "pizza"]) expect(byId.get(id)!.suits, id).toEqual(["مطعم"]);
+  });
+
+  it("البيتزا السريعة «مطعم سريع» — وصفحة العربات تعرض صاج · فاتورة · شريحة", () => {
+    expect(SUGGESTED["مطعم سريع"]).toEqual(["burger", "receipt", "slices", "pizzabox"]);
+    for (const id of ["slices", "pizzabox"]) expect(byId.get(id)!.suits, id).toEqual(["مطعم سريع"]);
+  });
+
+  it("صفّ البيتزا: «ريحان» أوّلاً (بيته ومنيوه)، ثم الفرن والمطعم الإيطالي والعلبة", () => {
+    expect(SUGGESTED[PIZZA]).toEqual(["pizza", "woodfire", "napoli", "pizzabox"]);
+    expect(rankThemes(ALL_THEMES, "بيتزا").suggested).toBe("pizza");
+  });
+
+  it("الشارات التي انتقلت: «عصري» بحري، و«نيون» عصائر، و«ملصقات» شاي وحدها", () => {
+    expect(byId.get("modern")!.suits).toEqual(["بحري"]);
+    expect(byId.get("neon")!.suits).toEqual(["عصائر"]);
+    expect(byId.get("sticker")!.suits).toEqual(["شاي"]);
+  });
+
+  it("ثلاثٌ وثلاثون شارة — والمقاعد الباقية للمشاوي: مشويات · بحري · شاي", () => {
+    // الموجة التالية (أربعة مشاوي) تملأ الثلاثة، ومقعدٌ رابع في «مشويات» إن سقطت شارة «فاخر» الثانية.
+    expect(ALL_THEMES.reduce((n, t) => n + (t.suits?.length ?? 0), 0)).toBe(33);
+    const free = STARTER_TYPES.filter((type) => ALL_THEMES.filter((t) => t.suits?.includes(type)).length < ROW_SIZE);
+    expect([...free].sort()).toEqual(["بحري", "شاي", "مشويات"].sort());
+  });
+});
+
 describe("الشاي نوعٌ تاسع (٠٧/١١، «كرك» و«سماور» — بقرار المالك)", () => {
   it("«شاي» في `aliasType` من كلماته — والشاي قبل الكافيه", () => {
     expect(STARTER_TYPES).toContain("شاي");

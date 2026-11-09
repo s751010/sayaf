@@ -64,6 +64,8 @@ describe("الأقسام والطوابع", () => {
     expect(themesOf("cafe", DESIGN_THEMES).map((t) => t.id)).toEqual(["roastery", "v60", "latte", "barista", "grinder", "drive", "dallah", "letterboard"]);
     // ٠٧/١١: قسم الشاي — الكشك ثم البيت ثم «دلّة» ثم «ملصقات».
     expect(themesOf("tea", DESIGN_THEMES).map((t) => t.id)).toEqual(["karak", "samovar", "dallah", "sticker"]);
+    // ٠٩/١١: «بيتزا وإيطالي» ستّة — ريحان بيته، ثم أشكال البيتزا الأربعة، و«مجلّة».
+    expect(themesOf("pizza", DESIGN_THEMES).map((t) => t.id)).toEqual(["pizza", "woodfire", "napoli", "pizzabox", "slices", "editorial"]);
     expect(themesOf(null, DESIGN_THEMES)).toEqual(DESIGN_THEMES);
     expect(categoryById("nope")).toBeNull();
   });
@@ -159,6 +161,12 @@ describe("`/demo`: القسم من `?kind=` و`?theme=` — ولا يغيّر م
     [demoKindForSuits(ALL_THEMES.find((t) => t.id === "grinder")!.suits, "grinder"), "grinder", "cafe"],
     [demoKindForSuits(ALL_THEMES.find((t) => t.id === "drive")!.suits, "drive"), "drive", "cafe"],
     ["karak", null, "tea"],
+    // ٠٩/١١: طوابع البيتزا الأربعة على منيو البيتزا القائم ⇒ رفّ البيتزا (و«شريحة» و«علبة» على رفّ
+    // الوجبات السريعة أيضاً، و«نابولي» على الراقي — البيتزا أوّل ما يُضاء بمنيوه).
+    [demoKindForSuits(ALL_THEMES.find((t) => t.id === "woodfire")!.suits, "woodfire"), "woodfire", "pizza"],
+    [demoKindForSuits(ALL_THEMES.find((t) => t.id === "pizzabox")!.suits, "pizzabox"), "pizzabox", "pizza"],
+    [demoKindForSuits(ALL_THEMES.find((t) => t.id === "slices")!.suits, "slices"), "slices", "pizza"],
+    [demoKindForSuits(ALL_THEMES.find((t) => t.id === "napoli")!.suits, "napoli"), "napoli", "pizza"],
   ] as const)("kind=%s theme=%s ⇒ %s", (kind, theme, cat) => {
     expect(demoCategoryOf(kind, theme)).toBe(cat);
   });

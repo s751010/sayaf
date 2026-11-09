@@ -706,6 +706,109 @@ function drive(ctx: Ctx, b: MotifBox, k: MotifInk): void {
   });
 }
 
+/** حطب — ألسنة لهبٍ بالتمييز على الضلعين، وبينها جمرتان بالخافت. */
+function woodfire(ctx: Ctx, b: MotifBox, k: MotifInk): void {
+  const room = b.reach - b.outer;
+  const s = Math.min(b.mm * 2.6, room * 0.62);
+  alongTopBottom(b, s * 1.6, (x, w, top) => {
+    const cx = x + w / 2;
+    const cy = top ? b.outer + room * 0.5 : b.H - b.outer - room * 0.5;
+    const i = Math.round((x - b.outer) / w);
+    if (i % 2) {
+      ctx.fillStyle = k.muted;
+      for (const dx of [-0.18, 0.18]) {
+        ctx.beginPath();
+        ctx.arc(cx + s * dx, cy + s * 0.12, s * 0.1, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      return;
+    }
+    // اللسان: قاعدةٌ مستديرة ورأسٌ مدبّب — يشير إلى الداخل في الضلعين.
+    const dir = top ? 1 : -1;
+    const base = cy - dir * s * 0.32;
+    const tip = cy + dir * s * 0.42;
+    ctx.fillStyle = k.accent;
+    ctx.beginPath();
+    ctx.moveTo(cx - s * 0.2, base);
+    ctx.quadraticCurveTo(cx - s * 0.24, cy, cx, tip);
+    ctx.quadraticCurveTo(cx + s * 0.24, cy, cx + s * 0.2, base);
+    ctx.closePath();
+    ctx.fill();
+  });
+}
+
+/** علبة — شرائح بيتزا بالتمييز رأسها إلى الداخل، وبينها خطّ ثنيةٍ متقطّع بالخافت. */
+function pizzabox(ctx: Ctx, b: MotifBox, k: MotifInk): void {
+  const room = b.reach - b.outer;
+  const s = Math.min(b.mm * 2.6, room * 0.62);
+  alongTopBottom(b, s * 1.5, (x, w, top) => {
+    const cx = x + w / 2;
+    const cy = top ? b.outer + room * 0.5 : b.H - b.outer - room * 0.5;
+    const i = Math.round((x - b.outer) / w);
+    if (i % 2) {
+      ctx.strokeStyle = k.muted;
+      ctx.lineWidth = b.mm * 0.3;
+      ctx.setLineDash([b.mm * 0.8, b.mm * 0.6]);
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.12, cy);
+      ctx.lineTo(x + w * 0.88, cy);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      return;
+    }
+    const dir = top ? 1 : -1;
+    const crust = cy - dir * s * 0.34;
+    ctx.fillStyle = k.accent;
+    ctx.beginPath();
+    ctx.moveTo(cx - s * 0.34, crust);
+    ctx.quadraticCurveTo(cx, crust - dir * s * 0.16, cx + s * 0.34, crust);
+    ctx.lineTo(cx, cy + dir * s * 0.4);
+    ctx.closePath();
+    ctx.fill();
+  });
+}
+
+/** شريحة — مصابيح اللوحة المضيئة: نقاطٌ بالتمييز، وكلّ ثالثةٍ بطاقة سعرٍ صغيرة بالخافت. */
+function slices(ctx: Ctx, b: MotifBox, k: MotifInk): void {
+  const room = b.reach - b.outer;
+  const s = Math.min(b.mm * 2.2, room * 0.6);
+  alongTopBottom(b, s * 1.2, (x, w, top) => {
+    const cx = x + w / 2;
+    const cy = top ? b.outer + room * 0.5 : b.H - b.outer - room * 0.5;
+    const i = Math.round((x - b.outer) / w);
+    if (i % 3 === 1) {
+      ctx.fillStyle = k.muted;
+      rrect(ctx, cx - s * 0.36, cy - s * 0.16, s * 0.72, s * 0.32, s * 0.08);
+      ctx.fill();
+      return;
+    }
+    ctx.fillStyle = k.accent;
+    ctx.beginPath();
+    ctx.arc(cx, cy, s * 0.17, 0, Math.PI * 2);
+    ctx.fill();
+  });
+}
+
+/** نابولي — بلاطٌ مزجّج: مربّعٌ بحدٍّ بالخافت وزهرةٌ بأربع بتلاتٍ بالتمييز في قلبه. */
+function napoli(ctx: Ctx, b: MotifBox, k: MotifInk): void {
+  const room = b.reach - b.outer;
+  const s = Math.min(b.mm * 3, room * 0.7);
+  alongTopBottom(b, s * 1.15, (x, w, top) => {
+    const cx = x + w / 2;
+    const cy = top ? b.outer + room * 0.5 : b.H - b.outer - room * 0.5;
+    ctx.strokeStyle = k.muted;
+    ctx.lineWidth = b.mm * 0.25;
+    ctx.strokeRect(cx - s * 0.46, cy - s * 0.46, s * 0.92, s * 0.92);
+    ctx.fillStyle = k.accent;
+    for (let p = 0; p < 4; p++) {
+      const a = (Math.PI / 2) * p;
+      ctx.beginPath();
+      ctx.ellipse(cx + Math.cos(a) * s * 0.17, cy + Math.sin(a) * s * 0.17, s * 0.15, s * 0.07, a, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  });
+}
+
 const MOTIFS: Record<MenuSkin, ((ctx: Ctx, b: MotifBox, k: MotifInk) => void) | null> = {
   gold: folio,
   receipt,
@@ -735,6 +838,10 @@ const MOTIFS: Record<MenuSkin, ((ctx: Ctx, b: MotifBox, k: MotifInk) => void) | 
   latte,
   grinder,
   drive,
+  woodfire,
+  pizzabox,
+  slices,
+  napoli,
   // «لون علامتي» محايدٌ عمداً على الشاشة — وكذلك على الورق.
   store: null,
 };

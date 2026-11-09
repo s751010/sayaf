@@ -2043,6 +2043,14 @@ const KIND_BY_THEME: Readonly<Record<string, DemoKind>> = {
   grinder: "cafe",
   latte: "espresso",
   drive: "espresso",
+  // ٠٩/١١: طوابع البيتزا الأربعة على منيو البيتزا القائم — بلا منيو جديد. و«نيون» و«ملصقات» تبدّلت
+  // شارتاهما (`themeSuggest`) وبقي كلٌّ يُعاين على منيوه كما كان: البرجر والعصير.
+  woodfire: "pizza",
+  pizzabox: "pizza",
+  slices: "pizza",
+  napoli: "pizza",
+  neon: "burger",
+  sticker: "juice",
 };
 
 export function demoKindForSuits(suits: readonly string[] | undefined, themeId?: string | null): DemoKind {

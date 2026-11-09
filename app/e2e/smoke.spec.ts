@@ -66,6 +66,11 @@ const PAGES = [
   { path: "/demo?theme=latte", anchor: "رغوة", role: "text", label: "لاتيه على منيو الإسبريسو" },
   { path: "/demo?theme=grinder", anchor: "محمصة نخلة", role: "text", label: "مطحنة على منيو المحمصة" },
   { path: "/demo?theme=drive", anchor: "رغوة", role: "text", label: "درايف على منيو الإسبريسو" },
+  // ٠٩/١١: طوابع البيتزا الأربعة على منيو البيتزا القائم (`KIND_BY_THEME`).
+  { path: "/demo?theme=woodfire", anchor: "بيتزيريا ريحانة", role: "text", label: "حطب على منيو البيتزا" },
+  { path: "/demo?theme=pizzabox", anchor: "بيتزيريا ريحانة", role: "text", label: "علبة على منيو البيتزا" },
+  { path: "/demo?theme=slices", anchor: "بيتزيريا ريحانة", role: "text", label: "شريحة على منيو البيتزا" },
+  { path: "/demo?theme=napoli", anchor: "بيتزيريا ريحانة", role: "text", label: "نابولي على منيو البيتزا" },
   // مقالٌ ثابت: نصّه يُحمَّل كسولاً (`import.meta.glob`) ويمرّ على المنقّي في
   // متصفّح حقيقي — ويُعرض ولو سقطت الشبكة. والمرساة عنوانٌ **داخل النصّ** لا
   // عنوان المقال: هي ما يثبت أن الملفّ الكسول وصل ومرّ على المنقّي سليماً.

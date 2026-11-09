@@ -96,6 +96,11 @@ describe("ثابت §18 — ألوان الطوابع", () => {
     latte: "fca39b0b",
     grinder: "786e4d7",
     drive: "8bc83c5c",
+    // «حطب» و«علبة» و«شريحة» و«نابولي» (٢٠٢٦/١١/٠٩) — البيتزا، اختيار المالك (الموجة ٢).
+    woodfire: "872351cb",
+    pizzabox: "6c3698e2",
+    slices: "f188473a",
+    napoli: "2e105ed1",
   };
 
   it("بصمة التسعة المجمّدة لم تتغيّر", () => {
@@ -129,7 +134,8 @@ describe("ثابت §18 — ألوان الطوابع", () => {
     // ٢٢ ⇒ ٢٤ (٢٠٢٦/١١/٠٧): «كرك» و«سماور» — الشاي: «مرّه حلوه، أبي ابتكارية».
     // ٢٤ ⇒ ٢٨ (٢٠٢٦/١١/٠٩): «تقطير» و«لاتيه» و«مطحنة» و«درايف» — «ابي تصاميم مرتّبه اكثر وابتكاريه
     // اكثر ومتفاعله اكثر» (الموجة ١ من القهوة والبيتزا والمشاوي).
-    expect(ALL_THEMES.length).toBe(28);
+    // ٢٨ ⇒ ٣٢ (٢٠٢٦/١١/٠٩): «حطب» و«علبة» و«شريحة» و«نابولي» — الموجة ٢: البيتزا.
+    expect(ALL_THEMES.length).toBe(32);
   });
 
   /**
@@ -431,7 +437,7 @@ describe("الطوابع الثلاث بعد الرفع — الضغط والس�
     expect(css).toMatch(/\.m-price \{\s*font-family: var\(--font-cairo\)/);
   });
 
-  it.each(["receipt", "neon", "sticker", "letterboard", "editorial", "roshan", "najdi", "roastery", "dukkan", "asir", "harbor", "patisserie", "juice", "burger", "bakery", "breakfast", "grill", "pizza", "dallah", "barista", "karak", "samovar", "v60", "latte", "grinder", "drive", "gold", "modern"])(
+  it.each(["receipt", "neon", "sticker", "letterboard", "editorial", "roshan", "najdi", "roastery", "dukkan", "asir", "harbor", "patisserie", "juice", "burger", "bakery", "breakfast", "grill", "pizza", "dallah", "barista", "karak", "samovar", "v60", "latte", "grinder", "drive", "woodfire", "pizzabox", "slices", "napoli", "gold", "modern"])(
     "«%s» له حركة نافذةٍ خاصّة داخل `no-preference`",
     (skin) => {
       const block = css.split("@media (prefers-reduced-motion: no-preference)").slice(1).join("");

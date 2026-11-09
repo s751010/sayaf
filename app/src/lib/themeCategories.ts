@@ -3,7 +3,7 @@
  *
  * ═══ لماذا ═══
  *
- * ثمانيةٌ وعشرون طابعاً في شبكةٍ واحدة تُقرأ كتالوجاً لا اختياراً: صاحب الفوّال يمرّر
+ * اثنان وثلاثون طابعاً في شبكةٍ واحدة تُقرأ كتالوجاً لا اختياراً: صاحب الفوّال يمرّر
  * دفتر جلدٍ ومجلّة وكيس بنّ قبل أن يصل إلى صينيّته. والأقسام تختصر الطريق إلى
  * ثلاثةٍ أو أربعة تشبه مكانه، و«الكل» باقٍ بترتيب `themeSuggest` لمن أراد الكلّ.
  *
@@ -59,19 +59,23 @@ export interface ThemeCategory {
  * لاتيه · باريستا · مطحنة · درايف · دلّة · لوحة حروف (صفّان تامّان على الأربعة) — وخرجت «مجلّة»
  * و«عصري» من رفّ المقاهي (باقيتان على البيتزا والراقي والبحري). و«لاتيه» أيضاً على المخابز
  * والحلويات (شارتها: كافيه الحلا)، و«درايف» على العصائر (شارتها: كشك الطريق).
+ *
+ * و**البيتزا الأربعة** (٠٩/١١، الموجة ٢): «بيتزا وإيطالي» ستّة — ريحان (بيته ومنيوه) · حطب · نابولي ·
+ * علبة · شريحة · مجلّة — وخرج «عصري» منه (شارته «بحري» اليوم، ورفّه البحري). و«شريحة» و«علبة» على
+ * رفّ الوجبات السريعة أيضاً (شارتهما «مطعم سريع»)، و«نابولي» على «راقي ومناسبات» (المطعم الإيطالي الأنيق).
  */
 export const THEME_CATEGORIES: readonly ThemeCategory[] = [
   { id: "cafe", name: "مقاهي", nameEn: "Cafés", icon: "dallah", themes: ["roastery", "v60", "latte", "barista", "grinder", "drive", "dallah", "letterboard"], kind: "cafe" },
   { id: "tea", name: "شاي", nameEn: "Tea", icon: "istikana", themes: ["karak", "samovar", "dallah", "sticker"], kind: "karak" },
   { id: "bakery", name: "مخابز وحلويات", nameEn: "Bakeries & sweets", icon: "croissant", themes: ["bakery", "patisserie", "latte", "letterboard"], kind: "bakery" },
   { id: "breakfast", name: "فطور", nameEn: "Breakfast", icon: "egg", themes: ["breakfast", "dukkan", "bakery"], kind: "breakfast" },
-  { id: "fast", name: "وجبات سريعة", nameEn: "Fast food", icon: "burger", themes: ["burger", "neon", "receipt", "sticker"], kind: "burger" },
-  { id: "pizza", name: "بيتزا وإيطالي", nameEn: "Pizza & Italian", icon: "pizza", themes: ["pizza", "editorial", "modern"], kind: "pizza" },
+  { id: "fast", name: "وجبات سريعة", nameEn: "Fast food", icon: "burger", themes: ["burger", "neon", "receipt", "sticker", "slices", "pizzabox"], kind: "burger" },
+  { id: "pizza", name: "بيتزا وإيطالي", nameEn: "Pizza & Italian", icon: "pizza", themes: ["pizza", "woodfire", "napoli", "pizzabox", "slices", "editorial"], kind: "pizza" },
   { id: "grill", name: "مشاوي وشاورما", nameEn: "Grills & shawarma", icon: "skewer", themes: ["grill", "dark-gold", "asir"], kind: "grill" },
   { id: "shaabi", name: "شعبي", nameEn: "Traditional", icon: "pot", themes: ["najdi", "dallah", "samovar", "dukkan", "breakfast", "asir"], kind: "shaabi" },
   { id: "seafood", name: "بحري", nameEn: "Seafood", icon: "fish", themes: ["harbor", "modern", "dark-gold"], kind: "seafood" },
   { id: "juice", name: "عصائر", nameEn: "Juices", icon: "juice", themes: ["juice", "drive", "sticker", "neon"], kind: "juice" },
-  { id: "upscale", name: "راقي ومناسبات", nameEn: "Fine dining & occasions", icon: "sparkle", themes: ["dark-gold", "roshan", "dallah", "editorial"], kind: "restaurant" },
+  { id: "upscale", name: "راقي ومناسبات", nameEn: "Fine dining & occasions", icon: "sparkle", themes: ["dark-gold", "roshan", "dallah", "editorial", "napoli"], kind: "restaurant" },
 ];
 
 /** أقلّ ما يكون في قسم — قسمٌ بطابعين قائمةٌ لا رفّ. */

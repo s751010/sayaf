@@ -42,6 +42,10 @@ import { V60Heading } from "./heads/V60Head";
 import { LatteHeading } from "./heads/LatteHead";
 import { GrinderHeading } from "./heads/GrinderHead";
 import { DriveHeading } from "./heads/DriveHead";
+import { WoodfireHeading } from "./heads/WoodfireHead";
+import { PizzaboxHeading } from "./heads/PizzaboxHead";
+import { SlicesHeading } from "./heads/SlicesHead";
+import { NapoliHeading } from "./heads/NapoliHead";
 import { AsirHeading } from "./heads/AsirHead";
 
 /** خطّ العناوين — يسقط إلى خطّ النصّ لكل طابع لا يذكر `--m-display` (§18). */
@@ -320,7 +324,8 @@ export function SectionHeading({
         دلّة (فنجالٌ والعدد تمرة) · باريستا (كوبٌ ورقيّ بختم المحلّ) ·
         كرك (كاسةٌ وسلك مصابيح إلى بطاقة صفيح) · سماور (استكانةٌ وحاشية سجّادٍ إلى صحنها) ·
         تقطير (قمعٌ صغير وقطرته) · لاتيه (فنجانٌ ورسمة القسم) · مطحنة (قرص درجة الطحن وكومته) ·
-        درايف (كوبٌ بكمّه ولوحة مسار):
+        درايف (كوبٌ بكمّه ولوحة مسار) · حطب (فوهةٌ تتّقد وحطبٌ إلى بلاطة فخّار) · علبة (شريحةٌ
+        تخرج من دائرتها ولاصق توصيل) · شريحة (شريطُ لوحة أسعارٍ مضيئة) · نابولي (بلاطةٌ وخطّ فرشاة):
         كلٌّ في ملفّه (`heads/`) ── */
   const FILE_HEADINGS = {
     shelf: DukkanHeading,
@@ -341,6 +346,10 @@ export function SectionHeading({
     art: LatteHeading,
     grind: GrinderHeading,
     sleeve: DriveHeading,
+    hearth: WoodfireHeading,
+    wedge: PizzaboxHeading,
+    lightbox: SlicesHeading,
+    brush: NapoliHeading,
   } as const;
   if (style in FILE_HEADINGS) {
     const Skin = FILE_HEADINGS[style as keyof typeof FILE_HEADINGS];
@@ -349,6 +358,7 @@ export function SectionHeading({
         name={name}
         items={items}
         index={index}
+        icon={icon}
         photo={photo && <CoverImg src={photo.src} onError={onError} className="aspect-[21/9]" />}
       />
     );

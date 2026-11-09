@@ -34,7 +34,11 @@ import { useCallback, useEffect, useRef, type RefObject } from "react";
 import type { MenuSkin } from "./themes";
 
 /** الطوابع التي تقرأ الطبقة — والباقي بلا مستمعٍ ولا سمة. */
-export const MOTION_SKINS: ReadonlySet<MenuSkin> = new Set<MenuSkin>(["v60", "latte", "grinder", "drive"]);
+export const MOTION_SKINS: ReadonlySet<MenuSkin> = new Set<MenuSkin>([
+  "v60", "latte", "grinder", "drive",
+  // ٠٩/١١ (الموجة ٢): البيتزا — حطب · علبة · شريحة · نابولي.
+  "woodfire", "pizzabox", "slices", "napoli",
+]);
 
 /** درجة `--m-scroll`: مئتان وخمسون درجةً للصفحة كلّها — أنعم ممّا تميّزه العين في شريط. */
 export const SCROLL_STEP = 0.004;

@@ -1,0 +1,418 @@
+/*
+ * ══ شريحة — محلّ البيتزا بالشريحة (٢٠٢٦/١١/٠٩) ════════════════════════════════════
+ * الطابع الحادي والثلاثون. بلاطٌ أبيض، ولوحة أسعارٍ مضيئة سوداء فوق كاونتر زجاجٍ فيه ثلاث صوانٍ
+ * تحت مصابيح التسخين. **اللوحة تشتعل عند الفتح** كلوحة الفلورسنت، والصواني تدخل واحدةً بعد أخرى،
+ * ولمعة الزجاج تجري مع التمرير، ومصابيحُ صغيرة تضيء تحت الشريط بتقدّم الصفحة (`lib/skinMotion.ts`).
+ * وحين يُضاف صنفٌ **تُرفع شريحةٌ من الصينيّة ويخرج رقمك من الموزّع**، وتسقط شريحةٌ في شريط الطلب.
+ * والأطباق صوانٍ تُسحب أفقياً (`deck`)، والسعر بطاقةُ سعر، والأقسام شرائطُ لوحة الأسعار.
+ * الترويسة وعنوان القسم في `components/menu/heads/SlicesHead.tsx`.
+ *
+ * ⚠️ مستورَدٌ من **رأس** `menu-skins.css` — فكلّ انتقائيٍّ هنا يبدأ بـ`.m-skin-slices`.
+ *
+ * ما يتبع العلامة: شريط اللوحة وشريط الكاونتر (`--m-accent`)، وبطاقات السعر والأزرار بنصٍّ من
+ * `--m-on-accent`. وما لا يتبعها خامة: اللوحة السوداء والزجاج والستيل والبيتزا. والنصّ على اللوحة
+ * أبيضُ على أسودها (‎≥ 15:1)، والعدد على بطاقةٍ صفراء بحبرٍ فحميّ (‎≥ 11:1) — ثابتان أيّاً كان اللون.
+ */
+.m-skin-slices {
+  display: flow-root;
+  --m-sl-board: #16181d;
+  --m-sl-lit: #ffffff;
+  --m-sl-cheese: #ffc61a;
+  --m-sl-steel: #c3cad2;
+  /* الزخرفة: بلاط المطبخ الأبيض — مستطيلاتٌ بملاطٍ رماديٍّ خافت، صفٌّ يُزاح عن صفّ. */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='30'%3E%3Cpath d='M0 .5H60M0 15.5H60M.5 0V15M30.5 15V30' stroke='%2314161a' stroke-opacity='.05'/%3E%3C/svg%3E");
+  background-size: 60px 30px;
+}
+
+/* ── المحلّ: اللوحة والكاونتر ── */
+.m-skin-slices .m-sl-shop {
+  background: linear-gradient(180deg, #e3e6ea, color-mix(in srgb, #e3e6ea 40%, var(--m-bg)) 70%, var(--m-bg));
+}
+/* اللوحة: سوداء بإطار ألمنيوم، ووهجٌ خفيف من داخلها. */
+.m-skin-slices .m-sl-board {
+  border-radius: 10px;
+  background:
+    radial-gradient(80% 70% at 50% 0%, rgba(255, 255, 255, 0.07), transparent 70%),
+    var(--m-sl-board);
+  box-shadow:
+    0 0 0 3px var(--m-sl-steel),
+    0 0 0 4px #8a929b,
+    0 14px 24px -12px rgba(20, 22, 26, 0.55);
+}
+.m-skin-slices .m-sl-band {
+  background: var(--m-accent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--m-accent) 70%, transparent);
+}
+.m-skin-slices .m-sl-name {
+  color: var(--m-sl-lit);
+  text-shadow:
+    0 0 8px rgba(255, 255, 255, 0.4),
+    0 0 18px color-mix(in srgb, var(--m-accent) 55%, transparent);
+}
+.m-skin-slices .m-sl-type {
+  color: #c9ced6;
+}
+.m-skin-slices .m-sl-rows {
+  color: #e9edf2;
+  padding-top: 0.6rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+.m-skin-slices .m-sl-dots {
+  background: radial-gradient(circle, rgba(255, 198, 26, 0.75) 1px, transparent 1.4px) 0 50% / 6px 4px repeat-x;
+}
+/* بطاقة سعرٍ بلا رقم في اللوحة: الأسعار في الأصناف لا هنا. */
+.m-skin-slices .m-sl-tag {
+  border-radius: 3px;
+  background: var(--m-accent);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--m-accent) 60%, transparent);
+}
+.m-skin-slices .m-sl-counter {
+  filter: drop-shadow(0 10px 10px rgba(20, 22, 26, 0.3));
+}
+.m-skin-slices .m-sl-glare {
+  transform-box: view-box;
+}
+.m-skin-slices .m-sl-pick {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+.m-skin-slices .m-sl-ticket {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+.m-skin-slices .m-sl-window {
+  border-radius: 8px;
+  box-shadow:
+    0 0 0 3px var(--m-sl-steel),
+    0 0 0 4px #8a929b,
+    0 12px 20px -12px rgba(20, 22, 26, 0.5);
+}
+
+/* ── عنوان القسم: شريطٌ من لوحة الأسعار ── */
+.m-skin-slices .m-sl-strip {
+  border-radius: 8px;
+  background: var(--m-sl-board);
+  box-shadow:
+    inset 4px 0 0 var(--m-accent),
+    0 6px 14px -10px rgba(20, 22, 26, 0.6);
+}
+[dir="ltr"].m-skin-slices .m-sl-strip {
+  box-shadow:
+    inset -4px 0 0 var(--m-accent),
+    0 6px 14px -10px rgba(20, 22, 26, 0.6);
+}
+.m-skin-slices .m-sl-hname {
+  color: var(--m-sl-lit);
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.35);
+}
+.m-skin-slices .m-sl-count {
+  border-radius: 3px;
+  background: var(--m-sl-cheese);
+  color: var(--m-sl-board);
+}
+.m-skin-slices .m-sl-photo {
+  padding: 4px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #e9edf1, #9aa3ad);
+  box-shadow: 0 10px 18px -12px rgba(20, 22, 26, 0.5);
+}
+.m-skin-slices .m-sl-photo .m-img {
+  border-radius: 7px;
+}
+
+/* ── الطبق بلا صورة: بيتزا مقطوعة على صينيّة ستيل ──
+   الأرضية ستيلٌ مصقول تحت وهج المصباح، والصحن **بيتزا بثماني شرائح**: الجبن والبيبروني، والقطع
+   خطوطٌ من المركز، والحافّة خبز. والرمز بحبرٍ فحميّ على الجبن. */
+.m-skin-slices .m-art {
+  --m-art-bg:
+    radial-gradient(60% 50% at 50% 20%, rgba(255, 179, 71, 0.28), transparent 70%),
+    repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.35) 0 2px, transparent 2px 9px),
+    linear-gradient(180deg, #d5dbe1, #aab3bd);
+  --m-art-plate:
+    repeating-conic-gradient(from 22.5deg, rgba(130, 70, 25, 0.5) 0 1.4deg, transparent 1.4deg 45deg),
+    radial-gradient(circle at 30% 32%, #b3261e 0 6%, transparent 6.6%),
+    radial-gradient(circle at 70% 36%, #b3261e 0 6%, transparent 6.6%),
+    radial-gradient(circle at 62% 72%, #b3261e 0 6%, transparent 6.6%),
+    radial-gradient(circle closest-side, #f6d98a 0, #f3cf72 78%, #e2a35a 84%, #c98b45 94%, #9c6230 100%);
+  --m-art-ring: 0 0 0 1px rgba(80, 50, 20, 0.3);
+  --m-art-lift: 0 10px 14px -8px rgba(20, 22, 26, 0.5);
+  --m-art-well: 0 0 transparent;
+  --m-art-mark: rgba(20, 22, 26, 0.06);
+}
+.m-skin-slices .m-art-plate {
+  --m-accent-ink: #2b1a0e;
+}
+
+/* ── البطاقة والشرائح ── */
+.m-skin-slices .m-card,
+.m-skin-slices .m-feature {
+  --m-border: rgba(20, 22, 26, 0.14);
+}
+/* البطاقة صينيّة: حافّةُ ستيلٍ عليا، وظلٌّ قصير على الكاونتر. */
+.m-skin-slices .m-card.m-surface,
+.m-skin-slices .m-feature {
+  box-shadow:
+    inset 0 3px 0 #dfe3e8,
+    0 8px 14px -10px rgba(20, 22, 26, 0.45);
+}
+/* السعر بطاقةٌ بركنٍ مقصوص — لا حبّة. */
+.m-skin-slices .m-price.m-shine {
+  border-radius: 3px;
+  clip-path: polygon(0 0, calc(100% - 7px) 0, 100% 7px, 100% 100%, 0 100%);
+}
+.m-skin-slices .m-chips > *,
+.m-skin-slices .m-tab {
+  border-radius: 6px;
+}
+.m-skin-slices .m-add {
+  border-radius: 10px;
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 3.5px var(--m-sl-steel),
+    0 5px 10px -3px rgba(20, 22, 26, 0.4);
+}
+.m-skin-slices .m-soldout {
+  border-radius: 3px;
+  background: var(--m-sl-board);
+  color: #e9edf2;
+}
+
+/* ── شاشات الطلب ── */
+.m-skin-slices .m-o-card {
+  border-radius: 10px;
+  box-shadow: 0 8px 18px -14px rgba(20, 22, 26, 0.5);
+}
+.m-skin-slices .m-o-cta {
+  border-radius: 10px;
+  box-shadow:
+    0 0 0 2px var(--m-surface),
+    0 0 0 3.5px var(--m-sl-cheese),
+    0 12px 20px -14px rgba(20, 22, 26, 0.6);
+}
+.m-skin-slices .m-o-field,
+.m-skin-slices .m-o-ghost,
+.m-skin-slices .m-o-opt,
+.m-skin-slices .m-o-soldout,
+.m-skin-slices .m-o-step,
+.m-skin-slices .m-o-chip {
+  border-radius: 8px;
+}
+.m-skin-slices .m-o-thumb {
+  border-radius: 4px;
+}
+
+/* ── الحركة ──
+ * عند الفتح: اللوحة تشتعل كالفلورسنت (ومضاتٌ ثم ثبات)، والصواني تدخل الكاونتر واحدةً بعد أخرى،
+ * والمصابيح تنبض. ومع التمرير: لمعة الزجاج تجري (`--m-scroll-y`)، ومصابيحُ صغيرة تحت الشريط تضيء
+ * بتقدّم الصفحة وتركبها شريحة (`--m-scroll`). وحين يدخل القسم يشتعل شريطه (`data-m-in`). وحين يُضاف
+ * صنفٌ تُرفع شريحةٌ من الصينيّة الوسطى ويخرج رقمك، والزرّ يرنّ بحلقةٍ صفراء، وتسقط شريحةٌ في شريط
+ * الطلب (`data-m-added`). */
+@media (prefers-reduced-motion: no-preference) {
+  .m-skin-slices .m-sl-lit {
+    animation: m-sl-flicker 0.9s linear 0.2s both;
+  }
+  .m-skin-slices .m-sl-band {
+    animation: m-sl-flicker 0.9s linear 0.1s both;
+  }
+  .m-skin-slices .m-sl-tray {
+    animation: m-sl-slide 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.1) calc(0.35s + var(--n) * 0.12s) both;
+  }
+  .m-skin-slices .m-sl-lamp path:first-child {
+    animation: m-sl-heat 2.4s ease-in-out calc(var(--n) * -0.8s) infinite alternate;
+  }
+  .m-skin-slices .m-sl-glare {
+    transform: translateX(calc(min(var(--m-scroll-y, 0), 900) * 0.32px));
+    transform: translateX(calc(mod(var(--m-scroll-y, 0) * 0.45, 340) * 1px));
+  }
+  /* مصابيحُ تحت الشريط تضيء بتقدّم الصفحة، وشريحةٌ على رأسها. */
+  .m-skin-slices[data-m-motion] .m-nav::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: -1px;
+    height: 4px;
+    background: radial-gradient(circle, var(--m-sl-cheese) 1.4px, transparent 1.9px) 0 50% / 8px 4px repeat-x;
+    clip-path: inset(0 0 0 calc((1 - var(--m-scroll, 0)) * 100%));
+    pointer-events: none;
+  }
+  [dir="ltr"].m-skin-slices[data-m-motion] .m-nav::after {
+    clip-path: inset(0 calc((1 - var(--m-scroll, 0)) * 100%) 0 0);
+  }
+  .m-skin-slices[data-m-motion] .m-nav::before {
+    content: "";
+    position: absolute;
+    bottom: -6px;
+    inset-inline-start: calc(var(--m-scroll, 0) * (100% - 14px));
+    width: 14px;
+    height: 14px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M3 4.5Q10 1.5 17 4.5L10 18.5Z' fill='%23ffc61a'/%3E%3Cpath d='M3 4.5Q10 1.5 17 4.5L16.2 6.2Q10 3.6 3.8 6.2Z' fill='%23c98b45'/%3E%3Ccircle cx='9' cy='8.6' r='1.7' fill='%23d23a26'/%3E%3C/svg%3E")
+      center / contain no-repeat;
+    pointer-events: none;
+  }
+  /* القسم يدخل: شريطه يشتعل. */
+  .m-skin-slices[data-m-motion] .m-sec:not([data-m-in]) .m-sl-hname,
+  .m-skin-slices[data-m-motion] .m-sec:not([data-m-in]) .m-sl-strip > svg {
+    opacity: 0.15;
+  }
+  .m-skin-slices .m-sec[data-m-in] .m-sl-hname,
+  .m-skin-slices .m-sec[data-m-in] .m-sl-strip > svg {
+    animation: m-sl-flicker 0.6s linear 0.1s both;
+  }
+  /* أُضيف: شريحةٌ تُرفع، ورقمك يخرج، والزرّ يرنّ، وشريحةٌ تسقط في شريط الطلب. */
+  .m-skin-slices[data-m-added] .m-sl-pick {
+    animation: m-sl-pick 1s cubic-bezier(0.3, 0.7, 0.3, 1) both;
+  }
+  .m-skin-slices[data-m-added] .m-sl-ticket {
+    animation: m-sl-ticket 0.9s cubic-bezier(0.3, 1.4, 0.5, 1) both;
+  }
+  .m-skin-slices [data-m-added] > .m-add {
+    animation: m-sl-ding 0.45s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+  }
+  .m-skin-slices [data-m-added] > .m-add::after {
+    content: "";
+    position: absolute;
+    inset: -4px;
+    border-radius: 13px;
+    border: 3px solid var(--m-sl-cheese);
+    pointer-events: none;
+    animation: m-sl-ring 0.7s ease-out both;
+  }
+  .m-skin-slices[data-m-added] .m-cart::before {
+    content: "";
+    position: absolute;
+    top: -1.1rem;
+    inset-inline-end: 1.6rem;
+    width: 22px;
+    height: 22px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M3 4.5Q10 1.5 17 4.5L10 18.5Z' fill='%23ffc61a'/%3E%3Cpath d='M3 4.5Q10 1.5 17 4.5L16.2 6.2Q10 3.6 3.8 6.2Z' fill='%23c98b45'/%3E%3Ccircle cx='9' cy='8.6' r='1.7' fill='%23d23a26'/%3E%3Ccircle cx='11.6' cy='12.4' r='1.4' fill='%23d23a26'/%3E%3C/svg%3E")
+      center / contain no-repeat;
+    pointer-events: none;
+    animation: m-sl-drop 0.85s cubic-bezier(0.5, 0, 0.7, 0.4) both;
+  }
+  .m-skin-slices .m-sheet.anim-fade-up {
+    animation: m-sl-sheet 0.24s cubic-bezier(0.2, 0.9, 0.25, 1) backwards;
+  }
+  .m-skin-slices .m-add:active {
+    transform: scale(0.92);
+  }
+  .m-skin-slices .m-card.m-surface:active,
+  .m-skin-slices .m-feature:active {
+    transform: scale(0.985);
+  }
+}
+
+/* الفلورسنت: ومضاتٌ متقطّعة ثم ضوءٌ ثابت. */
+@keyframes m-sl-flicker {
+  0% {
+    opacity: 0.12;
+  }
+  12% {
+    opacity: 0.85;
+  }
+  18% {
+    opacity: 0.2;
+  }
+  30% {
+    opacity: 1;
+  }
+  38% {
+    opacity: 0.45;
+  }
+  50%,
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes m-sl-slide {
+  from {
+    opacity: 0;
+    transform: translateX(-26px);
+  }
+}
+@keyframes m-sl-heat {
+  from {
+    opacity: 0.7;
+  }
+  to {
+    opacity: 1;
+  }
+}
+/* الشريحة تُرفع بالملعقة وتميل، ثم تختفي، ثم توضع شريحةٌ مكانها. */
+@keyframes m-sl-pick {
+  0% {
+    transform: none;
+  }
+  40%,
+  62% {
+    opacity: 1;
+    transform: translateY(-20px) rotate(-10deg);
+  }
+  78% {
+    opacity: 0;
+    transform: translateY(-30px) rotate(-14deg);
+  }
+  79% {
+    opacity: 0;
+    transform: none;
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes m-sl-ticket {
+  0% {
+    transform: none;
+  }
+  30%,
+  75% {
+    transform: translateY(-9px) scaleY(1.25);
+  }
+  100% {
+    transform: none;
+  }
+}
+@keyframes m-sl-ding {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.18);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes m-sl-ring {
+  0% {
+    opacity: 1;
+    transform: scale(0.85);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.4);
+  }
+}
+@keyframes m-sl-drop {
+  0% {
+    opacity: 0;
+    transform: translateY(-26px) rotate(-30deg);
+  }
+  25% {
+    opacity: 1;
+  }
+  75% {
+    opacity: 1;
+    transform: translateY(6px) rotate(8deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(10px) rotate(8deg);
+  }
+}
+@keyframes m-sl-sheet {
+  from {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+}

@@ -12,6 +12,7 @@
  */
 import type { CSSProperties, ReactNode } from "react";
 import { SafeImage } from "@/components/ui";
+import type { IconName } from "@/lib/icons";
 import { restaurantTypeLabel } from "@/lib/menuText";
 import { Corner, type HeadProps } from "../SkinHeads";
 import { LogoMark } from "../LogoMark";
@@ -81,6 +82,8 @@ export interface SkinHeadingProps {
   index: number;
   /** صورة الغلاف جاهزةً (`CoverImg` من `SectionHeading`)، أو `null`. */
   photo: ReactNode;
+  /** رمز القسم (`categoryIcon`) — لمن يرسمه (٠٩/١١: «علبة» و«نابولي» و«شريحة»). */
+  icon?: IconName;
 }
 
 /** الرفّ: الاسم ولوح الطباشير فوقه، والصورة عليه، والخشب تحتها. */

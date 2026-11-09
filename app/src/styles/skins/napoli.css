@@ -1,0 +1,437 @@
+/*
+ * ══ نابولي — المطعم الإيطالي الأنيق (٢٠٢٦/١١/٠٩) ═════════════════════════════════════
+ * الطابع الثاني والثلاثون. جدارٌ من بلاطٍ مزجّج أبيض بزهرٍ أخضر وأحمر، وعليه لافتةٌ مرسومة باليد
+ * بلون العلامة معلّقةٌ بسلسلتين من رفٍّ نحاسيّ، بخيطٍ ذهبيّ مزدوج وزهرةٍ في كلّ ركن. **اسمك يُرسم
+ * عليها بالفرشاة عند الفتح** واللافتة تتأرجح ثم تهدأ، **وتتمايل وأنت تمرّر** (`--m-scroll-y` بـ`sin()`؛
+ * والمتصفّح الذي لا يعرفها يراها ساكنة)، وشريطُ بلاطٍ تحت الشريط بتقدّم الصفحة. والأقسام بلاطةٌ وخطّ
+ * فرشاةٍ يُرسم حين يدخل القسم، وحين يُضاف صنفٌ تنقلب البلاطة على الزرّ وفوق شريط الطلب.
+ * الترويسة وعنوان القسم في `components/menu/heads/NapoliHead.tsx`.
+ *
+ * ⚠️ مستورَدٌ من **رأس** `menu-skins.css` — فكلّ انتقائيٍّ هنا يبدأ بـ`.m-skin-napoli`.
+ *
+ * ما يتبع العلامة: دهان اللافتة وزهر البلاط الأحمر وخطّ الفرشاة (`--m-accent`)، والعدد والسعر
+ * (`--m-accent-ink`)، والأزرار. وما لا يتبعها خامة: البلاط الأبيض والذهب والنحاس والغار. والنصّ على
+ * اللافتة `--m-on-accent` على `--m-accent` (زوجٌ محروس ≥ ٤٫٥).
+ */
+.m-skin-napoli {
+  display: flow-root;
+  --m-np-gold: #e8c46a;
+  --m-np-brass: linear-gradient(180deg, #f3dc98, #c9a24a 55%, #8a6a2a);
+  --m-np-glaze: #fbfaf5;
+  --m-np-grout: #d9d3c4;
+  /* الزخرفة: جصٌّ دافئ بزهرٍ صغير متباعد — صدى البلاط لا البلاط نفسه، فلا يزاحم القائمة. */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cg fill='%232f7a4a' fill-opacity='.06'%3E%3Cpath d='M30 22C32 25 32 28 30 30C28 28 28 25 30 22ZM38 30C35 32 32 32 30 30C32 28 35 28 38 30ZM30 38C28 35 28 32 30 30C32 32 32 35 30 38ZM22 30C25 28 28 28 30 30C28 32 25 32 22 30Z'/%3E%3Cpath d='M90 82C92 85 92 88 90 90C88 88 88 85 90 82ZM98 90C95 92 92 92 90 90C92 88 95 88 98 90ZM90 98C88 95 88 92 90 90C92 92 92 95 90 98ZM82 90C85 88 88 88 90 90C88 92 85 92 82 90Z'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 120px 120px;
+}
+
+/* ── الجدار واللافتة ── */
+.m-skin-napoli .m-np-wall {
+  overflow: hidden;
+}
+/* البلاط أطول من الجدار بستّين: يتأخّر مع التمرير ولا ينكشف ما فوقه. */
+.m-skin-napoli .m-np-tiles {
+  top: -60px;
+  height: calc(100% + 60px);
+}
+.m-skin-napoli .m-np-wash {
+  background: linear-gradient(180deg, rgba(251, 248, 241, 0.12), rgba(251, 248, 241, 0.42) 62%, var(--m-bg));
+}
+.m-skin-napoli .m-np-rail {
+  border-radius: 3px;
+  background: var(--m-np-brass);
+  box-shadow: 0 2px 3px rgba(40, 30, 10, 0.35);
+}
+/* السلسلة: حلقاتٌ نحاسيّة متتابعة. */
+.m-skin-napoli .m-np-chain {
+  border-radius: 2px;
+  background: repeating-linear-gradient(180deg, #c9a24a 0 4px, #6b4f1c 4px 5px, transparent 5px 6px);
+}
+.m-skin-napoli .m-np-hang {
+  transform-origin: 50% -28px;
+}
+/* اللافتة: لوحٌ مدهونٌ بلون العلامة في إطارٍ خشبيّ، وضربات فرشاةٍ خفيّة في الدهان. */
+.m-skin-napoli .m-np-sign {
+  border-radius: 6px;
+  transform-origin: 50% -28px;
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.035) 0 3px, transparent 3px 11px),
+    linear-gradient(180deg, color-mix(in srgb, var(--m-accent) 88%, #fff), var(--m-accent) 40%, color-mix(in srgb, var(--m-accent) 82%, #000));
+  box-shadow:
+    0 0 0 4px #5a3d22,
+    0 0 0 5px #2e1f12,
+    0 16px 26px -12px rgba(40, 25, 10, 0.5);
+}
+/* الخيط الذهبيّ المزدوج — يُرسم باليد فهو داخل الحافّة لا عليها. */
+.m-skin-napoli .m-np-pin {
+  border: 1.5px solid var(--m-np-gold);
+  border-radius: 3px;
+  outline: 1px solid color-mix(in srgb, var(--m-np-gold) 70%, transparent);
+  outline-offset: 3px;
+  pointer-events: none;
+}
+.m-skin-napoli .m-np-corner {
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 1C9.6 3.4 9.6 5.6 8 8C6.4 5.6 6.4 3.4 8 1ZM15 8C12.6 9.6 10.4 9.6 8 8C10.4 6.4 12.6 6.4 15 8ZM8 15C6.4 12.6 6.4 10.4 8 8C9.6 10.4 9.6 12.6 8 15ZM1 8C3.4 6.4 5.6 6.4 8 8C5.6 9.6 3.4 9.6 1 8Z' fill='%23e8c46a'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+.m-skin-napoli .m-np-c0 {
+  top: 3px;
+  inset-inline-start: 3px;
+}
+.m-skin-napoli .m-np-c1 {
+  top: 3px;
+  inset-inline-end: 3px;
+}
+.m-skin-napoli .m-np-c2 {
+  bottom: 3px;
+  inset-inline-start: 3px;
+}
+.m-skin-napoli .m-np-c3 {
+  bottom: 3px;
+  inset-inline-end: 3px;
+}
+/* ظلّ الخطّاط: إزاحةٌ ذهبية رفيعة تحت الحرف — كما تُظلَّل حروف اللافتات المرسومة. */
+.m-skin-napoli .m-np-name {
+  text-shadow:
+    1.5px 1.5px 0 color-mix(in srgb, var(--m-np-gold) 75%, transparent),
+    2.5px 3px 2px rgba(0, 0, 0, 0.2);
+}
+/* الصحن الخزفيّ: أبيضٌ مزجّج بحزامٍ أخضر وخطٍّ بلون العلامة، والغار حوله. */
+.m-skin-napoli .m-np-plate {
+  background: radial-gradient(
+    circle closest-side,
+    var(--m-np-glaze) 0 70%,
+    var(--m-accent-2) 71% 74%,
+    var(--m-np-glaze) 75% 82%,
+    var(--m-accent) 83% 85%,
+    var(--m-np-glaze) 86% 96%,
+    #e3dccb 100%
+  );
+  box-shadow:
+    0 0 0 1px var(--m-np-grout),
+    0 10px 16px -8px rgba(40, 30, 10, 0.35);
+}
+.m-skin-napoli .m-np-window {
+  border-radius: 4px;
+  box-shadow:
+    0 0 0 4px var(--m-np-glaze),
+    0 0 0 5px var(--m-np-grout),
+    0 0 0 7px var(--m-accent-2),
+    0 14px 20px -14px rgba(40, 30, 10, 0.5);
+}
+
+/* ── عنوان القسم: بلاطةٌ وخطّ فرشاة ── */
+/* البلاطة: أبيضٌ مزجّج بأرباع زهرٍ بلون العلامة في أركانها، والرمز في قلبها بالأخضر. */
+.m-skin-napoli .m-np-tile {
+  border-radius: 3px;
+  color: var(--m-accent-2);
+  background:
+    radial-gradient(circle at 0 0, var(--m-accent) 0 6px, transparent 6.5px),
+    radial-gradient(circle at 100% 0, var(--m-accent) 0 6px, transparent 6.5px),
+    radial-gradient(circle at 0 100%, var(--m-accent) 0 6px, transparent 6.5px),
+    radial-gradient(circle at 100% 100%, var(--m-accent) 0 6px, transparent 6.5px),
+    var(--m-np-glaze);
+  box-shadow:
+    inset 0 0 0 1px var(--m-np-grout),
+    inset 0 1px 0 #fff,
+    0 2px 4px rgba(40, 30, 10, 0.16);
+  --cm-tint: color-mix(in srgb, var(--m-accent-2) 26%, transparent);
+}
+.m-skin-napoli .m-np-stroke path {
+  stroke: var(--m-accent);
+}
+/* الخرطوش: بيضاويٌّ بخطٍّ رفيع بلون السعر. */
+.m-skin-napoli .m-np-oval {
+  border-radius: 9999px;
+  color: var(--m-accent-ink, var(--m-accent));
+  box-shadow: inset 0 0 0 1.5px currentColor;
+}
+.m-skin-napoli .m-np-photo {
+  padding: 5px;
+  border-radius: 4px;
+  background: var(--m-np-glaze);
+  box-shadow:
+    0 0 0 1px var(--m-np-grout),
+    inset 0 0 0 4px var(--m-np-glaze),
+    inset 0 0 0 5px var(--m-accent-2),
+    0 12px 18px -14px rgba(40, 30, 10, 0.5);
+}
+.m-skin-napoli .m-np-photo .m-img {
+  border-radius: 2px;
+}
+
+/* ── الطبق بلا صورة: صحنٌ خزفيّ على البلاط ──
+   الأرضية بلاطٌ أبيض بأرباع زهرٍ بلون العلامة وملاطٍ رماديّ، والصحن **خزفٌ مزجّج** بحزامٍ أخضر وخطٍّ
+   بلون العلامة. والرمز بلون السعر في قلبه. */
+.m-skin-napoli .m-art {
+  --m-art-bg:
+    radial-gradient(circle at 0 0, color-mix(in srgb, var(--m-accent) 55%, transparent) 0 7px, transparent 7.5px) 0 0 / 36px 36px,
+    radial-gradient(circle, color-mix(in srgb, var(--m-accent-2) 40%, transparent) 0 3px, transparent 3.5px) 18px 18px / 36px 36px,
+    linear-gradient(90deg, var(--m-np-grout) 0 1px, transparent 1px) 0 0 / 36px 36px,
+    linear-gradient(0deg, var(--m-np-grout) 0 1px, transparent 1px) 0 0 / 36px 36px,
+    var(--m-np-glaze);
+  --m-art-plate: radial-gradient(
+    circle closest-side,
+    #fffdf7 0 60%,
+    var(--m-accent-2) 61% 65%,
+    #fffdf7 66% 77%,
+    var(--m-accent) 78% 80%,
+    #fffdf7 81% 93%,
+    #e3dccb 100%
+  );
+  --m-art-ring: 0 0 0 1px rgba(40, 30, 10, 0.12);
+  --m-art-lift: 0 10px 14px -8px rgba(40, 30, 10, 0.35);
+  --m-art-well: 0 0 transparent;
+  --m-art-mark: color-mix(in srgb, var(--m-accent-2) 8%, transparent);
+}
+
+/* ── القائمة والشرائح ── */
+.m-skin-napoli .m-card,
+.m-skin-napoli .m-feature {
+  --m-border: rgba(29, 36, 32, 0.14);
+}
+/* صورة الصنف بلاطةٌ في إطارها: حافّةٌ بيضاء مزجّجة وخيطٌ أخضر. */
+.m-skin-napoli .m-thumb {
+  padding: 3px;
+  border-radius: 3px;
+  background: var(--m-np-glaze);
+  box-shadow:
+    0 0 0 1px var(--m-np-grout),
+    inset 0 0 0 1px color-mix(in srgb, var(--m-accent-2) 45%, transparent);
+}
+.m-skin-napoli .m-chips > *,
+.m-skin-napoli .m-tab {
+  border-radius: 3px;
+}
+.m-skin-napoli .m-add {
+  border-radius: 4px;
+  box-shadow:
+    0 0 0 2px var(--m-np-glaze),
+    0 0 0 3px var(--m-accent-2),
+    0 5px 10px -3px rgba(40, 30, 10, 0.35);
+}
+/* «نفد اليوم»: خرطوشٌ مختوم بلون السعر. */
+.m-skin-napoli .m-soldout {
+  border-radius: 9999px;
+  background: var(--m-surface);
+  color: var(--m-accent-ink, var(--m-accent));
+  box-shadow: inset 0 0 0 1.5px currentColor;
+}
+
+/* ── شاشات الطلب ── */
+.m-skin-napoli .m-o-card {
+  border-radius: 6px;
+  box-shadow: 0 8px 18px -14px rgba(40, 30, 10, 0.45);
+}
+.m-skin-napoli .m-o-cta {
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 2px var(--m-surface),
+    0 0 0 3.5px var(--m-np-gold),
+    0 12px 20px -14px rgba(40, 30, 10, 0.6);
+}
+.m-skin-napoli .m-o-field,
+.m-skin-napoli .m-o-ghost,
+.m-skin-napoli .m-o-opt,
+.m-skin-napoli .m-o-soldout,
+.m-skin-napoli .m-o-step,
+.m-skin-napoli .m-o-chip {
+  border-radius: 6px;
+}
+.m-skin-napoli .m-o-thumb {
+  border-radius: 3px;
+}
+
+/* ── الحركة ──
+ * عند الفتح: اللافتة تتأرجح على سلسلتيها ثم تهدأ، واسمك يُرسم بالفرشاة من أوّل السطر إلى آخره
+ * (`clip-path`)، ثم الخطّ الذهبيّ تحته. ومع التمرير: اللافتة تتمايل (`sin()` على `--m-scroll-y`)،
+ * والبلاط يتأخّر قليلاً، وشريطُ بلاطٍ تحت الشريط بتقدّم الصفحة (`--m-scroll`). وحين يدخل القسم تنقلب
+ * بلاطته ويُرسم خطّ فرشاته (`data-m-in`). وحين يُضاف صنفٌ تنقلب بلاطة الزرّ، وتنقلب بلاطةٌ فوق شريط
+ * الطلب، وتهتزّ اللافتة هزّةً صغيرة (`data-m-added`). */
+@media (prefers-reduced-motion: no-preference) {
+  .m-skin-napoli .m-np-hang {
+    rotate: calc(sin(var(--m-scroll-y, 0) * 1.3deg) * 1.4deg);
+    animation: m-np-swing 1.7s cubic-bezier(0.3, 0.6, 0.3, 1) 0.15s both;
+  }
+  .m-skin-napoli .m-np-tiles {
+    translate: 0 calc(min(var(--m-scroll-y, 0), 400) * 0.12px);
+  }
+  .m-skin-napoli .m-np-name {
+    animation: m-np-paint 1s cubic-bezier(0.6, 0, 0.3, 1) 0.45s both;
+  }
+  .m-skin-napoli .m-np-flourish {
+    animation: m-np-paint 0.6s cubic-bezier(0.5, 0, 0.3, 1) 1.35s both;
+  }
+  [dir="ltr"].m-skin-napoli .m-np-name,
+  [dir="ltr"].m-skin-napoli .m-np-flourish {
+    animation-name: m-np-paint-ltr;
+  }
+  /* شريط البلاط تحت الشريط: أحمر وأبيض وأخضر، ينكشف بتقدّم الصفحة. */
+  .m-skin-napoli[data-m-motion] .m-nav::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: -1px;
+    height: 4px;
+    background: repeating-linear-gradient(
+      90deg,
+      var(--m-accent) 0 7px,
+      var(--m-np-glaze) 7px 9px,
+      var(--m-accent-2) 9px 16px,
+      var(--m-np-glaze) 16px 18px
+    );
+    clip-path: inset(0 0 0 calc((1 - var(--m-scroll, 0)) * 100%));
+    pointer-events: none;
+  }
+  [dir="ltr"].m-skin-napoli[data-m-motion] .m-nav::after {
+    clip-path: inset(0 calc((1 - var(--m-scroll, 0)) * 100%) 0 0);
+  }
+  /* القسم يدخل: البلاطة تنقلب إلى وجهها، وخطّ الفرشاة يُرسم تحت الاسم. */
+  .m-skin-napoli[data-m-motion] .m-sec:not([data-m-in]) .m-np-stroke {
+    clip-path: inset(-50% -2% -50% 102%);
+  }
+  .m-skin-napoli .m-sec[data-m-in] .m-np-stroke {
+    animation: m-np-paint 0.7s cubic-bezier(0.5, 0, 0.3, 1) 0.25s both;
+  }
+  [dir="ltr"].m-skin-napoli[data-m-motion] .m-sec:not([data-m-in]) .m-np-stroke {
+    clip-path: inset(-50% 102% -50% -2%);
+  }
+  [dir="ltr"].m-skin-napoli .m-sec[data-m-in] .m-np-stroke {
+    animation-name: m-np-paint-ltr;
+  }
+  .m-skin-napoli .m-sec[data-m-in] .m-np-tile {
+    animation: m-np-turn 0.6s cubic-bezier(0.3, 1.2, 0.5, 1) both;
+  }
+  /* أُضيف: بلاطة الزرّ تنقلب، وبلاطةٌ فوق شريط الطلب، واللافتة تهتزّ. */
+  .m-skin-napoli [data-m-added] > .m-add {
+    animation: m-np-flip 0.7s cubic-bezier(0.4, 0, 0.3, 1) both;
+  }
+  .m-skin-napoli[data-m-added] .m-np-sign {
+    animation: m-np-nudge 0.9s cubic-bezier(0.3, 0.6, 0.3, 1) both;
+  }
+  .m-skin-napoli[data-m-added] .m-cart::before {
+    content: "";
+    position: absolute;
+    top: -1.25rem;
+    inset-inline-end: 1.6rem;
+    width: 22px;
+    height: 22px;
+    border-radius: 3px;
+    background:
+      radial-gradient(circle at 0 0, var(--m-accent) 0 5px, transparent 5.5px),
+      radial-gradient(circle at 100% 0, var(--m-accent) 0 5px, transparent 5.5px),
+      radial-gradient(circle at 0 100%, var(--m-accent) 0 5px, transparent 5.5px),
+      radial-gradient(circle at 100% 100%, var(--m-accent) 0 5px, transparent 5.5px),
+      radial-gradient(circle, var(--m-accent-2) 0 4px, transparent 4.5px),
+      var(--m-np-glaze);
+    box-shadow:
+      inset 0 0 0 1px var(--m-np-grout),
+      0 3px 6px rgba(40, 30, 10, 0.3);
+    pointer-events: none;
+    animation: m-np-cart 0.95s cubic-bezier(0.3, 0.8, 0.3, 1) both;
+  }
+  .m-skin-napoli .m-sheet.anim-fade-up {
+    animation: m-np-sheet 0.3s cubic-bezier(0.2, 0.9, 0.25, 1) backwards;
+  }
+  .m-skin-napoli .m-card:active,
+  .m-skin-napoli .m-feature:active {
+    transform: translateY(1px);
+  }
+}
+
+/* اللافتة تتأرجح على سلسلتيها: ميلٌ يتناقص حتى يسكن. */
+@keyframes m-np-swing {
+  0% {
+    opacity: 0;
+    transform: rotate(5deg) translateY(-8px);
+  }
+  18% {
+    opacity: 1;
+    transform: rotate(-3.2deg);
+  }
+  38% {
+    transform: rotate(2deg);
+  }
+  58% {
+    transform: rotate(-1.1deg);
+  }
+  78% {
+    transform: rotate(0.5deg);
+  }
+  100% {
+    transform: none;
+  }
+}
+/* الفرشاة: من أوّل السطر (يمين العربية) إلى آخره. الحدّان صريحان: `inset()` لا يُوصل إلى `none`. */
+@keyframes m-np-paint {
+  from {
+    clip-path: inset(-50% -2% -50% 102%);
+  }
+  to {
+    clip-path: inset(-50% -2% -50% -2%);
+  }
+}
+@keyframes m-np-paint-ltr {
+  from {
+    clip-path: inset(-50% 102% -50% -2%);
+  }
+  to {
+    clip-path: inset(-50% -2% -50% -2%);
+  }
+}
+@keyframes m-np-turn {
+  from {
+    transform: perspective(160px) rotateY(-90deg);
+  }
+}
+@keyframes m-np-flip {
+  0% {
+    transform: perspective(160px) rotateY(0);
+  }
+  50% {
+    transform: perspective(160px) rotateY(90deg) scale(0.92);
+  }
+  100% {
+    transform: perspective(160px) rotateY(0);
+  }
+}
+@keyframes m-np-nudge {
+  0% {
+    transform: none;
+  }
+  25% {
+    transform: rotate(-1.6deg);
+  }
+  55% {
+    transform: rotate(1deg);
+  }
+  80% {
+    transform: rotate(-0.4deg);
+  }
+  100% {
+    transform: none;
+  }
+}
+@keyframes m-np-cart {
+  0% {
+    opacity: 0;
+    transform: perspective(120px) rotateY(-90deg) translateY(-6px);
+  }
+  30% {
+    opacity: 1;
+    transform: perspective(120px) rotateY(0);
+  }
+  80% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+@keyframes m-np-sheet {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
