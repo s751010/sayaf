@@ -51,8 +51,12 @@ const ALLOWED_ATTRS: Record<string, readonly string[]> = {
   "*": ["dir", "lang"],
 };
 
-/** مخطّطات الروابط المقبولة — `javascript:` و`data:` خارجها بالتعريف. */
-const SAFE_SCHEME = /^(https?:|mailto:|tel:|#|\/)/i;
+/**
+ * مخطّطات الروابط المقبولة — `javascript:` و`data:` خارجها بالتعريف.
+ * والمسار النسبي `/` وحده لا `//host` ولا `/\host`: كلاهما رابطٌ خارجي يبدو
+ * داخلياً (الأمن ٢٠٢٦/١١/٠٩، البند ١٣).
+ */
+const SAFE_SCHEME = /^(https?:|mailto:|tel:|#|\/(?![/\\]))/i;
 
 export function sanitizeHtml(html: string): string {
   if (typeof DOMParser === "undefined") return "";
