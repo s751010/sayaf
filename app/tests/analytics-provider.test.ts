@@ -41,34 +41,29 @@ afterEach(() => {
   document.head.innerHTML = "";
 });
 
-describe("GA4 يُركَّب GA4 — لا Plausible بمعرّف GA4", () => {
-  it("مع `provider: ga4` يُحمَّل googletagmanager", async () => {
-    getSiteSetting.mockResolvedValue({ provider: "ga4", id: "G-ABC123XYZ" });
-    const { track } = await freshTrack();
-    track("signup_started");
-    await vi.waitFor(() => expect(installed()).toBeTruthy());
-
-    expect(installed()).toContain("googletagmanager.com/gtag/js");
-    expect(installed()).toContain("G-ABC123XYZ");
-    expect(installed()).not.toContain("plausible");
-  });
-
-  it("ويُستنتج من شكل المعرّف بلا `provider` — فلا يُشترط على المالك أن يكتبه", async () => {
-    getSiteSetting.mockResolvedValue({ id: "G-ONLYID999" });
-    const { track } = await freshTrack();
-    track("qr_downloaded");
-    await vi.waitFor(() => expect(installed()).toBeTruthy());
-    expect(installed()).toContain("googletagmanager.com");
-  });
-
-  it("و`gtag` تُعرَّف بدالّة تقرأ `arguments` — لا سهم يكسر تنسيقها", async () => {
-    getSiteSetting.mockResolvedValue({ provider: "ga4", id: "G-ABC123XYZ" });
-    const { track } = await freshTrack();
-    track("signup_started");
-    await vi.waitFor(() => expect(typeof window.gtag).toBe("function"));
-    // `js` و`config` عند التركيب، ثم الحدث المطلوب.
-    await vi.waitFor(() => expect((window.dataLayer ?? []).length).toBeGreaterThanOrEqual(3));
-  });
+describe("GA4 مرفوض بلا بوّابة موافقة — السياسة تَعِد «بلا ملفّات تعريف»", () => {
+  /**
+   * مراجعة الأمن ٢٠٢٦/١١/٠٩ (البند ٦): كان يكفي معرّف `G-…` ليُحمَّل `gtag`
+   * لكل زائر بلا سؤال. والفحص يسأل: **هل حُمِّل أيّ سكربت؟ هل أُرسل حدث؟**
+   */
+  for (const cfg of [
+    { provider: "ga4", id: "G-ABC123XYZ" },
+    { id: "G-ONLYID999" },
+    { id: "GT-ONLYID999" },
+    { id: "AW-123456" },
+  ]) {
+    it(`${JSON.stringify(cfg)} ⇒ صفر سكربت وصفر gtag`, async () => {
+      getSiteSetting.mockResolvedValue(cfg);
+      const { track } = await freshTrack();
+      track("signup_started");
+      await new Promise((r) => setTimeout(r, 30));
+      track("first_dish_added");
+      expect(installed()).toBeNull();
+      expect(document.querySelector('script[src*="googletagmanager"]')).toBeNull();
+      expect(window.gtag).toBeUndefined();
+      expect(window.dataLayer).toBeUndefined();
+    });
+  }
 });
 
 describe("Plausible يبقى الافتراض لمعرّف نطاق", () => {

@@ -146,26 +146,21 @@ select count(*) from public.menus       where cover_image like 'data:%';
 
 **كيف**:
 ```sql
--- GA4 (مجاني، والأشهر):
+-- Plausible (حوالي ٩$ شهرياً · بلا كوكيز · المعرّف هو نطاقك):
 insert into public.site_settings (key, value)
-values ('analytics', '{"provider":"ga4","id":"G-XXXXXXXXXX"}'::jsonb)
+values ('analytics', '{"provider":"plausible","id":"cloudmenu.sa"}'::jsonb)
 on conflict (key) do update set value = excluded.value;
-
--- أو Plausible (مدفوع · بلا كوكيز · المعرّف هو نطاقك):
---   values ('analytics', '{"provider":"plausible","id":"cloudmenu.sa"}'::jsonb)
 ```
 
-> ✅ **والمزوّدان مدعومان في الشيفرة فعلاً** (٢٤ أغسطس). وقبل ذلك كانت هذه
-> التعليمة **تكذب**: `installProvider` تحمّل سكربت Plausible مهما كان
-> `provider`، فيمرّ معرّف `G-…` في `data-domain` — سكربتٌ يُحمَّل، ولا خطأ
-> يظهر، ولا حدثٌ يصل. ويحرس ذلك الآن `analytics-provider.test.ts`.
->
-> و`provider` **اختياري**: معرّفٌ يبدأ بـ`G-` يُقرأ GA4 تلقائياً.
+> ⛔ **GA4 مرفوض في الشيفرة الآن** (مراجعة الأمن ٢٠٢٦/١١/٠٩، البند ٦):
+> معرّف `G-…` لا يُحمّل شيئاً ولا يُرسل حدثاً. السبب أن سياسة الخصوصية تعد
+> بتحليلات «بلا ملفّات تعريف»، وGA4 يضع ملفّات تعريف Google بلا موافقة الزائر.
+> فإن أردته يُبنى سؤال موافقة أولاً، ثم يُقلب `GA4_CONSENT_GATE` في
+> `lib/track.ts` وتُحدَّث السياسة. ويحرس ذلك `analytics-provider.test.ts`.
 
-⚠️ **ونطاقا GA4 مسموحان في CSP أصلاً** (`googletagmanager.com` و
-`google-analytics.com` في `app/public/_headers`) — فلا شيء يُضاف هناك لـGA4.
-أمّا مزوّد آخر فيحتاج نطاقه في `script-src` و`connect-src`، وإلا حجبته CSP
-بلا خطأ ظاهر للمستخدم.
+⚠️ **ونطاق `plausible.io` مسموح في CSP أصلاً** (`app/public/_headers`) — فلا
+شيء يُضاف هناك. أمّا مزوّد آخر (أو Plausible مستضاف بنفسك) فيحتاج نطاقه في
+`script-src` و`connect-src`، وإلا حجبته CSP بلا خطأ ظاهر للمستخدم.
 
 **كيف تتأكّد**: افتح الموقع وراقب تبويب الشبكة — طلب واحد إلى نطاق المزوّد
 وصفر خرق CSP في الـconsole.

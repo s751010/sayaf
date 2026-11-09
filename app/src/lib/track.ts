@@ -76,10 +76,29 @@ declare global {
   }
 }
 
+/**
+ * ⚠️ **GA4 مرفوض إلى أن توجد بوّابة موافقة** (مراجعة الأمن ٢٠٢٦/١١/٠٩، البند ٦).
+ *
+ * سياسة الخصوصية (`Legal.tsx`) تَعِد بتحليلات «بلا ملفّات تعريف»، وGA4 يضع
+ * ملفّات تعريف Google وينقل معرّف الزائر خارج المملكة بلا اتفاقية. فمعرّف
+ * `G-…` يُلصق في `site_settings` كان يكسر الوعد المكتوب بصمت. الآن لا يُحمَّل
+ * شيء ولا يُرسَل حدث — وPlausible وحده يعمل.
+ *
+ * لفتحه: تُبنى بوّابة موافقة (كـ`PixelConsent`) أوّلاً، ثم يُقلب هذا الثابت
+ * وتُحدَّث السياسة و`analytics-provider.test.ts` معاً — بقرارٍ مكتوب.
+ */
+const GA4_CONSENT_GATE = false as boolean;
+
 /** GA4 يميّز نفسه بمعرّفه (`G-…`) — فلا يُشترط على المالك أن يكتب المزوّد. */
-function providerOf(cfg: AnalyticsConfig): "ga4" | "plausible" {
-  if (cfg.provider === "ga4" || cfg.provider === "plausible") return cfg.provider;
-  return /^(G|AW|GT)-/i.test(cfg.id ?? "") ? "ga4" : "plausible";
+function providerOf(cfg: AnalyticsConfig): "ga4" | "plausible" | null {
+  const wanted =
+    cfg.provider === "ga4" || cfg.provider === "plausible"
+      ? cfg.provider
+      : /^(G|AW|GT)-/i.test(cfg.id ?? "")
+        ? "ga4"
+        : "plausible";
+  if (wanted === "ga4" && !GA4_CONSENT_GATE) return null;
+  return wanted;
 }
 
 /** الطابور: أحداث وقعت قبل أن تُحسم الإعدادات — لا تضيع ولا تُرسَل مرّتين. */
@@ -143,7 +162,8 @@ function ensureConfig(): Promise<void> {
     .then((raw) => {
       const parsed =
         typeof raw === "string" ? (JSON.parse(raw) as AnalyticsConfig) : raw ?? null;
-      config = parsed?.id ? parsed : null;
+      // مزوّدٌ مرفوض (GA4 بلا موافقة) يُعامَل كغياب الإعداد: صفر سكربت وصفر حدث.
+      config = parsed?.id && providerOf(parsed) ? parsed : null;
       if (config) installProvider(config);
     })
     // فشل القراءة ⇒ لا قياس. لا يُعطَّل شيء في المنتج من أجل عدّاد.
