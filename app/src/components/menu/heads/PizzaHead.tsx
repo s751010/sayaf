@@ -137,13 +137,13 @@ export function PizzaHead({ restaurant, corner, children }: HeadProps) {
     <header className="m-head m-head-table relative overflow-hidden pb-1">
       <Corner>{corner}</Corner>
       {/* الطاولة: المفرش معيّنٌ مركزه مركز البيتزا، فتقع البيتزا كلّها عليه. */}
-      <div className="m-pz-table relative h-[15.5rem]">
-        <span aria-hidden="true" className="m-pz-cloth-at absolute left-1/2 top-[6.25rem] block h-0 w-0">
+      <div className="m-pz-table relative h-[17.25rem]">
+        <span aria-hidden="true" className="m-pz-cloth-at absolute left-1/2 top-[8rem] block h-0 w-0">
           <span className="m-pz-cloth absolute block h-[13rem] w-[13rem]" />
         </span>
         <Leaf className="m-pz-loose m-pz-loose-1 absolute block h-7 w-6" />
         <Leaf className="m-pz-loose m-pz-loose-2 absolute block h-6 w-5" />
-        <div className="absolute left-1/2 top-[1.25rem] h-[10rem] w-[10rem] -translate-x-1/2">
+        <div className="absolute left-1/2 top-[3rem] h-[10rem] w-[10rem] -translate-x-1/2">
           <div className="m-pz-pie relative h-full w-full">
             <Pie />
             <span className="m-pz-mozz absolute left-1/2 top-1/2 block -translate-x-1/2 -translate-y-1/2 rounded-full p-[5px]">
@@ -159,7 +159,7 @@ export function PizzaHead({ restaurant, corner, children }: HeadProps) {
         </div>
       </div>
       <div className="px-4 text-center">
-        <h1 className="m-title mt-2 text-[2rem] font-bold leading-[1.45]" style={{ ...display, color: "var(--m-text)" }}>
+        <h1 className="m-title mt-3 text-[2rem] font-bold leading-[1.45]" style={{ ...display, color: "var(--m-text)" }}>
           {restaurant.name}
         </h1>
         {typeLabel && (
@@ -190,14 +190,14 @@ export function PizzaHead({ restaurant, corner, children }: HeadProps) {
 /** غطاء علبة البيتزا: ورقة ريحانٍ والاسم بحبرٍ واحد، والعدد لاصق، وحافّة الكرتون تحته. */
 export function PizzaHeading({ name, items, photo }: SkinHeadingProps) {
   return (
-    <div className="m-h m-box-h mb-4">
+    <div className="m-h m-box-h mb-5">
       <div className="m-pz-box relative">
         <div className="m-pz-lid relative flex items-center gap-2.5 py-2.5 pe-6 ps-7">
           <Leaf className="m-pz-print-leaf block h-6 w-5 shrink-0" style={{ color: ink }} />
-          <h2 className="min-w-0 text-[1.35rem] font-bold leading-[1.5]" style={{ ...display, color: ink }}>
+          <h2 className="min-w-0 text-[1.45rem] font-bold leading-[1.5]" style={{ ...display, color: ink }}>
             {name}
           </h2>
-          {items && <span className="m-pz-seal ms-auto shrink-0 px-2.5 py-0.5 text-[11px] font-bold">{items}</span>}
+          {items && <span className="m-pz-seal ms-auto shrink-0 px-2.5 py-1 text-[11px] font-bold">{items}</span>}
         </div>
         <span aria-hidden="true" className="m-pz-flutes mx-1 block h-2" />
       </div>

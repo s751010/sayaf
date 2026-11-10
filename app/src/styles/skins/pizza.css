@@ -72,12 +72,12 @@
 }
 .m-skin-pizza .m-pz-loose-1 {
   left: calc(50% + 5.5rem);
-  top: 4.4rem;
+  top: 6.15rem;
   rotate: 38deg;
 }
 .m-skin-pizza .m-pz-loose-2 {
   left: calc(50% - 7rem);
-  top: 8.2rem;
+  top: 9.95rem;
   rotate: -52deg;
 }
 
@@ -311,5 +311,184 @@
   from {
     opacity: 0;
     transform: rotate(-16deg) scale(1.45);
+  }
+}
+
+/* ── التفاعل (الموجة ٤، ٢٠٢٦/١١/١٠ — `lib/skinMotion.ts`) ──
+ * مع التمرير: **الشريحة المسحوبة تبتعد** على منصِّفها (١٢٠°) بما مُرِّر و**يمتدّ جبنها** معها
+ * (`--m-scroll-y`)، وتحت الشريط خطّ مربّعاتٍ بتقدّم الصفحة (`--m-scroll`). وحين يدخل القسم **ينفتح
+ * غطاء علبته** من حافّته السفلى (`data-m-in`). وحين يُضاف صنفٌ **تُسحب الشريحة** بعيداً ويتمدّد الجبن ثم
+ * تعود، و**تسقط ورقة ريحان** على البيتزا، وتخرج شريحةٌ صغيرة فوق شريط الطلب.
+ * والسحب بـ`translate` فوق `transform` الساكن (الموضع المرسوم) — فالشكل الساكن كما كان. */
+@property --m-pz-pull {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .m-skin-pizza[data-m-motion] .m-pz-pie {
+    /* البُعد بوحدات الرسم: ما مُرِّر حتى ٢٤٠ ⇒ ١٤ وحدة، وسحب الإضافة فوقه. */
+    --m-pz-d: calc(min(var(--m-scroll-y, 0), 240) * 0.058 + var(--m-pz-pull) * 18);
+  }
+  .m-skin-pizza[data-m-motion] .m-pz-slice {
+    translate: calc(var(--m-pz-d) * -0.5px) calc(var(--m-pz-d) * 0.866px);
+    transition: translate 0.25s ease-out;
+  }
+  .m-skin-pizza[data-m-motion] .m-pz-strings path {
+    transform-box: fill-box;
+    transform-origin: 100% 0;
+    scale: calc(1 + var(--m-pz-d) * 0.075);
+    transition: scale 0.25s ease-out;
+  }
+  .m-skin-pizza[data-m-motion] .m-nav::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: -1px;
+    height: 3px;
+    background: repeating-linear-gradient(90deg, var(--m-accent) 0 6px, var(--m-pz-cream) 6px 12px);
+    transform-origin: 100% 50%;
+    transform: scaleX(var(--m-scroll, 0));
+    pointer-events: none;
+  }
+  [dir="ltr"].m-skin-pizza[data-m-motion] .m-nav::after {
+    transform-origin: 0 50%;
+  }
+
+  /* القسم يدخل: الغطاء مطويٌّ على حافّته السفلى، ثم يُفتح قائماً. */
+  .m-skin-pizza .m-pz-lid {
+    transform-origin: 50% 100%;
+  }
+  .m-skin-pizza[data-m-motion] .m-sec:not([data-m-in]) .m-pz-lid {
+    transform: perspective(520px) rotateX(78deg);
+  }
+  .m-skin-pizza .m-sec[data-m-in] .m-pz-lid {
+    animation: m-pz-lid 0.7s cubic-bezier(0.25, 1.2, 0.4, 1) 0.1s both;
+  }
+
+  /* أُضيف: الشريحة تُسحب والجبن يتمدّد (`--m-pz-pull`)، وورقة ريحانٍ تسقط على البيتزا. */
+  .m-skin-pizza[data-m-added] .m-pz-pie {
+    animation:
+      m-pz-tug 1.1s cubic-bezier(0.4, 0, 0.3, 1) 0s both,
+      m-pz-serve 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) 0.1s both;
+  }
+  .m-skin-pizza[data-m-added] .m-pz-slice,
+  .m-skin-pizza[data-m-added] .m-pz-strings path {
+    transition: none;
+  }
+  .m-skin-pizza[data-m-added] .m-pz-table::after {
+    content: "";
+    position: absolute;
+    left: calc(50% + 0.6rem);
+    top: 4.1rem;
+    width: 1.35rem;
+    height: 1.65rem;
+    background: var(--m-pz-basil);
+    -webkit-mask: var(--m-pz-leaf) center / contain no-repeat;
+    mask: var(--m-pz-leaf) center / contain no-repeat;
+    filter: drop-shadow(0 2px 1px rgba(30, 50, 20, 0.35));
+    pointer-events: none;
+    animation: m-pz-leaf 1.1s cubic-bezier(0.3, 0.5, 0.4, 1) both;
+  }
+  .m-skin-pizza [data-m-added] > .m-add {
+    animation: m-pz-press 0.5s cubic-bezier(0.3, 0.7, 0.3, 1.3) both;
+  }
+  .m-skin-pizza [data-m-added] > .m-add::after {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px var(--m-pz-basil);
+    pointer-events: none;
+    animation: m-pz-ring 0.7s ease-out both;
+  }
+  /* شريط الطلب: شريحةٌ صغيرة تُرفع فوقه. */
+  .m-skin-pizza[data-m-added] .m-cart::before {
+    content: "";
+    position: absolute;
+    top: -1.3rem;
+    inset-inline-end: 1.4rem;
+    width: 28px;
+    height: 28px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Cpath d='M3 4Q14 -1 25 4L14 27Z' fill='%23f2c47e' stroke='%23a5622a'/%3E%3Cpath d='M5.5 7Q14 3.5 22.5 7L14 24Z' fill='%23c4361f'/%3E%3Ccircle cx='11' cy='10' r='2.6' fill='%23fbeccb'/%3E%3Ccircle cx='16.5' cy='12.5' r='2.2' fill='%23fbeccb'/%3E%3Ccircle cx='14' cy='18' r='1.8' fill='%23fbeccb'/%3E%3C/svg%3E")
+      center / contain no-repeat;
+    pointer-events: none;
+    animation: m-pz-cart 1.1s ease-out both;
+  }
+}
+
+@keyframes m-pz-lid {
+  from {
+    transform: perspective(520px) rotateX(78deg);
+  }
+  to {
+    transform: perspective(520px) rotateX(0deg);
+  }
+}
+@keyframes m-pz-tug {
+  0% {
+    --m-pz-pull: 0;
+  }
+  40%,
+  62% {
+    --m-pz-pull: 1;
+  }
+  100% {
+    --m-pz-pull: 0;
+  }
+}
+/* الورقة تسقط من فوق، تتمايل، وتستقرّ على البيتزا ثم تذوب في المشهد. */
+@keyframes m-pz-leaf {
+  0% {
+    opacity: 0;
+    transform: translate(-1.2rem, -3.4rem) rotate(-70deg);
+  }
+  20% {
+    opacity: 1;
+  }
+  45% {
+    transform: translate(0.6rem, -1.4rem) rotate(20deg);
+  }
+  65% {
+    transform: translate(0, 0) rotate(-12deg);
+  }
+  85% {
+    opacity: 1;
+    transform: rotate(-12deg);
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(-12deg) scale(0.9);
+  }
+}
+@keyframes m-pz-press {
+  40% {
+    transform: scale(0.9);
+  }
+}
+@keyframes m-pz-ring {
+  from {
+    opacity: 1;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.4);
+  }
+}
+@keyframes m-pz-cart {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) rotate(10deg);
+  }
+  25%,
+  75% {
+    opacity: 1;
+    transform: rotate(-6deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-6px) rotate(-6deg);
   }
 }

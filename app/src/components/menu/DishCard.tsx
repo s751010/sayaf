@@ -244,11 +244,12 @@ function CaffeineGauge({ dish, en }: { dish: Dish; en: boolean }) {
 }
 
 /**
- * الكافيين **رقماً بحبّة بنّ** — لطوابع القهوة بعد «محمصة» (٢٠٢٦/١١/٠٩: لاتيه · مطحنة · درايف).
+ * الكافيين **رقماً بحبّة بنّ** — لطوابع القهوة بعد «محمصة» (٢٠٢٦/١١/٠٩: لاتيه · مطحنة · درايف؛
+ * و«دلّة» و«باريستا» في الموجة ٤، ٢٠٢٦/١١/١٠).
  * في مكانٍ ثابت: آخر سطر السعر، مقابل السعر — فلا يتنقّل بين بطاقةٍ وأخرى. وبلا `caffeine_mg`
  * لا شيء (الصفر المكتوب يُعرض: «٠ ملغم» معلومةٌ للزبون لا فراغ).
  */
-const CAFFEINE_TAG_SKINS: ReadonlySet<MenuDesign["skin"]> = new Set(["latte", "grinder", "drive"]);
+const CAFFEINE_TAG_SKINS: ReadonlySet<MenuDesign["skin"]> = new Set(["latte", "grinder", "drive", "dallah", "barista"]);
 function CaffeineTag({ dish, en }: { dish: Dish; en: boolean }) {
   const mg = dish.caffeine_mg;
   if (mg == null) return null;

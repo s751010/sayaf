@@ -80,7 +80,7 @@ export function BaristaHead({ restaurant, corner, children }: HeadProps) {
   return (
     <header className="m-head m-head-machine relative overflow-hidden pb-1">
       <Corner>{corner}</Corner>
-      <div className="m-br-wall relative px-3 pt-11">
+      <div className="m-br-wall relative px-3 pt-14">
         <span aria-hidden="true" className="m-br-light absolute inset-0 block" />
         <div className="m-br-machine relative mx-auto h-[11.6rem] w-full max-w-[20.5rem]">
           {/* فناجين تُدفّأ على ظهر الآلة — مقلوبةً كما يصفّها الباريستا. */}
@@ -179,12 +179,12 @@ function PaperCup() {
 /** الكوب الورقيّ بختمه، ثم الاسم، ثم خطٌّ شعريّ إلى تذكرة الطلب بالعدد. */
 export function BaristaHeading({ name, items, photo }: SkinHeadingProps) {
   return (
-    <div className="m-h m-cup-h mb-4">
+    <div className="m-h m-cup-h mb-5">
       <div className="flex items-center gap-3 px-1">
         <span className="m-br-cupwrap shrink-0" style={{ color: "var(--m-accent-ink, var(--m-accent))" }}>
           <PaperCup />
         </span>
-        <h2 className="min-w-0 text-[1.35rem] font-bold leading-[1.6]" style={{ ...display, color: "var(--m-text)" }}>
+        <h2 className="min-w-0 text-[1.45rem] font-bold leading-[1.5]" style={{ ...display, color: "var(--m-text)" }}>
           {name}
         </h2>
         <span aria-hidden="true" className="m-br-rule block h-px min-w-6 flex-1" />

@@ -40,6 +40,8 @@ export const MOTION_SKINS: ReadonlySet<MenuSkin> = new Set<MenuSkin>([
   "woodfire", "pizzabox", "slices", "napoli",
   // ٠٩/١١ (الموجة ٣): المشاوي — شاورما · ستيك · أوجاق · مدخنة.
   "shawarma", "steakhouse", "ocakbasi", "smokehouse",
+  // ١٠/١١ (الموجة ٤): الأربعة القائمة لهذه الأقسام — دلّة · باريستا · ريحان · جمر.
+  "dallah", "barista", "pizza", "grill",
 ]);
 
 /** درجة `--m-scroll`: مئتان وخمسون درجةً للصفحة كلّها — أنعم ممّا تميّزه العين في شريط. */

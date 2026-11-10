@@ -307,3 +307,217 @@
     translate: 0 -10px;
   }
 }
+
+/* ── التفاعل (الموجة ٤، ٢٠٢٦/١١/١٠ — `lib/skinMotion.ts`) ──
+ * مع التمرير: بخار المنقار يعلو ويشتدّ بما مُرِّر (`--m-scroll-y`)، ويتجدّد ما دام الزبون يمرّر
+ * (`data-m-scrolling`)، وتحت الشريط خطٌّ نحاسيّ بتقدّم الصفحة (`--m-scroll`). وحين يدخل القسم
+ * **يمتلئ فنجاله** (`data-m-in`). وحين يُضاف صنفٌ **تميل الدلّة الكبيرة على قاعدتها وتصبّ** في
+ * الفنجال الأقرب، فيمتلئ، ويُصبّ فنجالٌ صغير فوق شريط الطلب. الشكل الساكن كما كان. */
+@media (prefers-reduced-motion: no-preference) {
+  .m-skin-dallah[data-m-motion] .m-dl-steam {
+    transform-origin: 50% 100%;
+    scale: calc(1 + min(var(--m-scroll-y, 0), 360) * 0.0017);
+    opacity: calc(0.75 + min(var(--m-scroll-y, 0), 360) * 0.0012);
+    transition: scale 0.3s ease-out;
+  }
+  .m-skin-dallah[data-m-scrolling] .m-dl-steam .m-dl-wisp {
+    animation: m-dl-billow 1.3s ease-out infinite;
+  }
+  .m-skin-dallah[data-m-scrolling] .m-dl-steam .m-dl-wisp:nth-child(2) {
+    animation-delay: -0.45s;
+  }
+  .m-skin-dallah[data-m-scrolling] .m-dl-steam .m-dl-wisp:nth-child(3) {
+    animation-delay: -0.9s;
+  }
+  .m-skin-dallah[data-m-motion] .m-nav::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: -1px;
+    height: 2px;
+    background: linear-gradient(90deg, #6b4710, var(--m-dl-brass) 55%, #f4dc96);
+    transform-origin: 100% 50%;
+    transform: scaleX(var(--m-scroll, 0));
+    pointer-events: none;
+  }
+  [dir="ltr"].m-skin-dallah[data-m-motion] .m-nav::after {
+    transform-origin: 0 50%;
+  }
+
+  /* القسم يدخل: القهوة تعلو في فنجاله من القاع إلى الحافّة، ثم يطلع بخاره. */
+  .m-skin-dallah .m-finjan-h .m-dl-coffee {
+    transform-box: fill-box;
+    transform-origin: 50% 50%;
+  }
+  .m-skin-dallah[data-m-motion] .m-sec:not([data-m-in]) .m-finjan-h .m-dl-coffee {
+    opacity: 0;
+    transform: translateY(5px) scale(0.45, 0.3);
+  }
+  .m-skin-dallah[data-m-motion] .m-sec:not([data-m-in]) .m-dl-cup-steam {
+    opacity: 0;
+  }
+  .m-skin-dallah .m-sec[data-m-in] .m-finjan-h .m-dl-coffee {
+    animation: m-dl-fill 0.75s cubic-bezier(0.3, 0.7, 0.3, 1) 0.15s both;
+  }
+  .m-skin-dallah .m-sec[data-m-in] .m-dl-cup-steam {
+    animation: m-dl-wake 0.6s ease-out 0.8s both;
+  }
+
+  /* أُضيف: الدلّة تميل على قاعدتها نحو الفنجالين، والقهوة تنزل من المنقار، والفنجال يمتلئ. */
+  .m-skin-dallah .m-dl-pot-1 {
+    transform-origin: 55% 100%;
+  }
+  /* «الوضع» يبقى في القائمة باسمه — فلا يُعاد تشغيله حين تسقط الإشارة (الميل على `rotate` والوضع على
+     `translate`، فلا يغلب أحدهما الآخر). */
+  .m-skin-dallah[data-m-added] .m-dl-pot-1 {
+    animation:
+      m-dl-tilt 1.1s cubic-bezier(0.45, 0, 0.3, 1) 0s both,
+      m-dl-set 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) 0.1s both;
+  }
+  .m-skin-dallah[data-m-added] .m-dl-cups::before {
+    content: "";
+    position: absolute;
+    bottom: 1.05rem;
+    right: 0.85rem;
+    width: 3px;
+    height: 5.4rem;
+    border-radius: 2px;
+    background: linear-gradient(180deg, rgba(215, 164, 67, 0.2), #c99234 30%, #d7a443);
+    transform-origin: 50% 0;
+    pointer-events: none;
+    animation: m-dl-pour 1.1s ease-in-out both;
+  }
+  .m-skin-dallah .m-dl-cups .m-dl-finjan:last-child .m-dl-coffee {
+    transform-box: fill-box;
+    transform-origin: 50% 50%;
+  }
+  .m-skin-dallah[data-m-added] .m-dl-cups .m-dl-finjan:last-child .m-dl-coffee {
+    animation: m-dl-refill 1.1s ease-out both;
+  }
+  .m-skin-dallah [data-m-added] > .m-add {
+    animation: m-dl-press 0.5s cubic-bezier(0.3, 0.7, 0.3, 1.3) both;
+  }
+  .m-skin-dallah [data-m-added] > .m-add::after {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px var(--m-dl-brass);
+    pointer-events: none;
+    animation: m-dl-ring 0.7s ease-out both;
+  }
+  /* شريط الطلب: فنجالٌ صغير يوضع فوقه، وبخاره. */
+  .m-skin-dallah[data-m-added] .m-cart::before {
+    content: "";
+    position: absolute;
+    top: -1.2rem;
+    inset-inline-end: 1.4rem;
+    width: 30px;
+    height: 26px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 34'%3E%3Cpath d='M3.5 7C4 16.5 8.5 26.5 14 29L13.4 31.6H26.6L26 29C31.5 26.5 36 16.5 36.5 7Z' fill='%23fffdf8' stroke='%23b9a988'/%3E%3Cpath d='M5 11C12 14.4 28 14.4 35 11' fill='none' stroke='%23c9a04a' stroke-width='1.7'/%3E%3Cellipse cx='20' cy='7' rx='16.5' ry='4.2' fill='%23fffdf8' stroke='%23b9a988'/%3E%3Cellipse cx='20' cy='7.3' rx='13.6' ry='3' fill='%23d7a443'/%3E%3C/svg%3E")
+      center / contain no-repeat;
+    pointer-events: none;
+    animation: m-dl-cart 1.1s ease-out both;
+  }
+}
+
+@keyframes m-dl-billow {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scaleX(0.8);
+  }
+  45% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px) scaleX(1.15);
+  }
+}
+@keyframes m-dl-fill {
+  from {
+    opacity: 0;
+    transform: translateY(5px) scale(0.45, 0.3);
+  }
+  40% {
+    opacity: 1;
+  }
+}
+@keyframes m-dl-wake {
+  from {
+    opacity: 0;
+  }
+}
+/* تميل نحو الفنجالين (يسار الرسم) وتبقى قليلاً ثم تعود. */
+@keyframes m-dl-tilt {
+  0% {
+    rotate: 0deg;
+  }
+  28%,
+  70% {
+    rotate: -15deg;
+  }
+  100% {
+    rotate: 0deg;
+  }
+}
+@keyframes m-dl-pour {
+  0%,
+  26% {
+    opacity: 0;
+    transform: scaleY(0);
+  }
+  38% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+  66% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+  80%,
+  100% {
+    opacity: 0;
+    transform: translateY(5.2rem) scaleY(0.05);
+  }
+}
+@keyframes m-dl-refill {
+  0%,
+  34% {
+    transform: translateY(4px) scale(0.4, 0.3);
+  }
+  75%,
+  100% {
+    transform: none;
+  }
+}
+@keyframes m-dl-press {
+  40% {
+    transform: scale(0.9);
+  }
+}
+@keyframes m-dl-ring {
+  from {
+    opacity: 1;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.4);
+  }
+}
+@keyframes m-dl-cart {
+  0% {
+    opacity: 0;
+    transform: translateY(-14px) rotate(-8deg);
+  }
+  25%,
+  75% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
