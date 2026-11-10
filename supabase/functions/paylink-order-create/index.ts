@@ -30,7 +30,12 @@ import { restaurantHasActiveSubscription } from "../_shared/subscription.ts";
 // (`app/src/lib/options.ts`). كان مكتوباً هنا بيد، وتباعدَ فعلاً في معالجة
 // السعر النصّي — انظر رأس الملفّ المشترك.
 import { parseDishOptions, type DishOption } from "../_shared/options.ts";
-import { orderTotals } from "../_shared/vat.ts";
+import { chargesVatOnTop, orderTotals } from "../_shared/vat.ts";
+import { clientIp, visitorKey } from "../_shared/visitor.ts";
+
+/** حدّ الزائر في إنشاء الطلب — انظر التعليق عند استعماله. */
+const VISITOR_SCOPE = "orders_visitor";
+const VISITOR_LIMIT = 6;
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -130,6 +135,35 @@ Deno.serve(async (req) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     { auth: { persistSession: false } }
   );
+
+  /**
+   * ── حدّ الزائر — قبل حدّ المطعم (أمن ٢٠٢٦/١١/٠٩، البند ٢؛ قرار المالك) ──
+   *
+   * حدّ المطعم وحده يُملأ من مصدرٍ واحد فيُردّ كل زبونٍ حقيقي. فالزائر (هاش
+   * عنوانه، `_shared/visitor.ts`) له **٦ في الدقيقة**: الزبون يطلب مرّة، ويعيد
+   * مرّتين إن فشل الدفع — وستّةٌ تتّسع لزبونين خلف عنوانٍ واحد (واي فاي المطعم،
+   * أو NAT شركة الاتصالات) في الدقيقة نفسها. والمُغرق يحتاج خمسة عناوين ليبلغ
+   * سقف المطعم بعد أن كان يكفيه واحد.
+   */
+  const visitor = await visitorKey(
+    clientIp(req.headers),
+    VISITOR_SCOPE,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+  );
+  const { data: visitorOk, error: visitorErr } = await admin.rpc("abuse_rate_hit", {
+    p_scope: VISITOR_SCOPE,
+    p_key: visitor,
+    p_limit: VISITOR_LIMIT,
+  });
+  if (visitorErr) {
+    console.error("abuse_rate_hit:", visitorErr.message);
+    return json({ error: "تعذّر إنشاء الطلب الآن. حاول بعد قليل." }, 503);
+  }
+  if (visitorOk === false) {
+    return json({ error: "محاولات كثيرة من جهازك — انتظر دقيقة ثم أعد المحاولة." }, 429, {
+      "Retry-After": "60",
+    });
+  }
 
   /**
    * ── حدّ المعدّل ─────────────────────────────────────────────────────
@@ -253,7 +287,7 @@ Deno.serve(async (req) => {
 
   const { data: restRows } = await admin
     .from("restaurants")
-    .select("name, slug, prices_include_vat, accepting_orders, min_order_amount")
+    .select("name, slug, prices_include_vat, vat_number, accepting_orders, min_order_amount")
     .eq("id", restaurantId)
     .limit(1);
   const restaurant = restRows?.[0] as
@@ -261,6 +295,7 @@ Deno.serve(async (req) => {
         name: string;
         slug: string | null;
         prices_include_vat: boolean | null;
+        vat_number: string | null;
         accepting_orders: boolean | null;
         min_order_amount: number | null;
       }
@@ -287,9 +322,15 @@ Deno.serve(async (req) => {
    * وسطرها في **فاتورة PayLink وحدها** (`invoiceProducts`): `products` تُطابَق
    * بالموضع مع `items` في `place_order`، وسطرٌ زائد هناك يُزيح كل طبق عن صنفه.
    */
-  const totals = orderTotals(amount, restaurant?.prices_include_vat !== false);
+  // ⚠️ «غير شامل» بلا رقم ضريبي صالح ⇒ لا إضافة (`chargesVatOnTop`). الطلب
+  // يمرّ — لا نُطفئ مطعماً عاملاً — ويُسجَّل تحذيرٌ يراه المالك في السجلّ.
+  const addVat = chargesVatOnTop(restaurant?.prices_include_vat, restaurant?.vat_number);
+  if (restaurant?.prices_include_vat === false && !addVat) {
+    console.warn("vat: غير شامل بلا رقم ضريبي صالح — لا تُضاف ضريبة", restaurantId);
+  }
+  const totals = orderTotals(amount, !addVat);
   const invoiceProducts =
-    restaurant?.prices_include_vat === false && totals.vat > 0
+    addVat && totals.vat > 0
       ? [...products, { title: "ضريبة القيمة المضافة 15%", price: totals.vat, qty: 1 }]
       : products;
 
@@ -317,7 +358,7 @@ Deno.serve(async (req) => {
     // طريقة تسعير المطعم لحظة الطلب — **لا** «هل الإجمالي شامل»: الإجمالي هنا
     // فيه الضريبة دائماً. والإيصالات تستنتج المضاف منها من الفرق بين الإجمالي
     // والبنود (`vatAddedOnTop` في الواجهة)، فلا يُقرأ هذا العمود وحده.
-    p_vat_included: restaurant?.prices_include_vat !== false,
+    p_vat_included: !addVat,
     p_name: String(customer.name ?? "").trim().slice(0, 60) || null,
     p_phone: String(customer.mobile ?? "").replace(/\D/g, "").slice(0, 20) || null,
     p_note: note,

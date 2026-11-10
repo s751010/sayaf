@@ -1,6 +1,7 @@
 /** الدخول وإنشاء الحساب — نفس حسابات Supabase الحالية تعمل هنا. */
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { useSeo } from "@/lib/seo";
+import { STATIC_SEO } from "@/lib/routeSeo";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Logo } from "@/components/site";
 import { Button, Card, ErrorNote, Field, Input, Spinner, ThemeToggle } from "@/components/ui";
@@ -34,7 +35,7 @@ export default function Login() {
   const [agreed, setAgreed] = useState(false);
   const strength = checkPassword(password);
 
-  useSeo({ title: "دخول التجّار", path: "/login" });
+  useSeo(STATIC_SEO.login);
 
   /**
    * وجهة ما بعد الدخول — لوحة المؤسس لصاحب المنصة، ولوحة التاجر لغيره.
@@ -74,7 +75,13 @@ export default function Login() {
     // اليوم بكلمة من ستّة محارف — وذلك قرار مالك لا أثر جانبي لتصلّب.
     if (mode === "signup") {
       const check = checkPassword(password);
-      if (!check.ok) return setError(check.error);
+      // السبب مكتوبٌ تحت الحقل أصلاً (مقياس القوّة) — فلا نكرّره في صندوق الخطأ
+      // (كان يظهر مرّتين، تدقيق ٢٠٢٦/١١/٠٩ البند ٣١)؛ نعيد التركيز إليه.
+      if (!check.ok) {
+        setError("");
+        document.getElementById("cm-password")?.focus();
+        return;
+      }
       if (!agreed) return setError("أكّد موافقتك على الشروط وسياسة الخصوصية لإنشاء الحساب.");
     }
     setBusy(true);
@@ -127,7 +134,7 @@ export default function Login() {
                     setNotice("");
                   }}
                   className={cn(
-                    "flex-1 rounded-lg py-2 text-sm font-bold transition-colors",
+                    "hit flex-1 rounded-lg py-2 text-sm font-bold transition-colors",
                     // «forgot» فرع من الدخول، فيبقى تبويب الدخول مضيئاً.
                     (mode === "forgot" ? "login" : mode) === m
                       ? "bg-gold text-on-gold"
@@ -179,8 +186,10 @@ export default function Login() {
               {mode !== "forgot" && (
                 <Field label="كلمة المرور">
                   <Input
+                    id="cm-password"
                     type="password"
                     dir="ltr"
+                    aria-describedby={mode === "signup" && password.length > 0 ? "cm-password-hint" : undefined}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
@@ -216,6 +225,7 @@ export default function Login() {
                         ))}
                       </div>
                       <p
+                        id="cm-password-hint"
                         className={cn(
                           "mt-1.5 text-xs",
                           strength.ok ? "text-dim" : "text-bad"
@@ -237,7 +247,7 @@ export default function Login() {
                     setError("");
                     setNotice("");
                   }}
-                  className="-mt-2 self-start text-xs font-bold text-gold hover:underline"
+                  className="hit -mt-2 self-start text-xs font-bold text-gold hover:underline"
                 >
                   نسيت كلمة المرور؟
                 </button>

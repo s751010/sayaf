@@ -161,7 +161,7 @@ export default function Nutrition() {
                   type="button"
                   onClick={() => setFilter(s)}
                   className={cn(
-                    "press rounded-full border px-3 py-1 text-xs font-semibold",
+                    "press hit rounded-full border px-3 py-1 text-xs font-semibold",
                     filter === s ? "border-ink bg-ink text-page" : "border-line text-dim hover:text-ink"
                   )}
                 >

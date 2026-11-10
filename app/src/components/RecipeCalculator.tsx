@@ -189,9 +189,9 @@ export function RecipeCalculator({
           {result.hasEstimates ? "، وبعض المكوّنات تقديرية" : ""}. المسؤولية النظامية على المنشأة:
           راجعها مع أخصائي تغذية قبل الطباعة.
         </p>
-        <Button type="button" onClick={apply} disabled={!usable || busy}>
+        <Button busy={busy} type="button" onClick={apply} disabled={!usable || busy}>
           <Icon name="check" size={16} />
-          {busy ? "جارٍ الحفظ…" : applyLabel}
+          {applyLabel}
         </Button>
         <p className="text-[11px] text-faint">
           يُحفظ للطبق: السعرات والصوديوم والكافيين والحساسية. الدهون والسكر تُعرض هنا وتُحفظ مع

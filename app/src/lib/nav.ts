@@ -92,7 +92,10 @@ export function buildDashboardNav(opts: {
 }): NavItem[] {
   const badge = badgeText(opts.newOrders ?? 0) ?? undefined;
   const orders: NavItem = badge ? { ...ORDERS_ITEM, badge } : ORDERS_ITEM;
-  const items = opts.ordersOn
+  // والشرط بوّابة الدفع عمداً (لا طلبات بلا بوّابة)؛ لكن طلباً جديداً لم يُرَ
+  // يُظهر العنصر حتى لو أُطفئت البوّابة بعده — وإلا بقي طلبٌ مدفوع بلا طريقٍ
+  // إليه من القائمة (تدقيق ٢٠٢٦/١١/٠٩، البند ١٧).
+  const items = opts.ordersOn || badge
     ? DASHBOARD_NAV.flatMap((n) =>
         n.to === "/dashboard/analytics" ? [n, orders] : [n]
       )

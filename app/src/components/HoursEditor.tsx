@@ -69,7 +69,7 @@ export function HoursEditor({
         <button
           type="button"
           onClick={() => push(defaultWeek())}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-line-gold px-3 py-1.5 text-xs font-bold text-ink transition-colors hover:bg-gold/10"
+          className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line-gold px-3 py-1.5 text-xs font-bold text-ink transition-colors hover:bg-gold/10"
         >
           <Icon name="clock" size={15} /> {legacyText ? "تحويل إلى جدول يومي" : "حدّد ساعات العمل"}
         </button>

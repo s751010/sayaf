@@ -356,13 +356,56 @@ test("عدّة الطباعة: ثلاث قطع تُعايَن، والتنزيل
     for (const name of [/نزّل PNG/, /اطبع/]) {
       const btn = piece.getByRole("button", { name });
       await expect(btn).toBeDisabled();
-      await expect(btn).toHaveAttribute("aria-describedby", "kit-gate-note");
+      await expect(btn).toHaveAttribute("aria-describedby", "print-gate-note");
       await btn.click({ force: true });
     }
   }
-  const note = page.locator("#kit-gate-note");
+  const note = page.locator("#print-gate-note");
   await expect(note).toContainText("النطاق");
   await expect(note).toContainText("لا يُحدَّث");
+
+  await page.waitForTimeout(800);
+  expect(downloads, "نُزّل ملفّ قبل النطاق").toEqual([]);
+  expect(await page.evaluate(() => (window as unknown as { __opened: number }).__opened), "فُتحت نافذة طباعة").toBe(0);
+  expect(crashes, crashes.join("\n")).toEqual([]);
+});
+
+/**
+ * أمن ٢٠٢٦/١١/٠٩ (البند ٧، قرار المالك): «أكواد QR» و«البطاقات» تمرّان بـ`printGate`
+ * نفسه — الكود يُرى، ولا تنزيل ولا نافذة طباعة قبل النطاق، حتى بضغطٍ قسري.
+ */
+test("أكواد QR والبطاقات: الكود يُرى، والتنزيل والطباعة مقفلان قبل النطاق بالسبب نفسه", async ({ page }) => {
+  const { crashes } = watch(page);
+  await signedIn(page);
+  await page.addInitScript(() => {
+    const w = window as unknown as { __opened: number; open: typeof window.open };
+    w.__opened = 0;
+    w.open = (() => {
+      w.__opened++;
+      return null;
+    }) as typeof window.open;
+  });
+  const downloads: string[] = [];
+  page.on("download", (d) => downloads.push(d.suggestedFilename()));
+
+  await page.goto("/dashboard/qr");
+  await expect(page.getByRole("img", { name: "QR" })).toBeVisible();
+  for (const name of [/PNG/, /SVG/, /طباعة الكل/]) {
+    const btn = page.getByRole("button", { name });
+    await expect(btn).toBeDisabled();
+    await expect(btn).toHaveAttribute("aria-describedby", "print-gate-note");
+    await btn.click({ force: true });
+  }
+  await expect(page.locator("#print-gate-note")).toContainText("النطاق");
+
+  await page.goto("/dashboard/cards");
+  for (const name of [/نزّل البطاقة/, /اطبع ورقة/]) {
+    const btn = page.getByRole("button", { name });
+    await expect(btn).toBeDisabled();
+    await expect(btn).toHaveAttribute("aria-describedby", "print-gate-note");
+    await btn.click({ force: true });
+  }
+  await expect(page.locator("#print-gate-note")).toContainText("لا يُحدَّث");
 
   await page.waitForTimeout(800);
   expect(downloads, "نُزّل ملفّ قبل النطاق").toEqual([]);

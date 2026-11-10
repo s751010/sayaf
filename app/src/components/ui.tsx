@@ -15,6 +15,7 @@ import {
   type TextareaHTMLAttributes,
 } from "react";
 import { cn } from "@/lib/utils";
+import { useDialog } from "@/lib/useDialog";
 import { K, getItem, setItem } from "@/lib/storage";
 import { Icon, type IconName } from "@/lib/icons";
 
@@ -35,10 +36,21 @@ export function Button({
   variant = "gold",
   size = "md",
   className,
+  busy = false,
+  busyText = "يحفظ…",
+  disabled,
+  children,
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: ButtonVariant;
   size?: ButtonSize;
+  /**
+   * الطلب جارٍ: الزرّ معطّل و`aria-busy` ونصّه «يحفظ…» (أو `busyText`).
+   * **نمطٌ واحد لكل أزرار الحفظ** — كان كل زرٍّ يكتب ثلاثيّته بيده، وبعضها
+   * بلا تعطيل فيُرسَل الحفظ مرّتين بنقرٍ مزدوج (تدقيق ٢٠٢٦/١١/٠٩، البند ٦).
+   */
+  busy?: boolean;
+  busyText?: string;
 }) {
   // «ملصقٌ وسدو»: الذهب فعلٌ، والحدّ حبرٌ رفيع، والضغط انكماشٌ قصير (`.press`،
   // يُطفأ لمن طلب تقليل الحركة). ولا `transition-all`: كانت تحرّك كل خاصية
@@ -62,8 +74,12 @@ export function Button({
         styles[variant],
         className
       )}
+      disabled={disabled || busy}
+      aria-busy={busy || undefined}
       {...props}
-    />
+    >
+      {busy ? busyText : children}
+    </button>
   );
 }
 
@@ -362,16 +378,9 @@ export function Modal({
   /** أعرض من `wide` — لشاشة بعمودين (حاسبة الوصفة). */
   xl?: boolean;
 }) {
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    document.addEventListener("keydown", onKey);
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = "";
-    };
-  }, [open, onClose]);
+  const panelRef = useRef<HTMLDivElement>(null);
+  // التركيز يدخل ويُحبس ويعود — كان «Tab» يتجوّل خلف النافذة (`lib/useDialog.ts`).
+  useDialog(panelRef, onClose, { active: open });
 
   if (!open) return null;
   return (
@@ -382,9 +391,12 @@ export function Modal({
       <div
         role="dialog"
         aria-modal="true"
+        aria-label={title}
+        ref={panelRef}
+        tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
         className={cn(
-          "modal-panel max-h-[92dvh] w-full overflow-y-auto rounded-t-[20px] border border-line bg-panel p-5 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.45)] sm:rounded-[18px]",
+          "modal-panel outline-none max-h-[92dvh] w-full overflow-y-auto rounded-t-[20px] border border-line bg-panel p-5 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.45)] sm:rounded-[18px]",
           xl ? "sm:max-w-5xl" : wide ? "sm:max-w-2xl" : "sm:max-w-md"
         )}
       >
@@ -397,7 +409,7 @@ export function Modal({
           <button
             onClick={onClose}
             aria-label="إغلاق"
-            className="flex h-8 w-8 items-center justify-center rounded-full text-dim hover:bg-ink/8 hover:text-ink"
+            className="flex h-11 w-11 items-center justify-center rounded-full text-dim hover:bg-ink/8 hover:text-ink"
           >
             ✕
           </button>

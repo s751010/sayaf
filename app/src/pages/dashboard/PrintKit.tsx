@@ -21,6 +21,7 @@ import { Icon } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 import { useDashboard, FeatureGate } from "./Dashboard";
 import { PrintTabs } from "./Tabs";
+import { PRINT_GATE_NOTE_ID, PrintGateNote } from "@/components/PrintGateNote";
 
 /** الجدار في غلاف — كما في `Cards.tsx` (`hook-order.test.ts`). */
 export default function PrintKit() {
@@ -96,27 +97,7 @@ function PrintKitInner() {
         </div>
       ) : (
         <>
-          {!gate.ready && (
-            <div
-              id="kit-gate-note"
-              role="note"
-              className="mt-6 flex items-start gap-3 rounded-xl border border-line-gold bg-gold/10 p-4"
-            >
-              <Icon name="lock" size={20} className="mt-0.5 shrink-0 text-gold" />
-              <div className="min-w-0">
-                <p className="text-sm font-bold text-ink">الطباعة تنتظر النطاق النهائي</p>
-                <p className="mt-1 text-sm leading-relaxed text-dim">{gate.note}</p>
-                {gate.host && (
-                  <p className="mt-2 text-xs text-faint">
-                    الكود اليوم يشير إلى{" "}
-                    <bdi dir="ltr" className="break-all font-mono text-dim">
-                      {gate.host}
-                    </bdi>
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
+          <PrintGateNote gate={gate} />
 
           <label className="mt-5 flex cursor-pointer items-start gap-2.5 rounded-xl border border-line p-3">
             <input
@@ -256,7 +237,7 @@ function PieceCard({
           className="flex-1"
           onClick={download}
           disabled={!ready || busy || !input}
-          aria-describedby={ready ? undefined : "kit-gate-note"}
+          aria-describedby={ready ? undefined : PRINT_GATE_NOTE_ID}
         >
           <Icon name="download" size={15} /> نزّل PNG
         </Button>
@@ -265,7 +246,7 @@ function PieceCard({
           className="flex-1"
           onClick={print}
           disabled={!ready || busy || !input}
-          aria-describedby={ready ? undefined : "kit-gate-note"}
+          aria-describedby={ready ? undefined : PRINT_GATE_NOTE_ID}
         >
           <Icon name="printer" size={15} /> اطبع
         </Button>

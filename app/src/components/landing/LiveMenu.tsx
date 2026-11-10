@@ -18,6 +18,7 @@
  * وعند مغادرة الصفحة — لا رفع، ولا تخزين.
  */
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
+import { useFirstInteraction, useNearViewport } from "@/lib/useNearViewport";
 import { cn } from "@/lib/utils";
 import { Icon } from "@/lib/icons";
 import { ALL_THEMES, getTheme, isHex } from "@/lib/themes";
@@ -100,7 +101,7 @@ export function BrandControls({ brand, onChange }: { brand: Brand; onChange: (b:
               aria-label={c}
               onClick={() => set({ color: on ? null : c })}
               className={cn(
-                "h-8 w-8 rounded-full transition-transform hover:scale-105 sm:h-9 sm:w-9",
+                "hit h-8 w-8 rounded-full transition-transform hover:scale-105 sm:h-9 sm:w-9",
                 on && "ring-2 ring-ink ring-offset-2 ring-offset-panel"
               )}
               style={{ background: c, boxShadow: "inset 0 0 0 1px rgba(0,0,0,.12)" }}
@@ -110,7 +111,7 @@ export function BrandControls({ brand, onChange }: { brand: Brand; onChange: (b:
         {/* المخصّص: دائرة طيفٍ تفتح منتقي النظام — ومن يعرف لونه يجده. */}
         <label
           className={cn(
-            "relative h-8 w-8 cursor-pointer overflow-hidden rounded-full transition-transform hover:scale-105 sm:h-9 sm:w-9",
+            "hit h-8 w-8 cursor-pointer rounded-full transition-transform hover:scale-105 sm:h-9 sm:w-9",
             brand.color && !SWATCHES.includes(brand.color) && "ring-2 ring-ink ring-offset-2 ring-offset-panel"
           )}
           style={{ background: "conic-gradient(#ef4444,#f59e0b,#22c55e,#06b6d4,#6366f1,#d946ef,#ef4444)" }}
@@ -179,7 +180,15 @@ export function BrandControls({ brand, onChange }: { brand: Brand; onChange: (b:
  */
 export function PhoneMenu({ brand, kind }: { brand: Brand; kind?: DemoKind }) {
   const frame = useRef<HTMLIFrameElement>(null);
+  const box = useRef<HTMLDivElement>(null);
   const [ready, setReady] = useState(false);
+  // الإطار نسخةٌ ثانية من التطبيق كلّه — وكان وحده كلَّ زمن الحجب في الهبوط.
+  // فلا يُحمَّل قبل أن يظهر وبعد `load`، ولا قبل أوّل تفاعلٍ من الزائر (أو أربع
+  // ثوانٍ من السكون). ومقاسه ثابت والهيكل مكانه، فلا قفزة حين يصل
+  // (`lib/useNearViewport.ts`، تدقيق ٢٠٢٦/١١/٠٩ البند ٣).
+  const visible = useNearViewport(box, { rootMargin: "200px", afterLoad: true });
+  const woke = useFirstInteraction(4000);
+  const near = visible && woke;
 
   useEffect(() => {
     const onMessage = (e: MessageEvent) => {
@@ -210,15 +219,15 @@ export function PhoneMenu({ brand, kind }: { brand: Brand; kind?: DemoKind }) {
         className="relative rounded-[46px] bg-[#0d0d0f] p-[10px] shadow-[0_40px_80px_-30px_rgba(0,0,0,.55),inset_0_0_0_1px_rgba(255,255,255,.08)]"
         dir="ltr"
       >
-        <div className="relative overflow-hidden rounded-[36px] bg-[#141210]" style={{ width: w, height: h }}>
+        <div ref={box} className="relative overflow-hidden rounded-[36px] bg-[#141210]" style={{ width: w, height: h }}>
           {!ready && <div className="skeleton absolute inset-0" aria-hidden="true" />}
-          <iframe
+          {near && <iframe
             ref={frame}
             src={kind ? `/demo?embed=1&kind=${kind}` : "/demo?embed=1"}
             title="معاينة منيو مطعمك"
             className={cn("absolute left-0 top-0 border-0 transition-opacity duration-300", ready ? "opacity-100" : "opacity-0")}
             style={{ width: SCREEN_W, height: SCREEN_H, transform: `scale(${SCALE})`, transformOrigin: "0 0" }}
-          />
+          />}
           {/* الجزيرة: حلية جوّال لا تُغطّي إلا الغلاف، ولا تلتقط اللمس. */}
           <span
             aria-hidden="true"

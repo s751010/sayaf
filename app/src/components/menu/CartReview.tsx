@@ -400,25 +400,34 @@ export function CartReview({
               ? "So the cashier can call your name if needed."
               : "ليناديك الكاشير، ويتصل بك إن طال الانتظار."}
         </p>
+        {/* تسميةٌ مرئية لا placeholder وحده: الـplaceholder يختفي مع أوّل حرف،
+            وقارئ الشاشة يحتاج `<label>` حقيقياً (تدقيق ٢٠٢٦/١١/٠٩، البند ٧). */}
         <div className="mt-2.5 grid gap-2 sm:grid-cols-2">
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder={en ? "Your name" : "اسمك"}
-            aria-label={en ? "Your name" : "اسمك"}
-            autoComplete="name"
-            className="m-o-field min-h-11 px-3.5 py-2.5 text-sm"
-          />
-          <input
-            value={mobile}
-            onChange={(e) => setMobile(e.target.value.replace(/[^\d+]/g, ""))}
-            placeholder={en ? "Mobile" : "جوالك"}
-            aria-label={en ? "Mobile" : "جوالك"}
-            dir="ltr"
-            inputMode="tel"
-            autoComplete="tel"
-            className="m-o-field min-h-11 px-3.5 py-2.5 text-sm"
-          />
+          <label className="grid gap-1 text-xs font-bold" style={{ color: "var(--m-muted)" }}>
+            {en ? "Your name" : "اسمك"}
+            <input
+              name="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder={en ? "e.g. Sara" : "مثلاً: سارة"}
+              autoComplete="name"
+              className="m-o-field min-h-11 px-3.5 py-2.5 text-sm font-normal"
+            />
+          </label>
+          <label className="grid gap-1 text-xs font-bold" style={{ color: "var(--m-muted)" }}>
+            {en ? "Mobile" : "جوالك"}
+            <input
+              name="tel"
+              type="tel"
+              value={mobile}
+              onChange={(e) => setMobile(e.target.value.replace(/[^\d+]/g, ""))}
+              placeholder="05XXXXXXXX"
+              dir="ltr"
+              inputMode="tel"
+              autoComplete="tel"
+              className="m-o-field min-h-11 px-3.5 py-2.5 text-sm font-normal"
+            />
+          </label>
         </div>
       </div>
 

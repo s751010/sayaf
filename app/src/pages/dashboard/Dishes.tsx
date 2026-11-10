@@ -202,7 +202,7 @@ function PriceCell({ dish: d, onSave }: { dish: Dish; onSave: (p: number) => voi
           setEditing(true);
         }}
         title="اضغط لتعديل السعر"
-        className="-mx-1 shrink-0 rounded-lg px-1 py-0.5 text-sm font-bold text-gold hover:bg-gold/10"
+        className="hit -mx-1 shrink-0 rounded-lg px-1 py-0.5 text-sm font-bold text-gold hover:bg-gold/10"
       >
         {formatPrice(d.price ?? 0)} ر.س
       </button>
@@ -1044,8 +1044,8 @@ export default function Dishes() {
           {error && <div className="sm:col-span-2"><ErrorNote>{error}</ErrorNote></div>}
 
           <div className="flex gap-2 sm:col-span-2">
-            <Button type="submit" disabled={busy} className="flex-1">
-              {busy ? "جارٍ الحفظ…" : editing === "new" ? "إضافة الطبق" : "حفظ التعديلات"}
+            <Button busy={busy} type="submit" disabled={busy} className="flex-1">
+              {editing === "new" ? "إضافة الطبق" : "حفظ التعديلات"}
             </Button>
             <Button type="button" variant="ghost" onClick={() => setEditing(null)}>
               إلغاء

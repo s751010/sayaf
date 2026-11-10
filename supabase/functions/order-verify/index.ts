@@ -26,6 +26,7 @@
  *      إلا 404.
  */
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { clientIp, visitorKey } from "../_shared/visitor.ts";
 import { getInvoice, isPaid } from "../_shared/paylink.ts";
 
 const CORS = {
@@ -62,6 +63,32 @@ Deno.serve(async (req) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     { auth: { persistSession: false } }
   );
+
+  /**
+   * ── حدّ الزائر (أمن ٢٠٢٦/١١/٠٩، البند ٥؛ قرار المالك) ──
+   *
+   * كل نداءٍ على طلبٍ معلّق يسأل PayLink بمفاتيح التاجر، ولم يكن عليها حدّ:
+   * من يعرف معرّف طلبٍ يستنزف حصّة التاجر. و**٤٠ في الدقيقة** للزائر: تذكرة
+   * الاستلام تعيد السؤال كل ٤ ثوانٍ ما دام الدفع معلّقاً (١٥ في الدقيقة لزبون)،
+   * فالسقف يتّسع لزبونين خلف عنوانٍ واحد ويبقى أخفض بمراحل من سكربت.
+   * والتجاوز ٤٢٩ — والتذكرة تنتظر وتعيد بدل أن تقول «تعذّر».
+   */
+  const visitor = await visitorKey(
+    clientIp(req.headers),
+    "verify_visitor",
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+  );
+  const { data: visitorOk, error: visitorErr } = await admin.rpc("abuse_rate_hit", {
+    p_scope: "verify_visitor",
+    p_key: visitor,
+    p_limit: 40,
+  });
+  if (visitorErr) console.error("abuse_rate_hit:", visitorErr.message);
+  // فشل العدّاد هنا لا يُغلق: التحقّق لا يُنشئ التزاماً مالياً، وإغلاقه يترك
+  // زبوناً دفع بلا رقم استلام. الإغلاق للتجاوز المؤكَّد وحده.
+  if (visitorOk === false) {
+    return json({ error: "طلبات كثيرة — انتظر دقيقة ثم حدّث الصفحة." }, 429);
+  }
 
   const { data: rows } = await admin
     .from("orders")

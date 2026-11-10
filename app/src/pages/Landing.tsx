@@ -33,6 +33,7 @@ import { PricingCards, daysLabel, useTrialDays } from "@/components/landing/Pric
 import { ThemePreview } from "@/components/menu/ThemePreview";
 import { CURRENCY, CURRENCY_CODE, PLAN, PLANS, effectiveMonthly, type BillingCycle } from "@/lib/plans";
 import { cn, formatPrice } from "@/lib/utils";
+import { useNearViewport } from "@/lib/useNearViewport";
 import { Icon, type IconName } from "@/lib/icons";
 import { ALL_THEMES } from "@/lib/themes";
 import { fillColumns, themesOf, type ThemeCategoryId } from "@/lib/themeCategories";
@@ -161,6 +162,10 @@ export default function Landing() {
   const [cycle, setCycle] = useState<BillingCycle>("monthly");
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [brand, setBrand] = useState<Brand>(DEFAULT_BRAND);
+  // الحاسبة تُجلب حين يقترب قسمها لا عند الإقلاع — `lazy()` وحده كان يجلبها
+  // لحظة رسم الصفحة (تدقيق ٢٠٢٦/١١/٠٩، البند ٣). ومكانها محجوزٌ بارتفاعها.
+  const calcRef = useRef<HTMLDivElement>(null);
+  const calcNear = useNearViewport(calcRef, { rootMargin: "600px" });
   // معرض الطوابع يفتح على «الكل» — الزائر لم يقل بعدُ أيّ مطعمٍ مطعمه.
   const [galleryCat, setGalleryCat] = useState<ThemeCategoryId | null>(null);
   const gallery = themesOf(galleryCat, ALL_THEMES);
@@ -286,10 +291,14 @@ export default function Landing() {
           }
           sub="هيئة الغذاء تطلب السعرات والصوديوم والكافيين في المنيو الرقمي والمطبوع وتطبيقات التوصيل. اكتب وصفة الصنف كما تقولها، ونحسبها لك — جرّبها هنا قبل أن تسجّل."
         />
-        <div className={cn("min-w-0", CALC_MIN_H)}>
-          <Suspense fallback={<div className={cn("skeleton mx-auto max-w-4xl rounded-[20px]", CALC_MIN_H)} />}>
-            <HeroCalculator />
-          </Suspense>
+        <div ref={calcRef} className={cn("min-w-0", CALC_MIN_H)}>
+          {calcNear ? (
+            <Suspense fallback={<div className={cn("skeleton mx-auto max-w-4xl rounded-[20px]", CALC_MIN_H)} />}>
+              <HeroCalculator />
+            </Suspense>
+          ) : (
+            <div className={cn("skeleton mx-auto max-w-4xl rounded-[20px]", CALC_MIN_H)} aria-hidden="true" />
+          )}
         </div>
       </section>
 

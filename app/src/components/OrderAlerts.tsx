@@ -32,7 +32,7 @@ import {
   type ReactNode,
 } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui";
+import { Button, useToast } from "@/components/ui";
 import { listNewOrders, type NewOrderPing, type OrderStatus } from "@/lib/data";
 import { chime, unlockAudio } from "@/lib/chime";
 import { Icon } from "@/lib/icons";
@@ -92,7 +92,16 @@ function notifyPermission(): NotifyState {
  * ويشترط `registration.showNotification`. فالأوّل يُجرَّب ثم الثاني. و`tag`
  * واحد للمطعم: الإشعار الجديد يحلّ محلّ السابق فلا تتكدّس عشرة في الدرج.
  */
-function showSystemNotification(restaurantId: string, codes: number[], onClick: () => void) {
+/**
+ * إشعار النظام — وإن فشل الطريقان (المُنشئ وعامل الخدمة) نادى `onFail` بالعنوان
+ * نفسه، فيراه التاجر داخل اللوحة بدل أن يضيع (تدقيق ٢٠٢٦/١١/٠٩، البند ٣٣).
+ */
+function showSystemNotification(
+  restaurantId: string,
+  codes: number[],
+  onClick: () => void,
+  onFail: (title: string) => void
+) {
   if (notifyPermission() !== "granted") return;
   const { title, body } = notificationText(codes);
   const options: NotificationOptions = { body, tag: `cm-orders-${restaurantId}`, icon: "/icon-192.png" };
@@ -106,8 +115,11 @@ function showSystemNotification(restaurantId: string, codes: number[], onClick: 
   } catch {
     navigator.serviceWorker
       ?.getRegistration()
-      .then((reg) => reg?.showNotification(title, options))
-      .catch(() => {});
+      .then((reg) => {
+        if (!reg) throw new Error("no service worker");
+        return reg.showNotification(title, options);
+      })
+      .catch(() => onFail(title));
   }
 }
 
@@ -125,6 +137,7 @@ export function OrderAlertsProvider({
   children: ReactNode;
 }) {
   const navigate = useNavigate();
+  const toast = useToast();
   const { pathname } = useLocation();
   const [unseen, setUnseen] = useState(0);
   const [sound, setSoundState] = useState(() => getItem(K.ORDER_SOUND) === "on");
@@ -148,9 +161,9 @@ export function OrderAlertsProvider({
       if (soundRef.current) chime();
       const wanted = new Set(r.toAlert);
       const codes = pings.filter((p) => wanted.has(p.id)).map((p) => p.code);
-      showSystemNotification(restaurantId, codes, () => navigate("/dashboard/orders"));
+      showSystemNotification(restaurantId, codes, () => navigate("/dashboard/orders"), toast);
     },
-    [disabled, key, restaurantId, navigate]
+    [disabled, key, restaurantId, navigate, toast]
   );
 
   const sync = useCallback<OrderAlertsCtx["sync"]>(
