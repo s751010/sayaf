@@ -31,6 +31,11 @@ import { restaurantHasActiveSubscription } from "../_shared/subscription.ts";
 // السعر النصّي — انظر رأس الملفّ المشترك.
 import { parseDishOptions, type DishOption } from "../_shared/options.ts";
 import { chargesVatOnTop, orderTotals } from "../_shared/vat.ts";
+import { clientIp, visitorKey } from "../_shared/visitor.ts";
+
+/** حدّ الزائر في إنشاء الطلب — انظر التعليق عند استعماله. */
+const VISITOR_SCOPE = "orders_visitor";
+const VISITOR_LIMIT = 6;
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -130,6 +135,35 @@ Deno.serve(async (req) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     { auth: { persistSession: false } }
   );
+
+  /**
+   * ── حدّ الزائر — قبل حدّ المطعم (أمن ٢٠٢٦/١١/٠٩، البند ٢؛ قرار المالك) ──
+   *
+   * حدّ المطعم وحده يُملأ من مصدرٍ واحد فيُردّ كل زبونٍ حقيقي. فالزائر (هاش
+   * عنوانه، `_shared/visitor.ts`) له **٦ في الدقيقة**: الزبون يطلب مرّة، ويعيد
+   * مرّتين إن فشل الدفع — وستّةٌ تتّسع لزبونين خلف عنوانٍ واحد (واي فاي المطعم،
+   * أو NAT شركة الاتصالات) في الدقيقة نفسها. والمُغرق يحتاج خمسة عناوين ليبلغ
+   * سقف المطعم بعد أن كان يكفيه واحد.
+   */
+  const visitor = await visitorKey(
+    clientIp(req.headers),
+    VISITOR_SCOPE,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+  );
+  const { data: visitorOk, error: visitorErr } = await admin.rpc("abuse_rate_hit", {
+    p_scope: VISITOR_SCOPE,
+    p_key: visitor,
+    p_limit: VISITOR_LIMIT,
+  });
+  if (visitorErr) {
+    console.error("abuse_rate_hit:", visitorErr.message);
+    return json({ error: "تعذّر إنشاء الطلب الآن. حاول بعد قليل." }, 503);
+  }
+  if (visitorOk === false) {
+    return json({ error: "محاولات كثيرة من جهازك — انتظر دقيقة ثم أعد المحاولة." }, 429, {
+      "Retry-After": "60",
+    });
+  }
 
   /**
    * ── حدّ المعدّل ─────────────────────────────────────────────────────

@@ -32,8 +32,6 @@ const ROOT = resolve(__dirname, "../..");
 const BASELINE = "قبل سجلّ الهجرات — السكيما الأساسية لم تُلتزَم";
 const KNOWN_MISSING: Record<string, string> = {
   // ── مسار الدفع والطلبات (الأخطر: تفشل مغلقةً فيُردّ كل طلب) ──
-  order_rate_hit:
-    "حدّ معدّل الطلبات لكل مطعم في `paylink-order-create` — حيّة بلا مصدر؛ غيابها يردّ كل طلب إلكتروني بـ٥٠٣",
   place_order: `${BASELINE}؛ أُنشئت في هجرة \`order_rpcs\` الحيّة (نقل ٠٨/٢٢) — غيابها يُسقط كل طلب`,
   billing_rate_hit: `${BASELINE}؛ حدّ معدّل \`paylink-create\` — غيابها يوقف الاشتراك`,
   api_rate_hit: `${BASELINE}؛ حدّ معدّل واجهة API (§14)`,
