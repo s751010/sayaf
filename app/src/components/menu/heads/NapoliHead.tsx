@@ -78,11 +78,11 @@ export function NapoliHead({ restaurant, corner, children }: HeadProps) {
   return (
     <header className="m-head m-head-signboard relative overflow-hidden pb-1">
       <Corner>{corner}</Corner>
-      <div className="m-np-wall relative px-4 pb-7 pt-12">
+      <div className="m-np-wall relative px-4 pb-7 pt-20">
         <Tiles />
         <span aria-hidden="true" className="m-np-wash absolute inset-0 block" />
         {/* اللافتة معلّقةٌ بسلسلتين من رفٍّ نحاسيّ — وتتمايل حول نقطة تعليقها. */}
-        <span aria-hidden="true" className="m-np-rail absolute inset-x-6 top-5 block h-[5px]" />
+        <span aria-hidden="true" className="m-np-rail absolute inset-x-6 top-[3.25rem] block h-[5px]" />
         <div className="m-np-hang relative mx-auto max-w-[21rem]">
           <span aria-hidden="true" className="m-np-chain absolute -top-7 start-[16%] block h-7 w-[3px]" />
           <span aria-hidden="true" className="m-np-chain absolute -top-7 end-[16%] block h-7 w-[3px]" />

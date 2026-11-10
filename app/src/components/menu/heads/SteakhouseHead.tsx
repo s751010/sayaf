@@ -127,19 +127,21 @@ export function SteakhouseHead({ restaurant, en, tags = [], corner, children }: 
   return (
     <header className="m-head m-head-cuts relative overflow-hidden pb-1">
       <Corner>{corner}</Corner>
-      <div className="m-st-wall relative px-4 pt-10">
+      {/* الورقة تنزل تحت مبدّل اللغة (‎top-3 بارتفاع ‎≈40px) فلا يركب ركنها ولا خيطها — كان يركبهما على 390. */}
+      <div className="m-st-wall relative px-4 pt-16">
         {/* الخيط من المسمار إلى ركنَي الورقة. */}
-        <span aria-hidden="true" className="m-st-twine absolute left-1/2 top-3 block h-8 w-[56%] max-w-[13rem] -translate-x-1/2" />
+        <span aria-hidden="true" className="m-st-twine absolute left-1/2 top-7 block h-9 w-[56%] max-w-[13rem] -translate-x-1/2" />
         <div className="m-st-paper relative mx-auto aspect-[320/215] w-full max-w-[22rem]">
           <Chart cuts={cuts} />
-          {/* ختم الجزّار النحاسيّ: شعارك في ركن الورقة. */}
-          <span className="m-st-seal absolute start-[4%] top-[5%] z-[2] block aspect-square w-[17%] rounded-full">
+          {/* ختم الجزّار النحاسيّ: شعارك في ركن الورقة **فوق الذيل** — خارج جسم الثور فلا يغطّي قطعةً تُضغط
+              (كان على «الفخذ»). والثور غير معكوسٍ في الاتّجاهين، فالركن فيزيائيّ (`right`) لا منطقيّ. */}
+          <span className="m-st-seal absolute right-[2.5%] top-[2.5%] z-[2] block aspect-square w-[14%] rounded-full">
             <LogoMark
               restaurant={restaurant}
               size="relative h-full w-full"
               style={{ borderRadius: "9999px", background: "#f6eee6" }}
               fallbackStyle={{ color: "#2a1a12" }}
-              letterSize="1.3rem"
+              letterSize="1.1rem"
             />
           </span>
         </div>

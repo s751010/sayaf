@@ -73,6 +73,17 @@
 .m-skin-steakhouse .m-st-cut:nth-child(even) .m-st-cutfill {
   fill: #e1c89c;
 }
+/* القطع بلا قسم (أقلّ من ثمانية أقسام): خطّ المخطّط وحده، أرقّ، على الورق نفسه بلا تعبئة — فلا تُقرأ
+   أزراراً معطّلة؛ والقطع الروابط وحدها مملوءةٌ برمزها. */
+.m-skin-steakhouse .m-st-idle .m-st-cutfill {
+  fill: transparent;
+}
+.m-skin-steakhouse .m-st-cut.m-st-idle:nth-child(even) .m-st-cutfill {
+  fill: transparent;
+}
+.m-skin-steakhouse .m-st-idle path:nth-child(2) {
+  stroke-width: 1.4;
+}
 .m-skin-steakhouse .m-st-glyph {
   color: var(--m-st-ink);
 }

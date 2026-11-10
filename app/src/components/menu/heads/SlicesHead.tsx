@@ -175,7 +175,7 @@ export function SlicesHead({ restaurant, en, tags = [], corner, children }: Head
   return (
     <header className="m-head m-head-counter relative overflow-hidden pb-1">
       <Corner>{corner}</Corner>
-      <div className="m-sl-shop relative px-3 pt-10">
+      <div className="m-sl-shop relative px-3 pt-14">
         <div className="m-sl-board relative mx-auto max-w-[22rem] overflow-hidden px-4 pb-3.5 pt-4">
           <span aria-hidden="true" className="m-sl-band absolute inset-x-0 top-0 block h-1.5" />
           <div className="m-sl-lit relative flex items-center gap-3">

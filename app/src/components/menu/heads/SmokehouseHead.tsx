@@ -68,7 +68,7 @@ export function SmokehouseHead({ restaurant, corner, children }: HeadProps) {
   return (
     <header className="m-head m-head-chalk relative overflow-hidden pb-1">
       <Corner>{corner}</Corner>
-      <div className="px-3 pt-10">
+      <div className="px-3 pt-14">
         <div className="m-sm-board relative mx-auto max-w-[22rem] overflow-hidden px-5 pb-[5.6rem] pt-5 text-center">
           <Smoke />
           {/* الوسم: دائرةٌ محروقة حول الشعار — حديدها يتوهّج ثم يبرد. */}
