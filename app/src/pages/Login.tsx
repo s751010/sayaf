@@ -75,7 +75,13 @@ export default function Login() {
     // اليوم بكلمة من ستّة محارف — وذلك قرار مالك لا أثر جانبي لتصلّب.
     if (mode === "signup") {
       const check = checkPassword(password);
-      if (!check.ok) return setError(check.error);
+      // السبب مكتوبٌ تحت الحقل أصلاً (مقياس القوّة) — فلا نكرّره في صندوق الخطأ
+      // (كان يظهر مرّتين، تدقيق ٢٠٢٦/١١/٠٩ البند ٣١)؛ نعيد التركيز إليه.
+      if (!check.ok) {
+        setError("");
+        document.getElementById("cm-password")?.focus();
+        return;
+      }
       if (!agreed) return setError("أكّد موافقتك على الشروط وسياسة الخصوصية لإنشاء الحساب.");
     }
     setBusy(true);
@@ -180,8 +186,10 @@ export default function Login() {
               {mode !== "forgot" && (
                 <Field label="كلمة المرور">
                   <Input
+                    id="cm-password"
                     type="password"
                     dir="ltr"
+                    aria-describedby={mode === "signup" && password.length > 0 ? "cm-password-hint" : undefined}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
@@ -217,6 +225,7 @@ export default function Login() {
                         ))}
                       </div>
                       <p
+                        id="cm-password-hint"
                         className={cn(
                           "mt-1.5 text-xs",
                           strength.ok ? "text-dim" : "text-bad"

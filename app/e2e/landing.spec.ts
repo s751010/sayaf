@@ -52,3 +52,13 @@ test("أهداف اللمس ≥ ٤٤: تبويبا الدخول و«نسيت ك�
   await page.goto("/help");
   await check(page.locator("footer").getByRole("link", { name: "المدونة" }));
 });
+
+test("كلمة مرور قصيرة عند الإنشاء: رسالتها مرّة واحدة لا مرّتين", async ({ page }) => {
+  await page.goto("/login");
+  await page.getByRole("button", { name: "حساب جديد" }).click();
+  await page.locator('input[type="email"]').fill("a@b.co");
+  await page.locator("#cm-password").fill("abc");
+  await page.locator('form button[type="submit"]').click();
+  await expect(page.getByText(/محارف على الأقل/)).toHaveCount(1);
+  await expect(page.locator("#cm-password")).toBeFocused();
+});
