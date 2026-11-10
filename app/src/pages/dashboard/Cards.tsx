@@ -28,13 +28,14 @@ import {
   type CardStyleId,
 } from "@/lib/cards";
 import { splitThemeId } from "@/lib/themes";
-import { sheetHtml } from "@/lib/printKit";
+import { printGate, sheetHtml } from "@/lib/printKit";
 import { getMyMenus } from "@/lib/data";
 import { cn } from "@/lib/utils";
 import { useDashboard, FeatureGate } from "./Dashboard";
 import { PrintTabs } from "./Tabs";
 import { Icon } from "@/lib/icons";
-import { menuUrl } from "@/lib/menuUrl";
+import { MENU_DOMAIN, menuUrl } from "@/lib/menuUrl";
+import { PRINT_GATE_NOTE_ID, PrintGateNote } from "@/components/PrintGateNote";
 
 /**
  * ⚠️ **الجدار في مكوّن غلاف لا داخل المكوّن نفسه.**
@@ -76,6 +77,10 @@ function CardsInner() {
   // ⚠️ **الأخطر**: هذا الرابط يدخل كود QR يُصدَّر ٣٠٠ DPI ويُطبع على طاولات.
   // `location.origin` كان يعني «أياً كان النطاق الذي فُتحت منه اللوحة».
   const url = menuUrl(slug);
+  // البطاقة تُعايَن، ولا تُنزَّل ولا تُطبع قبل النطاق — الشرط نفسه في عدّة
+  // الطباعة وأكواد QR (أمن ٢٠٢٦/١١/٠٩، البند ٧؛ قرار المالك).
+  const gate = printGate(MENU_DOMAIN, url);
+  const locked = !gate.ready;
 
   useEffect(() => {
     document.title = "بطاقاتي — كلاود منيو";
@@ -135,7 +140,7 @@ function CardsInner() {
   }, [draw]);
 
   async function downloadPng() {
-    if (!input) return;
+    if (!input || locked) return;
     setBusy(true);
     try {
       const canvas = document.createElement("canvas");
@@ -155,7 +160,7 @@ function CardsInner() {
 
   /** ورقة A4 جاهزة للقصّ — لمن يطبع بنفسه بدل الذهاب لمطبعة. */
   async function printSheet() {
-    if (!input) return;
+    if (!input || locked) return;
     setBusy(true);
     try {
       const meta = sizeOf(size);
@@ -361,14 +366,23 @@ function CardsInner() {
                     aria-label="معاينة البطاقة"
                   />
                 </div>
+                <PrintGateNote gate={gate} className="w-full" />
                 <div className="flex w-full flex-col gap-2">
-                  <Button busy={busy} busyText="جارٍ التجهيز…" onClick={downloadPng} disabled={busy} className="w-full py-3">
+                  <Button
+                    busy={busy}
+                    busyText="جارٍ التجهيز…"
+                    onClick={downloadPng}
+                    disabled={busy || locked}
+                    aria-describedby={locked ? PRINT_GATE_NOTE_ID : undefined}
+                    className="w-full py-3"
+                  >
                     ⬇️ نزّل البطاقة
                   </Button>
                   <Button
                     variant="outline"
                     onClick={printSheet}
-                    disabled={busy}
+                    disabled={busy || locked}
+                    aria-describedby={locked ? PRINT_GATE_NOTE_ID : undefined}
                     className="w-full"
                   >
                     <Icon name="printer" size={15} /> اطبع ورقة ({meta.perSheet} في A4)
