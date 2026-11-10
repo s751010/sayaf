@@ -100,6 +100,12 @@ describe("شارة الطلبات الجديدة", () => {
     expect(ordersItem(true, 40)?.badge).toBe("9+");
   });
 
+  it("طلبٌ جديد لم يُرَ يُظهر «الطلبات» ولو أُطفئت البوّابة — وبلا طلب تبقى مخفيّة", () => {
+    expect(ordersItem(false, 2)?.badge).toBe("2");
+    expect(ordersItem(false, 0)).toBeUndefined();
+    expect(ordersItem(false)).toBeUndefined();
+  });
+
   it("لا تُعدّل العنصر المشترك نفسه (نسخةٌ لا تحوير)", () => {
     ordersItem(true, 5);
     expect(ORDERS_ITEM.badge).toBeUndefined();
