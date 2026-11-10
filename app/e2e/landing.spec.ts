@@ -68,3 +68,12 @@ test("كلمة مرور قصيرة عند الإنشاء: رسالتها مرّ�
   await expect(page.getByText(/محارف على الأقل/)).toHaveCount(1);
   await expect(page.locator("#cm-password")).toBeFocused();
 });
+
+test("إطار المنيو في البطل: لا يُحمَّل عند الإقلاع، ويصل وحده لزائرٍ ساكن", async ({ page }) => {
+  await page.goto("/");
+  const frame = page.locator('iframe[title="معاينة منيو مطعمك"]');
+  await page.waitForTimeout(800);
+  await expect(frame).toHaveCount(0);
+  // بلا لمسٍ ولا تمرير: المهلة (٤ث) تأتي به — كان مؤقّتها يُلغى بمعرّف خمولٍ مشترك.
+  await expect(frame).toHaveCount(1, { timeout: 12_000 });
+});
