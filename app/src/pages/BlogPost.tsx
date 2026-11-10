@@ -207,7 +207,7 @@ export default function BlogPostPage() {
 
         {post && (
           <article className="anim-fade-up">
-            <Link to="/blog" className="text-sm font-bold text-dim hover:text-gold">
+            <Link to="/blog" className="inline-flex min-h-11 items-center text-sm font-bold text-dim hover:text-gold">
               → المدونة
             </Link>
             <h1 className="mt-5 font-display text-[2rem] font-bold leading-[1.35] text-ink sm:text-4xl">

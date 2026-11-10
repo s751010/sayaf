@@ -29,3 +29,26 @@ test("البطل يحسب وصفة الزائر بلا تسجيل", async ({ pag
 
   expect(crashes, crashes.join("\n")).toEqual([]);
 });
+
+/**
+ * أهداف اللمس ≥ ٤٤ في الصفحات العامّة (تدقيق ٢٠٢٦/١١/٠٩، البنود ١٨–٢٠):
+ * الشكل كما هو، و`.hit` يمدّ ما يُلمس — نقيس بـ`elementFromPoint` فوق الشكل وتحته.
+ */
+test("أهداف اللمس ≥ ٤٤: تبويبا الدخول و«نسيت كلمة المرور؟» ورابط الذيل", async ({ page }) => {
+  const check = async (el: import("@playwright/test").Locator) => {
+    await el.scrollIntoViewIfNeeded();
+    const box = (await el.boundingBox())!;
+    expect(box).not.toBeNull();
+    const ext = Math.max(0, (44 - box.height) / 2);
+    const hits = await el.evaluate(
+      (node, { x, ys }) => ys.map((y) => node.contains(document.elementFromPoint(x, y))),
+      { x: box.x + box.width / 2, ys: [box.y - ext + 0.5, box.y + box.height + ext - 0.5] }
+    );
+    expect(hits, await el.textContent()).toEqual([true, true]);
+  };
+  await page.goto("/login");
+  await check(page.getByRole("button", { name: "نسيت كلمة المرور؟" }));
+  await check(page.getByRole("button", { name: "حساب جديد" }));
+  await page.goto("/help");
+  await check(page.locator("footer").getByRole("link", { name: "المدونة" }));
+});

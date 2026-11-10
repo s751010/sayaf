@@ -101,7 +101,7 @@ function SlugChanger({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="mt-1 text-xs font-bold text-gold hover:underline"
+        className="hit mt-1 text-xs font-bold text-gold hover:underline"
       >
         غيّر رابط المنيو (مرّة واحدة)
       </button>

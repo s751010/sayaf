@@ -100,7 +100,7 @@ export function BrandControls({ brand, onChange }: { brand: Brand; onChange: (b:
               aria-label={c}
               onClick={() => set({ color: on ? null : c })}
               className={cn(
-                "h-8 w-8 rounded-full transition-transform hover:scale-105 sm:h-9 sm:w-9",
+                "hit h-8 w-8 rounded-full transition-transform hover:scale-105 sm:h-9 sm:w-9",
                 on && "ring-2 ring-ink ring-offset-2 ring-offset-panel"
               )}
               style={{ background: c, boxShadow: "inset 0 0 0 1px rgba(0,0,0,.12)" }}
@@ -110,7 +110,7 @@ export function BrandControls({ brand, onChange }: { brand: Brand; onChange: (b:
         {/* المخصّص: دائرة طيفٍ تفتح منتقي النظام — ومن يعرف لونه يجده. */}
         <label
           className={cn(
-            "relative h-8 w-8 cursor-pointer overflow-hidden rounded-full transition-transform hover:scale-105 sm:h-9 sm:w-9",
+            "hit h-8 w-8 cursor-pointer rounded-full transition-transform hover:scale-105 sm:h-9 sm:w-9",
             brand.color && !SWATCHES.includes(brand.color) && "ring-2 ring-ink ring-offset-2 ring-offset-panel"
           )}
           style={{ background: "conic-gradient(#ef4444,#f59e0b,#22c55e,#06b6d4,#6366f1,#d946ef,#ef4444)" }}

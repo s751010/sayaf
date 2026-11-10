@@ -127,7 +127,7 @@ export default function Login() {
                     setNotice("");
                   }}
                   className={cn(
-                    "flex-1 rounded-lg py-2 text-sm font-bold transition-colors",
+                    "hit flex-1 rounded-lg py-2 text-sm font-bold transition-colors",
                     // «forgot» فرع من الدخول، فيبقى تبويب الدخول مضيئاً.
                     (mode === "forgot" ? "login" : mode) === m
                       ? "bg-gold text-on-gold"
@@ -237,7 +237,7 @@ export default function Login() {
                     setError("");
                     setNotice("");
                   }}
-                  className="-mt-2 self-start text-xs font-bold text-gold hover:underline"
+                  className="hit -mt-2 self-start text-xs font-bold text-gold hover:underline"
                 >
                   نسيت كلمة المرور؟
                 </button>

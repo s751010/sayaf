@@ -202,7 +202,7 @@ function PriceCell({ dish: d, onSave }: { dish: Dish; onSave: (p: number) => voi
           setEditing(true);
         }}
         title="اضغط لتعديل السعر"
-        className="-mx-1 shrink-0 rounded-lg px-1 py-0.5 text-sm font-bold text-gold hover:bg-gold/10"
+        className="hit -mx-1 shrink-0 rounded-lg px-1 py-0.5 text-sm font-bold text-gold hover:bg-gold/10"
       >
         {formatPrice(d.price ?? 0)} ر.س
       </button>

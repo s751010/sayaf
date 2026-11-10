@@ -32,7 +32,7 @@ export function NextStepCard({ next }: { next: NextStep }) {
       </div>
       {next.rest.length > 0 && (
         <details className="mt-3 border-t border-gold/15 pt-3">
-          <summary className="cursor-pointer text-xs font-bold text-dim hover:text-ink">
+          <summary className="cursor-pointer py-3 text-xs font-bold text-dim hover:text-ink">
             و{next.rest.length} خطوة أخرى
           </summary>
           <ul className="mt-3 flex flex-col gap-2">
