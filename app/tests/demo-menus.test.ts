@@ -137,6 +137,8 @@ describe("demoMenus", () => {
     for (const id of ["woodfire", "pizzabox", "slices", "napoli"]) expect(kindOf(id), id).toBe("pizza");
     expect(kindOf("neon")).toBe("burger");
     expect(kindOf("sticker")).toBe("juice");
+    // ٠٩/١١ (الموجة ٣): المشاوي الأربعة على منيو المشاوي القائم.
+    for (const id of ["shawarma", "steakhouse", "ocakbasi", "smokehouse"]) expect(kindOf(id), id).toBe("grill");
     // ولكلّ طابعٍ منيوٌ موجود — لا معاينة على بيانات ناقصة.
     for (const t of ALL_THEMES) expect(isDemoKind(demoKindForSuits(t.suits, t.id)), t.id).toBe(true);
     // والطابع الجديد يُعاين على منيوٍ طابعُه هو نفسه.

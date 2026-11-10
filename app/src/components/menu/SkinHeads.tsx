@@ -20,7 +20,8 @@
  * - `DukkanHead` · `AsirHead` · `HarborHead` · `PatisserieHead` · `JuiceHead` · `BurgerHead` ·
  *   `BakeryHead` · `BreakfastHead` · `GrillHead` · `PizzaHead` · `DallahHead` · `BaristaHead` ·
  *   `KarakHead` · `SamovarHead` · `V60Head` · `LatteHead` · `GrinderHead` · `DriveHead` · `WoodfireHead` ·
- *   `PizzaboxHead` · `SlicesHead` · `NapoliHead` — كلٌّ في ملفّه (`heads/`) كي لا تتزاحم الطوابع على ملفّ.
+ *   `PizzaboxHead` · `SlicesHead` · `NapoliHead` · `ShawarmaHead` · `SteakhouseHead` · `OcakbasiHead` ·
+ *   `SmokehouseHead` — كلٌّ في ملفّه (`heads/`) كي لا تتزاحم الطوابع على ملفّ.
  *
  * والحركة كلّها في `styles/menu-skins.css` — CSS خالص، ولا تعمل إلا لمن يقبل الحركة.
  * وكلّ ما هنا يُلوَّن بـ`--m-*`، فيلبس لون علامة التاجر كما تلبسه واجهة المتجر.
@@ -601,6 +602,10 @@ export { WoodfireHead } from "./heads/WoodfireHead";
 export { PizzaboxHead } from "./heads/PizzaboxHead";
 export { SlicesHead } from "./heads/SlicesHead";
 export { NapoliHead } from "./heads/NapoliHead";
+export { ShawarmaHead } from "./heads/ShawarmaHead";
+export { SteakhouseHead } from "./heads/SteakhouseHead";
+export { OcakbasiHead } from "./heads/OcakbasiHead";
+export { SmokehouseHead } from "./heads/SmokehouseHead";
 export { AsirHead } from "./heads/AsirHead";
 
 /* ══ فاخر — دفتر جلدٍ بخيطٍ ذهبيّ ══════════════════════════════════════ */

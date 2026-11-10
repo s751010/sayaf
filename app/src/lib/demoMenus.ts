@@ -1229,6 +1229,16 @@ function grill(): DemoData {
         sodium_mg: 1150,
         options: JSON.stringify([{ name: "حبّة كاملة", price: 22, kcal: 680 }]),
       }),
+      dish("g16", "ستيك ريب آي على الفحم", "Charcoal Ribeye Steak", "المشويات", 79, "🥩", {
+        description: "٣٠٠ غ من الريب آي على الفحم، بالملح والفلفل، مع بطاطس مشوية.",
+        calories: 860,
+        sodium_mg: 720,
+      }),
+      dish("g17", "بريسكت مدخّن", "Smoked Brisket", "المشويات", 58, "🍖", {
+        description: "صدر بقر مدخّن اثنتي عشرة ساعة على خشب البلوط، ٢٥٠ غ مع خبز وصوص الباربكيو.",
+        calories: 780,
+        sodium_mg: 1480,
+      }),
       dish("g7", "شاورما لحم", "Meat Shawarma", "الشاورما", 12, "🌯", {
         description: "لحم من السيخ بالطحينة والبصل والبقدونس في خبز صاج.",
         featured: true,
@@ -2051,6 +2061,12 @@ const KIND_BY_THEME: Readonly<Record<string, DemoKind>> = {
   napoli: "pizza",
   neon: "burger",
   sticker: "juice",
+  // ٠٩/١١ (الموجة ٣): المشاوي الأربعة على منيو المشاوي القائم — وأُضيف إليه صنفان لا غير: ستيك ريب آي
+  // وبريسكت مدخّن، كي لا يُعاين «ستيك» و«مدخنة» على منيوٍ بلا ستيكٍ ولا مدخّن.
+  shawarma: "grill",
+  steakhouse: "grill",
+  ocakbasi: "grill",
+  smokehouse: "grill",
 };
 
 export function demoKindForSuits(suits: readonly string[] | undefined, themeId?: string | null): DemoKind {

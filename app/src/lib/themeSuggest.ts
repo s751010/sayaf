@@ -77,7 +77,15 @@ export const BREAKFAST = "فطور شعبي";
  * وصفّان آخران (٠٧/١١، «جمر» و«ريحان»): الشاورما والكباب لا كلمة لهما في `aliasType`
  * فيصيران «مطعماً» أوّلُه «فاخر»، والبيتزا «مطعمٌ سريع» أوّلُه «صاج».
  */
-export const GRILL = "مشاوي وشاورما";
+export const GRILL = "مشاوي على الفحم";
+/**
+ * ومحلّات اللحم الأربعة (٠٩/١١، الموجة ٣ — «شاورما» و«ستيك» و«أوجاق» و«مدخنة»): كلٌّ صفٌّ فرعيّ وشارة
+ * تخصّص. وكان صفّ المشاوي «مشاوي وشاورما» — فلمّا صار للشاورما صفّها صار اسمه «مشاوي على الفحم».
+ */
+export const SHAWARMA = "شاورما";
+export const STEAKHOUSE = "ستيك هاوس";
+export const SMOKEHOUSE = "باربكيو";
+export const OCAKBASI = "مشاوي تركية وشامية";
 /** ٠٩/١١ («شارة بتخصّصه»): البيتزا «بيتزا»، والمطعم الإيطالي صفٌّ وحده — أوّلُه «نابولي». */
 export const PIZZA = "بيتزا";
 export const ITALIAN = "مطعم إيطالي";
@@ -102,7 +110,9 @@ export const DRIVE_THRU = "قهوة سريعة";
  * شارات التخصّص (٠٩/١١، قرار المالك) — كلٌّ مفتاحُ صفٍّ فرعيّ في `SUGGESTED`، ويُعرض على الطابع كما هو
  * («يناسب: قهوة مقطّرة»). والمفردات الكاملة للشارة: `STARTER_TYPES` + هذه.
  */
-export const SPECIALTY_BADGES: readonly string[] = [SPECIALTY, BREW_BAR, DRIVE_THRU, ARABIC_COFFEE, PIZZA, ITALIAN];
+export const SPECIALTY_BADGES: readonly string[] = [
+  SPECIALTY, BREW_BAR, DRIVE_THRU, ARABIC_COFFEE, PIZZA, ITALIAN, SHAWARMA, STEAKHOUSE, SMOKEHOUSE, OCAKBASI,
+];
 
 export function isSpecialtyBadge(badge: string): boolean {
   return SPECIALTY_BADGES.includes(badge);
@@ -140,15 +150,22 @@ export const SUGGESTED: Readonly<Record<string, Row>> = {
   عصائر: ["juice", "neon", "sticker", "letterboard"],
   // ٠٧/١١: «صاج» أوّلَ البرجر والوجبات السريعة، و«فاتورة» و«نيون» بشارتيهما — عاد «نيون» (٠٩/١١)،
   // وطوابع البيتزا السريعة إلى صفّ «بيتزا». وصفحة عربات الطعام تعرض أوّل ثلاثة: صاج · فاتورة · نيون.
-  "مطعم سريع": ["burger", "receipt", "neon", "dukkan"],
+  // ثم (الموجة ٣) «شاورما» رابعاً بشارته الثانية — الشاورما وجبةٌ سريعة قبل أن تكون مشوى.
+  "مطعم سريع": ["burger", "receipt", "neon", "shawarma"],
   // ٠٩/١١: البيتزا أربعة أماكن لها بشارة «بيتزا» — «ريحان» أوّلاً كما كان (بيته ومنيوه)، ثم الفرن، ثم
   // البيع بالشريحة، ثم علبة التوصيل.
   [PIZZA]: ["pizza", "woodfire", "slices", "pizzabox"],
   // ٠٩/١١: المطعم الإيطالي — اللافتة والبلاط أوّلاً، ثم المفرش، ثم الفرن، ثم «مجلّة».
   [ITALIAN]: ["napoli", "pizza", "woodfire", "editorial"],
-  // ٠٧/١١: «جمر» أوّلَ المشويات. ثم (٠٩/١١) «فاخر» بلا شارة «مشويات» (تكفيه «مطعم»).
-  مشويات: ["grill", "dark-gold", "asir", "najdi"],
-  [GRILL]: ["grill", "dark-gold", "burger", "asir"],
+  // ٠٧/١١: «جمر» أوّلَ المشويات. ثم (٠٩/١١، الموجة ٣) محلّات اللحم: الشاورما، والأوجاق بشارته الثانية،
+  // والستيك — و«فاخر» بلا شارة «مشويات» (تكفيه «مطعم»)، و«عسير» «شعبي».
+  مشويات: ["grill", "shawarma", "ocakbasi", "steakhouse"],
+  [GRILL]: ["grill", "ocakbasi", "shawarma", "dark-gold"],
+  // ٠٩/١١ (الموجة ٣): صفّ كلّ محلٍّ يبدأ بطابعه، ثم أقرب الثلاثة إليه.
+  [SHAWARMA]: ["shawarma", "grill", "ocakbasi", "burger"],
+  [STEAKHOUSE]: ["steakhouse", "smokehouse", "dark-gold", "grill"],
+  [SMOKEHOUSE]: ["smokehouse", "steakhouse", "burger", "grill"],
+  [OCAKBASI]: ["ocakbasi", "shawarma", "grill", "najdi"],
   // ٠٧/١١: «فوّال» ثالثَ الشعبي. ثم (٠٩/١١) «عسير» رابعاً بشارته كما كان قبل «دلّة» — والدلّة شارتها
   // تخصّصها «قهوة عربية».
   شعبي: ["najdi", "dukkan", "breakfast", "asir"],
@@ -229,11 +246,34 @@ const SUB_ROWS: readonly SubRow[] = [
     hints: ["مخبز", "مخابز", "خباز", "معجنات", "فطائر", "فطاير", "كرواسون", "bakery", "bakehouse"],
     words: ["فرن", "الفرن", "افران", "الافران"],
   },
+  // ٠٩/١١ (الموجة ٣): محلّات اللحم قبل المشاوي العامّة — الشاورما أوّلاً («شاورما وكباب» محلّ شاورما)،
+  // ثم المدخّن (البريسكت يُباع مع الستيك)، ثم الستيك، ثم المشاوي التركية والشامية. وداخل «مشويات» أيضاً:
+  // «مشويات تركية» أوجاق. و«سوري» ليست هنا («سوريا» في عنوان)، و«شامي» و«حلبي» تكفيان.
+  {
+    key: SHAWARMA,
+    within: ["مطعم", "مطعم سريع", "مشويات"],
+    hints: ["شاورما", "شاورمه", "shawarma", "دونر", "doner"],
+  },
+  {
+    key: SMOKEHOUSE,
+    within: ["مطعم", "مطعم سريع", "مشويات"],
+    hints: ["باربكيو", "bbq", "barbecue", "مدخن", "smoke", "سموك", "بريسكت", "brisket", "اضلاع", "ribs"],
+  },
+  {
+    key: STEAKHOUSE,
+    within: ["مطعم", "مطعم سريع", "مشويات"],
+    hints: ["ستيك", "steak", "واقيو", "wagyu", "ريب اي", "ribeye", "انجوس", "angus"],
+  },
+  {
+    key: OCAKBASI,
+    within: ["مطعم", "مشويات"],
+    hints: ["تركي", "turkish", "اضنه", "adana", "اوجاق", "ocak", "اسكندر", "iskender", "شامي", "حلبي"],
+  },
   {
     key: GRILL,
     within: ["مطعم", "مطعم سريع"],
     // ‏«شيش» ليست هنا: «شيشة» مقهى لا مشوى. و«مشوي» تلتقط «دجاج مشوي».
-    hints: ["شاورما", "شاورمه", "shawarma", "كباب", "kebab", "فحم", "charcoal", "شواء", "مشوي", "bbq", "باربكيو"],
+    hints: ["كباب", "kebab", "فحم", "charcoal", "شواء", "مشوي"],
     words: ["جمر", "الجمر", "منقل", "المنقل"],
   },
   // ٠٩/١١: البيتزا قبل المطعم الإيطالي — «بيتزا ومعكرونة» بيتزيريا، و«مطعم إيطالي» و«باستا» إيطاليّ.

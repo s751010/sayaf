@@ -15,7 +15,8 @@
  * (تقطير)، وفنجانٌ من فوق بوردة حليب (لاتيه)، ومطحنة جوزٍ ونحاس (مطحنة)، وكشكٌ عند نافذة سيارة
  * (درايف) — والأربعة في `previews/CoffeeMinis.tsx`؛ وفرن قبّةٍ يتّقد (حطب)، وعلبةٌ مفتوحة ببيتزا
  * مقطوعة (علبة)، ولوحةٌ مضيئة فوق كاونتر زجاج (شريحة)، ولافتةٌ فوق بلاط (نابولي) — في
- * `previews/PizzaMinis.tsx`.
+ * `previews/PizzaMinis.tsx`؛ وسيخ شاورما أمام لهب (شاورما)، وثورٌ مقسوم على ورق الجزّار (ستيك)، وقبّة نحاسٍ
+ * فوق جمر (أوجاق)، وسبّورةٌ بوسمٍ محروق (مدخنة) — في `previews/GrillMinis.tsx`.
  *
  * ⚠️ أشكالٌ لا نصوص: خطوط الطوابع لا تُحمَّل في اللوحة ولا في الهبوط، وحرفٌ
  * بخطٍّ احتياطي يكذب على التاجر في أوّل ما يراه من الطابع.
@@ -25,6 +26,7 @@ import { patternImage, PATTERN_SIZE } from "@/lib/patterns";
 import { isDarkTheme, type MenuTheme } from "@/lib/themes";
 import { DriveMini, GrinderMini, LatteMini, V60Mini } from "./previews/CoffeeMinis";
 import { NapoliMini, PizzaboxMini, SlicesMini, WoodfireMini } from "./previews/PizzaMinis";
+import { OcakbasiMini, ShawarmaMini, SmokehouseMini, SteakhouseMini } from "./previews/GrillMinis";
 
 type Vars = Record<string, string>;
 
@@ -1055,6 +1057,14 @@ export function ThemePreview({ theme }: { theme: MenuTheme }) {
       return <SlicesMini v={v} />;
     case "napoli":
       return <NapoliMini v={v} />;
+    case "shawarma":
+      return <ShawarmaMini v={v} />;
+    case "steakhouse":
+      return <SteakhouseMini v={v} />;
+    case "ocakbasi":
+      return <OcakbasiMini v={v} />;
+    case "smokehouse":
+      return <SmokehouseMini v={v} />;
     case "gold":
       return <GoldMini theme={theme} />;
     case "modern":

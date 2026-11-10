@@ -21,7 +21,8 @@ import { LogoMark } from "./LogoMark";
 import {
   ArcadeHead, AsirHead, BagHead, BakeryHead, BaristaHead, BreakfastHead, BurgerHead, Corner, DallahHead, DriveHead, DukkanHead, FolioHead,
   GridHead, GrillHead, GrinderHead, HarborHead, JuiceHead, KarakHead, LatteHead, LetterboardHead, MastheadHead, MudHead, NapoliHead,
-  PaperHead, PatisserieHead, PizzaboxHead, PizzaHead, PosterHead, SamovarHead, SignHead, SlicesHead, V60Head, WoodfireHead,
+  OcakbasiHead, PaperHead, PatisserieHead, PizzaboxHead, PizzaHead, PosterHead, SamovarHead, ShawarmaHead, SignHead, SlicesHead,
+  SmokehouseHead, SteakhouseHead, V60Head, WoodfireHead,
   type HeadProps,
 } from "./SkinHeads";
 
@@ -59,6 +60,10 @@ const SKIN_HEADS: Partial<Record<HeaderShape, ComponentType<HeadProps>>> = {
   carton: PizzaboxHead,
   counter: SlicesHead,
   signboard: NapoliHead,
+  spit: ShawarmaHead,
+  cuts: SteakhouseHead,
+  hood: OcakbasiHead,
+  chalk: SmokehouseHead,
 };
 
 /** قوس الروشان — لطابعٍ قديم قد يكون مخزَّناً بشكل `arch`. */
