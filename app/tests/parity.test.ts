@@ -20,8 +20,8 @@ import { parseOptions } from "@/lib/options";
 import { PLANS, CURRENCY_CODE } from "@/lib/plans";
 import { SITE_URL } from "@/lib/config";
 import { parseDishOptions } from "../../supabase/functions/_shared/options";
-import { orderTotals as appTotals, VAT_RATE as APP_VAT, vatAddedOnTop } from "@/lib/vat";
-import { orderTotals as edgeTotals, VAT_RATE as EDGE_VAT } from "../../supabase/functions/_shared/vat";
+import { chargesVatOnTop as appChargesVat, isVatNumber as appIsVat, orderTotals as appTotals, VAT_RATE as APP_VAT, vatAddedOnTop } from "@/lib/vat";
+import { chargesVatOnTop as edgeChargesVat, isVatNumber as edgeIsVat, orderTotals as edgeTotals, VAT_RATE as EDGE_VAT } from "../../supabase/functions/_shared/vat";
 
 const repo = (p: string) => fileURLToPath(new URL(`../../${p}`, import.meta.url));
 
@@ -123,6 +123,33 @@ describe("تكافؤ orderTotals: lib/vat ⟷ _shared/vat", () => {
       const net = Math.round(total * 100) - Math.round(vat * 100);
       expect(Math.abs(net * 115 - h * 100)).toBeLessThanOrEqual(115 / 2);
     }
+  });
+});
+
+describe("chargesVatOnTop — لا ضريبة تُضاف بلا رقمٍ ضريبي صالح (أمن ١)", () => {
+  const cases: [boolean | null, string | null, boolean][] = [
+    [false, "300000000000003", true],
+    [false, " 300000000000003 ", true],
+    [false, null, false],
+    [false, "", false],
+    [false, "123", false],
+    [false, "400000000000003", false],
+    [false, "30000000000000", false],
+    [true, "300000000000003", false],
+    [null, "300000000000003", false],
+  ];
+  it.each(cases)("شامل=%s · رقم=%s ⇒ تُضاف=%s — والنسختان متطابقتان", (incl, num, want) => {
+    expect(appChargesVat(incl, num)).toBe(want);
+    expect(edgeChargesVat(incl, num)).toBe(want);
+  });
+  it("‏`isVatNumber` واحدٌ في النسختين", () => {
+    for (const v of ["300000000000003", "3000", null, "310123456700003"]) expect(edgeIsVat(v)).toBe(appIsVat(v));
+  });
+  it("الخادم يمرّ بها لا بـ`prices_include_vat` وحده", () => {
+    const src = readFileSync(repo("supabase/functions/paylink-order-create/index.ts"), "utf8");
+    expect(src).toMatch(/chargesVatOnTop\(restaurant\?\.prices_include_vat, restaurant\?\.vat_number\)/);
+    expect(src).toMatch(/p_vat_included: !addVat/);
+    expect(src).not.toMatch(/orderTotals\(amount, restaurant\?\.prices_include_vat/);
   });
 });
 
