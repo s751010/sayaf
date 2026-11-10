@@ -10,7 +10,13 @@ import { watch } from "./watch";
 
 test("البطل يحسب وصفة الزائر بلا تسجيل", async ({ page }) => {
   const { crashes } = watch(page);
+  const chunks: string[] = [];
+  page.on("request", (r) => chunks.push(r.url()));
   await page.goto("/");
+  // الحاسبة لا تُجلب عند الإقلاع — حين يقترب قسمها (تدقيق ٢٠٢٦/١١/٠٩، البند ٣).
+  await page.waitForTimeout(500);
+  expect(chunks.some((u) => /HeroCalculator/.test(u)), "الحاسبة جُلبت قبل الاقتراب").toBe(false);
+  await page.locator("#calories").scrollIntoViewIfNeeded();
 
   const recipe = page.locator("#hero-recipe");
   await expect(recipe).toBeVisible();
