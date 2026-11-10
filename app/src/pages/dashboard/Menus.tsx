@@ -437,8 +437,8 @@ export default function Menus() {
             <Input value={name} onChange={(e) => setName(e.target.value)} required autoFocus />
           </Field>
           {error && <ErrorNote>{error}</ErrorNote>}
-          <Button type="submit" disabled={busy}>
-            {busy ? "جارٍ الإنشاء…" : "إنشاء"}
+          <Button busy={busy} busyText="جارٍ الإنشاء…" type="submit" disabled={busy}>
+            إنشاء
           </Button>
         </form>
       </Modal>
@@ -538,8 +538,8 @@ function ScheduleModal({
           <Button variant="ghost" onClick={() => save(true)} disabled={busy}>
             اعرضها دائماً
           </Button>
-          <Button onClick={() => save()} disabled={busy || half}>
-            {busy ? "جارٍ الحفظ…" : "حفظ التوقيت"}
+          <Button busy={busy} onClick={() => save()} disabled={busy || half}>
+            حفظ التوقيت
           </Button>
         </div>
       </div>

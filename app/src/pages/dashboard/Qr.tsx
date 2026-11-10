@@ -273,8 +273,8 @@ export default function Qr() {
             className="max-w-40"
           />
         </Field>
-        <Button onClick={printBatch} disabled={batchBusy}>
-          {batchBusy ? "جارٍ التجهيز…" : "طباعة الكل"}
+        <Button busy={batchBusy} busyText="جارٍ التجهيز…" onClick={printBatch} disabled={batchBusy}>
+          طباعة الكل
         </Button>
       </Card>
     </div>

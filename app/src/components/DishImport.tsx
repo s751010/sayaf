@@ -306,8 +306,8 @@ export function DishImport({
               <Button variant="ghost" onClick={close} disabled={busy}>
                 إلغاء
               </Button>
-              <Button onClick={save} disabled={busy || !chosen.length}>
-                {busy ? "جارٍ الحفظ…" : `احفظ ${chosen.length} صنفاً`}
+              <Button busy={busy} onClick={save} disabled={busy || !chosen.length}>
+                {`احفظ ${chosen.length} صنفاً`}
               </Button>
             </div>
           </div>

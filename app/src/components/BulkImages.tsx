@@ -280,8 +280,8 @@ export function BulkImages({
               <Button variant="ghost" onClick={close} disabled={uploading || saving}>
                 إلغاء
               </Button>
-              <Button onClick={save} disabled={uploading || saving || !linked.length}>
-                {saving ? "جارٍ الحفظ…" : `اربط ${linked.length} صورة`}
+              <Button busy={saving} onClick={save} disabled={uploading || saving || !linked.length}>
+                {`اربط ${linked.length} صورة`}
               </Button>
             </div>
           </div>

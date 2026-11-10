@@ -289,8 +289,8 @@ function Onboarding({ user, onDone }: { user: SessionUser; onDone: (r: Restauran
             </Select>
           </Field>
           {error && <ErrorNote>{error}</ErrorNote>}
-          <Button type="submit" disabled={busy} className="mt-1 w-full py-3">
-            {busy ? "جارٍ الإنشاء…" : "أنشئ مطعمي 🚀"}
+          <Button busy={busy} busyText="جارٍ الإنشاء…" type="submit" disabled={busy} className="mt-1 w-full py-3">
+            أنشئ مطعمي 🚀
           </Button>
         </form>
       </Card>

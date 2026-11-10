@@ -362,8 +362,8 @@ function CardsInner() {
                   />
                 </div>
                 <div className="flex w-full flex-col gap-2">
-                  <Button onClick={downloadPng} disabled={busy} className="w-full py-3">
-                    {busy ? "جارٍ التجهيز…" : "⬇️ نزّل البطاقة"}
+                  <Button busy={busy} busyText="جارٍ التجهيز…" onClick={downloadPng} disabled={busy} className="w-full py-3">
+                    ⬇️ نزّل البطاقة
                   </Button>
                   <Button
                     variant="outline"

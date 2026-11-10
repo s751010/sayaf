@@ -1044,8 +1044,8 @@ export default function Dishes() {
           {error && <div className="sm:col-span-2"><ErrorNote>{error}</ErrorNote></div>}
 
           <div className="flex gap-2 sm:col-span-2">
-            <Button type="submit" disabled={busy} className="flex-1">
-              {busy ? "جارٍ الحفظ…" : editing === "new" ? "إضافة الطبق" : "حفظ التعديلات"}
+            <Button busy={busy} type="submit" disabled={busy} className="flex-1">
+              {editing === "new" ? "إضافة الطبق" : "حفظ التعديلات"}
             </Button>
             <Button type="button" variant="ghost" onClick={() => setEditing(null)}>
               إلغاء

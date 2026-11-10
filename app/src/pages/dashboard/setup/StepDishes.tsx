@@ -257,8 +257,8 @@ export function StepDishes({
         {error && <div className="mt-3" role="alert"><ErrorNote>{error}</ErrorNote></div>}
 
         <StepFooter onSkip={onSkip} busy={busy} skipLabel="لاحقاً">
-          <Button onClick={save} disabled={busy || n === 0}>
-            {busy ? "جارٍ الحفظ…" : `احفظ ${n} صنفاً`}
+          <Button busy={busy} onClick={save} disabled={busy || n === 0}>
+            {`احفظ ${n} صنفاً`}
           </Button>
         </StepFooter>
       </div>

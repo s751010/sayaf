@@ -158,8 +158,8 @@ function SlugChanger({
       </div>
       {(msg || err) && <p className="mt-1.5 text-xs text-bad">{msg || err}</p>}
       <div className="mt-3 flex gap-2">
-        <Button onClick={save} disabled={busy || !clean || !!msg} className="px-4 py-2 text-sm">
-          {busy ? "…" : "غيّر الرابط"}
+        <Button busy={busy} onClick={save} disabled={busy || !clean || !!msg} className="px-4 py-2 text-sm">
+          غيّر الرابط
         </Button>
         <button
           type="button"
@@ -273,8 +273,8 @@ export default function Settings() {
     const d = dirty(keys);
     return (
       <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-line pt-4">
-        <Button disabled={saving !== null || !d || blocked} onClick={() => saveSection(id, patch())}>
-          {saving === id ? "جارٍ الحفظ…" : "حفظ"}
+        <Button busy={saving === id} disabled={saving !== null || !d || blocked} onClick={() => saveSection(id, patch())}>
+          حفظ
         </Button>
         <SavedBadge dirty={d} />
       </div>

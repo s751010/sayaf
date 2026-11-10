@@ -34,3 +34,32 @@ describe("لا ابتلاع صامت في مسارين يراهما المستخ
     expect(s).toMatch(/setOrder\(\{ id, view: null \}\)/);
   });
 });
+
+describe("أزرار الحفظ: نمطٌ واحد (البند ٦)", () => {
+  it("‏`<Button busy>`: معطّل و`aria-busy` و«يحفظ…»", async () => {
+    const { createElement } = await import("react");
+    const { renderToStaticMarkup } = await import("react-dom/server");
+    const { Button } = await import("@/components/ui");
+    const html = renderToStaticMarkup(createElement(Button, { busy: true }, "حفظ"));
+    expect(html).toMatch(/\sdisabled=""/);
+    expect(html).toContain('aria-busy="true"');
+    expect(html).toContain("يحفظ…");
+    expect(html).not.toContain(">حفظ<");
+    const idle = renderToStaticMarkup(createElement(Button, { busy: false }, "حفظ"));
+    expect(idle).not.toMatch(/\sdisabled=""/);
+    expect(idle).not.toContain("aria-busy");
+  });
+
+  it("لا زرّ يكتب «جارٍ الحفظ…» بيده — كلّها تمرّ بـ`busy`", async () => {
+    const { readdirSync, statSync } = await import("node:fs");
+    const { join } = await import("node:path");
+    const walk = (d: string): string[] =>
+      readdirSync(d).flatMap((n) => {
+        const p = join(d, n);
+        return statSync(p).isDirectory() ? walk(p) : p.endsWith(".tsx") ? [p] : [];
+      });
+    const offenders = [...walk(resolve(__dirname, "../src/pages/dashboard")), ...walk(resolve(__dirname, "../src/components"))]
+      .filter((f) => /\? "جارٍ الحفظ…"/.test(readFileSync(f, "utf8")));
+    expect(offenders).toEqual([]);
+  });
+});

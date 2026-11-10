@@ -36,10 +36,21 @@ export function Button({
   variant = "gold",
   size = "md",
   className,
+  busy = false,
+  busyText = "يحفظ…",
+  disabled,
+  children,
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: ButtonVariant;
   size?: ButtonSize;
+  /**
+   * الطلب جارٍ: الزرّ معطّل و`aria-busy` ونصّه «يحفظ…» (أو `busyText`).
+   * **نمطٌ واحد لكل أزرار الحفظ** — كان كل زرٍّ يكتب ثلاثيّته بيده، وبعضها
+   * بلا تعطيل فيُرسَل الحفظ مرّتين بنقرٍ مزدوج (تدقيق ٢٠٢٦/١١/٠٩، البند ٦).
+   */
+  busy?: boolean;
+  busyText?: string;
 }) {
   // «ملصقٌ وسدو»: الذهب فعلٌ، والحدّ حبرٌ رفيع، والضغط انكماشٌ قصير (`.press`،
   // يُطفأ لمن طلب تقليل الحركة). ولا `transition-all`: كانت تحرّك كل خاصية
@@ -63,8 +74,12 @@ export function Button({
         styles[variant],
         className
       )}
+      disabled={disabled || busy}
+      aria-busy={busy || undefined}
       {...props}
-    />
+    >
+      {busy ? busyText : children}
+    </button>
   );
 }
 
