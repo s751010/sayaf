@@ -65,6 +65,18 @@ export const STATIC_SEO = {
       "شروط استخدام منصّة كلاود منيو: الاشتراك والتجديد والإلغاء والاسترجاع، ومسؤوليات التاجر عن محتوى منيوه.",
     path: "/terms",
   },
+  /**
+   * لا قيمة بحثية لها (`robots.txt` يحجبها)، لكن التوليد المسبق كان يعطيها عنوان
+   * الرئيسية ووصفها — فمن شارك رابط الدخول رأى بطاقة الهبوط (تدقيق ٢٠٢٦/١١/٠٩،
+   * البند ٢٨). فلها وسومها، و`noindex` صريحاً.
+   */
+  login: {
+    title: "دخول التجّار",
+    description:
+      "ادخل إلى لوحة مطعمك في كلاود منيو، أو أنشئ حساباً جديداً وجرّب المنيو الرقمي وحاسبة السعرات مجاناً قبل أن تدفع شيئاً.",
+    path: "/login",
+    noindex: true,
+  },
 } satisfies Record<string, Seo & { description: string; path: string; noindex?: boolean }>;
 
 export type StaticPage = keyof typeof STATIC_SEO;
