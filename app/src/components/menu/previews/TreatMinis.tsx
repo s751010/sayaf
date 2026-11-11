@@ -1,5 +1,5 @@
 /**
- * معايناتٌ مصغّرة لطوابع الموجة ب (٢٠٢٦/١١/١١) — مغرفة · عيدان.
+ * معايناتٌ مصغّرة لطوابع الموجة ب (٢٠٢٦/١١/١١) — مغرفة · عيدان · زعتر.
  *
  * كأخواتها في `FastMinis.tsx`: **أشكالٌ لا نصوص**، والألوان من `vars` الطابع (بلون علامة التاجر إن صبغه)،
  * والخامات (البسكوتة والفانيلا والشوكولاتة · الخشب والأرزّ والسمك · العجين والحديد والكيس) ثابتة كما في
@@ -83,6 +83,28 @@ export function ChopsticksMini({ v }: { v: Vars }) {
         <ellipse key={x} cx={x} cy="83" rx="9" ry="3.5" fill={i % 2 ? "#e8c25a" : a} />
       ))}
       <Lines v={v} y={94} />
+    </Frame>
+  );
+}
+
+/** زعتر: كيس ورقٍ بختم الشعار، وصاجٌ محدّب، ولوحٌ عليه منقوشة زعتر. */
+export function ZaatarMini({ v }: { v: Vars }) {
+  const a = v["--m-accent"];
+  return (
+    <Frame bg={v["--m-bg"]}>
+      <path d="M18 18L22 14L26 18L30 14L34 18L38 14L42 18L46 14L50 18V70H18Z" fill="#cfa772" />
+      <circle cx="34" cy="44" r="10" fill="#fff7e8" stroke={a} strokeWidth="2" />
+      <circle cx="34" cy="44" r="6.5" fill={v["--m-surface"]} />
+      <path d="M86 54Q114 20 142 54Z" fill="#3b3936" />
+      <path d="M86 54H142" stroke="#26241f" strokeWidth="2" />
+      <path d="M110 60q3-6 4-8q2 3 4 8Z" fill="#f2a33a" />
+      <rect x="40" y="66" width="112" height="16" rx="4" fill="#c99a5e" />
+      <ellipse cx="80" cy="72" rx="20" ry="5.5" fill="#f1dcaa" />
+      {[70, 76, 82, 88, 74, 86].map((x, i) => (
+        <circle key={i} cx={x} cy={i > 3 ? 74 : 71} r="1.2" fill={a} />
+      ))}
+      <ellipse cx="124" cy="72" rx="16" ry="5" fill="#f7efd8" stroke="#e6bf74" strokeWidth="1.5" />
+      <Lines v={v} y={92} />
     </Frame>
   );
 }

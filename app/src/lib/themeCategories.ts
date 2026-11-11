@@ -22,7 +22,7 @@ import type { DemoKind } from "./demoMenus";
 import type { IconName } from "./icons";
 import { norm } from "./starterMenus";
 import {
-  ARABIC_COFFEE, BAKERY, BREAKFAST, BREW_BAR, BROAST, BURGER, DRIVE_THRU, GRILL, ICE_CREAM, ITALIAN, PIZZA,
+  ARABIC_COFFEE, BAKERY, BREAKFAST, BREW_BAR, BROAST, BURGER, DRIVE_THRU, GRILL, ICE_CREAM, ITALIAN, MANAKISH, PIZZA,
   POPULAR_CAFE, SHAWARMA, SPECIALTY, SUSHI, TEA_HOUSE, suggestionKey,
   type CafeFlavor,
 } from "./themeSuggest";
@@ -72,15 +72,15 @@ export interface ThemeCategory {
  * و**حذف المالك «أوجاق» و«ستيك» و«مدخنة»** (١١/١١): «مشاوي وشاورما» جمر · شاورما · فاخر · عسير — عاد
  * «عسير» (شارته «مشويات» ثانيةً)، و«راقي ومناسبات» بلا «ستيك». و«سماش» و«سطل» (البرجر والبروست) بعد «صاج» على رفّ الوجبات السريعة.
  *
- * و**الموجة ب** (١١/١١): «مغرفة» (الآيسكريم) ثالثةَ «مخابز وحلويات» بعد «حلواني»؛ و«عيدان» (السوشي) ثانيَ «بحري»
- * بعد «مرفأ» وفي «راقي ومناسبات» بعد «فاخر». ولا رفَّ «آسيوي» بطابعٍ واحد — رفٌّ ثلاثةٌ فأكثر، والسوشي يقف حيث
- * يصدق: البحر والمطعم الراقي.
+ * و**الموجة ب** (١١/١١): «مغرفة» (الآيسكريم) ثالثةَ «مخابز وحلويات» بعد «حلواني»؛ و«زعتر» (المناقيش) رابعتَها
+ * وثانيَ «فطور» بعد «فوّال»؛ و«عيدان» (السوشي) ثانيَ «بحري» بعد «مرفأ» وفي «راقي ومناسبات» بعد «فاخر». ولا رفَّ
+ * «آسيوي» بطابعٍ واحد — رفٌّ ثلاثةٌ فأكثر، والسوشي يقف حيث يصدق: البحر والمطعم الراقي.
  */
 export const THEME_CATEGORIES: readonly ThemeCategory[] = [
   { id: "cafe", name: "مقاهي", nameEn: "Cafés", icon: "dallah", themes: ["roastery", "v60", "latte", "barista", "grinder", "drive", "dallah", "letterboard"], kind: "cafe" },
   { id: "tea", name: "شاي", nameEn: "Tea", icon: "istikana", themes: ["karak", "samovar", "dallah", "sticker"], kind: "karak" },
-  { id: "bakery", name: "مخابز وحلويات", nameEn: "Bakeries & sweets", icon: "croissant", themes: ["bakery", "patisserie", "scoop", "latte", "letterboard"], kind: "bakery" },
-  { id: "breakfast", name: "فطور", nameEn: "Breakfast", icon: "egg", themes: ["breakfast", "dukkan", "bakery"], kind: "breakfast" },
+  { id: "bakery", name: "مخابز وحلويات", nameEn: "Bakeries & sweets", icon: "croissant", themes: ["bakery", "patisserie", "scoop", "zaatar", "latte", "letterboard"], kind: "bakery" },
+  { id: "breakfast", name: "فطور", nameEn: "Breakfast", icon: "egg", themes: ["breakfast", "zaatar", "dukkan", "bakery"], kind: "breakfast" },
   { id: "fast", name: "وجبات سريعة", nameEn: "Fast food", icon: "burger", themes: ["burger", "smash", "bucket", "shawarma", "neon", "receipt", "sticker", "slices", "pizzabox"], kind: "burger" },
   { id: "pizza", name: "بيتزا وإيطالي", nameEn: "Pizza & Italian", icon: "pizza", themes: ["pizza", "woodfire", "napoli", "pizzabox", "slices", "editorial"], kind: "pizza" },
   { id: "grill", name: "مشاوي وشاورما", nameEn: "Grills & shawarma", icon: "skewer", themes: ["grill", "shawarma", "dark-gold", "asir"], kind: "grill" },
@@ -126,8 +126,9 @@ export const CATEGORY_BY_KEY: Readonly<Record<string, ThemeCategoryId | null>> =
   [SHAWARMA]: "grill",
   [BROAST]: "fast",
   [BURGER]: "fast",
-  // ١١/١١ (الموجة ب): الآيسكريم على «مخابز وحلويات»، والسوشي على «بحري».
+  // ١١/١١ (الموجة ب): الآيسكريم والمناقيش على «مخابز وحلويات»، والسوشي على «بحري».
   [ICE_CREAM]: "bakery",
+  [MANAKISH]: "bakery",
   [SUSHI]: "seafood",
   شعبي: "shaabi",
   [BREAKFAST]: "breakfast",

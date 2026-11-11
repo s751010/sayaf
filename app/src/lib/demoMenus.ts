@@ -25,11 +25,11 @@ export type DemoKind =
   | "qahwa" | "espresso"
   | "karak" | "teahouse"
   | "broast"
-  | "icecream" | "sushi";
+  | "icecream" | "sushi" | "manakish";
 
 export const DEMO_KINDS: readonly DemoKind[] = [
   "restaurant", "cafe", "shaabi", "truck", "seafood", "sweets", "juice", "burger", "bakery", "breakfast", "grill", "pizza",
-  "qahwa", "espresso", "karak", "teahouse", "broast", "icecream", "sushi",
+  "qahwa", "espresso", "karak", "teahouse", "broast", "icecream", "sushi", "manakish",
 ];
 
 export function isDemoKind(v: string | null | undefined): v is DemoKind {
@@ -2351,6 +2351,108 @@ function sushi(): DemoData {
   };
 }
 
+/* ── مناقيش وفطائر — لطابع «زعتر» (٢٠٢٦/١١/١١، الموجة ب) ─────────────────────────────
+ * محلّ مناقيش على الصاج: المنقوشة كبيرةً بالحبّة (زعتر · جبن · لحم بعجين · محمّرة)، والفطائر الصغيرة بالقطعة
+ * والصينيّة، وسلطةٌ واحدة، والمشروبات (شايٌ ولبن). أقسامٌ لها في `CANON` رموزها: الرغيف والمعجّنات والسلطة
+ * والقارورة. و«فطور اثنين» أرخص من أجزائه. */
+
+function manakish(): DemoData {
+  const R = "demo-manakish";
+  const M = "demo-manakish-menu";
+  const dish = dishMaker(R, M);
+  return {
+    restaurant: restaurantOf(R, {
+      name: "منقوشتي",
+      type: "مناقيش وفطائر على الصاج",
+      address: "الخبر — حي العقربية",
+      logo: "🫓",
+      allergens_text: "العجين فيه جلوتين، والجبن والعكاوي حليب، والزعتر فيه سمسم، والمحمّرة فيها جوز — والصاج واحد.",
+      working_hours: WEEK("06:00", "23:00", "00:00"),
+      loyalty_goal: 8,
+      loyalty_reward: "منقوشة زعتر مجاناً",
+      prep_minutes: 10,
+      category_order: JSON.stringify(["المناقيش", "الفطائر", "السلطات", "المشروبات"]),
+    }),
+    menus: [menuOf(R, M, "zaatar")],
+    dishes: [
+      dish("m1", "منقوشة زعتر", "Zaatar Manousheh", "المناقيش", 6, "🫓", {
+        description: "زعتر بلدي وزيت زيتون على عجينٍ رقيق من الصاج.",
+        featured: true,
+        calories: 420,
+        sodium_mg: 620,
+        allergens: ["جلوتين", "سمسم"],
+        options: JSON.stringify([
+          { name: "طماطم ونعناع", price: 1, kcal: 10 },
+          { name: "نصّ جبن", price: 3, kcal: 150 },
+        ]),
+      }),
+      dish("m2", "منقوشة جبن عكاوي", "Akkawi Cheese Manousheh", "المناقيش", 10, "🧀", {
+        description: "عكاوي وموزاريلا تذوب على الصاج.",
+        calories: 610,
+        sodium_mg: 1240,
+        allergens: ["جلوتين", "حليب"],
+      }),
+      dish("m3", "لحم بعجين", "Lahm Bi Ajeen", "المناقيش", 12, "🥩", {
+        description: "لحم غنم مفروم بالطماطم والبصل والدبس.",
+        calories: 560,
+        sodium_mg: 980,
+        allergens: ["جلوتين"],
+      }),
+      dish("m4", "منقوشة محمّرة", "Muhammara Manousheh", "المناقيش", 8, "🌶️", {
+        description: "فليفلة حمراء وجوز ودبس رمّان.",
+        calories: 480,
+        sodium_mg: 710,
+        allergens: ["جلوتين", "مكسرات"],
+        available: false,
+      }),
+      dish("m5", "فطيرة سبانخ", "Spinach Fatayer", "الفطائر", 3, "🥬", {
+        description: "مثلّثةٌ بالسبانخ والسمّاق والبصل.",
+        calories: 160,
+        sodium_mg: 290,
+        allergens: ["جلوتين"],
+      }),
+      dish("m6", "فطيرة جبن", "Cheese Fatayer", "الفطائر", 3, "🧀", {
+        description: "جبنة بيضاء وبقدونس.",
+        calories: 190,
+        sodium_mg: 340,
+        allergens: ["جلوتين", "حليب"],
+      }),
+      dish("m7", "صينيّة فطائر مشكّلة — ١٢ حبّة", "Mixed Fatayer Tray — 12 pcs", "الفطائر", 32, "🥟", {
+        description: "سبانخ وجبن ولحم — للضيوف والدوام.",
+        calories: 2100,
+        sodium_mg: 3800,
+        allergens: ["جلوتين", "حليب"],
+      }),
+      dish("m8", "فطور اثنين", "Breakfast for Two", "الفطائر", 26, "🫓", {
+        description: "منقوشتا زعتر ومنقوشة جبن، وكأسا شاي.",
+        featured: true,
+        // ٤٢٠ × ٢ + ٦١٠ + ٢ × ٣٠ — والصوديوم كذلك.
+        calories: 1510,
+        sodium_mg: 2490,
+        allergens: ["جلوتين", "حليب", "سمسم"],
+      }),
+      dish("m9", "فتّوش", "Fattoush", "السلطات", 12, "🥗", {
+        description: "خضار مقطّعة وخبزٌ محمّص ودبس رمّان وسمّاق.",
+        calories: 210,
+        sodium_mg: 420,
+        allergens: ["جلوتين"],
+      }),
+      dish("m10", "شاي بالنعناع", "Mint Tea", "المشروبات", 3, "🍵", {
+        description: "كأسٌ بنعناعٍ أخضر.",
+        calories: 30,
+        sodium_mg: 5,
+        caffeine_mg: 30,
+      }),
+      dish("m11", "لبن عيران", "Ayran", "المشروبات", 4, "🥛", {
+        description: "لبن بالملح — ٢٥٠ مل.",
+        calories: 90,
+        sodium_mg: 320,
+        allergens: ["حليب"],
+      }),
+    ],
+  };
+}
+
 /**
  * المنيو الذي يُعاين به طابعٌ ما وحده (`/demo?theme=…` من «عاينه كاملاً»):
  * منيوه إن كان له (`KIND_BY_THEME`)، وإلا أوّل نوعٍ في `suits` ⇒ منيو ذلك النوع.
@@ -2420,10 +2522,11 @@ const KIND_BY_THEME: Readonly<Record<string, DemoKind>> = {
   bucket: "broast",
   // ١١/١١: «سماش» على منيو البرجر القائم («برجر الحارة» سماشٌ أصلاً) — شارته «برجر» لا نوعٌ له منيو.
   smash: "burger",
-  // ١١/١١ (الموجة ب): «مغرفة» و«عيدان» على منيوهاتٍ جديدة بأقلّ ما يلزم — «حلواني» يملك منيو الحلويات (كيكٌ
-  // وشرقيّ لا آيسكريم).
+  // ١١/١١ (الموجة ب): الثلاثة على منيوهاتٍ جديدة بأقلّ ما يلزم — «حلواني» يملك منيو الحلويات (كيكٌ وشرقيّ لا
+  // آيسكريم)، و«فرن» منيو المخبز (كرواسون ورغيف لا صاج).
   scoop: "icecream",
   chopsticks: "sushi",
+  zaatar: "manakish",
 };
 
 export function demoKindForSuits(suits: readonly string[] | undefined, themeId?: string | null): DemoKind {
@@ -2450,6 +2553,7 @@ const BUILDERS: Record<DemoKind, () => DemoData> = {
   broast,
   icecream,
   sushi,
+  manakish,
 };
 
 /** المنيو التجريبي لنوعٍ ما — والمجهول يسقط إلى «الديوان». */

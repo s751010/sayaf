@@ -995,6 +995,36 @@ function chopsticks(ctx: Ctx, b: MotifBox, k: MotifInk): void {
   });
 }
 
+/** زعتر — منقوشةٌ مستديرة بالخافت عليها نقاط زعترٍ بالتمييز، وبينها ورقتا زعترٍ بالتمييز. */
+function zaatar(ctx: Ctx, b: MotifBox, k: MotifInk): void {
+  const room = b.reach - b.outer;
+  const s = Math.min(b.mm * 2.4, room * 0.6);
+  alongTopBottom(b, s * 1.4, (x, w, top) => {
+    const cx = x + w / 2;
+    const cy = top ? b.outer + room * 0.5 : b.H - b.outer - room * 0.5;
+    const i = Math.round((x - b.outer) / w);
+    ctx.fillStyle = k.accent;
+    if (i % 2) {
+      for (const r of [-0.5, 0.5]) {
+        ctx.beginPath();
+        ctx.ellipse(cx + r * s * 0.18, cy, s * 0.16, s * 0.07, r * 0.9, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      return;
+    }
+    ctx.fillStyle = k.muted;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, s * 0.42, s * 0.3, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = k.accent;
+    for (const [dx, dy] of [[-0.2, -0.08], [0, 0.1], [0.18, -0.04], [-0.06, -0.14], [0.12, 0.14]]) {
+      ctx.beginPath();
+      ctx.arc(cx + s * dx, cy + s * dy, s * 0.05, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  });
+}
+
 const MOTIFS: Record<MenuSkin, ((ctx: Ctx, b: MotifBox, k: MotifInk) => void) | null> = {
   gold: folio,
   receipt,
@@ -1033,6 +1063,7 @@ const MOTIFS: Record<MenuSkin, ((ctx: Ctx, b: MotifBox, k: MotifInk) => void) | 
   smash,
   scoop,
   chopsticks,
+  zaatar,
   // «لون علامتي» محايدٌ عمداً على الشاشة — وكذلك على الورق.
   store: null,
 };

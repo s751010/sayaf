@@ -96,11 +96,13 @@ export const BROAST = "بروست";
  */
 export const BURGER = "برجر";
 /**
- * والموجة ب (١١/١١، طلب المالك): صفّان فرعيّان وشارتا تخصّص — «آيسكريم» («مغرفة») و«سوشي» («عيدان»). لا كلمة
- * لأيٍّ منهما في `aliasType` («آيسكريم» و«سوشي» يصيران «مطعماً» أوّلُه «فاخر»)، ولا نوعَ جديداً: صفوفٌ تُقرأ من نصّ النوع كالبروست والبرجر.
+ * والموجة ب (١١/١١، طلب المالك): ثلاثة صفوفٍ فرعيّة وثلاث شارات تخصّص — «آيسكريم» («مغرفة»)، و«سوشي»
+ * («عيدان»)، و«فطائر» («زعتر»). لا كلمة لأيٍّ منها في `aliasType` («آيسكريم» و«سوشي» و«مناقيش» تصير «مطعماً»
+ * أوّلُه «فاخر»)، ولا نوعَ جديداً: صفوفٌ تُقرأ من نصّ النوع كالبروست والبرجر.
  */
 export const ICE_CREAM = "آيسكريم";
 export const SUSHI = "سوشي";
+export const MANAKISH = "فطائر";
 /** ٠٩/١١ («شارة بتخصّصه»): البيتزا «بيتزا»، والمطعم الإيطالي صفٌّ وحده — أوّلُه «نابولي». */
 export const PIZZA = "بيتزا";
 export const ITALIAN = "مطعم إيطالي";
@@ -127,7 +129,7 @@ export const DRIVE_THRU = "قهوة سريعة";
  */
 export const SPECIALTY_BADGES: readonly string[] = [
   SPECIALTY, BREW_BAR, DRIVE_THRU, ARABIC_COFFEE, PIZZA, ITALIAN, SHAWARMA, BROAST, BURGER,
-  ICE_CREAM, SUSHI,
+  ICE_CREAM, SUSHI, MANAKISH,
 ];
 
 export function isSpecialtyBadge(badge: string): boolean {
@@ -187,6 +189,8 @@ export const SUGGESTED: Readonly<Record<string, Row>> = {
   [ICE_CREAM]: ["scoop", "patisserie", "juice", "sticker"],
   // ١١/١١: السوشي — اللوح والعيدان، ثم «مرفأ» (البحر)، ثم «عصري» و«مجلّة» (الهادئان النظيفان).
   [SUSHI]: ["chopsticks", "harbor", "modern", "editorial"],
+  // ١١/١١: المناقيش والفطائر — الصاج، ثم «فرن» (المخبز)، ثم «فوّال» و«دكّان» (الفطور الشعبي والحارة).
+  [MANAKISH]: ["zaatar", "bakery", "breakfast", "dukkan"],
   // ٠٧/١١: «فوّال» ثالثَ الشعبي. ثم (٠٩/١١) «عسير» رابعاً بشارته كما كان قبل «دلّة» — والدلّة شارتها
   // تخصّصها «قهوة عربية».
   شعبي: ["najdi", "dukkan", "breakfast", "asir"],
@@ -266,6 +270,20 @@ const SUB_ROWS: readonly SubRow[] = [
     key: BREAKFAST,
     within: ["شعبي", "مطعم"],
     hints: ["فطور", "افطار", "فول", "فوال", "تميس", "مطبق", "breakfast"],
+  },
+  // ١١/١١ (الموجة ب): المناقيش قبل المخبز — «مناقيش» صريحةً تكفي، و«فطائر» و«معجّنات» كلمتين كاملتين ما لم
+  // يذكر النصّ مخبزاً أو فرناً أو كرواسون («فطائر وكرواسون من الفرن» مخبزٌ أوّلُه «فرن»). والفطور قبلها.
+  {
+    key: MANAKISH,
+    within: ["مطعم", "مخبز وحلويات", "شعبي"],
+    hints: ["مناقيش", "منقوشه", "مناقييش", "manakish", "manaqish", "manakeesh", "manousheh"],
+  },
+  {
+    key: MANAKISH,
+    within: ["مطعم", "مخبز وحلويات", "شعبي"],
+    hints: [],
+    words: ["فطائر", "فطاير", "الفطائر", "معجنات", "المعجنات"],
+    unless: ["مخبز", "مخابز", "خباز", "كرواسون", "فرن", "افران", "bakery"],
   },
   {
     key: BAKERY,

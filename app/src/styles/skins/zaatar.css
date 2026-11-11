@@ -1,0 +1,377 @@
+/*
+ * ══ زعتر — محلّ المناقيش والفطائر (٢٠٢٦/١١/١١، الموجة ب) ══════════════════════════════════
+ * الطابع الثامن والثلاثون. صاجٌ محدّبٌ على لهبٍ صغير، ولوح خشبٍ أمامه عليه عجينةٌ وشوبك ومنقوشةٌ وفطيرة، وكيس
+ * ورقٍ والشعار ختمٌ عليه. مع التمرير **تُفرد العجينة** ويتدحرج الشوبك **ويُرشّ الزعتر** حبّةً حبّة
+ * (`--m-scroll-y`). **وحين يُضاف صنفٌ تقفز المنقوشة إلى الصاج فتنتفخ** وتخرج إلى اللوح، واللهب يشتدّ، والزرّ
+ * يُكبس، ومنقوشةٌ صغيرة تقفز فوق شريط الطلب (`data-m-added`). والأقسام رغيفٌ يُختم حين يدخل القسم (`data-m-in`)،
+ * وتحت الشريط خيط زعترٍ يمتدّ بتقدّم الصفحة (`--m-scroll`).
+ * الترويسة وعنوان القسم في `components/menu/heads/ZaatarHead.tsx`.
+ *
+ * ⚠️ مستورَدٌ من **رأس** `menu-skins.css` — فكلّ انتقائيٍّ هنا يبدأ بـ`.m-skin-zaatar`.
+ *
+ * ما يتبع العلامة: الزعتر وحلقة الختم وإطار الرغيف والأزرار والسعر. وما لا يتبعها خامة: العجين والجبن
+ * والخشب والحديد وورق الكيس واللهب.
+ */
+.m-skin-zaatar {
+  display: flow-root;
+  --m-za-dough: #f1d9a4;
+  --m-za-crust: #d6a75e;
+  /* الزخرفة: أليافُ ورق الكيس، وحبّات زعترٍ متناثرة خافتة. */
+  background-image:
+    radial-gradient(circle at 30% 40%, color-mix(in srgb, var(--m-accent) 13%, transparent) 0 1.3px, transparent 1.8px),
+    repeating-linear-gradient(90deg, rgba(42, 29, 16, 0.025) 0 1px, transparent 1px 7px);
+  background-size: 19px 17px, auto;
+}
+
+/* ── المسرح ── */
+.m-skin-zaatar .m-za-stage {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--m-accent-2) 7%, var(--m-bg)), var(--m-bg));
+  border-bottom: 2px dashed color-mix(in srgb, var(--m-text) 22%, transparent);
+}
+.m-skin-zaatar .m-za-scene {
+  margin-bottom: 0.25rem;
+}
+.m-skin-zaatar .m-za-herb {
+  fill: var(--m-accent);
+}
+.m-skin-zaatar .m-za-seal {
+  background: #fff7e8;
+  box-shadow:
+    0 0 0 2px #fff7e8,
+    0 0 0 3.5px var(--m-accent),
+    0 2px 6px -2px rgba(42, 29, 16, 0.4);
+  rotate: -6deg;
+}
+.m-skin-zaatar .m-za-window {
+  border-radius: 14px;
+  box-shadow:
+    0 0 0 4px #fffaf0,
+    0 0 0 6px color-mix(in srgb, var(--m-text) 25%, transparent),
+    0 14px 22px -14px rgba(42, 29, 16, 0.5);
+}
+
+/* ── عنوان القسم: رغيف منقوشة برمز القسم، وخيط زعتر ── */
+.m-skin-zaatar .m-za-loaf {
+  border-radius: 50%;
+  color: var(--m-accent);
+  background:
+    radial-gradient(circle at 24% 38%, color-mix(in srgb, var(--m-accent) 60%, transparent) 0 1.3px, transparent 1.8px),
+    radial-gradient(circle at 74% 64%, color-mix(in srgb, var(--m-accent) 60%, transparent) 0 1.3px, transparent 1.8px),
+    radial-gradient(circle at 70% 26%, color-mix(in srgb, var(--m-accent) 50%, transparent) 0 1.1px, transparent 1.6px),
+    radial-gradient(circle at 30% 74%, color-mix(in srgb, var(--m-accent) 50%, transparent) 0 1.1px, transparent 1.6px),
+    radial-gradient(ellipse at 50% 45%, #f7e8c4 0 55%, var(--m-za-dough) 70%);
+  box-shadow:
+    inset 0 0 0 2.5px var(--m-za-crust),
+    0 3px 5px -2px rgba(42, 29, 16, 0.35);
+}
+.m-skin-zaatar .m-za-trail {
+  background: radial-gradient(circle, var(--m-accent) 0 1.4px, transparent 1.9px) 0 50% / 10px 5px repeat-x;
+  opacity: 0.6;
+}
+.m-skin-zaatar .m-za-count {
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--m-text) 8%, var(--m-bg));
+  color: var(--m-text);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--m-text) 18%, transparent);
+}
+.m-skin-zaatar .m-za-photo {
+  padding: 4px;
+  border-radius: 14px;
+  background: #fffaf0;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--m-text) 14%, transparent), 0 10px 18px -14px rgba(42, 29, 16, 0.5);
+}
+.m-skin-zaatar .m-za-photo .m-img {
+  border-radius: 10px;
+}
+
+/* ── السعر: شارةٌ كملصق الكيس ── */
+.m-skin-zaatar .m-card .m-price.m-shine,
+.m-skin-zaatar .m-feature .m-price.m-shine {
+  padding: 0.15rem 0.6rem;
+  border-radius: 6px;
+}
+
+/* ── الطبق بلا صورة: منقوشة زعترٍ من فوق على ورق الكيس ── */
+.m-skin-zaatar .m-art {
+  --m-art-bg:
+    repeating-linear-gradient(90deg, rgba(42, 29, 16, 0.04) 0 1px, transparent 1px 6px),
+    #e9d4ad;
+  --m-art-plate:
+    radial-gradient(circle at 34% 36%, color-mix(in srgb, var(--m-accent) 75%, #000) 0 3%, transparent 3.6%),
+    radial-gradient(circle at 60% 30%, color-mix(in srgb, var(--m-accent) 75%, #000) 0 2.6%, transparent 3.2%),
+    radial-gradient(circle at 66% 62%, color-mix(in srgb, var(--m-accent) 75%, #000) 0 3%, transparent 3.6%),
+    radial-gradient(circle at 40% 66%, color-mix(in srgb, var(--m-accent) 75%, #000) 0 2.6%, transparent 3.2%),
+    radial-gradient(circle at 50% 48%, color-mix(in srgb, var(--m-accent) 28%, #e8c886) 0 50%, transparent 53%),
+    radial-gradient(circle closest-side, #f1d9a4 0 84%, #d6a75e 88% 100%);
+  --m-art-ring: 0 0 0 3px #fffaf0, 0 0 0 4px rgba(42, 29, 16, 0.14);
+  --m-art-lift: 0 10px 14px -8px rgba(42, 29, 16, 0.45);
+  --m-art-well: 0 0 transparent;
+  --m-art-mark: rgba(255, 255, 255, 0.16);
+  --cm-tint: rgba(255, 255, 255, 0.24);
+}
+
+.m-skin-zaatar .m-art-plate {
+  --m-accent-ink: #3a2812;
+}
+
+/* ── البطاقة والأزرار ── */
+.m-skin-zaatar .m-card,
+.m-skin-zaatar .m-feature {
+  --m-border: color-mix(in srgb, var(--m-text) 12%, transparent);
+}
+.m-skin-zaatar .m-card.m-surface,
+.m-skin-zaatar .m-feature {
+  box-shadow: 0 8px 18px -14px rgba(42, 29, 16, 0.5);
+}
+.m-skin-zaatar .m-chips > *,
+.m-skin-zaatar .m-tab {
+  border-radius: 8px;
+}
+.m-skin-zaatar .m-add {
+  border-radius: 10px;
+  box-shadow: 0 3px 0 color-mix(in srgb, var(--m-accent) 60%, #000);
+}
+.m-skin-zaatar .m-soldout {
+  border-radius: 6px;
+  background: #fffaf0;
+  color: var(--m-text);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--m-text) 40%, transparent);
+}
+
+/* ── شاشات الطلب ── */
+.m-skin-zaatar .m-o-card {
+  border-radius: 16px;
+  box-shadow: 0 8px 18px -14px rgba(42, 29, 16, 0.5);
+}
+.m-skin-zaatar .m-o-cta {
+  border-radius: 12px;
+  box-shadow: 0 4px 0 color-mix(in srgb, var(--m-accent) 60%, #000);
+}
+.m-skin-zaatar .m-o-field,
+.m-skin-zaatar .m-o-ghost,
+.m-skin-zaatar .m-o-opt,
+.m-skin-zaatar .m-o-soldout,
+.m-skin-zaatar .m-o-step,
+.m-skin-zaatar .m-o-chip {
+  border-radius: 10px;
+}
+.m-skin-zaatar .m-o-thumb {
+  border-radius: 50%;
+}
+
+/* ── الحركة ──
+ * عند الفتح: الكيس يُوضع، واللوح يُصفّ. ومع التمرير: العجينة تُفرد والشوبك يتدحرج ذهاباً وإياباً، والزعتر
+ * يُرشّ حبّةً حبّة (`--m-scroll-y`)، والبخار يشتدّ ما دام يمرّر، وخيط الزعتر تحت الشريط يمتدّ (`--m-scroll`).
+ * وحين يدخل القسم يُختم رغيفه (`data-m-in`). وحين يُضاف صنفٌ تقفز المنقوشة إلى الصاج فتنتفخ وتعود، واللهب
+ * يشتدّ، والزرّ يُكبس، ومنقوشةٌ صغيرة فوق شريط الطلب (`data-m-added`). */
+@media (prefers-reduced-motion: no-preference) {
+  .m-skin-zaatar .m-za-scene {
+    animation: m-za-in 0.5s cubic-bezier(0.3, 1.2, 0.5, 1) 0.05s both;
+  }
+  .m-skin-zaatar .m-za-dough,
+  .m-skin-zaatar .m-za-bake,
+  .m-skin-zaatar .m-za-flame,
+  .m-skin-zaatar .m-za-blister {
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+  }
+  .m-skin-zaatar .m-za-dough {
+    transform-origin: 50% 50%;
+    scale: calc(0.55 + 0.45 * clamp(0, var(--m-scroll-y, 0) / 220, 1)) 1;
+  }
+  .m-skin-zaatar .m-za-pin {
+    translate: calc(sin(var(--m-scroll-y, 0) * 2.4deg) * 14px) 0;
+  }
+  .m-skin-zaatar .m-za-herb {
+    opacity: clamp(0, (var(--m-scroll-y, 0) - var(--m-za-i, 0) * 14) / 14, 1);
+  }
+  .m-skin-zaatar .m-za-heat path {
+    animation: m-za-steam 2.4s ease-out 0.8s infinite;
+  }
+  .m-skin-zaatar .m-za-heat path:nth-child(2) {
+    animation-delay: 1.9s;
+  }
+  .m-skin-zaatar[data-m-scrolling] .m-za-heat path {
+    animation-duration: 1.2s;
+  }
+  /* الشريط: خيط زعترٍ أخضر إلى سمّاقٍ بتقدّم الصفحة. */
+  .m-skin-zaatar[data-m-motion] .m-nav::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: -1px;
+    height: 3px;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--m-accent), var(--m-accent-2));
+    transform-origin: 100% 50%;
+    transform: scaleX(var(--m-scroll, 0));
+    pointer-events: none;
+  }
+  [dir="ltr"].m-skin-zaatar[data-m-motion] .m-nav::after {
+    transform-origin: 0 50%;
+  }
+  /* القسم يدخل: الرغيف يُختم، وخيط الزعتر يُرشّ. */
+  .m-skin-zaatar .m-sec[data-m-in] .m-za-loaf {
+    animation: m-za-stamp 0.45s cubic-bezier(0.3, 1.4, 0.5, 1) 0.05s both;
+  }
+  .m-skin-zaatar .m-sec[data-m-in] .m-za-trail {
+    animation: m-za-trail 0.5s ease-out 0.25s both;
+  }
+  /* أُضيف: المنقوشة تقفز إلى الصاج، تنتفخ فقاعاتٍ، وتعود؛ واللهب يشتدّ. */
+  .m-skin-zaatar[data-m-added] .m-za-bake {
+    animation: m-za-bake 1.15s cubic-bezier(0.45, 0, 0.3, 1) both;
+  }
+  .m-skin-zaatar[data-m-added] .m-za-blister {
+    animation: m-za-blister 1.15s linear both;
+  }
+  .m-skin-zaatar[data-m-added] .m-za-flame {
+    animation: m-za-flare 0.7s ease-out 0.2s both;
+  }
+  .m-skin-zaatar [data-m-added] > .m-add {
+    animation: m-za-press 0.5s cubic-bezier(0.3, 0.7, 0.3, 1.3) both;
+  }
+  .m-skin-zaatar [data-m-added] > .m-add::after {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border-radius: 14px;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--m-accent) 45%, #ffffff);
+    pointer-events: none;
+    animation: m-za-ring 0.7s ease-out both;
+  }
+  .m-skin-zaatar[data-m-added] .m-cart::before {
+    content: "";
+    position: absolute;
+    top: -1.1rem;
+    inset-inline-end: 1.5rem;
+    width: 30px;
+    height: 16px;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 30% 40%, #2f6b3a 0 1.4px, transparent 2px),
+      radial-gradient(circle at 62% 60%, #2f6b3a 0 1.4px, transparent 2px),
+      radial-gradient(circle at 72% 32%, #2f6b3a 0 1.2px, transparent 1.8px),
+      radial-gradient(ellipse, #f7e8c4 0 55%, #e6bf74 72%);
+    box-shadow: 0 2px 3px rgba(42, 29, 16, 0.3);
+    pointer-events: none;
+    animation: m-za-cart 1s cubic-bezier(0.3, 1.2, 0.5, 1) both;
+  }
+  .m-skin-zaatar .m-sheet.anim-fade-up {
+    animation: m-za-sheet 0.26s cubic-bezier(0.2, 0.9, 0.25, 1) backwards;
+  }
+  .m-skin-zaatar .m-add:active {
+    transform: translateY(3px);
+  }
+  .m-skin-zaatar .m-card.m-surface:active,
+  .m-skin-zaatar .m-feature:active {
+    transform: scale(0.985);
+  }
+}
+
+@keyframes m-za-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+@keyframes m-za-steam {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  30% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+}
+@keyframes m-za-stamp {
+  0% {
+    opacity: 0;
+    scale: 1.4;
+    rotate: -10deg;
+  }
+  60% {
+    opacity: 1;
+    scale: 0.94;
+  }
+}
+@keyframes m-za-trail {
+  from {
+    opacity: 0;
+  }
+}
+/* المنقوشة: تقفز قوساً إلى قمّة الصاج، تنتفخ عليه، ثم تعود إلى اللوح منتفخةً وتهدأ. */
+@keyframes m-za-bake {
+  0% {
+    transform: none;
+  }
+  24% {
+    transform: translate(-12px, -80px) scale(0.86, 1);
+  }
+  34% {
+    transform: translate(-12px, -78px) scale(0.86, 1);
+  }
+  58% {
+    transform: translate(-12px, -78px) scale(0.92, 1.9);
+  }
+  80% {
+    transform: translate(0, 0) scale(1.04, 1.6);
+  }
+  100% {
+    transform: none;
+  }
+}
+@keyframes m-za-blister {
+  0%,
+  30% {
+    opacity: 0;
+  }
+  55%,
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes m-za-flare {
+  40% {
+    transform: scale(1.25, 1.6);
+  }
+}
+@keyframes m-za-press {
+  40% {
+    transform: translateY(3px) scale(0.92);
+  }
+}
+@keyframes m-za-ring {
+  from {
+    opacity: 1;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.35);
+  }
+}
+@keyframes m-za-cart {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.6);
+  }
+  30%,
+  75% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+@keyframes m-za-sheet {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.98);
+  }
+}

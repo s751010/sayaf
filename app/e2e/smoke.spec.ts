@@ -76,9 +76,10 @@ const PAGES = [
   // ١١/١١ (الموجة أ): «سطل» على منيو البروست الجديد، والمنيو نفسه بنوعه.
   { path: "/demo?theme=bucket", anchor: "قرمشة", role: "text", label: "سطل على منيو البروست" },
   { path: "/demo?kind=broast", anchor: "قرمشة", role: "text", label: "منيو البروست التجريبي" },
-  // ١١/١١ (الموجة ب): «مغرفة» و«عيدان» على منيوهاتهما الجديدة.
+  // ١١/١١ (الموجة ب): «مغرفة» و«عيدان» و«زعتر» على منيوهاتها الجديدة.
   { path: "/demo?theme=scoop", anchor: "كرزة", role: "text", label: "مغرفة على منيو الآيسكريم" },
   { path: "/demo?theme=chopsticks", anchor: "موجة", role: "text", label: "عيدان على منيو السوشي" },
+  { path: "/demo?theme=zaatar", anchor: "منقوشتي", role: "text", label: "زعتر على منيو المناقيش" },
   { path: "/demo?theme=smash", anchor: "برجر الحارة", role: "text", label: "سماش على منيو البرجر" },
   // مقالٌ ثابت: نصّه يُحمَّل كسولاً (`import.meta.glob`) ويمرّ على المنقّي في
   // متصفّح حقيقي — ويُعرض ولو سقطت الشبكة. والمرساة عنوانٌ **داخل النصّ** لا
@@ -221,7 +222,7 @@ test("المنيو التجريبي: اختيار قسمٍ يبدّل المني
   // قسمٌ آخر: منيوه وطوابعه.
   await picker.getByRole("tab", { name: "فطور" }).click();
   await expect(page.getByText("فوّال باب مكة", { exact: false }).first()).toBeVisible();
-  await expect(picker.getByRole("group", { name: "طوابع «فطور»" }).getByRole("button")).toHaveText(["فوّال", "دكّان", "فرن"]);
+  await expect(picker.getByRole("group", { name: "طوابع «فطور»" }).getByRole("button")).toHaveText(["فوّال", "زعتر", "دكّان", "فرن"]);
 
   // لا يغطّي المنيو: في مجرى الصفحة قبل ترويسته، ولا فيض أفقيّ على ٣٢٠.
   const pickerBox = (await picker.boundingBox())!;

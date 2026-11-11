@@ -21,7 +21,7 @@
  *   `BakeryHead` · `BreakfastHead` · `GrillHead` · `PizzaHead` · `DallahHead` · `BaristaHead` ·
  *   `KarakHead` · `SamovarHead` · `V60Head` · `LatteHead` · `GrinderHead` · `DriveHead` · `WoodfireHead` ·
  *   `PizzaboxHead` · `SlicesHead` · `NapoliHead` · `ShawarmaHead` · `BucketHead` · `SmashHead` ·
- *   `ScoopHead` · `ChopsticksHead` — كلٌّ في ملفّه (`heads/`) كي لا تتزاحم الطوابع على ملفّ.
+ *   `ScoopHead` · `ChopsticksHead` · `ZaatarHead` — كلٌّ في ملفّه (`heads/`) كي لا تتزاحم الطوابع على ملفّ.
  *
  * والحركة كلّها في `styles/menu-skins.css` — CSS خالص، ولا تعمل إلا لمن يقبل الحركة.
  * وكلّ ما هنا يُلوَّن بـ`--m-*`، فيلبس لون علامة التاجر كما تلبسه واجهة المتجر.
@@ -607,6 +607,7 @@ export { BucketHead } from "./heads/BucketHead";
 export { SmashHead } from "./heads/SmashHead";
 export { ScoopHead } from "./heads/ScoopHead";
 export { ChopsticksHead } from "./heads/ChopsticksHead";
+export { ZaatarHead } from "./heads/ZaatarHead";
 export { AsirHead } from "./heads/AsirHead";
 
 /* ══ فاخر — دفتر جلدٍ بخيطٍ ذهبيّ ══════════════════════════════════════ */
