@@ -90,6 +90,11 @@ export const SHAWARMA = "شاورما";
  * `aliasType` فتصير «مطعماً» أوّلُه «فاخر».
  */
 export const BROAST = "بروست";
+/**
+ * ومحلّ البرجر (١١/١١، «سماش»): صفٌّ فرعيّ داخل «مطعم سريع» و«مطعم» — «برجر» و«سماش» في نصّ النوع.
+ * أوّلُه «سماش» بشارته، ثم «صاج» (طابع البرجر الأوّل، شارته «مطعم سريع» كما كانت).
+ */
+export const BURGER = "برجر";
 /** ٠٩/١١ («شارة بتخصّصه»): البيتزا «بيتزا»، والمطعم الإيطالي صفٌّ وحده — أوّلُه «نابولي». */
 export const PIZZA = "بيتزا";
 export const ITALIAN = "مطعم إيطالي";
@@ -115,7 +120,7 @@ export const DRIVE_THRU = "قهوة سريعة";
  * («يناسب: قهوة مقطّرة»). والمفردات الكاملة للشارة: `STARTER_TYPES` + هذه.
  */
 export const SPECIALTY_BADGES: readonly string[] = [
-  SPECIALTY, BREW_BAR, DRIVE_THRU, ARABIC_COFFEE, PIZZA, ITALIAN, SHAWARMA, BROAST,
+  SPECIALTY, BREW_BAR, DRIVE_THRU, ARABIC_COFFEE, PIZZA, ITALIAN, SHAWARMA, BROAST, BURGER,
 ];
 
 export function isSpecialtyBadge(badge: string): boolean {
@@ -168,7 +173,9 @@ export const SUGGESTED: Readonly<Record<string, Row>> = {
   // ٠٩/١١ (الموجة ٣): الشاورما يبدأ بطابعه، ثم المنقل، ثم الوجبات السريعة.
   [SHAWARMA]: ["shawarma", "grill", "burger", "bucket"],
   // ١١/١١: البروست يبدأ بالسطل، ثم الوجبات السريعة — والشاورما (محلّاتها تبيع البروست غالباً).
-  [BROAST]: ["bucket", "burger", "shawarma", "neon"],
+  [BROAST]: ["bucket", "smash", "burger", "shawarma"],
+  // ١١/١١: البرجر — السماش ثم الصاج، ثم «فاتورة» و«نيون» كما في الوجبات السريعة.
+  [BURGER]: ["smash", "burger", "receipt", "neon"],
   // ٠٧/١١: «فوّال» ثالثَ الشعبي. ثم (٠٩/١١) «عسير» رابعاً بشارته كما كان قبل «دلّة» — والدلّة شارتها
   // تخصّصها «قهوة عربية».
   شعبي: ["najdi", "dukkan", "breakfast", "asir"],
@@ -260,6 +267,12 @@ const SUB_ROWS: readonly SubRow[] = [
     key: BROAST,
     within: ["مطعم", "مطعم سريع"],
     hints: ["بروست", "broast", "دجاج مقلي", "دجاج كرسبي", "فرايد تشكن", "فرايد تشيكن", "fried chicken"],
+  },
+  // ١١/١١: البرجر بعد البروست وقبل المشاوي — «برجر على الفحم» برجر. والاسم المجرّد «مطعم سريع» يبقى صفّه.
+  {
+    key: BURGER,
+    within: ["مطعم سريع", "مطعم"],
+    hints: ["برجر", "برقر", "burger", "سماش", "smash"],
   },
   {
     key: GRILL,

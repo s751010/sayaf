@@ -106,6 +106,8 @@ describe("ثابت §18 — ألوان الطوابع", () => {
     shawarma: "b9c575ae",
     // «سطل» (٢٠٢٦/١١/١١) — البروست والدجاج المقلي، طلب المالك («اضافة اكثر»).
     bucket: "3d64decd",
+    // «سماش» (٢٠٢٦/١١/١١) — السماش برجر، طابعٌ ثانٍ للبرجر بطلب المالك.
+    smash: "f28b4a9",
   };
 
   it("بصمة التسعة المجمّدة لم تتغيّر", () => {
@@ -143,7 +145,8 @@ describe("ثابت §18 — ألوان الطوابع", () => {
     // ٣٢ ⇒ ٣٦ (٢٠٢٦/١١/٠٩): «شاورما» و«ستيك» و«أوجاق» و«مدخنة» — الموجة ٣: المشاوي.
     // ٣٦ ⇒ ٣٣ (٢٠٢٦/١١/١١): حذف المالك «أوجاق» و«ستيك» و«مدخنة» — قرارٌ مكتوب، تُردّ إلى «جمر» بلونها.
     // ٣٣ ⇒ ٣٤ (٢٠٢٦/١١/١١): «سطل» — البروست والدجاج المقلي.
-    expect(ALL_THEMES.length).toBe(34);
+    // ٣٤ ⇒ ٣٥ (٢٠٢٦/١١/١١): «سماش» — طابعٌ ثانٍ للبرجر يختلف عن «صاج».
+    expect(ALL_THEMES.length).toBe(35);
   });
 
   /**
@@ -449,7 +452,7 @@ describe("الطوابع الثلاث بعد الرفع — الضغط والس�
     expect(css).toMatch(/\.m-price \{\s*font-family: var\(--font-cairo\)/);
   });
 
-  it.each(["receipt", "neon", "sticker", "letterboard", "editorial", "roshan", "najdi", "roastery", "dukkan", "asir", "harbor", "patisserie", "juice", "burger", "bakery", "breakfast", "grill", "pizza", "dallah", "barista", "karak", "samovar", "v60", "latte", "grinder", "drive", "woodfire", "pizzabox", "slices", "napoli", "shawarma", "bucket", "gold", "modern"])(
+  it.each(["receipt", "neon", "sticker", "letterboard", "editorial", "roshan", "najdi", "roastery", "dukkan", "asir", "harbor", "patisserie", "juice", "burger", "bakery", "breakfast", "grill", "pizza", "dallah", "barista", "karak", "samovar", "v60", "latte", "grinder", "drive", "woodfire", "pizzabox", "slices", "napoli", "shawarma", "bucket", "smash", "gold", "modern"])(
     "«%s» له حركة نافذةٍ خاصّة داخل `no-preference`",
     (skin) => {
       const block = css.split("@media (prefers-reduced-motion: no-preference)").slice(1).join("");

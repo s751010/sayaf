@@ -143,6 +143,8 @@ describe("demoMenus", () => {
     expect(kindOf("shawarma")).toBe("grill");
     // ١١/١١: «سطل» على منيو البروست.
     expect(kindOf("bucket")).toBe("broast");
+    // و«سماش» على منيو البرجر القائم (سماشٌ أصلاً).
+    expect(kindOf("smash")).toBe("burger");
     // ولكلّ طابعٍ منيوٌ موجود — لا معاينة على بيانات ناقصة.
     for (const t of ALL_THEMES) expect(isDemoKind(demoKindForSuits(t.suits, t.id)), t.id).toBe(true);
     // والطابع الجديد يُعاين على منيوٍ طابعُه هو نفسه.

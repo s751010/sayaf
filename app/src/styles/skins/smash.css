@@ -1,0 +1,373 @@
+/*
+ * ══ سماش — محلّ السماش برجر الليلي (٢٠٢٦/١١/١١) ═══════════════════════════════════════════
+ * الطابع الخامس والثلاثون. لافتة نيون بلون العلامة على جدارٍ داكن فوق صاجٍ حديديّ، والبرجر عليه طبقاتٌ
+ * مفكّكة **تُبنى طبقةً طبقة مع التمرير** (`--m-scroll-y`: الخبز ثابت، ثم اللحم، ثم الجبن، ثم الخبز —
+ * كلٌّ ينزل في مسافته من الصفحة). **وحين يُضاف صنفٌ ينزل المكبس فتُضغط الكرة على الصاج** وتطشّ، ويُكبس
+ * الزرّ، ويخرج برجرٌ صغير فوق شريط الطلب (`data-m-added`). والأقسام قرص لحمٍ يُكبس حين يدخل (`data-m-in`)،
+ * وتحت الشريط أنبوب نيون يمتدّ بتقدّم الصفحة (`--m-scroll`).
+ * الترويسة وعنوان القسم في `components/menu/heads/SmashHead.tsx`.
+ *
+ * ⚠️ مستورَدٌ من **رأس** `menu-skins.css` — فكلّ انتقائيٍّ هنا يبدأ بـ`.m-skin-smash`.
+ *
+ * ما يتبع العلامة: أنبوب النيون وحلقة الشعار والعدد والأزرار، والسعر (`--m-accent-ink`). وما لا يتبعها خامة:
+ * الخبز واللحم والجبن والحديد والمكبس (مقبضه كاتشب `--m-accent-2`). واسم المحلّ نصٌّ عاجيّ (‎15:1) بتوهّجٍ
+ * بلون العلامة — التوهّج زينةٌ لا يُقرأ بها.
+ */
+.m-skin-smash {
+  display: flow-root;
+  --m-sm-steel: #45464c;
+  /* الزخرفة: بلاطُ مطبخٍ داكن بفواصل خافتة. */
+  background-image:
+    linear-gradient(90deg, rgba(247, 243, 236, 0.035) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(247, 243, 236, 0.035) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* ── الجدار واللافتة ── */
+.m-skin-smash .m-sm-wall {
+  background:
+    radial-gradient(60% 46% at 50% 22%, color-mix(in srgb, var(--m-accent) 16%, transparent), transparent 70%),
+    linear-gradient(90deg, rgba(247, 243, 236, 0.05) 1px, transparent 1px) 0 0 / 34px 22px,
+    linear-gradient(0deg, rgba(247, 243, 236, 0.05) 1px, transparent 1px) 0 0 / 34px 22px,
+    #19191c;
+  border-bottom: 1px solid rgba(247, 243, 236, 0.1);
+}
+.m-skin-smash .m-sm-sign {
+  border-radius: 22px;
+  border: 2.5px solid var(--m-accent);
+  box-shadow:
+    0 0 10px color-mix(in srgb, var(--m-accent) 70%, transparent),
+    inset 0 0 12px color-mix(in srgb, var(--m-accent) 35%, transparent);
+}
+.m-skin-smash .m-sm-ring {
+  background: var(--m-accent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--m-accent) 75%, transparent);
+}
+.m-skin-smash .m-sm-neon {
+  color: var(--m-text);
+  text-shadow:
+    0 0 6px color-mix(in srgb, var(--m-accent) 80%, transparent),
+    0 0 18px color-mix(in srgb, var(--m-accent) 45%, transparent);
+}
+.m-skin-smash .m-sm-scene {
+  margin-bottom: -1px;
+}
+.m-skin-smash .m-sm-flat,
+.m-skin-smash .m-sm-sizzle {
+  opacity: 0;
+}
+.m-skin-smash .m-sm-window {
+  border-radius: 14px;
+  box-shadow:
+    0 0 0 2px var(--m-accent),
+    0 0 14px color-mix(in srgb, var(--m-accent) 45%, transparent);
+}
+
+/* ── عنوان القسم: قرصٌ وشريط صاج وأنبوب نيون ── */
+.m-skin-smash .m-sm-strip {
+  border-radius: 3px;
+  background:
+    linear-gradient(90deg, transparent, rgba(255, 122, 42, 0.45) 30% 70%, transparent) 0 100% / 100% 1.5px no-repeat,
+    linear-gradient(180deg, #6d6f76, var(--m-sm-steel));
+}
+.m-skin-smash .m-sm-count {
+  border-radius: 999px;
+  color: var(--m-accent-ink, var(--m-accent));
+  box-shadow:
+    inset 0 0 0 1.5px var(--m-accent),
+    0 0 8px color-mix(in srgb, var(--m-accent) 55%, transparent);
+}
+.m-skin-smash .m-sm-photo {
+  padding: 3px;
+  border-radius: 14px;
+  background: var(--m-accent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--m-accent) 45%, transparent);
+}
+.m-skin-smash .m-sm-photo .m-img {
+  border-radius: 11px;
+}
+
+/* ── السعر: شارةٌ مضيئة ── */
+.m-skin-smash .m-card .m-price.m-shine,
+.m-skin-smash .m-feature .m-price.m-shine {
+  padding: 0.15rem 0.6rem;
+  box-shadow: 0 0 10px color-mix(in srgb, var(--m-accent) 45%, transparent);
+}
+
+/* ── الطبق بلا صورة: قرص سماش بالجبن على الصاج ──
+   الأرضية حديدٌ مصقول بخطوطه، والصحن **القرص** من فوق: لحمٌ بحافّةٍ مقرمشة وشريحة جبنٍ ذائبة. */
+.m-skin-smash .m-art {
+  --m-art-bg:
+    radial-gradient(70% 60% at 50% 50%, rgba(255, 122, 42, 0.14), transparent 70%),
+    repeating-linear-gradient(90deg, #2c2d32 0 2px, #26272b 2px 5px);
+  --m-art-plate:
+    linear-gradient(45deg, transparent 30%, #ffc93c 30% 70%, transparent 70%) center / 58% 58% no-repeat,
+    radial-gradient(circle closest-side, #6b3a1f 0 62%, #8a4a22 68%, #4a2512 76%, #9a5a2c 84%, #3a1e10 92% 100%);
+  --m-art-ring: 0 0 0 3px #3a3b40, 0 0 0 4px color-mix(in srgb, var(--m-accent) 40%, transparent);
+  --m-art-lift: 0 10px 16px -8px rgba(0, 0, 0, 0.65);
+  --m-art-well: 0 0 transparent;
+  --m-art-mark: rgba(247, 243, 236, 0.08);
+  --cm-tint: rgba(255, 201, 60, 0.3);
+}
+.m-skin-smash .m-art-plate {
+  --m-accent-ink: #2a1408;
+}
+
+/* ── البطاقة والأزرار ── */
+.m-skin-smash .m-card,
+.m-skin-smash .m-feature {
+  --m-border: rgba(247, 243, 236, 0.1);
+}
+.m-skin-smash .m-card.m-surface,
+.m-skin-smash .m-feature {
+  box-shadow: 0 10px 22px -14px rgba(0, 0, 0, 0.8);
+}
+.m-skin-smash .m-chips > *,
+.m-skin-smash .m-tab {
+  border-radius: 10px;
+}
+.m-skin-smash .m-add {
+  border-radius: 12px;
+  box-shadow:
+    0 0 0 2px #19191c,
+    0 0 12px color-mix(in srgb, var(--m-accent) 60%, transparent);
+}
+.m-skin-smash .m-soldout {
+  border-radius: 6px;
+  background: var(--m-sm-steel);
+  color: var(--m-text);
+}
+
+/* ── شاشات الطلب ── */
+.m-skin-smash .m-o-card {
+  border-radius: 14px;
+  box-shadow: 0 10px 22px -14px rgba(0, 0, 0, 0.8);
+}
+.m-skin-smash .m-o-cta {
+  border-radius: 14px;
+  box-shadow: 0 0 16px color-mix(in srgb, var(--m-accent) 50%, transparent);
+}
+.m-skin-smash .m-o-field,
+.m-skin-smash .m-o-ghost,
+.m-skin-smash .m-o-opt,
+.m-skin-smash .m-o-soldout,
+.m-skin-smash .m-o-step,
+.m-skin-smash .m-o-chip {
+  border-radius: 10px;
+}
+.m-skin-smash .m-o-thumb {
+  border-radius: 8px;
+}
+
+/* ── الحركة ──
+ * عند الفتح: اللافتة تومض كالنيون ثم تثبت، والطبقات تنزل إلى مواضعها المفكّكة. ومع التمرير: الطبقات تنزل
+ * واحدةً بعد واحدة حتى يكتمل البرجر (`--m-scroll-y`)، والصاج يتوهّج ما دام يمرّر، وتحت الشريط أنبوب نيون
+ * يمتدّ (`--m-scroll`). وحين يدخل القسم يُكبس قرصه (`data-m-in`). وحين يُضاف صنفٌ ينزل المكبس وتُضغط الكرة
+ * وتطشّ، ويُكبس الزرّ، ويخرج برجرٌ فوق شريط الطلب (`data-m-added`). */
+@media (prefers-reduced-motion: no-preference) {
+  .m-skin-smash .m-sm-sign {
+    animation: m-sm-flicker 0.9s steps(1, end) 0.2s both;
+  }
+  /* البرجر يُبنى مع التمرير: كلّ طبقةٍ مرفوعةٌ في البدء وتنزل في مسافتها (٦٠px لكلٍّ). */
+  .m-skin-smash .m-sm-l1 {
+    translate: 0 calc((1 - clamp(0, var(--m-scroll-y, 0) / 60, 1)) * -16px);
+  }
+  .m-skin-smash .m-sm-l2 {
+    translate: 0 calc((1 - clamp(0, (var(--m-scroll-y, 0) - 60) / 60, 1)) * -32px);
+  }
+  .m-skin-smash .m-sm-l3 {
+    translate: 0 calc((1 - clamp(0, (var(--m-scroll-y, 0) - 120) / 60, 1)) * -50px);
+  }
+  .m-skin-smash .m-sm-stack > g {
+    animation: m-sm-drop 0.5s cubic-bezier(0.3, 1.3, 0.5, 1) both;
+  }
+  .m-skin-smash .m-sm-stack > g:nth-child(2) {
+    animation-delay: 0.15s;
+  }
+  .m-skin-smash .m-sm-stack > g:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+  .m-skin-smash .m-sm-stack > g:nth-child(4) {
+    animation-delay: 0.45s;
+  }
+  .m-skin-smash .m-sm-heat {
+    transition: fill-opacity 0.3s ease;
+  }
+  .m-skin-smash[data-m-scrolling] .m-sm-heat {
+    fill-opacity: 1;
+  }
+  .m-skin-smash .m-sm-press,
+  .m-skin-smash .m-sm-ball,
+  .m-skin-smash .m-sm-flat {
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+  }
+  /* أنبوب النيون تحت الشريط بتقدّم الصفحة. */
+  .m-skin-smash[data-m-motion] .m-nav::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: -1px;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--m-accent);
+    box-shadow: 0 0 8px var(--m-accent);
+    transform-origin: 100% 50%;
+    transform: scaleX(var(--m-scroll, 0));
+    pointer-events: none;
+  }
+  [dir="ltr"].m-skin-smash[data-m-motion] .m-nav::after {
+    transform-origin: 0 50%;
+  }
+  /* القسم يدخل: الكرة تُكبس قرصاً. */
+  .m-skin-smash .m-sec[data-m-in] .m-sm-patty {
+    animation: m-sm-patty 0.5s cubic-bezier(0.3, 1.4, 0.5, 1) 0.05s both;
+  }
+  .m-skin-smash .m-sec[data-m-in] .m-sm-count {
+    animation: m-sm-flicker 0.6s steps(1, end) 0.25s both;
+  }
+  /* أُضيف: المكبس ينزل، والكرة تُضغط قرصاً، والطشّ. */
+  .m-skin-smash[data-m-added] .m-sm-press {
+    animation: m-sm-press 0.9s cubic-bezier(0.5, 0, 0.3, 1) both;
+  }
+  .m-skin-smash[data-m-added] .m-sm-ball {
+    animation: m-sm-ball 0.9s cubic-bezier(0.5, 0, 0.3, 1) both;
+  }
+  .m-skin-smash[data-m-added] .m-sm-flat {
+    animation: m-sm-flat 0.9s linear both;
+  }
+  .m-skin-smash[data-m-added] .m-sm-sizzle {
+    animation: m-sm-sizzle 0.6s ease-out 0.3s both;
+  }
+  .m-skin-smash [data-m-added] > .m-add {
+    animation: m-sm-btn 0.5s cubic-bezier(0.3, 0.7, 0.3, 1.3) both;
+  }
+  .m-skin-smash[data-m-added] .m-cart::before {
+    content: "";
+    position: absolute;
+    top: -1.3rem;
+    inset-inline-end: 1.5rem;
+    width: 28px;
+    height: 22px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 22'%3E%3Cpath d='M2 10Q2 1 14 1Q26 1 26 10Z' fill='%23e0953a'/%3E%3Cpath d='M1 10H27L25 13H3Z' fill='%23ffc93c'/%3E%3Crect x='1' y='12' width='26' height='4' rx='2' fill='%235a2f1a'/%3E%3Cpath d='M3 16H25Q25 21 21 21H7Q3 21 3 16Z' fill='%23d68f3c'/%3E%3C/svg%3E")
+      center / contain no-repeat;
+    pointer-events: none;
+    animation: m-sm-cart 1s cubic-bezier(0.3, 1.2, 0.5, 1) both;
+  }
+  .m-skin-smash .m-sheet.anim-fade-up {
+    animation: m-sm-sheet 0.26s cubic-bezier(0.2, 0.9, 0.25, 1) backwards;
+  }
+  .m-skin-smash .m-add:active {
+    transform: scale(0.92, 0.84);
+  }
+  .m-skin-smash .m-card.m-surface:active,
+  .m-skin-smash .m-feature:active {
+    transform: scale(0.985);
+  }
+}
+
+@keyframes m-sm-flicker {
+  0%,
+  20% {
+    opacity: 0.35;
+  }
+  10%,
+  35%,
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes m-sm-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-26px);
+  }
+}
+@keyframes m-sm-patty {
+  from {
+    transform: scale(0.45, 1.8);
+  }
+}
+/* المكبس: ينزل على الكرة، يثبت لحظة، ثم يرتفع. */
+@keyframes m-sm-press {
+  0% {
+    transform: none;
+  }
+  30%,
+  60% {
+    transform: translateY(38px);
+  }
+  100% {
+    transform: none;
+  }
+}
+@keyframes m-sm-ball {
+  0% {
+    transform: none;
+  }
+  30% {
+    opacity: 1;
+    transform: scale(1.7, 0.3);
+  }
+  34%,
+  70% {
+    opacity: 0;
+    transform: scale(1.7, 0.3);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes m-sm-flat {
+  0%,
+  28% {
+    opacity: 0;
+  }
+  34%,
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes m-sm-sizzle {
+  0% {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+@keyframes m-sm-btn {
+  35% {
+    transform: scale(1.08, 0.72);
+  }
+}
+@keyframes m-sm-cart {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.6);
+  }
+  30%,
+  75% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+@keyframes m-sm-sheet {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+}

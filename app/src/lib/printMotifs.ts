@@ -904,6 +904,39 @@ function bucket(ctx: Ctx, b: MotifBox, k: MotifInk): void {
   });
 }
 
+/** سماش — قرص لحمٍ مكبوس بالخافت (بيضيٌّ بحافّةٍ مموّجة)، وبينها شريحة جبنٍ مائلة بالتمييز. */
+function smash(ctx: Ctx, b: MotifBox, k: MotifInk): void {
+  const room = b.reach - b.outer;
+  const s = Math.min(b.mm * 2.4, room * 0.6);
+  alongTopBottom(b, s * 1.4, (x, w, top) => {
+    const cx = x + w / 2;
+    const cy = top ? b.outer + room * 0.5 : b.H - b.outer - room * 0.5;
+    const i = Math.round((x - b.outer) / w);
+    if (i % 2) {
+      ctx.fillStyle = k.accent;
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(Math.PI / 4);
+      ctx.fillRect(-s * 0.18, -s * 0.18, s * 0.36, s * 0.36);
+      ctx.restore();
+      return;
+    }
+    ctx.fillStyle = k.muted;
+    ctx.beginPath();
+    const n = 14;
+    for (let p = 0; p <= n; p++) {
+      const t = (p / n) * Math.PI * 2;
+      const r = 1 + (p % 2 ? 0.08 : -0.04);
+      const px = cx + Math.cos(t) * s * 0.42 * r;
+      const py = cy + Math.sin(t) * s * 0.16 * r;
+      if (p) ctx.lineTo(px, py);
+      else ctx.moveTo(px, py);
+    }
+    ctx.closePath();
+    ctx.fill();
+  });
+}
+
 const MOTIFS: Record<MenuSkin, ((ctx: Ctx, b: MotifBox, k: MotifInk) => void) | null> = {
   gold: folio,
   receipt,
@@ -939,6 +972,7 @@ const MOTIFS: Record<MenuSkin, ((ctx: Ctx, b: MotifBox, k: MotifInk) => void) | 
   napoli,
   shawarma,
   bucket,
+  smash,
   // «لون علامتي» محايدٌ عمداً على الشاشة — وكذلك على الورق.
   store: null,
 };

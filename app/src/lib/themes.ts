@@ -37,7 +37,7 @@ import type { PatternId } from "./patterns";
  * والأقسام شرائحُ في دائرتها (علبة) · `counter` كاونتر زجاجٍ بصواني الشرائح تحت لوحة أسعارٍ
  * مضيئة (شريحة) · `signboard` لافتةٌ مرسومة باليد فوق بلاطٍ مزخرف (نابولي) · `spit` سيخ شاورما
  * عموديّ يدور ولهبه خلفه والشعار على قرصه (شاورما) · `bucket` سطل بروستٍ مقلّم يفيض بالقطع بين كوبَي صوص
- * والشعار ملصقه (سطل).
+ * والشعار ملصقه (سطل) · `flattop` لافتة نيون فوق صاج سماش يُبنى عليه البرجر طبقةً طبقة والشعار في حلقتها (سماش).
  */
 export type HeaderShape =
   | "arch" | "band" | "frame" | "soft"
@@ -53,7 +53,7 @@ export type HeaderShape =
   | "dripper" | "saucer" | "mill" | "lane"
   | "dome" | "carton" | "counter" | "signboard"
   | "spit"
-  | "bucket";
+  | "bucket" | "flattop";
 /**
  * تخطيط الأطباق — هذا ما يجعل الفرق بين الطوابع يُرى لا يُقرأ.
  * `deck` بطاقاتٌ تُسحب أفقياً لكل قسم، تكبر حين تتوسّط الشاشة.
@@ -72,7 +72,7 @@ export type HeadingStyle =
   | "brew" | "art" | "grind" | "sleeve"
   | "hearth" | "wedge" | "lightbox" | "brush"
   | "panel"
-  | "label";
+  | "label" | "press";
 /** شكل صورة الطبق — دائري للكافيهات، مربّع حادّ للمينيمال، وقوسُ نافذة للروشان. */
 export type ImageShape = "rounded" | "square" | "circle" | "arch";
 /**
@@ -95,7 +95,7 @@ export type MenuSkin =
   | "v60" | "latte" | "grinder" | "drive"
   | "woodfire" | "pizzabox" | "slices" | "napoli"
   | "shawarma"
-  | "bucket"
+  | "bucket" | "smash"
   | "gold" | "modern";
 /** كيف يُقدَّم السعر: نصّاً، أو شارة ملوّنة، أو خطّاً منقّطاً يقود إليه. */
 export type PriceStyle = "plain" | "badge" | "leader";
@@ -1691,6 +1691,46 @@ export const DESIGN_THEMES: MenuTheme[] = [
       layout: "grid",
       heading: "label",
       imageShape: "rounded",
+      priceStyle: "badge",
+      divider: "none",
+      depth: "raised",
+      entrance: "rise",
+    }),
+  },
+  /*
+   * «سماش» — محلّ السماش برجر الليلي: **لافتة نيون** بلون العلامة على جدارٍ داكن فيها اسمك وشعارك، فوق
+   * **صاجٍ حديديّ** عليه البرجر **مفكّكاً طبقاتٍ** — خبزٌ ولحمٌ وجبنٌ وخبز — **يُبنى طبقةً طبقة وأنت تمرّر**،
+   * وبجانبه كرة لحم تحت المكبس: **حين يُضاف صنفٌ تُضغط الكرة على الصاج** ويطشّ. والأقسام قرص لحمٍ صغير
+   * يُكبس حين يدخل القسم، وشريطُ صاجٍ إلى عددٍ في أنبوب نيون. الخطّان: ريم كوفي (للعناوين — هندسيٌّ كأنابيب
+   * النيون) وكايرو. ومختلفٌ عن «صاج» (لوحٌ فاتح يسيل منه الجبن، صورٌ كبيرة) وعن «نيون» (لافتةٌ على طوب بلا مطبخ).
+   */
+  {
+    id: "smash",
+    name: "سماش",
+    tagline: "لافتة نيون فوق صاج، والبرجر يُبنى طبقةً طبقة وأنت تمرّر",
+    suits: ["برجر"],
+    vars: {
+      // حديدٌ فحميّ للأرضية (الصاج والجدار ليلاً)، وحبرٌ عاجيّ، والتمييز **خردلٌ مضيء** (أنبوب النيون —
+      // والنصّ عليه داكن، `bestOnAccent`)، والزينة **كاتشب**. والخبز واللحم والجبن والحديد خامة.
+      "--m-bg": "#141416",
+      "--m-bg-2": "#1b1b1f",
+      "--m-surface": "#222228",
+      "--m-text": "#f7f3ec",
+      "--m-muted": "#bdb6ac",
+      "--m-accent": "#ffc21a",
+      "--m-accent-2": "#ff4d3d",
+      "--m-on-accent": "#141210",
+      "--m-border": "rgba(247,243,236,.12)",
+      "--m-font": FONT.cairo,
+      "--m-display": FONT.reem,
+      "--m-radius": "0.6rem",
+    },
+    design: design({
+      skin: "smash",
+      header: "flattop",
+      layout: "grid",
+      heading: "press",
+      imageShape: "square",
       priceStyle: "badge",
       divider: "none",
       depth: "raised",

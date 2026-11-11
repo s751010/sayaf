@@ -9,7 +9,7 @@ import { describe, expect, it } from "vitest";
 import { ALL_THEMES } from "@/lib/themes";
 import { STARTER_TYPES, aliasType } from "@/lib/starterMenus";
 import {
-  ARABIC_COFFEE, BAKERY, BREAKFAST, BREW_BAR, BROAST, DRIVE_THRU, GRILL, ITALIAN, PIZZA, POPULAR_CAFE, ROW_SIZE, SHAWARMA,
+  ARABIC_COFFEE, BAKERY, BREAKFAST, BREW_BAR, BROAST, BURGER, DRIVE_THRU, GRILL, ITALIAN, PIZZA, POPULAR_CAFE, ROW_SIZE, SHAWARMA,
   SPECIALTY, SPECIALTY_BADGES,
   SUGGESTED, TEA_HOUSE, badgeTypeOf, cafeFlavor, isSpecialtyBadge, rankThemes, suggestionKey,
 } from "@/lib/themeSuggest";
@@ -20,7 +20,7 @@ describe("مفردات واحدة مع `aliasType`", () => {
   it("مفاتيح الجدول = أنواع `STARTERS` + الكافيه الشعبي + المخبز والفطور والمشاوي والبيتزا والقهوة وبيت الشاي", () => {
     const extra = [
       POPULAR_CAFE, BAKERY, BREAKFAST, GRILL, PIZZA, ITALIAN, ARABIC_COFFEE, SPECIALTY, TEA_HOUSE, BREW_BAR, DRIVE_THRU,
-      SHAWARMA, BROAST,
+      SHAWARMA, BROAST, BURGER,
     ];
     const keys = Object.keys(SUGGESTED).filter((k) => !extra.includes(k)).sort();
     expect(keys).toEqual([...STARTER_TYPES].sort());
@@ -152,7 +152,9 @@ describe("والصفّان بعدهما: المشاوي والبيتزا (٠٧/�
     expect(suggestionKey("بيتزا ومعكرونة")).toBe(PIZZA);
     // المخبز يبقى مخبزاً ولو خبز البيتزا، والبرجر برجراً.
     expect(suggestionKey("مخبز وبيتزا")).toBe(BAKERY);
-    expect(suggestionKey("برجر")).toBe("مطعم سريع");
+    // ١١/١١: البرجر صفّه — «برجر» (أوّله «سماش»)، و«وجبات سريعة» على النوع.
+    expect(suggestionKey("برجر")).toBe(BURGER);
+    expect(suggestionKey("وجبات سريعة")).toBe("مطعم سريع");
   });
 
   it("«جمر» كلمةً، و«شيشة» مقهى لا مشوى", () => {
@@ -233,7 +235,7 @@ describe("طوابع القهوة الأربعة (٠٩/١١، اختيار ال�
     expect(suggestionKey("قهوة سفري")).toBe(DRIVE_THRU);
     // ‏«كشك كرك» شاي، و«مطعم درايف ثرو» ليس كافيه.
     expect(suggestionKey("كشك كرك")).toBe("شاي");
-    expect(suggestionKey("برجر درايف ثرو")).toBe("مطعم سريع");
+    expect(suggestionKey("برجر درايف ثرو")).toBe(BURGER);
     // زرّ «شعبي» يغلبه كما يغلب المختصّ.
     expect(suggestionKey("كشك قهوة", "popular")).toBe(POPULAR_CAFE);
     expect(badgeTypeOf(DRIVE_THRU)).toBe(DRIVE_THRU);
@@ -329,6 +331,17 @@ describe("البروست (١١/١١، «سطل»)", () => {
   });
 });
 
+describe("البرجر (١١/١١، «سماش»)", () => {
+  it("«سماش» بشارة «برجر» وأوّل صفّها، و«صاج» ثانيه بشارته العامّة", () => {
+    expect(byId.get("smash")!.suits).toEqual([BURGER]);
+    expect(SUGGESTED[BURGER]).toEqual(["smash", "burger", "receipt", "neon"]);
+    expect(byId.get("burger")!.suits).toEqual(["مطعم سريع"]);
+    // «شاورما وبرجر» محلّ شاورما، و«برجر وبروست» محلّ بروست.
+    expect(suggestionKey("شاورما وبرجر")).toBe(SHAWARMA);
+    expect(suggestionKey("بروست وبرجر")).toBe(BROAST);
+  });
+});
+
 describe("الشاي نوعٌ تاسع (٠٧/١١، «كرك» و«سماور» — بقرار المالك)", () => {
   it("«شاي» في `aliasType` من كلماته — والشاي قبل الكافيه", () => {
     expect(STARTER_TYPES).toContain("شاي");
@@ -400,10 +413,11 @@ describe("`rankThemes` يرتّب ولا يحذف", () => {
     ["أسماك", "harbor", false],
     ["حلويات", "patisserie", false],
     ["عصيرات", "juice", false],
-    // ٠٧/١١: للبرجر والوجبات السريعة طابعهما («صاج») — ونيون ثانيه.
-    ["برجر", "burger", false],
+    // ٠٧/١١: للوجبات السريعة طابعها («صاج»). و(١١/١١) للبرجر صفّه أوّلُه «سماش» و«صاج» ثانيه.
+    ["برجر", "smash", false],
+    ["سماش برجر", "smash", false],
     ["وجبات سريعة", "burger", false],
-    ["Burger House", "burger", false],
+    ["Burger House", "smash", false],
     // ٠٧/١١: المخبز والفطور الشعبي — صفّان فرعيّان من نصّ النوع.
     ["مخبز", "bakery", false],
     ["مخبز تميس", "bakery", false],

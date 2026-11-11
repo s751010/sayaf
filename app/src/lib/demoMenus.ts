@@ -2177,6 +2177,8 @@ const KIND_BY_THEME: Readonly<Record<string, DemoKind>> = {
   shawarma: "grill",
   // ١١/١١: «سطل» على منيو البروست — نوعٌ جديد بأقلّ ما يلزم (بروست وحرّاق · وجبات · ساندويتشات · صوصات).
   bucket: "broast",
+  // ١١/١١: «سماش» على منيو البرجر القائم («برجر الحارة» سماشٌ أصلاً) — شارته «برجر» لا نوعٌ له منيو.
+  smash: "burger",
 };
 
 export function demoKindForSuits(suits: readonly string[] | undefined, themeId?: string | null): DemoKind {

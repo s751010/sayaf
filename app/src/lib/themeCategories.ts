@@ -22,7 +22,7 @@ import type { DemoKind } from "./demoMenus";
 import type { IconName } from "./icons";
 import { norm } from "./starterMenus";
 import {
-  ARABIC_COFFEE, BAKERY, BREAKFAST, BREW_BAR, BROAST, DRIVE_THRU, GRILL, ITALIAN, PIZZA, POPULAR_CAFE, SHAWARMA,
+  ARABIC_COFFEE, BAKERY, BREAKFAST, BREW_BAR, BROAST, BURGER, DRIVE_THRU, GRILL, ITALIAN, PIZZA, POPULAR_CAFE, SHAWARMA,
   SPECIALTY, TEA_HOUSE, suggestionKey,
   type CafeFlavor,
 } from "./themeSuggest";
@@ -70,14 +70,14 @@ export interface ThemeCategory {
  * الوجبات السريعة ثانياً، و«ستيك» على «راقي ومناسبات» بعد «فاخر».
  *
  * و**حذف المالك «أوجاق» و«ستيك» و«مدخنة»** (١١/١١): «مشاوي وشاورما» جمر · شاورما · فاخر · عسير — عاد
- * «عسير» (شارته «مشويات» ثانيةً)، و«راقي ومناسبات» بلا «ستيك». و«سطل» (البروست) ثانيَ الوجبات السريعة.
+ * «عسير» (شارته «مشويات» ثانيةً)، و«راقي ومناسبات» بلا «ستيك». و«سماش» و«سطل» (البرجر والبروست) بعد «صاج» على رفّ الوجبات السريعة.
  */
 export const THEME_CATEGORIES: readonly ThemeCategory[] = [
   { id: "cafe", name: "مقاهي", nameEn: "Cafés", icon: "dallah", themes: ["roastery", "v60", "latte", "barista", "grinder", "drive", "dallah", "letterboard"], kind: "cafe" },
   { id: "tea", name: "شاي", nameEn: "Tea", icon: "istikana", themes: ["karak", "samovar", "dallah", "sticker"], kind: "karak" },
   { id: "bakery", name: "مخابز وحلويات", nameEn: "Bakeries & sweets", icon: "croissant", themes: ["bakery", "patisserie", "latte", "letterboard"], kind: "bakery" },
   { id: "breakfast", name: "فطور", nameEn: "Breakfast", icon: "egg", themes: ["breakfast", "dukkan", "bakery"], kind: "breakfast" },
-  { id: "fast", name: "وجبات سريعة", nameEn: "Fast food", icon: "burger", themes: ["burger", "bucket", "shawarma", "neon", "receipt", "sticker", "slices", "pizzabox"], kind: "burger" },
+  { id: "fast", name: "وجبات سريعة", nameEn: "Fast food", icon: "burger", themes: ["burger", "smash", "bucket", "shawarma", "neon", "receipt", "sticker", "slices", "pizzabox"], kind: "burger" },
   { id: "pizza", name: "بيتزا وإيطالي", nameEn: "Pizza & Italian", icon: "pizza", themes: ["pizza", "woodfire", "napoli", "pizzabox", "slices", "editorial"], kind: "pizza" },
   { id: "grill", name: "مشاوي وشاورما", nameEn: "Grills & shawarma", icon: "skewer", themes: ["grill", "shawarma", "dark-gold", "asir"], kind: "grill" },
   { id: "shaabi", name: "شعبي", nameEn: "Traditional", icon: "pot", themes: ["najdi", "dallah", "samovar", "dukkan", "breakfast", "asir"], kind: "shaabi" },
@@ -121,6 +121,7 @@ export const CATEGORY_BY_KEY: Readonly<Record<string, ThemeCategoryId | null>> =
   [GRILL]: "grill",
   [SHAWARMA]: "grill",
   [BROAST]: "fast",
+  [BURGER]: "fast",
   شعبي: "shaabi",
   [BREAKFAST]: "breakfast",
   بحري: "seafood",

@@ -48,6 +48,7 @@ import { SlicesHeading } from "./heads/SlicesHead";
 import { NapoliHeading } from "./heads/NapoliHead";
 import { ShawarmaHeading } from "./heads/ShawarmaHead";
 import { BucketHeading } from "./heads/BucketHead";
+import { SmashHeading } from "./heads/SmashHead";
 import { AsirHeading } from "./heads/AsirHead";
 
 /** خطّ العناوين — يسقط إلى خطّ النصّ لكل طابع لا يذكر `--m-display` (§18). */
@@ -328,7 +329,8 @@ export function SectionHeading({
         تقطير (قمعٌ صغير وقطرته) · لاتيه (فنجانٌ ورسمة القسم) · مطحنة (قرص درجة الطحن وكومته) ·
         درايف (كوبٌ بكمّه ولوحة مسار) · حطب (فوهةٌ تتّقد وحطبٌ إلى بلاطة فخّار) · علبة (شريحةٌ
         تخرج من دائرتها ولاصق توصيل) · شريحة (شريطُ لوحة أسعارٍ مضيئة) · نابولي (بلاطةٌ وخطّ فرشاة) ·
-        شاورما (لوحة المحلّ المضيئة) · سطل (ملصق علبة الوجبة إلى دائرة العدد):
+        شاورما (لوحة المحلّ المضيئة) · سطل (ملصق علبة الوجبة إلى دائرة العدد) ·
+        سماش (قرص لحمٍ يُكبس وشريط صاجٍ إلى أنبوب نيون):
         كلٌّ في ملفّه (`heads/`) ── */
   const FILE_HEADINGS = {
     shelf: DukkanHeading,
@@ -355,6 +357,7 @@ export function SectionHeading({
     brush: NapoliHeading,
     panel: ShawarmaHeading,
     label: BucketHeading,
+    press: SmashHeading,
   } as const;
   if (style in FILE_HEADINGS) {
     const Skin = FILE_HEADINGS[style as keyof typeof FILE_HEADINGS];
