@@ -79,13 +79,12 @@ export const BREAKFAST = "فطور شعبي";
  */
 export const GRILL = "مشاوي على الفحم";
 /**
- * ومحلّات اللحم الأربعة (٠٩/١١، الموجة ٣ — «شاورما» و«ستيك» و«أوجاق» و«مدخنة»): كلٌّ صفٌّ فرعيّ وشارة
- * تخصّص. وكان صفّ المشاوي «مشاوي وشاورما» — فلمّا صار للشاورما صفّها صار اسمه «مشاوي على الفحم».
+ * ومحلّات اللحم (٠٩/١١، الموجة ٣): «شاورما» صفٌّ فرعيّ وشارة تخصّص. وكان صفّ المشاوي «مشاوي وشاورما» —
+ * فلمّا صار للشاورما صفّها صار اسمه «مشاوي على الفحم». (وُلدت معها «ستيك هاوس» و«باربكيو» و«مشاوي تركية
+ * وشامية» لـ«ستيك» و«مدخنة» و«أوجاق» — وحذف المالك الثلاثة ١١/١١ فسقطت صفوفها: نصٌّ يذكرها يقع على
+ * نوعه، والمشويات أوّلها «جمر».)
  */
 export const SHAWARMA = "شاورما";
-export const STEAKHOUSE = "ستيك هاوس";
-export const SMOKEHOUSE = "باربكيو";
-export const OCAKBASI = "مشاوي تركية وشامية";
 /** ٠٩/١١ («شارة بتخصّصه»): البيتزا «بيتزا»، والمطعم الإيطالي صفٌّ وحده — أوّلُه «نابولي». */
 export const PIZZA = "بيتزا";
 export const ITALIAN = "مطعم إيطالي";
@@ -111,7 +110,7 @@ export const DRIVE_THRU = "قهوة سريعة";
  * («يناسب: قهوة مقطّرة»). والمفردات الكاملة للشارة: `STARTER_TYPES` + هذه.
  */
 export const SPECIALTY_BADGES: readonly string[] = [
-  SPECIALTY, BREW_BAR, DRIVE_THRU, ARABIC_COFFEE, PIZZA, ITALIAN, SHAWARMA, STEAKHOUSE, SMOKEHOUSE, OCAKBASI,
+  SPECIALTY, BREW_BAR, DRIVE_THRU, ARABIC_COFFEE, PIZZA, ITALIAN, SHAWARMA,
 ];
 
 export function isSpecialtyBadge(badge: string): boolean {
@@ -157,15 +156,12 @@ export const SUGGESTED: Readonly<Record<string, Row>> = {
   [PIZZA]: ["pizza", "woodfire", "slices", "pizzabox"],
   // ٠٩/١١: المطعم الإيطالي — اللافتة والبلاط أوّلاً، ثم المفرش، ثم الفرن، ثم «مجلّة».
   [ITALIAN]: ["napoli", "pizza", "woodfire", "editorial"],
-  // ٠٧/١١: «جمر» أوّلَ المشويات. ثم (٠٩/١١، الموجة ٣) محلّات اللحم: الشاورما، والأوجاق بشارته الثانية،
-  // والستيك — و«فاخر» بلا شارة «مشويات» (تكفيه «مطعم»)، و«عسير» «شعبي».
-  مشويات: ["grill", "shawarma", "ocakbasi", "steakhouse"],
-  [GRILL]: ["grill", "ocakbasi", "shawarma", "dark-gold"],
-  // ٠٩/١١ (الموجة ٣): صفّ كلّ محلٍّ يبدأ بطابعه، ثم أقرب الثلاثة إليه.
-  [SHAWARMA]: ["shawarma", "grill", "ocakbasi", "burger"],
-  [STEAKHOUSE]: ["steakhouse", "smokehouse", "dark-gold", "grill"],
-  [SMOKEHOUSE]: ["smokehouse", "steakhouse", "burger", "grill"],
-  [OCAKBASI]: ["ocakbasi", "shawarma", "grill", "najdi"],
+  // ٠٧/١١: «جمر» أوّلَ المشويات. ثم (١١/١١، حُذف «أوجاق» و«ستيك» و«مدخنة») الشاورما، ثم «فاخر» (مطعم
+  // المشاوي الراقي) و«عسير» (المشاوي الجنوبية) — وعادت إليهما شارة «مشويات» ثانيةً.
+  مشويات: ["grill", "shawarma", "dark-gold", "asir"],
+  [GRILL]: ["grill", "shawarma", "dark-gold", "asir"],
+  // ٠٩/١١ (الموجة ٣): الشاورما يبدأ بطابعه، ثم المنقل، ثم الوجبات السريعة.
+  [SHAWARMA]: ["shawarma", "grill", "burger", "neon"],
   // ٠٧/١١: «فوّال» ثالثَ الشعبي. ثم (٠٩/١١) «عسير» رابعاً بشارته كما كان قبل «دلّة» — والدلّة شارتها
   // تخصّصها «قهوة عربية».
   شعبي: ["najdi", "dukkan", "breakfast", "asir"],
@@ -246,28 +242,11 @@ const SUB_ROWS: readonly SubRow[] = [
     hints: ["مخبز", "مخابز", "خباز", "معجنات", "فطائر", "فطاير", "كرواسون", "bakery", "bakehouse"],
     words: ["فرن", "الفرن", "افران", "الافران"],
   },
-  // ٠٩/١١ (الموجة ٣): محلّات اللحم قبل المشاوي العامّة — الشاورما أوّلاً («شاورما وكباب» محلّ شاورما)،
-  // ثم المدخّن (البريسكت يُباع مع الستيك)، ثم الستيك، ثم المشاوي التركية والشامية. وداخل «مشويات» أيضاً:
-  // «مشويات تركية» أوجاق. و«سوري» ليست هنا («سوريا» في عنوان)، و«شامي» و«حلبي» تكفيان.
+  // ٠٩/١١ (الموجة ٣): الشاورما قبل المشاوي العامّة — «شاورما وكباب» محلّ شاورما. وداخل «مشويات» أيضاً.
   {
     key: SHAWARMA,
     within: ["مطعم", "مطعم سريع", "مشويات"],
     hints: ["شاورما", "شاورمه", "shawarma", "دونر", "doner"],
-  },
-  {
-    key: SMOKEHOUSE,
-    within: ["مطعم", "مطعم سريع", "مشويات"],
-    hints: ["باربكيو", "bbq", "barbecue", "مدخن", "smoke", "سموك", "بريسكت", "brisket", "اضلاع", "ribs"],
-  },
-  {
-    key: STEAKHOUSE,
-    within: ["مطعم", "مطعم سريع", "مشويات"],
-    hints: ["ستيك", "steak", "واقيو", "wagyu", "ريب اي", "ribeye", "انجوس", "angus"],
-  },
-  {
-    key: OCAKBASI,
-    within: ["مطعم", "مشويات"],
-    hints: ["تركي", "turkish", "اضنه", "adana", "اوجاق", "ocak", "اسكندر", "iskender", "شامي", "حلبي"],
   },
   {
     key: GRILL,

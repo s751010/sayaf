@@ -101,11 +101,9 @@ describe("ثابت §18 — ألوان الطوابع", () => {
     pizzabox: "6c3698e2",
     slices: "f188473a",
     napoli: "2e105ed1",
-    // «شاورما» و«ستيك» و«أوجاق» و«مدخنة» (٢٠٢٦/١١/٠٩) — المشاوي، اختيار المالك (الموجة ٣).
+    // «شاورما» (٢٠٢٦/١١/٠٩) — المشاوي، اختيار المالك (الموجة ٣). وُلد معه «ستيك» و«أوجاق» و«مدخنة»
+    // وحذفها المالك (٢٠٢٦/١١/١١) — بصماتها خرجت، ومعرّفاتها في `LEGACY` تُردّ إلى «جمر» بلونها.
     shawarma: "b9c575ae",
-    steakhouse: "36733a2c",
-    ocakbasi: "92616ea2",
-    smokehouse: "96ccbc65",
   };
 
   it("بصمة التسعة المجمّدة لم تتغيّر", () => {
@@ -141,7 +139,8 @@ describe("ثابت §18 — ألوان الطوابع", () => {
     // اكثر ومتفاعله اكثر» (الموجة ١ من القهوة والبيتزا والمشاوي).
     // ٢٨ ⇒ ٣٢ (٢٠٢٦/١١/٠٩): «حطب» و«علبة» و«شريحة» و«نابولي» — الموجة ٢: البيتزا.
     // ٣٢ ⇒ ٣٦ (٢٠٢٦/١١/٠٩): «شاورما» و«ستيك» و«أوجاق» و«مدخنة» — الموجة ٣: المشاوي.
-    expect(ALL_THEMES.length).toBe(36);
+    // ٣٦ ⇒ ٣٣ (٢٠٢٦/١١/١١): حذف المالك «أوجاق» و«ستيك» و«مدخنة» — قرارٌ مكتوب، تُردّ إلى «جمر» بلونها.
+    expect(ALL_THEMES.length).toBe(33);
   });
 
   /**
@@ -161,6 +160,10 @@ describe("ثابت §18 — ألوان الطوابع", () => {
     ["specialty", "modern", "#3f6f52"],
     ["urban", "neon", "#ff5a1f"],
     ["marble", "editorial", "#8a6a3f"],
+    // محلّات اللحم الثلاثة (٢٠٢٦/١١/١١) ⇒ «جمر» بلون تمييزها.
+    ["steakhouse", "grill", "#e46a5c"],
+    ["ocakbasi", "grill", "#9c4a22"],
+    ["smokehouse", "grill", "#eea83f"],
   ])("المحذوف «%s» ⇒ %s بلونه %s", (old, base, accent) => {
     const t = getTheme(old);
     expect(splitThemeId(t.id).base).toBe(base);
@@ -296,7 +299,7 @@ describe("ثابت §18 — ألوان الطوابع", () => {
   it.each([
     ...ALL_THEMES.map((t) => t.id),
     "royal", "emerald", "hijazi", "oud", "crimson", "ocean", "coffee", "majlis", "purple", "red", "blue", "brown",
-    "qatt", "bahri", "sahra", "lulu", "light-luxe", "specialty", "cream",
+    "qatt", "bahri", "sahra", "lulu", "light-luxe", "specialty", "cream", "steakhouse", "ocakbasi", "smokehouse",
     "dark-gold:#111113", "dark-gold:#e0533d", "modern:#f2d16b", "modern:#e0a526", "modern:#ffd400",
   ])("«%s»: نصّ التمييز ≥ 4.5 على الأرضية والبطاقة والنافذة", (id) => {
     const v = getTheme(id).vars;
@@ -443,7 +446,7 @@ describe("الطوابع الثلاث بعد الرفع — الضغط والس�
     expect(css).toMatch(/\.m-price \{\s*font-family: var\(--font-cairo\)/);
   });
 
-  it.each(["receipt", "neon", "sticker", "letterboard", "editorial", "roshan", "najdi", "roastery", "dukkan", "asir", "harbor", "patisserie", "juice", "burger", "bakery", "breakfast", "grill", "pizza", "dallah", "barista", "karak", "samovar", "v60", "latte", "grinder", "drive", "woodfire", "pizzabox", "slices", "napoli", "shawarma", "steakhouse", "ocakbasi", "smokehouse", "gold", "modern"])(
+  it.each(["receipt", "neon", "sticker", "letterboard", "editorial", "roshan", "najdi", "roastery", "dukkan", "asir", "harbor", "patisserie", "juice", "burger", "bakery", "breakfast", "grill", "pizza", "dallah", "barista", "karak", "samovar", "v60", "latte", "grinder", "drive", "woodfire", "pizzabox", "slices", "napoli", "shawarma", "gold", "modern"])(
     "«%s» له حركة نافذةٍ خاصّة داخل `no-preference`",
     (skin) => {
       const block = css.split("@media (prefers-reduced-motion: no-preference)").slice(1).join("");

@@ -9,8 +9,8 @@ import { describe, expect, it } from "vitest";
 import { ALL_THEMES } from "@/lib/themes";
 import { STARTER_TYPES, aliasType } from "@/lib/starterMenus";
 import {
-  ARABIC_COFFEE, BAKERY, BREAKFAST, BREW_BAR, DRIVE_THRU, GRILL, ITALIAN, OCAKBASI, PIZZA, POPULAR_CAFE, ROW_SIZE, SHAWARMA, SMOKEHOUSE,
-  SPECIALTY, SPECIALTY_BADGES, STEAKHOUSE,
+  ARABIC_COFFEE, BAKERY, BREAKFAST, BREW_BAR, DRIVE_THRU, GRILL, ITALIAN, PIZZA, POPULAR_CAFE, ROW_SIZE, SHAWARMA,
+  SPECIALTY, SPECIALTY_BADGES,
   SUGGESTED, TEA_HOUSE, badgeTypeOf, cafeFlavor, isSpecialtyBadge, rankThemes, suggestionKey,
 } from "@/lib/themeSuggest";
 
@@ -20,7 +20,7 @@ describe("مفردات واحدة مع `aliasType`", () => {
   it("مفاتيح الجدول = أنواع `STARTERS` + الكافيه الشعبي + المخبز والفطور والمشاوي والبيتزا والقهوة وبيت الشاي", () => {
     const extra = [
       POPULAR_CAFE, BAKERY, BREAKFAST, GRILL, PIZZA, ITALIAN, ARABIC_COFFEE, SPECIALTY, TEA_HOUSE, BREW_BAR, DRIVE_THRU,
-      SHAWARMA, STEAKHOUSE, SMOKEHOUSE, OCAKBASI,
+      SHAWARMA,
     ];
     const keys = Object.keys(SUGGESTED).filter((k) => !extra.includes(k)).sort();
     expect(keys).toEqual([...STARTER_TYPES].sort());
@@ -276,32 +276,25 @@ describe("«شارة بتخصّصه» (٠٩/١١، قرار المالك)", () =
   });
 });
 
-describe("المشاوي الأربعة (٠٩/١١، الموجة ٣)", () => {
-  it("كلٌّ بشارة تخصّصه — و«شاورما» «مطعم سريع» معها، و«أوجاق» «مشويات» معها", () => {
+describe("المشاوي (٠٩/١١، الموجة ٣ — وحذف «أوجاق» و«ستيك» و«مدخنة» ١١/١١)", () => {
+  it("«شاورما» بشارة تخصّصه و«مطعم سريع» معها", () => {
     expect(byId.get("shawarma")!.suits).toEqual([SHAWARMA, "مطعم سريع"]);
-    expect(byId.get("steakhouse")!.suits).toEqual([STEAKHOUSE]);
-    expect(byId.get("ocakbasi")!.suits).toEqual([OCAKBASI, "مشويات"]);
-    expect(byId.get("smokehouse")!.suits).toEqual([SMOKEHOUSE]);
   });
 
-  it("صاحب المشويات يرى محلّات اللحم — «جمر» أوّلاً كما كان، و«فاخر» خرج إلى «مطعم»", () => {
-    expect(SUGGESTED["مشويات"]).toEqual(["grill", "shawarma", "ocakbasi", "steakhouse"]);
-    expect(byId.get("dark-gold")!.suits).toEqual(["مطعم"]);
+  it("صاحب المشويات: «جمر» أوّلاً، ثم الشاورما، و«فاخر» و«عسير» عادت إليهما «مشويات»", () => {
+    expect(SUGGESTED["مشويات"]).toEqual(["grill", "shawarma", "dark-gold", "asir"]);
+    expect(byId.get("dark-gold")!.suits).toEqual(["مطعم", "مشويات"]);
+    expect(byId.get("asir")!.suits).toEqual(["شعبي", "مشويات"]);
   });
 
   it.each([
     ["شاورما", "shawarma"],
     ["شاورما سورية", "shawarma"],
     ["Doner Kebab", "shawarma"],
-    ["ستيك هاوس", "steakhouse"],
-    ["Steak House", "steakhouse"],
-    ["مطعم واقيو", "steakhouse"],
-    ["بريسكت وأضلاع مدخنة", "smokehouse"],
-    ["BBQ Smokehouse", "smokehouse"],
-    ["مطعم تركي", "ocakbasi"],
-    ["مشويات تركية", "ocakbasi"],
-    ["مشاوي شامية", "ocakbasi"],
-    ["كباب أضنة", "ocakbasi"],
+    // صفوف المحذوفة سقطت: الستيك والتركي على «مطعم» («فاخر»)، والمشويات التركية على «جمر».
+    ["ستيك هاوس", "dark-gold"],
+    ["مطعم تركي", "dark-gold"],
+    ["مشويات تركية", "grill"],
     ["مشويات", "grill"],
     ["مطعم الجمر", "grill"],
   ] as const)("«%s» ⇒ «%s» أوّلاً", (raw, first) => {

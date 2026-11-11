@@ -22,8 +22,8 @@ import type { DemoKind } from "./demoMenus";
 import type { IconName } from "./icons";
 import { norm } from "./starterMenus";
 import {
-  ARABIC_COFFEE, BAKERY, BREAKFAST, BREW_BAR, DRIVE_THRU, GRILL, ITALIAN, OCAKBASI, PIZZA, POPULAR_CAFE, SHAWARMA, SMOKEHOUSE,
-  SPECIALTY, STEAKHOUSE, TEA_HOUSE, suggestionKey,
+  ARABIC_COFFEE, BAKERY, BREAKFAST, BREW_BAR, DRIVE_THRU, GRILL, ITALIAN, PIZZA, POPULAR_CAFE, SHAWARMA,
+  SPECIALTY, TEA_HOUSE, suggestionKey,
   type CafeFlavor,
 } from "./themeSuggest";
 
@@ -68,6 +68,9 @@ export interface ThemeCategory {
  * و**المشاوي الأربعة** (٠٩/١١، الموجة ٣): «مشاوي وشاورما» ستّة — جمر (بيته ومنيوه) · شاورما · أوجاق ·
  * ستيك · مدخنة · فاخر — وخرج «عسير» منه (باقٍ على الشعبي، ويُعاين على منيوه). و«شاورما» على رفّ
  * الوجبات السريعة ثانياً، و«ستيك» على «راقي ومناسبات» بعد «فاخر».
+ *
+ * و**حذف المالك «أوجاق» و«ستيك» و«مدخنة»** (١١/١١): «مشاوي وشاورما» جمر · شاورما · فاخر · عسير — عاد
+ * «عسير» (شارته «مشويات» ثانيةً)، و«راقي ومناسبات» بلا «ستيك».
  */
 export const THEME_CATEGORIES: readonly ThemeCategory[] = [
   { id: "cafe", name: "مقاهي", nameEn: "Cafés", icon: "dallah", themes: ["roastery", "v60", "latte", "barista", "grinder", "drive", "dallah", "letterboard"], kind: "cafe" },
@@ -76,11 +79,11 @@ export const THEME_CATEGORIES: readonly ThemeCategory[] = [
   { id: "breakfast", name: "فطور", nameEn: "Breakfast", icon: "egg", themes: ["breakfast", "dukkan", "bakery"], kind: "breakfast" },
   { id: "fast", name: "وجبات سريعة", nameEn: "Fast food", icon: "burger", themes: ["burger", "shawarma", "neon", "receipt", "sticker", "slices", "pizzabox"], kind: "burger" },
   { id: "pizza", name: "بيتزا وإيطالي", nameEn: "Pizza & Italian", icon: "pizza", themes: ["pizza", "woodfire", "napoli", "pizzabox", "slices", "editorial"], kind: "pizza" },
-  { id: "grill", name: "مشاوي وشاورما", nameEn: "Grills & shawarma", icon: "skewer", themes: ["grill", "shawarma", "ocakbasi", "steakhouse", "smokehouse", "dark-gold"], kind: "grill" },
+  { id: "grill", name: "مشاوي وشاورما", nameEn: "Grills & shawarma", icon: "skewer", themes: ["grill", "shawarma", "dark-gold", "asir"], kind: "grill" },
   { id: "shaabi", name: "شعبي", nameEn: "Traditional", icon: "pot", themes: ["najdi", "dallah", "samovar", "dukkan", "breakfast", "asir"], kind: "shaabi" },
   { id: "seafood", name: "بحري", nameEn: "Seafood", icon: "fish", themes: ["harbor", "modern", "dark-gold"], kind: "seafood" },
   { id: "juice", name: "عصائر", nameEn: "Juices", icon: "juice", themes: ["juice", "drive", "sticker", "neon"], kind: "juice" },
-  { id: "upscale", name: "راقي ومناسبات", nameEn: "Fine dining & occasions", icon: "sparkle", themes: ["dark-gold", "steakhouse", "roshan", "dallah", "editorial", "napoli"], kind: "restaurant" },
+  { id: "upscale", name: "راقي ومناسبات", nameEn: "Fine dining & occasions", icon: "sparkle", themes: ["dark-gold", "roshan", "dallah", "editorial", "napoli"], kind: "restaurant" },
 ];
 
 /** أقلّ ما يكون في قسم — قسمٌ بطابعين قائمةٌ لا رفّ. */
@@ -117,9 +120,6 @@ export const CATEGORY_BY_KEY: Readonly<Record<string, ThemeCategoryId | null>> =
   مشويات: "grill",
   [GRILL]: "grill",
   [SHAWARMA]: "grill",
-  [STEAKHOUSE]: "grill",
-  [SMOKEHOUSE]: "grill",
-  [OCAKBASI]: "grill",
   شعبي: "shaabi",
   [BREAKFAST]: "breakfast",
   بحري: "seafood",

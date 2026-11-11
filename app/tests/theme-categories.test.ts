@@ -66,8 +66,8 @@ describe("الأقسام والطوابع", () => {
     expect(themesOf("tea", DESIGN_THEMES).map((t) => t.id)).toEqual(["karak", "samovar", "dallah", "sticker"]);
     // ٠٩/١١: «بيتزا وإيطالي» ستّة — ريحان بيته، ثم أشكال البيتزا الأربعة، و«مجلّة».
     expect(themesOf("pizza", DESIGN_THEMES).map((t) => t.id)).toEqual(["pizza", "woodfire", "napoli", "pizzabox", "slices", "editorial"]);
-    // ٠٩/١١ (الموجة ٣): «مشاوي وشاورما» ستّة — جمر بيته، ثم محلّات اللحم الأربعة، و«فاخر».
-    expect(themesOf("grill", DESIGN_THEMES).map((t) => t.id)).toEqual(["grill", "shawarma", "ocakbasi", "steakhouse", "smokehouse", "dark-gold"]);
+    // ١١/١١: «مشاوي وشاورما» — جمر بيته، ثم الشاورما، و«فاخر» و«عسير» (حُذف «أوجاق» و«ستيك» و«مدخنة»).
+    expect(themesOf("grill", DESIGN_THEMES).map((t) => t.id)).toEqual(["grill", "shawarma", "dark-gold", "asir"]);
     expect(themesOf(null, DESIGN_THEMES)).toEqual(DESIGN_THEMES);
     expect(categoryById("nope")).toBeNull();
   });
@@ -169,11 +169,8 @@ describe("`/demo`: القسم من `?kind=` و`?theme=` — ولا يغيّر م
     [demoKindForSuits(ALL_THEMES.find((t) => t.id === "pizzabox")!.suits, "pizzabox"), "pizzabox", "pizza"],
     [demoKindForSuits(ALL_THEMES.find((t) => t.id === "slices")!.suits, "slices"), "slices", "pizza"],
     [demoKindForSuits(ALL_THEMES.find((t) => t.id === "napoli")!.suits, "napoli"), "napoli", "pizza"],
-    // ٠٩/١١ (الموجة ٣): المشاوي الأربعة على منيو المشاوي ⇒ رفّ المشاوي.
+    // ٠٩/١١ (الموجة ٣): «شاورما» على منيو المشاوي ⇒ رفّ المشاوي.
     [demoKindForSuits(ALL_THEMES.find((t) => t.id === "shawarma")!.suits, "shawarma"), "shawarma", "grill"],
-    [demoKindForSuits(ALL_THEMES.find((t) => t.id === "steakhouse")!.suits, "steakhouse"), "steakhouse", "grill"],
-    [demoKindForSuits(ALL_THEMES.find((t) => t.id === "ocakbasi")!.suits, "ocakbasi"), "ocakbasi", "grill"],
-    [demoKindForSuits(ALL_THEMES.find((t) => t.id === "smokehouse")!.suits, "smokehouse"), "smokehouse", "grill"],
   ] as const)("kind=%s theme=%s ⇒ %s", (kind, theme, cat) => {
     expect(demoCategoryOf(kind, theme)).toBe(cat);
   });

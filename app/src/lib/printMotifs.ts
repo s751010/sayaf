@@ -847,90 +847,6 @@ function shawarma(ctx: Ctx, b: MotifBox, k: MotifInk): void {
   });
 }
 
-/** ستيك — حبل الجزّار: خطّان متقاطعان بالخافت كخيط الصرّة، وعقدةٌ بالتمييز عند كلّ تقاطع. */
-function steakhouse(ctx: Ctx, b: MotifBox, k: MotifInk): void {
-  const room = b.reach - b.outer;
-  const s = Math.min(b.mm * 2.4, room * 0.6);
-  alongTopBottom(b, s * 1.4, (x, w, top) => {
-    const cx = x + w / 2;
-    const cy = top ? b.outer + room * 0.5 : b.H - b.outer - room * 0.5;
-    ctx.strokeStyle = k.muted;
-    ctx.lineWidth = b.mm * 0.28;
-    ctx.beginPath();
-    ctx.moveTo(x, cy - s * 0.18);
-    ctx.lineTo(x + w, cy + s * 0.18);
-    ctx.moveTo(x, cy + s * 0.18);
-    ctx.lineTo(x + w, cy - s * 0.18);
-    ctx.stroke();
-    ctx.fillStyle = k.accent;
-    ctx.beginPath();
-    ctx.ellipse(cx, cy, s * 0.16, s * 0.1, 0, 0, Math.PI * 2);
-    ctx.fill();
-  });
-}
-
-/** أوجاق — قبّة نحاسٍ صغيرة بالتمييز فوق جمرٍ بالخافت، وبينها زهرةُ بلاطٍ بالخافت. */
-function ocakbasi(ctx: Ctx, b: MotifBox, k: MotifInk): void {
-  const room = b.reach - b.outer;
-  const s = Math.min(b.mm * 2.6, room * 0.66);
-  alongTopBottom(b, s * 1.5, (x, w, top) => {
-    const cx = x + w / 2;
-    const cy = top ? b.outer + room * 0.5 : b.H - b.outer - room * 0.5;
-    const i = Math.round((x - b.outer) / w);
-    if (i % 2) {
-      ctx.fillStyle = k.muted;
-      for (let p = 0; p < 4; p++) {
-        const a = (Math.PI / 2) * p + Math.PI / 4;
-        ctx.beginPath();
-        ctx.ellipse(cx + Math.cos(a) * s * 0.14, cy + Math.sin(a) * s * 0.14, s * 0.12, s * 0.05, a, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      return;
-    }
-    ctx.fillStyle = k.accent;
-    ctx.beginPath();
-    ctx.moveTo(cx - s * 0.1, cy - s * 0.36);
-    ctx.lineTo(cx + s * 0.1, cy - s * 0.36);
-    ctx.lineTo(cx + s * 0.1, cy - s * 0.24);
-    ctx.lineTo(cx + s * 0.44, cy + s * 0.06);
-    ctx.lineTo(cx - s * 0.44, cy + s * 0.06);
-    ctx.lineTo(cx - s * 0.1, cy - s * 0.24);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = k.muted;
-    for (const dx of [-0.24, 0, 0.24]) {
-      ctx.beginPath();
-      ctx.arc(cx + s * dx, cy + s * 0.28, s * 0.08, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  });
-}
-
-/** مدخنة — علامات العدّ بالطباشير: أربعٌ قائمة بالخافت وخامسةٌ مائلة بالتمييز. */
-function smokehouse(ctx: Ctx, b: MotifBox, k: MotifInk): void {
-  const room = b.reach - b.outer;
-  const s = Math.min(b.mm * 2.4, room * 0.6);
-  alongTopBottom(b, s * 1.6, (x, w, top) => {
-    const cx = x + w / 2;
-    const cy = top ? b.outer + room * 0.5 : b.H - b.outer - room * 0.5;
-    ctx.lineCap = "round";
-    ctx.strokeStyle = k.muted;
-    ctx.lineWidth = b.mm * 0.3;
-    ctx.beginPath();
-    for (const dx of [-0.3, -0.1, 0.1, 0.3]) {
-      ctx.moveTo(cx + s * dx, cy - s * 0.32);
-      ctx.lineTo(cx + s * dx, cy + s * 0.32);
-    }
-    ctx.stroke();
-    ctx.strokeStyle = k.accent;
-    ctx.lineWidth = b.mm * 0.38;
-    ctx.beginPath();
-    ctx.moveTo(cx - s * 0.44, cy + s * 0.2);
-    ctx.lineTo(cx + s * 0.44, cy - s * 0.2);
-    ctx.stroke();
-  });
-}
-
 const MOTIFS: Record<MenuSkin, ((ctx: Ctx, b: MotifBox, k: MotifInk) => void) | null> = {
   gold: folio,
   receipt,
@@ -965,9 +881,6 @@ const MOTIFS: Record<MenuSkin, ((ctx: Ctx, b: MotifBox, k: MotifInk) => void) | 
   slices,
   napoli,
   shawarma,
-  steakhouse,
-  ocakbasi,
-  smokehouse,
   // «لون علامتي» محايدٌ عمداً على الشاشة — وكذلك على الورق.
   store: null,
 };
