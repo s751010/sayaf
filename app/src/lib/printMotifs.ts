@@ -968,6 +968,33 @@ function scoop(ctx: Ctx, b: MotifBox, k: MotifInk): void {
   });
 }
 
+/** عيدان — زوج عيدانٍ مائلٌ بالخافت، وبينها ختمٌ مربّعٌ صغير بالتمييز (الهانكو). */
+function chopsticks(ctx: Ctx, b: MotifBox, k: MotifInk): void {
+  const room = b.reach - b.outer;
+  const s = Math.min(b.mm * 2.4, room * 0.6);
+  alongTopBottom(b, s * 1.4, (x, w, top) => {
+    const cx = x + w / 2;
+    const cy = top ? b.outer + room * 0.5 : b.H - b.outer - room * 0.5;
+    const i = Math.round((x - b.outer) / w);
+    if (i % 2) {
+      ctx.fillStyle = k.accent;
+      rrect(ctx, cx - s * 0.17, cy - s * 0.17, s * 0.34, s * 0.34, s * 0.06);
+      ctx.fill();
+      return;
+    }
+    ctx.strokeStyle = k.muted;
+    ctx.lineCap = "round";
+    ctx.lineWidth = s * 0.07;
+    for (const d of [-0.08, 0.08]) {
+      ctx.beginPath();
+      ctx.moveTo(cx - s * 0.42, cy + d * s + s * 0.1);
+      ctx.lineTo(cx + s * 0.42, cy + d * s * 0.4 - s * 0.1);
+      ctx.stroke();
+    }
+    ctx.lineCap = "butt";
+  });
+}
+
 const MOTIFS: Record<MenuSkin, ((ctx: Ctx, b: MotifBox, k: MotifInk) => void) | null> = {
   gold: folio,
   receipt,
@@ -1005,6 +1032,7 @@ const MOTIFS: Record<MenuSkin, ((ctx: Ctx, b: MotifBox, k: MotifInk) => void) | 
   bucket,
   smash,
   scoop,
+  chopsticks,
   // «لون علامتي» محايدٌ عمداً على الشاشة — وكذلك على الورق.
   store: null,
 };

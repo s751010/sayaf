@@ -42,8 +42,8 @@ export const MOTION_SKINS: ReadonlySet<MenuSkin> = new Set<MenuSkin>([
   "shawarma",
   // ١١/١١ (الموجة أ): البروست والبرجر — سطل · سماش.
   "bucket", "smash",
-  // ١١/١١ (الموجة ب): الآيسكريم — مغرفة.
-  "scoop",
+  // ١١/١١ (الموجة ب): الآيسكريم والسوشي — مغرفة · عيدان.
+  "scoop", "chopsticks",
   // ١٠/١١ (الموجة ٤): الأربعة القائمة لهذه الأقسام — دلّة · باريستا · ريحان · جمر.
   "dallah", "barista", "pizza", "grill",
 ]);

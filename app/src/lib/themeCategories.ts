@@ -23,7 +23,7 @@ import type { IconName } from "./icons";
 import { norm } from "./starterMenus";
 import {
   ARABIC_COFFEE, BAKERY, BREAKFAST, BREW_BAR, BROAST, BURGER, DRIVE_THRU, GRILL, ICE_CREAM, ITALIAN, PIZZA,
-  POPULAR_CAFE, SHAWARMA, SPECIALTY, TEA_HOUSE, suggestionKey,
+  POPULAR_CAFE, SHAWARMA, SPECIALTY, SUSHI, TEA_HOUSE, suggestionKey,
   type CafeFlavor,
 } from "./themeSuggest";
 
@@ -72,7 +72,9 @@ export interface ThemeCategory {
  * و**حذف المالك «أوجاق» و«ستيك» و«مدخنة»** (١١/١١): «مشاوي وشاورما» جمر · شاورما · فاخر · عسير — عاد
  * «عسير» (شارته «مشويات» ثانيةً)، و«راقي ومناسبات» بلا «ستيك». و«سماش» و«سطل» (البرجر والبروست) بعد «صاج» على رفّ الوجبات السريعة.
  *
- * و**الموجة ب** (١١/١١): «مغرفة» (الآيسكريم) ثالثةَ «مخابز وحلويات» بعد «حلواني».
+ * و**الموجة ب** (١١/١١): «مغرفة» (الآيسكريم) ثالثةَ «مخابز وحلويات» بعد «حلواني»؛ و«عيدان» (السوشي) ثانيَ «بحري»
+ * بعد «مرفأ» وفي «راقي ومناسبات» بعد «فاخر». ولا رفَّ «آسيوي» بطابعٍ واحد — رفٌّ ثلاثةٌ فأكثر، والسوشي يقف حيث
+ * يصدق: البحر والمطعم الراقي.
  */
 export const THEME_CATEGORIES: readonly ThemeCategory[] = [
   { id: "cafe", name: "مقاهي", nameEn: "Cafés", icon: "dallah", themes: ["roastery", "v60", "latte", "barista", "grinder", "drive", "dallah", "letterboard"], kind: "cafe" },
@@ -83,9 +85,9 @@ export const THEME_CATEGORIES: readonly ThemeCategory[] = [
   { id: "pizza", name: "بيتزا وإيطالي", nameEn: "Pizza & Italian", icon: "pizza", themes: ["pizza", "woodfire", "napoli", "pizzabox", "slices", "editorial"], kind: "pizza" },
   { id: "grill", name: "مشاوي وشاورما", nameEn: "Grills & shawarma", icon: "skewer", themes: ["grill", "shawarma", "dark-gold", "asir"], kind: "grill" },
   { id: "shaabi", name: "شعبي", nameEn: "Traditional", icon: "pot", themes: ["najdi", "dallah", "samovar", "dukkan", "breakfast", "asir"], kind: "shaabi" },
-  { id: "seafood", name: "بحري", nameEn: "Seafood", icon: "fish", themes: ["harbor", "modern", "dark-gold"], kind: "seafood" },
+  { id: "seafood", name: "بحري", nameEn: "Seafood", icon: "fish", themes: ["harbor", "chopsticks", "modern", "dark-gold"], kind: "seafood" },
   { id: "juice", name: "عصائر", nameEn: "Juices", icon: "juice", themes: ["juice", "drive", "sticker", "neon"], kind: "juice" },
-  { id: "upscale", name: "راقي ومناسبات", nameEn: "Fine dining & occasions", icon: "sparkle", themes: ["dark-gold", "roshan", "dallah", "editorial", "napoli"], kind: "restaurant" },
+  { id: "upscale", name: "راقي ومناسبات", nameEn: "Fine dining & occasions", icon: "sparkle", themes: ["dark-gold", "chopsticks", "roshan", "dallah", "editorial", "napoli"], kind: "restaurant" },
 ];
 
 /** أقلّ ما يكون في قسم — قسمٌ بطابعين قائمةٌ لا رفّ. */
@@ -124,8 +126,9 @@ export const CATEGORY_BY_KEY: Readonly<Record<string, ThemeCategoryId | null>> =
   [SHAWARMA]: "grill",
   [BROAST]: "fast",
   [BURGER]: "fast",
-  // ١١/١١ (الموجة ب): الآيسكريم على «مخابز وحلويات».
+  // ١١/١١ (الموجة ب): الآيسكريم على «مخابز وحلويات»، والسوشي على «بحري».
   [ICE_CREAM]: "bakery",
+  [SUSHI]: "seafood",
   شعبي: "shaabi",
   [BREAKFAST]: "breakfast",
   بحري: "seafood",

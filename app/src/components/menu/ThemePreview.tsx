@@ -17,7 +17,8 @@
  * مقطوعة (علبة)، ولوحةٌ مضيئة فوق كاونتر زجاج (شريحة)، ولافتةٌ فوق بلاط (نابولي) — في
  * `previews/PizzaMinis.tsx`؛ وسيخ شاورما أمام لهب (شاورما) — في `previews/GrillMinis.tsx`؛ وسطلٌ مقلّم
  * يفيض بالقطع بين كوبَي صوص (سطل)، ولافتة نيون فوق صاجٍ عليه برجرٌ وكرةٌ تحت المكبس (سماش) — في
- * `previews/FastMinis.tsx`؛ وثلّاجة آيسكريم بأحواضها وبسكوتة (مغرفة) — في `previews/TreatMinis.tsx`.
+ * `previews/FastMinis.tsx`؛ وثلّاجة آيسكريم بأحواضها وبسكوتة (مغرفة)، وستارةٌ فوق لوح سوشي وسيرٍ ناقل (عيدان)
+ * — في `previews/TreatMinis.tsx`.
  *
  * ⚠️ أشكالٌ لا نصوص: خطوط الطوابع لا تُحمَّل في اللوحة ولا في الهبوط، وحرفٌ
  * بخطٍّ احتياطي يكذب على التاجر في أوّل ما يراه من الطابع.
@@ -29,7 +30,7 @@ import { DriveMini, GrinderMini, LatteMini, V60Mini } from "./previews/CoffeeMin
 import { NapoliMini, PizzaboxMini, SlicesMini, WoodfireMini } from "./previews/PizzaMinis";
 import { ShawarmaMini } from "./previews/GrillMinis";
 import { BucketMini, SmashMini } from "./previews/FastMinis";
-import { ScoopMini } from "./previews/TreatMinis";
+import { ChopsticksMini, ScoopMini } from "./previews/TreatMinis";
 
 type Vars = Record<string, string>;
 
@@ -1068,6 +1069,8 @@ export function ThemePreview({ theme }: { theme: MenuTheme }) {
       return <SmashMini v={v} />;
     case "scoop":
       return <ScoopMini v={v} />;
+    case "chopsticks":
+      return <ChopsticksMini v={v} />;
     case "gold":
       return <GoldMini theme={theme} />;
     case "modern":

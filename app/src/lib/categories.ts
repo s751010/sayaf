@@ -93,6 +93,20 @@ export const CANON: Canon[] = [
     alias: ["أسماك", "اسماك", "الأسماك", "سمك", "بحريات", "البحريات", "مأكولات بحرية",
       "الروبيان", "روبيان", "جمبري", "seafood", "fish"],
   },
+  // ١١/١١ (الموجة ب، «عيدان»): أقسام السوشي الثلاثة أسماكٌ برمز السمكة — ولكلٍّ اسمه الإنجليزي، فلا تُكتب
+  // ثلاثتها «Sushi» للزبون الإنجليزي.
+  {
+    id: "maki", ar: "الماكي", en: "Maki", icon: "fish", rank: 56,
+    alias: ["ماكي", "رولز", "سوشي رول", "maki", "rolls", "sushi rolls"],
+  },
+  {
+    id: "nigiri", ar: "النيغيري", en: "Nigiri", icon: "fish", rank: 57,
+    alias: ["نيغيري", "نيجيري", "nigiri"],
+  },
+  {
+    id: "sashimi", ar: "الساشيمي", en: "Sashimi", icon: "fish", rank: 58,
+    alias: ["ساشيمي", "sashimi"],
+  },
   {
     id: "sandwiches", ar: "السندويتشات", en: "Sandwiches", icon: "sandwich", rank: 60,
     alias: ["سندويتشات", "ساندويتشات", "سندويشات", "سندويش", "ساندويش", "شاورما",

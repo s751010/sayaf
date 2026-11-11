@@ -25,11 +25,11 @@ export type DemoKind =
   | "qahwa" | "espresso"
   | "karak" | "teahouse"
   | "broast"
-  | "icecream";
+  | "icecream" | "sushi";
 
 export const DEMO_KINDS: readonly DemoKind[] = [
   "restaurant", "cafe", "shaabi", "truck", "seafood", "sweets", "juice", "burger", "bakery", "breakfast", "grill", "pizza",
-  "qahwa", "espresso", "karak", "teahouse", "broast", "icecream",
+  "qahwa", "espresso", "karak", "teahouse", "broast", "icecream", "sushi",
 ];
 
 export function isDemoKind(v: string | null | undefined): v is DemoKind {
@@ -2234,6 +2234,123 @@ function icecream(): DemoData {
   };
 }
 
+/* ── سوشي وآسيوي — لطابع «عيدان» (٢٠٢٦/١١/١١، الموجة ب) ─────────────────────────────
+ * مطعم سوشي هادئ: الماكي والنيغيري والساشيمي (أقسامٌ لها في `CANON` أسماؤها الإنجليزية ورمز السمكة)، والمقبلات
+ * والشوربات والمشروبات. القطع بالعدد كما تُطلب، و«الطبق المشكّل» أرخص من أجزائه. والصويا في كلّ ما يُغمس. */
+
+function sushi(): DemoData {
+  const R = "demo-sushi";
+  const M = "demo-sushi-menu";
+  const dish = dishMaker(R, M);
+  return {
+    restaurant: restaurantOf(R, {
+      name: "موجة",
+      type: "سوشي ومطبخ آسيوي",
+      address: "الرياض — حي الملقا",
+      logo: "🍣",
+      allergens_text: "السوشي فيه أسماك وصويا وسمسم، والتمبورا فيها جلوتين وبيض، وبعض الصوصات فيها قشريات — والسكّين واحدة.",
+      working_hours: WEEK("13:00", "00:00", "01:00"),
+      loyalty_goal: 6,
+      loyalty_reward: "طبق ماكي مجاناً",
+      prep_minutes: 20,
+      category_order: JSON.stringify(["الماكي", "النيغيري", "الساشيمي", "المقبلات", "الشوربات", "المشروبات"]),
+    }),
+    menus: [menuOf(R, M, "chopsticks")],
+    dishes: [
+      dish("s1", "كاليفورنيا رول — ٨ قطع", "California Roll — 8 pcs", "الماكي", 32, "🍣", {
+        description: "سلطعون وأفوكادو وخيار، ملفوفٌ بالأرز وبذور السمسم.",
+        featured: true,
+        calories: 330,
+        sodium_mg: 780,
+        allergens: ["قشريات", "سمسم", "صويا", "بيض"],
+      }),
+      dish("s2", "سلمون أفوكادو رول — ٨ قطع", "Salmon Avocado Roll — 8 pcs", "الماكي", 36, "🍣", {
+        description: "سلمون نرويجي وأفوكادو بالنوري.",
+        calories: 360,
+        sodium_mg: 640,
+        allergens: ["أسماك", "صويا", "سمسم"],
+      }),
+      dish("s3", "روبيان تمبورا رول — ٨ قطع", "Shrimp Tempura Roll — 8 pcs", "الماكي", 39, "🍤", {
+        description: "روبيان مقرمش وصوص سبايسي مايو وبصل مقرمش.",
+        calories: 480,
+        sodium_mg: 920,
+        allergens: ["قشريات", "جلوتين", "بيض", "صويا"],
+        options: JSON.stringify([
+          { name: "بلا سبايسي", price: 0 },
+          { name: "صوص إضافي", price: 3, kcal: 90 },
+        ]),
+      }),
+      dish("s4", "نيغيري سلمون — قطعتان", "Salmon Nigiri — 2 pcs", "النيغيري", 18, "🍣", {
+        description: "شريحتا سلمون على أرزٍ بالخلّ، ولمسة وسابي.",
+        featured: true,
+        calories: 140,
+        sodium_mg: 320,
+        allergens: ["أسماك", "صويا"],
+      }),
+      dish("s5", "نيغيري تونة — قطعتان", "Tuna Nigiri — 2 pcs", "النيغيري", 20, "🍣", {
+        description: "تونة حمراء على أرزٍ بالخلّ.",
+        calories: 130,
+        sodium_mg: 300,
+        allergens: ["أسماك", "صويا"],
+      }),
+      dish("s6", "نيغيري روبيان — قطعتان", "Shrimp Nigiri — 2 pcs", "النيغيري", 17, "🍤", {
+        description: "روبيان مسلوق مفرود على الأرز.",
+        calories: 120,
+        sodium_mg: 340,
+        allergens: ["قشريات", "صويا"],
+      }),
+      dish("s7", "ساشيمي سلمون — ٥ شرائح", "Salmon Sashimi — 5 slices", "الساشيمي", 34, "🐟", {
+        description: "شرائح سلمون بلا أرز، مع زنجبيلٍ ووسابي.",
+        calories: 210,
+        sodium_mg: 90,
+        allergens: ["أسماك"],
+      }),
+      dish("s8", "طبق ساشيمي مشكّل — ١٢ شريحة", "Mixed Sashimi — 12 slices", "الساشيمي", 72, "🐟", {
+        description: "سلمون وتونة وسيباس — يكفي اثنين.",
+        calories: 470,
+        sodium_mg: 230,
+        allergens: ["أسماك"],
+      }),
+      dish("s9", "إدامامي بالملح", "Salted Edamame", "المقبلات", 16, "🫛", {
+        description: "فول صويا أخضر مسلوق بملح البحر.",
+        calories: 190,
+        sodium_mg: 480,
+        allergens: ["صويا"],
+      }),
+      dish("s10", "غيوزا دجاج — ٥ قطع", "Chicken Gyoza — 5 pcs", "المقبلات", 24, "🥟", {
+        description: "زلابية مقليّة من تحت ومطهوّة بالبخار من فوق، بصوص الصويا والخلّ.",
+        calories: 310,
+        sodium_mg: 690,
+        allergens: ["جلوتين", "صويا", "سمسم"],
+      }),
+      dish("s11", "شوربة ميسو", "Miso Soup", "الشوربات", 12, "🍲", {
+        description: "مرق ميسو وتوفو وأعشاب بحرية وبصل أخضر.",
+        calories: 80,
+        sodium_mg: 860,
+        allergens: ["صويا"],
+      }),
+      dish("s12", "رامن دجاج", "Chicken Ramen", "الشوربات", 42, "🍜", {
+        description: "مرق دجاج ثمانيَ ساعات، ونودلز، وبيضة منقوعة، ودجاج مشوي.",
+        calories: 620,
+        sodium_mg: 1880,
+        allergens: ["جلوتين", "بيض", "صويا", "سمسم"],
+      }),
+      dish("s13", "شاي ياسمين", "Jasmine Tea", "المشروبات", 10, "🍵", {
+        description: "إبريقٌ لشخصين.",
+        calories: 0,
+        sodium_mg: 5,
+        caffeine_mg: 25,
+      }),
+      dish("s14", "ليمونادة يوزو", "Yuzu Lemonade", "المشروبات", 16, "🍋", {
+        description: "يوزو وليمون ونعناع — ٣٥٠ مل.",
+        calories: 120,
+        sodium_mg: 10,
+        available: false,
+      }),
+    ],
+  };
+}
+
 /**
  * المنيو الذي يُعاين به طابعٌ ما وحده (`/demo?theme=…` من «عاينه كاملاً»):
  * منيوه إن كان له (`KIND_BY_THEME`)، وإلا أوّل نوعٍ في `suits` ⇒ منيو ذلك النوع.
@@ -2303,8 +2420,10 @@ const KIND_BY_THEME: Readonly<Record<string, DemoKind>> = {
   bucket: "broast",
   // ١١/١١: «سماش» على منيو البرجر القائم («برجر الحارة» سماشٌ أصلاً) — شارته «برجر» لا نوعٌ له منيو.
   smash: "burger",
-  // ١١/١١ (الموجة ب): «مغرفة» على منيوٍ جديد بأقلّ ما يلزم — «حلواني» يملك منيو الحلويات (كيكٌ وشرقيّ لا آيسكريم).
+  // ١١/١١ (الموجة ب): «مغرفة» و«عيدان» على منيوهاتٍ جديدة بأقلّ ما يلزم — «حلواني» يملك منيو الحلويات (كيكٌ
+  // وشرقيّ لا آيسكريم).
   scoop: "icecream",
+  chopsticks: "sushi",
 };
 
 export function demoKindForSuits(suits: readonly string[] | undefined, themeId?: string | null): DemoKind {
@@ -2330,6 +2449,7 @@ const BUILDERS: Record<DemoKind, () => DemoData> = {
   teahouse,
   broast,
   icecream,
+  sushi,
 };
 
 /** المنيو التجريبي لنوعٍ ما — والمجهول يسقط إلى «الديوان». */

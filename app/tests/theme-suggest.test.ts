@@ -10,7 +10,7 @@ import { ALL_THEMES } from "@/lib/themes";
 import { STARTER_TYPES, aliasType } from "@/lib/starterMenus";
 import {
   ARABIC_COFFEE, BAKERY, BREAKFAST, BREW_BAR, BROAST, BURGER, DRIVE_THRU, GRILL, ICE_CREAM, ITALIAN, PIZZA, POPULAR_CAFE, ROW_SIZE, SHAWARMA,
-  SPECIALTY, SPECIALTY_BADGES,
+  SPECIALTY, SPECIALTY_BADGES, SUSHI,
   SUGGESTED, TEA_HOUSE, badgeTypeOf, cafeFlavor, isSpecialtyBadge, rankThemes, suggestionKey,
 } from "@/lib/themeSuggest";
 
@@ -20,7 +20,7 @@ describe("مفردات واحدة مع `aliasType`", () => {
   it("مفاتيح الجدول = أنواع `STARTERS` + الكافيه الشعبي + المخبز والفطور والمشاوي والبيتزا والقهوة وبيت الشاي", () => {
     const extra = [
       POPULAR_CAFE, BAKERY, BREAKFAST, GRILL, PIZZA, ITALIAN, ARABIC_COFFEE, SPECIALTY, TEA_HOUSE, BREW_BAR, DRIVE_THRU,
-      SHAWARMA, BROAST, BURGER, ICE_CREAM,
+      SHAWARMA, BROAST, BURGER, ICE_CREAM, SUSHI,
     ];
     const keys = Object.keys(SUGGESTED).filter((k) => !extra.includes(k)).sort();
     expect(keys).toEqual([...STARTER_TYPES].sort());
@@ -331,10 +331,11 @@ describe("البروست (١١/١١، «سطل»)", () => {
   });
 });
 
-describe("الموجة ب (١١/١١): الآيسكريم", () => {
+describe("الموجة ب (١١/١١): الآيسكريم والسوشي", () => {
   it("كلٌّ بشارة تخصّصه وحدها، وأوّل صفّه", () => {
     expect(byId.get("scoop")!.suits).toEqual([ICE_CREAM]);
-    for (const [key, first] of [[ICE_CREAM, "scoop"]] as const) {
+    expect(byId.get("chopsticks")!.suits).toEqual([SUSHI]);
+    for (const [key, first] of [[ICE_CREAM, "scoop"], [SUSHI, "chopsticks"]] as const) {
       expect(SUGGESTED[key][0]).toBe(first);
       expect(badgeTypeOf(key)).toBe(key);
     }
@@ -347,6 +348,11 @@ describe("الموجة ب (١١/١١): الآيسكريم", () => {
     ["بوظة شامية", "scoop"],
     ["Gelato Bar", "scoop"],
     ["حلويات وآيسكريم", "scoop"],
+    ["سوشي", "chopsticks"],
+    ["مطعم ياباني", "chopsticks"],
+    ["مطعم آسيوي", "chopsticks"],
+    ["رامن", "chopsticks"],
+    ["Sushi Bar", "chopsticks"],
   ] as const)("«%s» ⇒ «%s» أوّلاً", (raw, first) => {
     expect(rankThemes(ALL_THEMES, raw).suggested).toBe(first);
   });

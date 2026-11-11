@@ -96,10 +96,11 @@ export const BROAST = "بروست";
  */
 export const BURGER = "برجر";
 /**
- * والموجة ب (١١/١١، طلب المالك): صفٌّ فرعيّ وشارة تخصّص — «آيسكريم» («مغرفة»). لا كلمة له في `aliasType` («آيسكريم» يصير «مطعماً» أوّلُه
- * «فاخر»)، ولا نوعَ جديداً: صفوفٌ تُقرأ من نصّ النوع كالبروست والبرجر.
+ * والموجة ب (١١/١١، طلب المالك): صفّان فرعيّان وشارتا تخصّص — «آيسكريم» («مغرفة») و«سوشي» («عيدان»). لا كلمة
+ * لأيٍّ منهما في `aliasType` («آيسكريم» و«سوشي» يصيران «مطعماً» أوّلُه «فاخر»)، ولا نوعَ جديداً: صفوفٌ تُقرأ من نصّ النوع كالبروست والبرجر.
  */
 export const ICE_CREAM = "آيسكريم";
+export const SUSHI = "سوشي";
 /** ٠٩/١١ («شارة بتخصّصه»): البيتزا «بيتزا»، والمطعم الإيطالي صفٌّ وحده — أوّلُه «نابولي». */
 export const PIZZA = "بيتزا";
 export const ITALIAN = "مطعم إيطالي";
@@ -126,7 +127,7 @@ export const DRIVE_THRU = "قهوة سريعة";
  */
 export const SPECIALTY_BADGES: readonly string[] = [
   SPECIALTY, BREW_BAR, DRIVE_THRU, ARABIC_COFFEE, PIZZA, ITALIAN, SHAWARMA, BROAST, BURGER,
-  ICE_CREAM,
+  ICE_CREAM, SUSHI,
 ];
 
 export function isSpecialtyBadge(badge: string): boolean {
@@ -184,6 +185,8 @@ export const SUGGESTED: Readonly<Record<string, Row>> = {
   [BURGER]: ["smash", "burger", "receipt", "neon"],
   // ١١/١١ (الموجة ب): الآيسكريم — الثلّاجة، ثم حلواني (الحلى)، ثم عصّارة وملصقات (البارد الشبابي).
   [ICE_CREAM]: ["scoop", "patisserie", "juice", "sticker"],
+  // ١١/١١: السوشي — اللوح والعيدان، ثم «مرفأ» (البحر)، ثم «عصري» و«مجلّة» (الهادئان النظيفان).
+  [SUSHI]: ["chopsticks", "harbor", "modern", "editorial"],
   // ٠٧/١١: «فوّال» ثالثَ الشعبي. ثم (٠٩/١١) «عسير» رابعاً بشارته كما كان قبل «دلّة» — والدلّة شارتها
   // تخصّصها «قهوة عربية».
   شعبي: ["najdi", "dukkan", "breakfast", "asir"],
@@ -287,6 +290,12 @@ const SUB_ROWS: readonly SubRow[] = [
     key: BURGER,
     within: ["مطعم سريع", "مطعم"],
     hints: ["برجر", "برقر", "burger", "سماش", "smash"],
+  },
+  // ١١/١١ (الموجة ب): السوشي والآسيوي — داخل «بحري» أيضاً («سوشي ومأكولات بحرية» سوشي).
+  {
+    key: SUSHI,
+    within: ["مطعم", "مطعم سريع", "بحري"],
+    hints: ["سوشي", "sushi", "ياباني", "يابانيه", "japanese", "اسيوي", "asian", "رامن", "ramen"],
   },
   {
     key: GRILL,

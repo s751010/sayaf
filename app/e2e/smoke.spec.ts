@@ -76,8 +76,9 @@ const PAGES = [
   // ١١/١١ (الموجة أ): «سطل» على منيو البروست الجديد، والمنيو نفسه بنوعه.
   { path: "/demo?theme=bucket", anchor: "قرمشة", role: "text", label: "سطل على منيو البروست" },
   { path: "/demo?kind=broast", anchor: "قرمشة", role: "text", label: "منيو البروست التجريبي" },
-  // ١١/١١ (الموجة ب): «مغرفة» على منيو الآيسكريم الجديد.
+  // ١١/١١ (الموجة ب): «مغرفة» و«عيدان» على منيوهاتهما الجديدة.
   { path: "/demo?theme=scoop", anchor: "كرزة", role: "text", label: "مغرفة على منيو الآيسكريم" },
+  { path: "/demo?theme=chopsticks", anchor: "موجة", role: "text", label: "عيدان على منيو السوشي" },
   { path: "/demo?theme=smash", anchor: "برجر الحارة", role: "text", label: "سماش على منيو البرجر" },
   // مقالٌ ثابت: نصّه يُحمَّل كسولاً (`import.meta.glob`) ويمرّ على المنقّي في
   // متصفّح حقيقي — ويُعرض ولو سقطت الشبكة. والمرساة عنوانٌ **داخل النصّ** لا
@@ -208,7 +209,7 @@ test("المنيو التجريبي: اختيار قسمٍ يبدّل المني
   await expect(page.getByText("مطعم شاطئ النورس", { exact: false }).first()).toBeVisible();
   await expect(page.getByText("مطعم الديوان", { exact: false })).toHaveCount(0);
   const themes = picker.getByRole("group", { name: "طوابع «بحري»" });
-  await expect(themes.getByRole("button")).toHaveText(["مرفأ", "عصري", "فاخر"]);
+  await expect(themes.getByRole("button")).toHaveText(["مرفأ", "عيدان", "عصري", "فاخر"]);
   await expect(themes.getByRole("button", { name: "مرفأ" })).toHaveAttribute("aria-pressed", "true");
 
   // طابعٌ آخر من القسم: المنيو نفسه بلباسٍ آخر.

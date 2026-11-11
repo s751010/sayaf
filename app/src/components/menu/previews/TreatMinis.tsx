@@ -1,5 +1,5 @@
 /**
- * معايناتٌ مصغّرة لطوابع الموجة ب (٢٠٢٦/١١/١١) — مغرفة.
+ * معايناتٌ مصغّرة لطوابع الموجة ب (٢٠٢٦/١١/١١) — مغرفة · عيدان.
  *
  * كأخواتها في `FastMinis.tsx`: **أشكالٌ لا نصوص**، والألوان من `vars` الطابع (بلون علامة التاجر إن صبغه)،
  * والخامات (البسكوتة والفانيلا والشوكولاتة · الخشب والأرزّ والسمك · العجين والحديد والكيس) ثابتة كما في
@@ -49,6 +49,40 @@ export function ScoopMini({ v }: { v: Vars }) {
       <path d="M137 58H151L144 80Z" fill="#e2a55a" />
       <circle cx="144" cy="54" r="7" fill={a} />
       <Lines v={v} y={92} />
+    </Frame>
+  );
+}
+
+/** عيدان: ستارةٌ بلون العلامة ودائرة الشعار، ولوح خشبٍ بقطع سوشي، وعيدانٌ وسيرٌ ناقل. */
+export function ChopsticksMini({ v }: { v: Vars }) {
+  const a = v["--m-accent"];
+  return (
+    <Frame bg={v["--m-bg"]}>
+      <rect x="34" y="4" width="92" height="3" rx="1.5" fill="#8a5a32" />
+      <rect x="38" y="6" width="26" height="18" fill={a} />
+      <rect x="67" y="6" width="26" height="22" fill={a} />
+      <rect x="96" y="6" width="26" height="18" fill={a} />
+      <circle cx="80" cy="16" r="7" fill="#ffffff" />
+      <circle cx="80" cy="16" r="5" fill={v["--m-surface"]} />
+      <rect x="26" y="40" width="108" height="20" rx="2" fill="#dcb47e" />
+      <rect x="26" y="57" width="108" height="5" rx="1.5" fill="#b98d55" />
+      <rect x="36" y="46" width="18" height="8" rx="4" fill="#fbf8f0" />
+      <path d="M35 49q1-6 10-6q9 0 10 6q-10-2-20 0Z" fill="#f2875a" />
+      <rect x="60" y="46" width="18" height="8" rx="4" fill="#fbf8f0" />
+      <path d="M59 49q1-6 10-6q9 0 10 6q-10-2-20 0Z" fill="#c7323e" />
+      {[92, 106, 120].map((x) => (
+        <g key={x}>
+          <circle cx={x} cy="50" r="6" fill="#1e2522" />
+          <circle cx={x} cy="50" r="4.4" fill="#fbf8f0" />
+          <circle cx={x} cy="50" r="2" fill={x === 106 ? "#8db54a" : "#f2875a"} />
+        </g>
+      ))}
+      <path d="M70 70L140 64M71 74L141 68" stroke={v["--m-accent-2"]} strokeWidth="2" strokeLinecap="round" />
+      <rect x="0" y="78" width="160" height="10" fill={v["--m-accent-2"]} />
+      {[14, 44, 74, 104, 134].map((x, i) => (
+        <ellipse key={x} cx={x} cy="83" rx="9" ry="3.5" fill={i % 2 ? "#e8c25a" : a} />
+      ))}
+      <Lines v={v} y={94} />
     </Frame>
   );
 }

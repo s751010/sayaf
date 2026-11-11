@@ -83,7 +83,8 @@ const HINTS: readonly (readonly [IconName, readonly string[]])[] = [
   ["mezze", ["حمص", "متبل", "مطبل", "فلافل", "لبنه", "ورق عنب", "مقبلات", "مزه", "hummus", "falafel", "mezze", "starters"]],
   ["fish", [
     "سمك", "اسماك", "هامور", "سلمون", "روبيان", "جمبري", "سلطعون", "قشريات", "بحريات", "كاليماري", "حبار", "سبيطي", "شعري", "ناجل",
-    "fish", "shrimp", "salmon", "seafood", "crab", "calamari",
+    "سوشي", "ماكي", "نيغيري", "نيجيري", "ساشيمي", "رول", "fish", "shrimp", "salmon", "seafood", "crab", "calamari", "sushi", "maki",
+    "nigiri", "sashimi",
   ]],
   ["kabsa", ["كبسه", "مندي", "مظبي", "مضبي", "مكبوس", "برياني", "صياديه", "رز", "ارز", "kabsa", "mandi", "biryani", "rice"]],
   ["skewer", ["مشوي", "مشويه", "مشاوي", "مشويات", "كباب", "شيش", "تكه", "ستيك", "ريش", "اوصال", "grill", "grilled", "kebab", "steak"]],
