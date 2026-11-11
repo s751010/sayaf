@@ -9,7 +9,7 @@ import { describe, expect, it } from "vitest";
 import { ALL_THEMES } from "@/lib/themes";
 import { STARTER_TYPES, aliasType } from "@/lib/starterMenus";
 import {
-  ARABIC_COFFEE, BAKERY, BREAKFAST, BREW_BAR, DRIVE_THRU, GRILL, ITALIAN, PIZZA, POPULAR_CAFE, ROW_SIZE, SHAWARMA,
+  ARABIC_COFFEE, BAKERY, BREAKFAST, BREW_BAR, BROAST, DRIVE_THRU, GRILL, ITALIAN, PIZZA, POPULAR_CAFE, ROW_SIZE, SHAWARMA,
   SPECIALTY, SPECIALTY_BADGES,
   SUGGESTED, TEA_HOUSE, badgeTypeOf, cafeFlavor, isSpecialtyBadge, rankThemes, suggestionKey,
 } from "@/lib/themeSuggest";
@@ -20,7 +20,7 @@ describe("مفردات واحدة مع `aliasType`", () => {
   it("مفاتيح الجدول = أنواع `STARTERS` + الكافيه الشعبي + المخبز والفطور والمشاوي والبيتزا والقهوة وبيت الشاي", () => {
     const extra = [
       POPULAR_CAFE, BAKERY, BREAKFAST, GRILL, PIZZA, ITALIAN, ARABIC_COFFEE, SPECIALTY, TEA_HOUSE, BREW_BAR, DRIVE_THRU,
-      SHAWARMA,
+      SHAWARMA, BROAST,
     ];
     const keys = Object.keys(SUGGESTED).filter((k) => !extra.includes(k)).sort();
     expect(keys).toEqual([...STARTER_TYPES].sort());
@@ -304,6 +304,28 @@ describe("المشاوي (٠٩/١١، الموجة ٣ — وحذف «أوجاق�
   it("«شيشة» و«حلويات شامية» و«كافيه تركي» ليست مشاوي", () => {
     expect(suggestionKey("كافيه وشيشة")).toBe("كافيه");
     expect(suggestionKey("حلويات شامية")).toBe("مخبز وحلويات");
+  });
+});
+
+describe("البروست (١١/١١، «سطل»)", () => {
+  it("«سطل» بشارة تخصّصه وحدها، وأوّل صفّه", () => {
+    expect(byId.get("bucket")!.suits).toEqual([BROAST]);
+    expect(SUGGESTED[BROAST][0]).toBe("bucket");
+    expect(badgeTypeOf(BROAST)).toBe(BROAST);
+  });
+
+  it.each([
+    ["بروست", "bucket"],
+    ["مطعم بروست", "bucket"],
+    ["بروستد ودجاج", "bucket"],
+    ["دجاج مقلي", "bucket"],
+    ["Fried Chicken", "bucket"],
+    ["Broast House", "bucket"],
+    // الشاورما قبله، و«دجاج مشوي» مشاوٍ.
+    ["شاورما وبروست", "shawarma"],
+    ["دجاج مشوي", "grill"],
+  ] as const)("«%s» ⇒ «%s» أوّلاً", (raw, first) => {
+    expect(rankThemes(ALL_THEMES, raw).suggested).toBe(first);
   });
 });
 

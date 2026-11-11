@@ -36,7 +36,8 @@ import type { PatternId } from "./patterns";
  * بفسيفساء والنار تتراقص في فوهته، والشعار على وسامه (حطب) · `carton` علبة بيتزا ينفتح غطاؤها
  * والأقسام شرائحُ في دائرتها (علبة) · `counter` كاونتر زجاجٍ بصواني الشرائح تحت لوحة أسعارٍ
  * مضيئة (شريحة) · `signboard` لافتةٌ مرسومة باليد فوق بلاطٍ مزخرف (نابولي) · `spit` سيخ شاورما
- * عموديّ يدور ولهبه خلفه والشعار على قرصه (شاورما).
+ * عموديّ يدور ولهبه خلفه والشعار على قرصه (شاورما) · `bucket` سطل بروستٍ مقلّم يفيض بالقطع بين كوبَي صوص
+ * والشعار ملصقه (سطل).
  */
 export type HeaderShape =
   | "arch" | "band" | "frame" | "soft"
@@ -51,7 +52,8 @@ export type HeaderShape =
   | "kiosk" | "rug"
   | "dripper" | "saucer" | "mill" | "lane"
   | "dome" | "carton" | "counter" | "signboard"
-  | "spit";
+  | "spit"
+  | "bucket";
 /**
  * تخطيط الأطباق — هذا ما يجعل الفرق بين الطوابع يُرى لا يُقرأ.
  * `deck` بطاقاتٌ تُسحب أفقياً لكل قسم، تكبر حين تتوسّط الشاشة.
@@ -69,7 +71,8 @@ export type HeadingStyle =
   | "glass" | "istikan"
   | "brew" | "art" | "grind" | "sleeve"
   | "hearth" | "wedge" | "lightbox" | "brush"
-  | "panel";
+  | "panel"
+  | "label";
 /** شكل صورة الطبق — دائري للكافيهات، مربّع حادّ للمينيمال، وقوسُ نافذة للروشان. */
 export type ImageShape = "rounded" | "square" | "circle" | "arch";
 /**
@@ -92,6 +95,7 @@ export type MenuSkin =
   | "v60" | "latte" | "grinder" | "drive"
   | "woodfire" | "pizzabox" | "slices" | "napoli"
   | "shawarma"
+  | "bucket"
   | "gold" | "modern";
 /** كيف يُقدَّم السعر: نصّاً، أو شارة ملوّنة، أو خطّاً منقّطاً يقود إليه. */
 export type PriceStyle = "plain" | "badge" | "leader";
@@ -1644,6 +1648,52 @@ export const DESIGN_THEMES: MenuTheme[] = [
       priceStyle: "badge",
       divider: "rule",
       depth: "flat",
+      entrance: "rise",
+    }),
+  },
+  /*
+   * ══ الطابعان ٣٤–٣٥ (٢٠٢٦/١١/١١) — البروست والسماش، طلب المالك («اضافة اكثر»، الموجة أ) ══
+   *
+   * ⚠️ المعرّفان `bucket` و`smash` — لا `broast` (منيو تجريبي ونوع في `demoMenus.ts`) ولا `burger` (طابع
+   * «صاج» ومنيوه).
+   */
+  /*
+   * «سطل» — محلّ البروست والدجاج المقلي: **سطلٌ مقلّم** بلون العلامة يفيض بقطع البروست الذهبية، وشعارك
+   * ملصقه، بين **كوبَي صوص** (ثوم وحارّ)، خلفه أشعّةٌ تدور مع التمرير. و**حين يُضاف صنفٌ تنغمس قطعةٌ في
+   * الصوص الحارّ** وتخرج مكسوّة. والأقسام **ملصقات علب الوجبات**: سطلٌ صغير وملصقٌ أبيض بإطارٍ بلون العلامة
+   * يُلصق حين يدخل القسم، وخطّ قصٍّ إلى دائرة العدد الصفراء. حارٌّ وشبابيّ. الخطّان: لاله‌زار (للعناوين —
+   * عريضٌ كطباعة العلب) والمراعي. ومختلفٌ عن «صاج» (لوح المطبخ والبرجر) وعن «شاورما» (السيخ ولوحة المحلّ).
+   */
+  {
+    id: "bucket",
+    name: "سطل",
+    tagline: "سطل بروستٍ مقلّم يفيض بالقطع، وتنغمس قطعةٌ في الصوص حين تضيف",
+    suits: ["بروست"],
+    vars: {
+      // ورقُ العلب الكريميّ للأرضية، وحبرٌ بنّيٌّ محروق، والتمييز **أحمرُ السطل الحارّ** (أفتح وأحمى من
+      // أحمر «شاورما» الداكن)، والزينة **خردل العسل**. والقطع والصوص والكرتون خامة.
+      "--m-bg": "#fff5e6",
+      "--m-bg-2": "#fbe9cf",
+      "--m-surface": "#ffffff",
+      "--m-text": "#2b130b",
+      "--m-muted": "#69402f",
+      "--m-accent": "#d8281c",
+      "--m-accent-2": "#ffb21a",
+      "--m-on-accent": "#ffffff",
+      "--m-border": "rgba(43,19,11,.13)",
+      "--m-font": FONT.almarai,
+      "--m-display": FONT.lalezar,
+      "--m-radius": "1rem",
+    },
+    design: design({
+      skin: "bucket",
+      header: "bucket",
+      layout: "grid",
+      heading: "label",
+      imageShape: "rounded",
+      priceStyle: "badge",
+      divider: "none",
+      depth: "raised",
       entrance: "rise",
     }),
   },

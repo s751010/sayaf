@@ -1,0 +1,393 @@
+/*
+ * ══ سطل — محلّ البروست والدجاج المقلي (٢٠٢٦/١١/١١) ═══════════════════════════════════════
+ * الطابع الرابع والثلاثون. سطلٌ مقلّم بلون العلامة يفيض بقطع البروست، وشعارك ملصقه، بين كوبَي صوص،
+ * وخلفه أشعّةٌ تدور مع التمرير (`--m-scroll-y`). **وحين يُضاف صنفٌ تنغمس القطعة في الصوص الحارّ** وتخرج
+ * مكسوّة، والزرّ يُغمس، وسطلٌ صغير يقفز فوق شريط الطلب (`data-m-added`). والأقسام ملصقات علب الوجبات
+ * تُلصق حين تدخل (`data-m-in`)، وتحت الشريط «مقياس حرارة» يمتلئ بتقدّم الصفحة (`--m-scroll`).
+ * الترويسة وعنوان القسم في `components/menu/heads/BucketHead.tsx`.
+ *
+ * ⚠️ مستورَدٌ من **رأس** `menu-skins.css` — فكلّ انتقائيٍّ هنا يبدأ بـ`.m-skin-bucket`.
+ *
+ * ما يتبع العلامة: خطوط السطل والأشعّة وإطار الملصق والأزرار، والسعر (`--m-accent-ink`). وما لا يتبعها
+ * خامة: القطع والصوص والكرتون الأبيض ودائرة العدد الصفراء (`--m-accent-2`، وحبرها داكنٌ ثابت: ٩:١).
+ */
+.m-skin-bucket {
+  display: flow-root;
+  --m-bk-gold: #d98a2b;
+  --m-bk-sauce: #c81d12;
+  /* الزخرفة: نقاطٌ نصفيّة خافتة كطباعة الكرتون. */
+  background-image: radial-gradient(circle, rgba(216, 40, 28, 0.07) 1.1px, transparent 1.5px);
+  background-size: 12px 12px;
+}
+
+/* ── المسرح: أرضيةٌ بلون العلامة الفاتح، وأشعّةٌ تدور ── */
+.m-skin-bucket .m-bk-stage {
+  background: color-mix(in srgb, var(--m-accent) 14%, var(--m-bg));
+  border-bottom: 3px solid var(--m-accent);
+}
+.m-skin-bucket .m-bk-rays {
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: repeating-conic-gradient(
+    from 0deg,
+    color-mix(in srgb, var(--m-accent) 26%, transparent) 0 9deg,
+    transparent 9deg 18deg
+  );
+  -webkit-mask: radial-gradient(closest-side, #000 30%, transparent);
+  mask: radial-gradient(closest-side, #000 30%, transparent);
+  pointer-events: none;
+}
+.m-skin-bucket .m-bk-scene {
+  margin-bottom: 0.4rem;
+}
+/* كسوة الصوص على القطعة لا تُرى إلا لحظة الغمس. */
+.m-skin-bucket .m-bk-coat {
+  opacity: 0;
+}
+/* ملصق السطل: دائرةٌ بيضاء بإطارٍ بلون العلامة — ختمُ المحلّ. */
+.m-skin-bucket .m-bk-seal {
+  background: #ffffff;
+  box-shadow:
+    0 0 0 3px var(--m-accent),
+    0 0 0 5px #ffffff,
+    0 6px 10px -4px rgba(43, 19, 11, 0.45);
+}
+.m-skin-bucket .m-bk-window {
+  border-radius: 16px;
+  box-shadow:
+    0 0 0 3px #ffffff,
+    0 0 0 6px var(--m-accent),
+    0 14px 22px -14px rgba(43, 19, 11, 0.5);
+}
+
+/* ── عنوان القسم: ملصق علبة الوجبة ── */
+.m-skin-bucket .m-bk-mini {
+  filter: drop-shadow(0 2px 1px rgba(43, 19, 11, 0.2));
+}
+.m-skin-bucket .m-bk-label {
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow:
+    inset 0 0 0 2px var(--m-accent),
+    3px 3px 0 color-mix(in srgb, var(--m-accent) 30%, transparent);
+  rotate: -1.5deg;
+}
+.m-skin-bucket .m-bk-cut {
+  background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--m-text) 45%, transparent) 0 7px, transparent 7px 12px);
+}
+/* دائرة العدد: ملصقٌ أصفر كملصق «حارّ» على العلبة — حبرٌ داكنٌ ثابت. */
+.m-skin-bucket .m-bk-count {
+  border-radius: 999px;
+  background: var(--m-accent-2);
+  color: #2b130b;
+  box-shadow: 0 0 0 2px #ffffff, 0 2px 0 2px color-mix(in srgb, var(--m-accent-2) 60%, #000);
+}
+.m-skin-bucket .m-bk-photo {
+  padding: 4px;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: inset 0 0 0 2px var(--m-accent);
+}
+.m-skin-bucket .m-bk-photo .m-img {
+  border-radius: 12px;
+}
+
+/* ── السعر: شارةٌ عريضة كسعر الوجبة على العلبة ── */
+.m-skin-bucket .m-card .m-price.m-shine,
+.m-skin-bucket .m-feature .m-price.m-shine {
+  padding: 0.15rem 0.65rem;
+  box-shadow: 2px 2px 0 color-mix(in srgb, var(--m-accent) 55%, #000);
+}
+
+/* ── الطبق بلا صورة: قطعة بروست على ورق مربّعات في سلّة ──
+   الأرضية ورقُ تغليفٍ بمربّعاتٍ حمراء، والصحن **القطعة** من فوق: ذهبيّةٌ ببقع قرمشة. */
+.m-skin-bucket .m-art {
+  --m-art-bg:
+    repeating-linear-gradient(90deg, rgba(216, 40, 28, 0.16) 0 10px, transparent 10px 20px),
+    repeating-linear-gradient(0deg, rgba(216, 40, 28, 0.16) 0 10px, transparent 10px 20px),
+    #fffaf1;
+  --m-art-plate:
+    radial-gradient(circle at 34% 30%, #f3bd5c 0 7%, transparent 8%),
+    radial-gradient(circle at 62% 58%, #b3621d 0 5%, transparent 6%),
+    radial-gradient(circle at 40% 66%, #b3621d 0 4%, transparent 5%),
+    radial-gradient(circle at 66% 32%, #b3621d 0 4%, transparent 5%),
+    radial-gradient(circle closest-side, #d98a2b 0 86%, #b3621d 90% 100%);
+  --m-art-ring: 0 0 0 3px #ffffff, 0 0 0 4px rgba(43, 19, 11, 0.12);
+  --m-art-lift: 0 10px 14px -8px rgba(43, 19, 11, 0.45);
+  --m-art-well: 0 0 transparent;
+  --m-art-mark: rgba(255, 255, 255, 0.16);
+  --cm-tint: rgba(255, 255, 255, 0.28);
+}
+.m-skin-bucket .m-art-plate {
+  --m-accent-ink: #4a1d08;
+}
+
+/* ── البطاقة والأزرار ── */
+.m-skin-bucket .m-card,
+.m-skin-bucket .m-feature {
+  --m-border: color-mix(in srgb, var(--m-text) 12%, transparent);
+}
+.m-skin-bucket .m-card.m-surface,
+.m-skin-bucket .m-feature {
+  box-shadow: 0 8px 18px -14px rgba(43, 19, 11, 0.5);
+}
+.m-skin-bucket .m-chips > *,
+.m-skin-bucket .m-tab {
+  border-radius: 999px;
+}
+.m-skin-bucket .m-add {
+  box-shadow:
+    0 0 0 2.5px #ffffff,
+    0 4px 0 2.5px color-mix(in srgb, var(--m-accent) 60%, #000);
+}
+.m-skin-bucket .m-soldout {
+  border-radius: 6px;
+  background: #ffffff;
+  color: var(--m-text);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--m-text) 40%, transparent);
+}
+
+/* ── شاشات الطلب ── */
+.m-skin-bucket .m-o-card {
+  border-radius: 18px;
+  box-shadow: 0 8px 18px -14px rgba(43, 19, 11, 0.5);
+}
+.m-skin-bucket .m-o-cta {
+  border-radius: 999px;
+  box-shadow:
+    0 0 0 3px #ffffff,
+    0 5px 0 3px color-mix(in srgb, var(--m-accent) 60%, #000);
+}
+.m-skin-bucket .m-o-field,
+.m-skin-bucket .m-o-ghost,
+.m-skin-bucket .m-o-opt,
+.m-skin-bucket .m-o-soldout,
+.m-skin-bucket .m-o-step,
+.m-skin-bucket .m-o-chip {
+  border-radius: 12px;
+}
+.m-skin-bucket .m-o-thumb {
+  border-radius: 10px;
+}
+
+/* ── الحركة ──
+ * عند الفتح: السطل يقفز إلى مكانه والقطع تتكدّس فيه واحدةً بعد واحدة، والبخار يعلو. ومع التمرير: الأشعّة
+ * تدور (`--m-scroll-y`)، والبخار يشتدّ ما دام يمرّر، وتحت الشريط «مقياس الحرارة» يمتلئ (`--m-scroll`).
+ * وحين يدخل القسم يُلصق ملصقه (`data-m-in`). وحين يُضاف صنفٌ تنغمس القطعة في الصوص وتخرج مكسوّة، ويرتجّ
+ * الصوص، ويُغمس الزرّ، ويقفز سطلٌ صغير فوق شريط الطلب (`data-m-added`). */
+@media (prefers-reduced-motion: no-preference) {
+  .m-skin-bucket .m-bk-rays {
+    rotate: calc(var(--m-scroll-y, 0) * 0.06deg);
+  }
+  .m-skin-bucket .m-bk-scene {
+    animation: m-bk-drop 0.6s cubic-bezier(0.3, 1.3, 0.5, 1) 0.1s both;
+  }
+  .m-skin-bucket .m-bk-pile > g {
+    animation: m-bk-pile 0.45s cubic-bezier(0.3, 1.4, 0.5, 1) both;
+  }
+  .m-skin-bucket .m-bk-pile > g:nth-child(1) {
+    animation-delay: 0.45s;
+  }
+  .m-skin-bucket .m-bk-pile > g:nth-child(2) {
+    animation-delay: 0.55s;
+  }
+  .m-skin-bucket .m-bk-pile > g:nth-child(3) {
+    animation-delay: 0.65s;
+  }
+  .m-skin-bucket .m-bk-pile > g:nth-child(4) {
+    animation-delay: 0.75s;
+  }
+  .m-skin-bucket .m-bk-pile > g:nth-child(5) {
+    animation-delay: 0.85s;
+  }
+  .m-skin-bucket .m-bk-steam path {
+    animation: m-bk-steam 2.6s ease-out 1s infinite;
+  }
+  .m-skin-bucket .m-bk-steam path:nth-child(2) {
+    animation-delay: 1.5s;
+  }
+  .m-skin-bucket .m-bk-steam path:nth-child(3) {
+    animation-delay: 2s;
+  }
+  .m-skin-bucket[data-m-scrolling] .m-bk-steam path {
+    animation-duration: 1.3s;
+  }
+  .m-skin-bucket .m-bk-dip,
+  .m-skin-bucket .m-bk-sauce {
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+  }
+  /* «مقياس الحرارة» تحت الشريط: أصفر ⇐ أحمر بتقدّم الصفحة. */
+  .m-skin-bucket[data-m-motion] .m-nav::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: -1px;
+    height: 3px;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--m-accent-2), var(--m-accent));
+    transform-origin: 100% 50%;
+    transform: scaleX(var(--m-scroll, 0));
+    pointer-events: none;
+  }
+  [dir="ltr"].m-skin-bucket[data-m-motion] .m-nav::after {
+    transform-origin: 0 50%;
+  }
+  /* القسم يدخل: الملصق يُلصق، والعدد يقفز. */
+  .m-skin-bucket .m-sec[data-m-in] .m-bk-label {
+    animation: m-bk-stick 0.5s cubic-bezier(0.3, 1.4, 0.5, 1) 0.05s both;
+  }
+  .m-skin-bucket .m-sec[data-m-in] .m-bk-count {
+    animation: m-bk-pop 0.4s cubic-bezier(0.3, 1.5, 0.5, 1) 0.3s both;
+  }
+  /* أُضيف: القطعة تنغمس في الحارّ وتخرج مكسوّة، والصوص يرتجّ. */
+  .m-skin-bucket[data-m-added] .m-bk-dip {
+    animation: m-bk-dip 1.05s cubic-bezier(0.45, 0, 0.3, 1) both;
+  }
+  .m-skin-bucket[data-m-added] .m-bk-coat {
+    animation: m-bk-coat 1.05s linear both;
+  }
+  .m-skin-bucket[data-m-added] .m-bk-sauce {
+    animation: m-bk-splash 0.5s ease-out 0.3s both;
+  }
+  .m-skin-bucket [data-m-added] > .m-add {
+    animation: m-bk-press 0.5s cubic-bezier(0.3, 0.7, 0.3, 1.3) both;
+  }
+  .m-skin-bucket [data-m-added] > .m-add::after {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border-radius: inherit;
+    box-shadow: 0 0 0 3px var(--m-bk-sauce);
+    pointer-events: none;
+    animation: m-bk-ring 0.7s ease-out both;
+  }
+  .m-skin-bucket[data-m-added] .m-cart::before {
+    content: "";
+    position: absolute;
+    top: -1.3rem;
+    inset-inline-end: 1.5rem;
+    width: 24px;
+    height: 26px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 26'%3E%3Cpath d='M5 6c0-4 4-6 7-5c3-1 7 1 7 5Z' fill='%23d98a2b'/%3E%3Cpath d='M3 8H21L19.4 25H4.6Z' fill='%23fff'/%3E%3Cpath d='M5.6 8h2.6l-.4 17H5.2ZM10.6 8h2.6l-.4 17h-2.6ZM15.6 8h2.6l-.4 17h-2.6Z' fill='%23d8281c'/%3E%3Crect x='2.4' y='6.4' width='19.2' height='2.6' rx='1.3' fill='%23fff' stroke='%23d8281c' stroke-width='.6'/%3E%3C/svg%3E")
+      center / contain no-repeat;
+    pointer-events: none;
+    animation: m-bk-cart 1s cubic-bezier(0.3, 1.2, 0.5, 1) both;
+  }
+  .m-skin-bucket .m-sheet.anim-fade-up {
+    animation: m-bk-sheet 0.26s cubic-bezier(0.2, 0.9, 0.25, 1) backwards;
+  }
+  .m-skin-bucket .m-add:active {
+    transform: translateY(3px);
+  }
+  .m-skin-bucket .m-card.m-surface:active,
+  .m-skin-bucket .m-feature:active {
+    transform: scale(0.985);
+  }
+}
+
+@keyframes m-bk-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-24px) scale(0.92);
+  }
+}
+@keyframes m-bk-pile {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+}
+@keyframes m-bk-steam {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  30% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-14px);
+  }
+}
+@keyframes m-bk-stick {
+  from {
+    opacity: 0;
+    rotate: -12deg;
+    scale: 1.25;
+  }
+}
+@keyframes m-bk-pop {
+  from {
+    opacity: 0;
+    scale: 0.4;
+  }
+}
+/* القطعة: تميل وتنزل في الكوب، تبقى لحظة، ثم تخرج إلى مكانها. */
+@keyframes m-bk-dip {
+  0% {
+    transform: none;
+  }
+  30%,
+  55% {
+    transform: translate(4px, 20px) rotate(18deg);
+  }
+  100% {
+    transform: none;
+  }
+}
+@keyframes m-bk-coat {
+  0%,
+  40% {
+    opacity: 0;
+  }
+  50%,
+  90% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes m-bk-splash {
+  40% {
+    transform: scale(1.12, 1.6);
+  }
+}
+@keyframes m-bk-press {
+  40% {
+    transform: translateY(3px) scale(0.9);
+  }
+}
+@keyframes m-bk-ring {
+  from {
+    opacity: 1;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.35);
+  }
+}
+@keyframes m-bk-cart {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.6);
+  }
+  30%,
+  75% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+@keyframes m-bk-sheet {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+}

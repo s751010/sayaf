@@ -95,6 +95,8 @@ describe("demoMenus", () => {
     // ٠٧/١١: «عرض السهرة» كاستا كرك وبراتا بالجبن، و«جلسة الشاي» إبريقٌ وبقصم وحلاوة.
     ["karak", "k7", [["k1", 2], ["b1", 1]]],
     ["teahouse", "x1", [["h2", 1], ["d1", 1], ["d2", 1]]],
+    // ١١/١١: «وجبة ٤ قطع» بروستٌ وبطاطس وثومية ومشروب.
+    ["broast", "k6", [["k1", 1], ["k8", 1], ["k9", 1], ["k12", 1]]],
   ] as const)("«%s»: «%s» أرخص من أجزائه، وسعراته وصوديومه مجموعها", (kind, combo, parts) => {
     const { dishes } = demoData(kind);
     const by = (id: string) => dishes.find((d) => d.id === id)!;
@@ -139,6 +141,8 @@ describe("demoMenus", () => {
     expect(kindOf("sticker")).toBe("juice");
     // ٠٩/١١ (الموجة ٣): المشاوي الأربعة على منيو المشاوي القائم.
     expect(kindOf("shawarma")).toBe("grill");
+    // ١١/١١: «سطل» على منيو البروست.
+    expect(kindOf("bucket")).toBe("broast");
     // ولكلّ طابعٍ منيوٌ موجود — لا معاينة على بيانات ناقصة.
     for (const t of ALL_THEMES) expect(isDemoKind(demoKindForSuits(t.suits, t.id)), t.id).toBe(true);
     // والطابع الجديد يُعاين على منيوٍ طابعُه هو نفسه.

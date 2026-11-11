@@ -23,11 +23,12 @@ export type DemoKind =
   | "bakery" | "breakfast"
   | "grill" | "pizza"
   | "qahwa" | "espresso"
-  | "karak" | "teahouse";
+  | "karak" | "teahouse"
+  | "broast";
 
 export const DEMO_KINDS: readonly DemoKind[] = [
   "restaurant", "cafe", "shaabi", "truck", "seafood", "sweets", "juice", "burger", "bakery", "breakfast", "grill", "pizza",
-  "qahwa", "espresso", "karak", "teahouse",
+  "qahwa", "espresso", "karak", "teahouse", "broast",
 ];
 
 export function isDemoKind(v: string | null | undefined): v is DemoKind {
@@ -1994,6 +1995,121 @@ function teahouse(): DemoData {
   };
 }
 
+/* ── بروست ودجاج مقلي — لطابع «سطل» (٢٠٢٦/١١/١١) ─────────────────────────────
+ * محلّ بروست في الحيّ: القطع بالعدد والحرّاق بدرجاته، ووجباتٌ بالبطاطس والصوص، وساندويتشات، والصوصات
+ * تُشترى وحدها مع الإضافات (أقسامٌ يعرف `CANON` رموزها — «الحرّاق» و«الصوصات» بلا رمز طعام).
+ * و«وجبة ٤ قطع» أرخص من أجزائها، وسعراتها وصوديومها مجموعها (يحرسه `demo-menus.test.ts`). */
+
+function broast(): DemoData {
+  const R = "demo-broast";
+  const M = "demo-broast-menu";
+  const dish = dishMaker(R, M);
+  return {
+    restaurant: restaurantOf(R, {
+      name: "قرمشة",
+      type: "بروست ودجاج مقلي",
+      address: "الدمام — حي الشاطئ",
+      logo: "🍗",
+      allergens_text: "التتبيلة والطحين فيهما جلوتين وحليب، والصوصات فيها بيض وخردل — ونقلي كلّ شيءٍ في الزيت نفسه.",
+      working_hours: WEEK("12:00", "01:00", "02:00"),
+      loyalty_goal: 6,
+      loyalty_reward: "وجبة ٤ قطع مجاناً",
+      prep_minutes: 10,
+      category_order: JSON.stringify(["البروست", "الوجبات", "الساندويتشات", "الإضافات", "المشروبات"]),
+    }),
+    menus: [menuOf(R, M, "bucket")],
+    dishes: [
+      dish("k1", "بروست ٤ قطع", "Broast — 4 pcs", "البروست", 24, "🍗", {
+        description: "أربع قطع دجاج متبّلة ١٢ ساعة، مقرمشة من الخارج وطريّة من الداخل.",
+        featured: true,
+        calories: 920,
+        sodium_mg: 1680,
+        allergens: ["جلوتين", "حليب"],
+        options: JSON.stringify([
+          { name: "صدر بدل فخذ", price: 3, kcal: 40 },
+          { name: "خبز إضافي", price: 1, kcal: 160 },
+        ]),
+      }),
+      dish("k2", "بروست ٨ قطع — عائلي", "Family Broast — 8 pcs", "البروست", 44, "🍗", {
+        description: "ثماني قطع مع خبز وثومية — تكفي ثلاثة.",
+        calories: 1840,
+        sodium_mg: 3360,
+        allergens: ["جلوتين", "حليب", "بيض"],
+      }),
+      dish("k3", "ستربس — ٥ قطع", "Strips — 5 pcs", "البروست", 22, "🍗", {
+        description: "شرائح صدر بلا عظم بطبقة كرسبي.",
+        calories: 610,
+        sodium_mg: 1240,
+        allergens: ["جلوتين", "حليب", "بيض"],
+      }),
+      dish("k4", "بروست حرّاق ٤ قطع", "Hot Broast — 4 pcs", "البروست", 26, "🌶️", {
+        description: "القطع نفسها بتتبيلة الشطّة والفلفل الأحمر — حرارةٌ متوسّطة.",
+        calories: 940,
+        sodium_mg: 1790,
+        allergens: ["جلوتين", "حليب"],
+        options: JSON.stringify([
+          { name: "حرّاق نار", price: 0 },
+          { name: "حرّاق خفيف", price: 0 },
+        ]),
+      }),
+      dish("k5", "أجنحة حارّة — ٨ قطع", "Hot Wings — 8 pcs", "البروست", 21, "🌶️", {
+        description: "أجنحة مقلية مغموسة بصوص الحارّ والعسل.",
+        calories: 720,
+        sodium_mg: 1520,
+        allergens: ["جلوتين"],
+      }),
+      dish("k6", "وجبة ٤ قطع", "4-pc Meal", "الوجبات", 31, "🍟", {
+        description: "بروست ٤ قطع مع بطاطس وسط وثومية ومشروب غازي.",
+        featured: true,
+        // ٩٢٠ بروست + ٣٤٠ بطاطس + ٩٠ ثومية + ١٤٠ مشروب — والصوديوم كذلك.
+        calories: 1490,
+        sodium_mg: 2300,
+        allergens: ["جلوتين", "حليب", "بيض"],
+      }),
+      dish("k7", "ساندويتش بروست", "Broast Sandwich", "الساندويتشات", 14, "🥪", {
+        description: "قطعتا صدر في خبز صامولي مع كولسلو ومخلل.",
+        calories: 560,
+        sodium_mg: 1180,
+        allergens: ["جلوتين", "حليب", "بيض"],
+      }),
+      dish("k13", "لفافة بروست حرّاق", "Hot Broast Wrap", "الساندويتشات", 15, "🌯", {
+        description: "ستربس حرّاق في خبز تورتيلا مع خسّ وصوص حارّ ومخلل.",
+        calories: 590,
+        sodium_mg: 1320,
+        allergens: ["جلوتين", "حليب", "بيض"],
+      }),
+      dish("k8", "بطاطس مقلية", "Fries", "الإضافات", 7, "🍟", {
+        description: "حجم وسط بملح البحر والبابريكا.",
+        calories: 340,
+        sodium_mg: 420,
+      }),
+      dish("k9", "ثومية", "Garlic Dip", "الإضافات", 2, "🧄", {
+        description: "ثومية بيضاء كثيفة — ٥٠ مل.",
+        calories: 90,
+        sodium_mg: 180,
+        allergens: ["بيض"],
+      }),
+      dish("k10", "صوص حارّ", "Hot Sauce", "الإضافات", 2, "🌶️", {
+        description: "شطّة حمراء بالخلّ والثوم — ٥٠ مل.",
+        calories: 25,
+        sodium_mg: 410,
+      }),
+      dish("k11", "صوص عسل وخردل", "Honey Mustard", "الإضافات", 3, "🍯", {
+        description: "عسل وخردل حبوب — ٥٠ مل.",
+        calories: 110,
+        sodium_mg: 160,
+        allergens: ["خردل"],
+        available: false,
+      }),
+      dish("k12", "مشروب غازي", "Soft Drink", "المشروبات", 4, "🥤", {
+        description: "٣٣٠ مل.",
+        calories: 140,
+        sodium_mg: 20,
+      }),
+    ],
+  };
+}
+
 /**
  * المنيو الذي يُعاين به طابعٌ ما وحده (`/demo?theme=…` من «عاينه كاملاً»):
  * منيوه إن كان له (`KIND_BY_THEME`)، وإلا أوّل نوعٍ في `suits` ⇒ منيو ذلك النوع.
@@ -2059,6 +2175,8 @@ const KIND_BY_THEME: Readonly<Record<string, DemoKind>> = {
   // ٠٩/١١ (الموجة ٣): «شاورما» على منيو المشاوي القائم. (وأُضيف إليه يومها «ستيك ريب آي على الفحم» و«بريسكت
   // مدخّن» لـ«ستيك» و«مدخنة»؛ وحُذف الطابعان ١١/١١ فسقط البريسكت وبقي الريب آي — على الفحم، يخدم «جمر».)
   shawarma: "grill",
+  // ١١/١١: «سطل» على منيو البروست — نوعٌ جديد بأقلّ ما يلزم (بروست وحرّاق · وجبات · ساندويتشات · صوصات).
+  bucket: "broast",
 };
 
 export function demoKindForSuits(suits: readonly string[] | undefined, themeId?: string | null): DemoKind {
@@ -2082,6 +2200,7 @@ const BUILDERS: Record<DemoKind, () => DemoData> = {
   espresso,
   karak,
   teahouse,
+  broast,
 };
 
 /** المنيو التجريبي لنوعٍ ما — والمجهول يسقط إلى «الديوان». */

@@ -867,6 +867,43 @@ function shawarma(ctx: Ctx, b: MotifBox, k: MotifInk): void {
   });
 }
 
+/** سطل — دبّوس بروستٍ بالخافت (عظمةٌ وجسم)، وبينها قطرة صوصٍ بالتمييز. */
+function bucket(ctx: Ctx, b: MotifBox, k: MotifInk): void {
+  const room = b.reach - b.outer;
+  const s = Math.min(b.mm * 2.4, room * 0.6);
+  alongTopBottom(b, s * 1.4, (x, w, top) => {
+    const cx = x + w / 2;
+    const cy = top ? b.outer + room * 0.5 : b.H - b.outer - room * 0.5;
+    const i = Math.round((x - b.outer) / w);
+    if (i % 2) {
+      // قطرة الصوص: دائرةٌ برأسٍ مدبّب إلى أعلى.
+      ctx.fillStyle = k.accent;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - s * 0.32);
+      ctx.quadraticCurveTo(cx + s * 0.22, cy - s * 0.02, cx + s * 0.2, cy + s * 0.1);
+      ctx.arc(cx, cy + s * 0.1, s * 0.2, 0, Math.PI);
+      ctx.quadraticCurveTo(cx - s * 0.22, cy - s * 0.02, cx, cy - s * 0.32);
+      ctx.fill();
+      return;
+    }
+    ctx.fillStyle = k.muted;
+    ctx.beginPath();
+    ctx.ellipse(cx - s * 0.1, cy, s * 0.26, s * 0.18, -0.4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = k.muted;
+    ctx.lineWidth = s * 0.08;
+    ctx.beginPath();
+    ctx.moveTo(cx + s * 0.08, cy + s * 0.06);
+    ctx.lineTo(cx + s * 0.3, cy + s * 0.16);
+    ctx.stroke();
+    for (const dy of [0.1, 0.24]) {
+      ctx.beginPath();
+      ctx.arc(cx + s * 0.34, cy + s * dy, s * 0.07, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  });
+}
+
 const MOTIFS: Record<MenuSkin, ((ctx: Ctx, b: MotifBox, k: MotifInk) => void) | null> = {
   gold: folio,
   receipt,
@@ -901,6 +938,7 @@ const MOTIFS: Record<MenuSkin, ((ctx: Ctx, b: MotifBox, k: MotifInk) => void) | 
   slices,
   napoli,
   shawarma,
+  bucket,
   // «لون علامتي» محايدٌ عمداً على الشاشة — وكذلك على الورق.
   store: null,
 };

@@ -40,6 +40,8 @@ export const MOTION_SKINS: ReadonlySet<MenuSkin> = new Set<MenuSkin>([
   "woodfire", "pizzabox", "slices", "napoli",
   // ٠٩/١١ (الموجة ٣): المشاوي — شاورما (و«ستيك» و«أوجاق» و«مدخنة» حذفها المالك ١١/١١).
   "shawarma",
+  // ١١/١١ (الموجة أ): البروست — سطل.
+  "bucket",
   // ١٠/١١ (الموجة ٤): الأربعة القائمة لهذه الأقسام — دلّة · باريستا · ريحان · جمر.
   "dallah", "barista", "pizza", "grill",
 ]);

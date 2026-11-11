@@ -92,7 +92,7 @@ const BRANDS = [null, "#f1c40f", "#7f7f7f", "#0b1f3a", "#ff9eb5", "#2fa8a0"];
 
 describe("kitPalette — كلّ نصٍّ AA على الأرضية الفعلية للقطعة", () => {
   it("يمرّ على الطوابع كلّها — لا على عيّنة", () => {
-    expect(ALL_THEMES.length).toBe(33);
+    expect(ALL_THEMES.length).toBe(34);
   });
 
   for (const t of ALL_THEMES) {
