@@ -113,7 +113,8 @@ export function AddToCartButton({
   label,
   className,
 }: {
-  onAdd: () => void;
+  /** يُمرَّر الزرّ نفسه: منه يجد الطابع بطاقته (`lib/skinMotion.ts`). */
+  onAdd: (from: HTMLElement) => void;
   label: string;
   className: string;
 }) {
@@ -121,7 +122,7 @@ export function AddToCartButton({
     <button
       onClick={(e) => {
         e.stopPropagation();
-        onAdd();
+        onAdd(e.currentTarget);
       }}
       aria-label={label}
       title={label}

@@ -507,3 +507,205 @@
     transform: translateX(30px);
   }
 }
+
+/* ── التفاعل (الموجة ٤، ٢٠٢٦/١١/١٠ — `lib/skinMotion.ts`) ──
+ * مع التمرير: **إبرة العدّاد** (وجهه شعارك) تصعد بما مُرِّر نحو المنطقة الحمراء (`--m-scroll-y`،
+ * حتى ٣٦٠ ⇒ ٥٤°)، وتحت الشريط خطٌّ من البنّ بتقدّم الصفحة (`--m-scroll`). وحين يدخل القسم **تنزلق تذكرة الطلب** إلى مكانها (`data-m-in`). وحين
+ * يُضاف صنفٌ **يُسحب الشوت من الرأسين** معاً، وتقفز الإبرة بضغط الاستخلاص، و**ينفث ذراع البخار**، وتخرج
+ * تذكرة طلبٍ فوق شريط الطلب. الإبرة بـ`rotate` فوق `transform` الساكن، فلا تُمسّ زاويتها في الشكل الساكن. */
+@property --m-br-kick {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .m-skin-barista[data-m-motion] .m-br-needle {
+    rotate: calc(min(var(--m-scroll-y, 0), 360) * 0.15deg + var(--m-br-kick) * 1deg);
+    transition: rotate 0.35s cubic-bezier(0.3, 1.3, 0.5, 1);
+  }
+  .m-skin-barista[data-m-motion] .m-nav::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: -1px;
+    height: 2px;
+    background: linear-gradient(90deg, #5a2e14, #8a4f26 55%, #d9a46b);
+    transform-origin: 100% 50%;
+    transform: scaleX(var(--m-scroll, 0));
+    pointer-events: none;
+  }
+  [dir="ltr"].m-skin-barista[data-m-motion] .m-nav::after {
+    transform-origin: 0 50%;
+  }
+
+  /* القسم يدخل: تذكرة الطلب تنزلق إلى آخر السطر من جهة الخطّ وتستقرّ مائلةً قليلاً ثم تستقيم — من الداخل لا
+     من خارج الحافّة: إزاحتها نحو الحافّة قبل الدخول كانت فيضاً أفقياً (‎7px على 320). */
+  .m-skin-barista {
+    --m-br-from: 26px;
+  }
+  [dir="ltr"].m-skin-barista {
+    --m-br-from: -26px;
+  }
+  .m-skin-barista[data-m-motion] .m-sec:not([data-m-in]) .m-br-ticket {
+    opacity: 0;
+    translate: var(--m-br-from) 0;
+  }
+  .m-skin-barista .m-sec[data-m-in] .m-br-ticket {
+    animation: m-br-slide 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.2) 0.2s both;
+  }
+  .m-skin-barista .m-sec[data-m-in] .m-br-rule {
+    transform-origin: 0 50%;
+    animation: m-br-draw 0.5s ease-out 0.1s both;
+  }
+  [dir="ltr"].m-skin-barista .m-sec[data-m-in] .m-br-rule {
+    transform-origin: 100% 50%;
+  }
+
+  /* أُضيف: الشوت من الرأسين (`scale` فوق سحب الفتح فلا يُعاد)، والإبرة تقفز، والذراع ينفث. */
+  .m-skin-barista[data-m-added] .m-br-stream {
+    animation:
+      m-br-shot 1s ease-in-out 0s both,
+      m-br-pull 1.8s ease-in-out 0.9s 2 both;
+  }
+  .m-skin-barista[data-m-added] .m-br-cup-end .m-br-stream {
+    animation:
+      m-br-shot 1s ease-in-out 0s both,
+      m-br-pull 1.8s ease-in-out 1.15s 2 both;
+  }
+  .m-skin-barista[data-m-added] .m-br-needle {
+    animation:
+      m-br-kick 0.9s cubic-bezier(0.3, 1.4, 0.5, 1) 0s both,
+      m-br-swing 1.5s cubic-bezier(0.3, 1.4, 0.5, 1) 0.45s both;
+  }
+  .m-skin-barista[data-m-added] .m-br-wand::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -1.8rem;
+    width: 3.4rem;
+    height: 2.8rem;
+    margin-left: -1.7rem;
+    border-radius: 50%;
+    background:
+      radial-gradient(closest-side at 35% 60%, #fff, rgba(255, 255, 255, 0.6) 60%, transparent),
+      radial-gradient(closest-side at 65% 40%, #fff, rgba(255, 255, 255, 0.5) 60%, transparent);
+    filter: blur(1.5px) drop-shadow(0 0 3px rgba(120, 110, 100, 0.35));
+    pointer-events: none;
+    animation: m-br-blow 0.95s ease-out 0.15s both;
+  }
+  .m-skin-barista [data-m-added] > .m-add {
+    animation: m-br-press 0.5s cubic-bezier(0.3, 0.7, 0.3, 1.3) both;
+  }
+  .m-skin-barista [data-m-added] > .m-add::after {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px var(--m-br-steel);
+    pointer-events: none;
+    animation: m-br-ring 0.7s ease-out both;
+  }
+  /* شريط الطلب: تذكرةٌ بثلمتين تخرج من فوقه. */
+  .m-skin-barista[data-m-added] .m-cart::before {
+    content: "";
+    position: absolute;
+    top: -1.25rem;
+    inset-inline-end: 1.4rem;
+    width: 26px;
+    height: 30px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 30'%3E%3Cpath d='M2 1H24V12A3 3 0 0 0 24 18V29H2V18A3 3 0 0 0 2 12Z' fill='%23fff' stroke='%23b8b0a4'/%3E%3Cpath d='M6 7H20M6 22H16' stroke='%235a2e14' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M6 15H20' stroke='%23b8b0a4' stroke-dasharray='2 2'/%3E%3C/svg%3E")
+      center / contain no-repeat;
+    pointer-events: none;
+    animation: m-br-cart 1.1s ease-out both;
+  }
+}
+
+@keyframes m-br-slide {
+  from {
+    opacity: 0;
+    translate: var(--m-br-from) 0;
+    rotate: -8deg;
+  }
+  70% {
+    opacity: 1;
+    rotate: 2deg;
+  }
+}
+@keyframes m-br-draw {
+  from {
+    transform: scaleX(0);
+  }
+}
+/* الشوت: الخيط ينقطع ثم ينزل أثخن، ويرقّ حتى يعود كما كان. */
+@keyframes m-br-shot {
+  0% {
+    scale: 1 0;
+  }
+  25% {
+    scale: 1.7 1;
+  }
+  70% {
+    scale: 1.4 1;
+  }
+  100% {
+    scale: 1 1;
+  }
+}
+@keyframes m-br-kick {
+  0% {
+    --m-br-kick: 0;
+  }
+  30% {
+    --m-br-kick: 44;
+  }
+  55% {
+    --m-br-kick: 34;
+  }
+  100% {
+    --m-br-kick: 0;
+  }
+}
+@keyframes m-br-blow {
+  0% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.3);
+  }
+  30% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-26px) scale(1.5);
+  }
+}
+@keyframes m-br-press {
+  40% {
+    transform: scale(0.9);
+  }
+}
+@keyframes m-br-ring {
+  from {
+    opacity: 1;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.4);
+  }
+}
+@keyframes m-br-cart {
+  0% {
+    opacity: 0;
+    transform: translateY(14px) scaleY(0.4);
+  }
+  25%,
+  75% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}

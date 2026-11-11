@@ -1,0 +1,509 @@
+/*
+ * ══ شاورما — محلّ الشاورما (٢٠٢٦/١١/٠٩) ═════════════════════════════════════════════
+ * الطابع الثالث والثلاثون. سيخٌ عموديّ أمام لوح لهبٍ يتوهّج، فوق جدار بلاطٍ أبيض، وشعارك على قرصه.
+ * **السيخ يدور مع التمرير**: طبقات اللحم خلفيّةٌ تتكرّر، وموضعها الأفقي من `--m-scroll-y` ومن دورانٍ
+ * بطيء (`--m-sw-spin`) — فلا تقفز ولا تحتاج باقي قسمة. **وحين يُضاف صنفٌ تنزل السكّين** على المخروط
+ * وتتساقط الشرائح في الصينيّة، ويخرج ساندويتش صاجٍ فوق شريط الطلب. والأقسام لوحاتٌ مضيئة تشتعل حين
+ * تدخل الشاشة (`data-m-in`).
+ * الترويسة وعنوان القسم في `components/menu/heads/ShawarmaHead.tsx`.
+ *
+ * ⚠️ مستورَدٌ من **رأس** `menu-skins.css` — فكلّ انتقائيٍّ هنا يبدأ بـ`.m-skin-shawarma`.
+ *
+ * ما يتبع العلامة: اللوحة (`--m-accent` و`--m-on-accent` عليها)، وحلقة القرص، والسعر
+ * (`--m-accent-ink`)، والأزرار. وما لا يتبعها خامة: اللحم واللهب والستيل والبلاط وبطاقة العدد الصفراء
+ * (حبرها داكنٌ ثابت عليها).
+ */
+/* دوران السيخ حين يسكن — مسافةٌ تُضاف إلى موضع الطبقات، مسجَّلةٌ لتتحرّك. */
+@property --m-sw-spin {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+.m-skin-shawarma {
+  display: flow-root;
+  --m-sw-steel: linear-gradient(90deg, #8d8984, #e9e6e1 45%, #b7b2ab 60%, #77736e);
+  --m-sw-yellow: #f5b301;
+  /* الشرائح تنزل من اليمين في العربية. */
+  --m-sw-from: 22px;
+  /* الزخرفة: بلاطٌ أبيض خافت بفواصل رمادية — جدار المحلّ. */
+  background-image:
+    linear-gradient(90deg, rgba(33, 21, 14, 0.045) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(33, 21, 14, 0.045) 1px, transparent 1px);
+  background-size: 34px 34px;
+}
+
+/* ── الجدار والسيخ ── */
+.m-skin-shawarma .m-sw-wall {
+  background:
+    radial-gradient(40% 50% at 62% 48%, rgba(255, 140, 40, 0.18), transparent 70%),
+    linear-gradient(90deg, rgba(33, 21, 14, 0.08) 1.5px, transparent 1.5px) 0 0 / 26px 26px,
+    linear-gradient(0deg, rgba(33, 21, 14, 0.08) 1.5px, transparent 1.5px) 0 0 / 26px 26px,
+    linear-gradient(180deg, #ffffff, var(--m-bg-2));
+  -webkit-mask: linear-gradient(180deg, #000 72%, transparent);
+  mask: linear-gradient(180deg, #000 72%, transparent);
+}
+.m-skin-shawarma .m-sw-scene {
+  filter: drop-shadow(0 10px 12px rgba(33, 21, 14, 0.25));
+}
+.m-skin-shawarma .m-sw-burner {
+  border-radius: 8px;
+  box-shadow: 0 0 26px 4px rgba(255, 110, 20, 0.35);
+}
+.m-skin-shawarma .m-sw-rod {
+  border-radius: 3px;
+  background: var(--m-sw-steel);
+}
+/* المخروط: أعرض من فوق كما يُبنى السيخ، وحوافّه محروقة. */
+.m-skin-shawarma .m-sw-cone {
+  clip-path: polygon(10% 0, 90% 0, 100% 5%, 98% 14%, 70% 100%, 30% 100%, 2% 14%, 0 5%);
+}
+/* طبقات اللحم: أفقيةٌ ثابتة (رقائق مكدّسة)، وفوقها خطوط تحميرٍ عموديّة تمرّ مع الدوران. */
+/* اللحم المكدّس: طبقةٌ أولى من بقع التحمير والدهن تمرّ مع الدوران (عرضها ٤٠ بكسلاً تتكرّر)، وتحتها
+   رقائق أفقية غير منتظمة الألوان — لحمٌ لا خشب. */
+.m-skin-shawarma .m-sw-meat {
+  background:
+    radial-gradient(7px 4px at 8px 9px, rgba(70, 24, 4, 0.7), transparent),
+    radial-gradient(6px 3px at 26px 22px, rgba(255, 220, 160, 0.55), transparent),
+    radial-gradient(9px 5px at 18px 34px, rgba(80, 28, 6, 0.6), transparent),
+    radial-gradient(5px 3px at 34px 46px, rgba(255, 210, 150, 0.5), transparent),
+    radial-gradient(8px 4px at 6px 55px, rgba(90, 32, 8, 0.55), transparent),
+    linear-gradient(
+      180deg,
+      #a85a26 0,
+      #c47a3a 6%,
+      #9a4f1f 9%,
+      #b8692f 15%,
+      #d08a48 19%,
+      #8a4218 22%,
+      #b06228 30%,
+      #c97c3c 37%,
+      #9a4f1f 41%,
+      #b8692f 50%,
+      #d08a48 55%,
+      #8f461a 59%,
+      #b8692f 67%,
+      #c47a3a 74%,
+      #96491c 79%,
+      #b06228 88%,
+      #8a4218 100%
+    );
+  background-size: 40px 62px, 40px 62px, 40px 62px, 40px 62px, 40px 62px, 100% 100%;
+}
+/* الظلّ الأسطوانيّ: عتمةٌ على الحافّتين، ولمعة دهن، ووهج اللهب من الجهة التي خلفها اللوح. */
+.m-skin-shawarma .m-sw-shade {
+  background: linear-gradient(
+    90deg,
+    rgba(30, 10, 2, 0.6),
+    rgba(30, 10, 2, 0.1) 26%,
+    rgba(255, 228, 180, 0.28) 44%,
+    transparent 58%,
+    rgba(255, 120, 30, 0.28) 82%,
+    rgba(30, 10, 2, 0.55)
+  );
+}
+.m-skin-shawarma .m-sw-plate {
+  border-radius: 50%;
+  background: radial-gradient(closest-side, #f2efea, #a9a49d 80%, #6f6b66);
+}
+.m-skin-shawarma .m-sw-tray {
+  border-radius: 4px 4px 10px 10px;
+  background: var(--m-sw-steel);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.6), 0 4px 6px -2px rgba(0, 0, 0, 0.35);
+}
+/* كومة الشرائح في الصينيّة. */
+.m-skin-shawarma .m-sw-shaved {
+  border-radius: 50% 50% 30% 30% / 80% 80% 20% 20%;
+  background:
+    radial-gradient(circle at 30% 60%, #c97c3c 0 4px, transparent 5px),
+    radial-gradient(circle at 60% 40%, #9a4f1f 0 5px, transparent 6px),
+    radial-gradient(circle at 78% 66%, #b8692f 0 4px, transparent 5px),
+    linear-gradient(180deg, #b8692f, #8a4218);
+}
+.m-skin-shawarma .m-sw-fall i {
+  position: absolute;
+  inset-inline-start: 30%;
+  top: 0;
+  width: 9px;
+  height: 4px;
+  border-radius: 40% 60% 50% 50%;
+  background: #a85a26;
+  opacity: 0;
+}
+.m-skin-shawarma .m-sw-fall i:nth-child(2) {
+  inset-inline-start: 55%;
+  top: 14%;
+  background: #c97c3c;
+}
+.m-skin-shawarma .m-sw-fall i:nth-child(3) {
+  inset-inline-start: 10%;
+  top: 26%;
+  background: #8a4218;
+}
+.m-skin-shawarma .m-sw-knife {
+  opacity: 0;
+  transform: rotate(-8deg);
+  transform-origin: 50% 0;
+}
+.m-skin-shawarma .m-sw-cap {
+  box-shadow:
+    0 0 0 3px var(--m-accent),
+    0 0 0 6px #d6d2cc,
+    0 0 0 7px #77736e,
+    0 6px 10px rgba(0, 0, 0, 0.3);
+}
+.m-skin-shawarma .m-sw-window {
+  border-radius: 10px;
+  box-shadow:
+    0 0 0 4px #e9e6e1,
+    0 0 0 5px #8d8984,
+    0 12px 20px -12px rgba(33, 21, 14, 0.5);
+}
+
+/* ── عنوان القسم: لوحةٌ مضيئة ── */
+.m-skin-shawarma .m-sw-panel {
+  border-radius: 6px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16), transparent 45%),
+    var(--m-accent);
+  color: var(--m-on-accent);
+  box-shadow:
+    inset 0 0 0 2px color-mix(in srgb, var(--m-accent) 70%, #000),
+    inset 0 0 18px rgba(255, 255, 255, 0.18),
+    0 0 0 3px #d6d2cc,
+    0 6px 14px -6px rgba(33, 21, 14, 0.45);
+}
+/* أربعة مسامير في الأركان. */
+.m-skin-shawarma .m-sw-screws {
+  position: absolute;
+  inset: 4px;
+  pointer-events: none;
+  background:
+    radial-gradient(circle, #e9e6e1 0 1.6px, #77736e 2.2px, transparent 2.6px) 0 0 / 6px 6px no-repeat,
+    radial-gradient(circle, #e9e6e1 0 1.6px, #77736e 2.2px, transparent 2.6px) 100% 0 / 6px 6px no-repeat,
+    radial-gradient(circle, #e9e6e1 0 1.6px, #77736e 2.2px, transparent 2.6px) 0 100% / 6px 6px no-repeat,
+    radial-gradient(circle, #e9e6e1 0 1.6px, #77736e 2.2px, transparent 2.6px) 100% 100% / 6px 6px no-repeat;
+}
+.m-skin-shawarma .m-sw-tag {
+  border-radius: 4px;
+  background: var(--m-sw-yellow);
+  color: #21150e;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.25);
+}
+.m-skin-shawarma .m-sw-photo .m-img {
+  border-radius: 8px;
+}
+.m-skin-shawarma .m-sw-photo {
+  padding: 4px;
+  border-radius: 10px;
+  background: var(--m-sw-steel);
+}
+
+/* ── الطبق بلا صورة: لفّة صاجٍ على صينيّة ستيل ──
+   الأرضية بلاطٌ أبيض، والصحن **الخبز نفسه** ملفوفاً: دوائر لفّاتٍ بلون الصاج ولحمٌ في قلبها. */
+.m-skin-shawarma .m-art {
+  --m-art-bg:
+    linear-gradient(90deg, rgba(33, 21, 14, 0.07) 1px, transparent 1px) 0 0 / 18px 18px,
+    linear-gradient(0deg, rgba(33, 21, 14, 0.07) 1px, transparent 1px) 0 0 / 18px 18px,
+    linear-gradient(180deg, #ffffff, #efe6d8);
+  --m-art-plate: radial-gradient(
+    circle closest-side,
+    #8a4218 0,
+    #b8692f 26%,
+    #f3dcae 32%,
+    #e7c58a 48%,
+    #f6e4bf 56%,
+    #dcb173 74%,
+    #f3dcae 82%,
+    #b98a4c 100%
+  );
+  --m-art-ring: 0 0 0 1px rgba(33, 21, 14, 0.18);
+  --m-art-lift: 0 8px 14px -8px rgba(33, 21, 14, 0.45);
+  --m-art-well: 0 0 transparent;
+  --m-art-mark: rgba(179, 38, 30, 0.07);
+}
+.m-skin-shawarma .m-art-plate {
+  --m-accent-ink: #4a1d08;
+}
+
+/* ── البطاقة والشرائح ── */
+.m-skin-shawarma .m-card.m-surface,
+.m-skin-shawarma .m-feature {
+  box-shadow: 0 1px 0 rgba(33, 21, 14, 0.06), 0 8px 18px -14px rgba(33, 21, 14, 0.4);
+}
+.m-skin-shawarma .m-chips > *,
+.m-skin-shawarma .m-tab {
+  border-radius: 6px;
+}
+/* زرّ الإضافة: أحمر اللوحة بحلقة ستيل. */
+.m-skin-shawarma .m-add {
+  box-shadow:
+    0 0 0 2.5px #e9e6e1,
+    0 0 0 3.5px #8d8984,
+    0 4px 8px -3px rgba(33, 21, 14, 0.4);
+}
+/* «نفد اليوم»: السيخ خلص — ستيلٌ فارغ. */
+.m-skin-shawarma .m-soldout {
+  border-radius: 4px;
+  background: #e9e6e1;
+  color: #3a3633;
+  box-shadow: inset 0 0 0 1px #8d8984;
+}
+
+/* ── شاشات الطلب ── */
+.m-skin-shawarma .m-o-card {
+  border-radius: 10px;
+  box-shadow: 0 8px 18px -14px rgba(33, 21, 14, 0.45);
+}
+.m-skin-shawarma .m-o-cta {
+  border-radius: 8px;
+  box-shadow:
+    inset 0 0 14px rgba(255, 255, 255, 0.2),
+    0 0 0 3px #d6d2cc;
+}
+.m-skin-shawarma .m-o-field,
+.m-skin-shawarma .m-o-ghost,
+.m-skin-shawarma .m-o-opt,
+.m-skin-shawarma .m-o-soldout,
+.m-skin-shawarma .m-o-step,
+.m-skin-shawarma .m-o-chip,
+.m-skin-shawarma .m-o-thumb {
+  border-radius: 8px;
+}
+
+/* ── الحركة ──
+ * عند الفتح: السيخ يُوضع، واللوح يتّقد عموداً عموداً ثم يرتعش لهبه، والسيخ يدور ببطء. ومع التمرير:
+ * الطبقات تمرّ أسرع (`--m-scroll-y`)، واللهب يشتدّ ما دام يمرّر (`data-m-scrolling`)، وتحت الشريط
+ * سيخٌ أحمر يمتدّ بتقدّم الصفحة (`--m-scroll`). وحين يدخل القسم تشتعل لوحته كالفلورسنت (`data-m-in`).
+ * وحين يُضاف صنفٌ تنزل السكّين وتتساقط الشرائح، وينضغط الزرّ، ويخرج ساندويتش فوق شريط الطلب. */
+@media (prefers-reduced-motion: no-preference) {
+  .m-skin-shawarma .m-sw-scene {
+    animation: m-sw-set 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) 0.05s both;
+  }
+  /* الطبقات تمرّ مع التمرير ومع الدوران البطيء — الطبقة الأولى وحدها (التحمير)؛ الأفقية ثابتة. */
+  .m-skin-shawarma .m-sw-meat {
+    background-position-x:
+      calc(var(--m-scroll-y, 0) * 0.55px + var(--m-sw-spin)),
+      calc(var(--m-scroll-y, 0) * 0.55px + var(--m-sw-spin)),
+      calc(var(--m-scroll-y, 0) * 0.55px + var(--m-sw-spin)),
+      calc(var(--m-scroll-y, 0) * 0.55px + var(--m-sw-spin)),
+      calc(var(--m-scroll-y, 0) * 0.55px + var(--m-sw-spin)),
+      0;
+    animation: m-sw-spin 7s linear infinite;
+  }
+  .m-skin-shawarma .m-sw-col {
+    animation:
+      m-sw-light 0.5s steps(2, jump-none) calc(0.3s + var(--n) * 0.09s) both,
+      m-sw-flicker calc(1.1s + var(--n) * 0.17s) ease-in-out calc(1s + var(--n) * -0.3s) infinite alternate;
+  }
+  .m-skin-shawarma .m-sw-burner {
+    transition: box-shadow 0.4s ease;
+  }
+  .m-skin-shawarma[data-m-scrolling] .m-sw-burner {
+    box-shadow: 0 0 40px 10px rgba(255, 110, 20, 0.5);
+  }
+  .m-skin-shawarma[data-m-scrolling] .m-sw-meat {
+    animation-duration: 3.5s;
+  }
+  /* سيخٌ تحت الشريط بتقدّم الصفحة: قضيب ستيل يمتلئ لحماً أحمر. */
+  .m-skin-shawarma[data-m-motion] .m-nav::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: -1px;
+    height: 3px;
+    background: linear-gradient(90deg, #8a4218, var(--m-accent) 60%, var(--m-sw-yellow));
+    transform-origin: 100% 50%;
+    transform: scaleX(var(--m-scroll, 0));
+    pointer-events: none;
+  }
+  [dir="ltr"].m-skin-shawarma[data-m-motion] .m-nav::after {
+    transform-origin: 0 50%;
+  }
+  [dir="ltr"].m-skin-shawarma {
+    --m-sw-from: -22px;
+  }
+  /* القسم يدخل: اللوحة مطفأة ثم تشتعل. */
+  .m-skin-shawarma[data-m-motion] .m-sec:not([data-m-in]) .m-sw-panel {
+    filter: brightness(0.55) saturate(0.6);
+  }
+  .m-skin-shawarma .m-sec[data-m-in] .m-sw-panel {
+    animation: m-sw-panel 0.6s steps(1, jump-none) both;
+  }
+  .m-skin-shawarma .m-sec[data-m-in] .m-sw-tag {
+    animation: m-sw-tag 0.45s cubic-bezier(0.3, 0.7, 0.3, 1.3) 0.35s both;
+  }
+  /* أُضيف: السكّين تنزل على المخروط مرّتين، والشرائح تسقط في الصينيّة. */
+  .m-skin-shawarma[data-m-added] .m-sw-knife {
+    animation: m-sw-knife 1.1s cubic-bezier(0.45, 0, 0.3, 1) both;
+  }
+  .m-skin-shawarma[data-m-added] .m-sw-fall i {
+    animation: m-sw-fall 0.55s cubic-bezier(0.5, 0, 0.8, 0.6) 0.3s both;
+  }
+  .m-skin-shawarma[data-m-added] .m-sw-fall i:nth-child(2) {
+    animation-delay: 0.42s;
+  }
+  .m-skin-shawarma[data-m-added] .m-sw-fall i:nth-child(3) {
+    animation-delay: 0.62s;
+  }
+  .m-skin-shawarma[data-m-added] .m-sw-shaved {
+    animation: m-sw-pile 0.4s ease-out 0.75s both;
+  }
+  .m-skin-shawarma [data-m-added] > .m-add {
+    animation: m-sw-press 0.5s cubic-bezier(0.3, 0.7, 0.3, 1.3) both;
+  }
+  .m-skin-shawarma [data-m-added] > .m-add::after {
+    content: "";
+    position: absolute;
+    inset: -5px;
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px var(--m-sw-yellow);
+    pointer-events: none;
+    animation: m-sw-ring 0.7s ease-out both;
+  }
+  /* شريط الطلب: ساندويتش صاجٍ ملفوف يخرج من فوقه. */
+  .m-skin-shawarma[data-m-added] .m-cart::before {
+    content: "";
+    position: absolute;
+    top: -1.2rem;
+    inset-inline-end: 1.4rem;
+    width: 34px;
+    height: 20px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 34 20'%3E%3Cpath d='M3 10L29 2L32 9L6 18Z' fill='%23f3dcae' stroke='%23b98a4c'/%3E%3Cpath d='M29 2L32 9L34 5Z' fill='%23b8692f'/%3E%3Cpath d='M8 11L27 5M10 14L29 8' stroke='%23dcb173'/%3E%3Crect x='2' y='9' width='10' height='9' rx='1' transform='rotate(-17 7 13)' fill='%23ffffff' stroke='%23b3261e'/%3E%3C/svg%3E")
+      center / contain no-repeat;
+    pointer-events: none;
+    animation: m-sw-cart 1.1s ease-out both;
+  }
+  .m-skin-shawarma .m-sheet.anim-fade-up {
+    animation: m-sw-sheet 0.26s cubic-bezier(0.2, 0.9, 0.25, 1) backwards;
+  }
+  .m-skin-shawarma .m-card.m-surface:active,
+  .m-skin-shawarma .m-feature:active {
+    transform: translateY(1px);
+  }
+}
+
+@keyframes m-sw-set {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+@keyframes m-sw-spin {
+  to {
+    --m-sw-spin: 120px;
+  }
+}
+@keyframes m-sw-light {
+  from {
+    opacity: 0.15;
+  }
+}
+@keyframes m-sw-flicker {
+  from {
+    opacity: 0.82;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes m-sw-panel {
+  0% {
+    filter: brightness(0.55) saturate(0.6);
+  }
+  20% {
+    filter: none;
+  }
+  32% {
+    filter: brightness(0.6) saturate(0.6);
+  }
+  48%,
+  100% {
+    filter: none;
+  }
+}
+@keyframes m-sw-tag {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) rotate(-6deg);
+  }
+}
+/* السكّين: تظهر عند حافّة المخروط، تنزل عليه، ترتفع، تنزل ثانيةً، ثم تختفي. */
+@keyframes m-sw-knife {
+  0% {
+    opacity: 0;
+    transform: translate(0, -12px) rotate(-8deg);
+  }
+  12% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(-8deg);
+  }
+  40% {
+    transform: translate(10px, 34px) rotate(-14deg);
+  }
+  52% {
+    transform: translate(0, 6px) rotate(-8deg);
+  }
+  80% {
+    opacity: 1;
+    transform: translate(10px, 40px) rotate(-14deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(4px, 30px) rotate(-10deg);
+  }
+}
+@keyframes m-sw-fall {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) rotate(0);
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--m-sw-from), 88px) rotate(160deg);
+  }
+}
+@keyframes m-sw-pile {
+  50% {
+    transform: scale(1.08, 1.18);
+  }
+}
+@keyframes m-sw-press {
+  40% {
+    transform: scale(0.88);
+  }
+}
+@keyframes m-sw-ring {
+  from {
+    opacity: 1;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.4);
+  }
+}
+@keyframes m-sw-cart {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) rotate(-12deg);
+  }
+  25%,
+  75% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+@keyframes m-sw-sheet {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+}

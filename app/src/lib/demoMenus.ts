@@ -327,20 +327,20 @@ function cafe(): DemoData {
         options: MILK,
       }),
       dish("c5", "V60 — محصول اليوم", "V60 Pour-over", "تقطير", 19, "🫖", {
-        description: "تقطير يدوي ٣٠٠ مل. اسأل عن محصول اليوم ونوتاته.",
+        description: "تقطير يدوي ٣٠٠ مل من محصول إثيوبي (يرغاتشيفي) — نوتات: ياسمين، ليمون، شاي أسود.",
         featured: true,
         calories: 3,
         sodium_mg: 5,
         caffeine_mg: 150,
       }),
       dish("c6", "كيمكس للمشاركة", "Chemex for Two", "تقطير", 32, "⚗️", {
-        description: "٥٠٠ مل تكفي شخصين، من محصول تختاره.",
+        description: "٥٠٠ مل تكفي شخصين، من محصول كولومبي — نوتات: كراميل، تفّاح أحمر.",
         calories: 5,
         sodium_mg: 10,
         caffeine_mg: 250,
       }),
       dish("c7", "كولد برو", "Cold Brew", "باردة", 20, "🧊", {
-        description: "منقوع ١٨ ساعة، ٣٥٠ مل على الثلج.",
+        description: "منقوع ١٨ ساعة من محصول برازيلي، ٣٥٠ مل على الثلج — نوتات: كاكاو، بندق.",
         calories: 5,
         sodium_mg: 10,
         caffeine_mg: 200,
@@ -1229,6 +1229,16 @@ function grill(): DemoData {
         sodium_mg: 1150,
         options: JSON.stringify([{ name: "حبّة كاملة", price: 22, kcal: 680 }]),
       }),
+      dish("g16", "ستيك ريب آي على الفحم", "Charcoal Ribeye Steak", "المشويات", 79, "🥩", {
+        description: "٣٠٠ غ من الريب آي على الفحم، بالملح والفلفل، مع بطاطس مشوية.",
+        calories: 860,
+        sodium_mg: 720,
+      }),
+      dish("g17", "بريسكت مدخّن", "Smoked Brisket", "المشويات", 58, "🍖", {
+        description: "صدر بقر مدخّن اثنتي عشرة ساعة على خشب البلوط، ٢٥٠ غ مع خبز وصوص الباربكيو.",
+        calories: 780,
+        sodium_mg: 1480,
+      }),
       dish("g7", "شاورما لحم", "Meat Shawarma", "الشاورما", 12, "🌯", {
         description: "لحم من السيخ بالطحينة والبصل والبقدونس في خبز صاج.",
         featured: true,
@@ -2023,6 +2033,8 @@ const KIND_BY_TYPE: Record<string, DemoKind> = {
  *
  * و«كرك» و«سماور» (٠٧/١١) شارتهما «شاي»، ومنيو النوع (`KIND_BY_TYPE`) كشك الكرك — فـ«كرك» يُعاين
  * عليه بلا سطرٍ هنا، و«سماور» على بيت الشاي.
+ *
+ * و«دلّة» و«لوحة حروف» تبدّلت شارتاهما (٠٩/١١: «شعبي» و«عصائر») وبقي كلٌّ على منيوه بسطره.
  */
 const KIND_BY_THEME: Readonly<Record<string, DemoKind>> = {
   bakery: "bakery",
@@ -2035,6 +2047,26 @@ const KIND_BY_THEME: Readonly<Record<string, DemoKind>> = {
   letterboard: "cafe",
   modern: "juice",
   samovar: "teahouse",
+  // ٠٩/١١: طوابع القهوة الأربعة على منيوَي القهوة القائمين — بلا منيو جديد: «تقطير» و«مطحنة»
+  // على المحمصة (قسم التقطير ومحاصيله)، و«لاتيه» و«درايف» على «رغوة» (الشوت وما يُبنى عليه).
+  v60: "cafe",
+  grinder: "cafe",
+  latte: "espresso",
+  drive: "espresso",
+  // ٠٩/١١: طوابع البيتزا الأربعة على منيو البيتزا القائم — بلا منيو جديد. و«نيون» و«ملصقات» تبدّلت
+  // شارتاهما (`themeSuggest`) وبقي كلٌّ يُعاين على منيوه كما كان: البرجر والعصير.
+  woodfire: "pizza",
+  pizzabox: "pizza",
+  slices: "pizza",
+  napoli: "pizza",
+  neon: "burger",
+  sticker: "juice",
+  // ٠٩/١١ (الموجة ٣): المشاوي الأربعة على منيو المشاوي القائم — وأُضيف إليه صنفان لا غير: ستيك ريب آي
+  // وبريسكت مدخّن، كي لا يُعاين «ستيك» و«مدخنة» على منيوٍ بلا ستيكٍ ولا مدخّن.
+  shawarma: "grill",
+  steakhouse: "grill",
+  ocakbasi: "grill",
+  smokehouse: "grill",
 };
 
 export function demoKindForSuits(suits: readonly string[] | undefined, themeId?: string | null): DemoKind {

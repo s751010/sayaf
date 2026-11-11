@@ -206,7 +206,8 @@ describe("`MenuPage`: السلّة ونافذة الطبق وطبق اليوم",
     expect(review).toContain("dishById={orderable}");
   });
   it("نافذة الطبق النافد بلا سلّة", () => {
-    expect(src).toMatch(/cart=\{cartOn && ordersOpen && !isSoldOut\(openDish\) \? cart : null\}/);
+    // ‏`cartWithSignal` السلّة نفسها وإضافتها تُعلم الطابع (`lib/skinMotion.ts`، ٠٩/١١).
+    expect(src).toMatch(/cart=\{cartOn && ordersOpen && !isSoldOut\(openDish\) \? cart(WithSignal)? : null\}/);
   });
   it("زرّ الإضافة بشرطٍ واحد يستثني النافد", () => {
     expect(src).toMatch(/const canAdd = \(d: Dish\) =>[\s\S]{0,120}!isSoldOut\(d\)/);

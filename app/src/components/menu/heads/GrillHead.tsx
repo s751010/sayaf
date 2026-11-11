@@ -152,8 +152,8 @@ export function GrillHead({ restaurant, corner, children }: HeadProps) {
 /** السيخ: حلقة المقبض وقطعتان، ثم الاسم، ثم السيخ بقطعه إلى رأسه، والعدد جمرةٌ بعده. */
 export function GrillHeading({ name, items, photo }: SkinHeadingProps) {
   return (
-    <div className="m-h m-skewer-h mb-4">
-      <div className="m-gr-skewer relative flex items-center">
+    <div className="m-h m-skewer-h mb-5">
+      <div className="m-gr-skewer relative flex items-center px-1">
         <span aria-hidden="true" className="m-gr-rod absolute inset-x-0 top-1/2 block" />
         <span aria-hidden="true" className="m-gr-ring relative block shrink-0" />
         <span aria-hidden="true" className="relative ms-1 flex shrink-0 gap-[2px]">
@@ -172,7 +172,7 @@ export function GrillHeading({ name, items, photo }: SkinHeadingProps) {
           <Chunk kind="pepper" size={0.8} />
         </span>
         <span aria-hidden="true" className="m-gr-tip relative block shrink-0" />
-        {items && <span className="m-gr-count relative ms-2 shrink-0 px-2 py-0.5 text-[11px] font-bold">{items}</span>}
+        {items && <span className="m-gr-count relative ms-2 shrink-0 px-2.5 py-1 text-[11px] font-bold">{items}</span>}
       </div>
       {photo && <div className="m-gr-photo mt-3">{photo}</div>}
     </div>

@@ -133,6 +133,12 @@ describe("demoMenus", () => {
     expect(kindOf("najdi")).toBe("shaabi");
     expect(kindOf("roastery")).toBe("cafe");
     expect(kindOf("dark-gold")).toBe("restaurant");
+    // ٠٩/١١: البيتزا الأربعة على منيو البيتزا — و«نيون» و«ملصقات» تبدّلت شارتاهما وبقيا كما كانا.
+    for (const id of ["woodfire", "pizzabox", "slices", "napoli"]) expect(kindOf(id), id).toBe("pizza");
+    expect(kindOf("neon")).toBe("burger");
+    expect(kindOf("sticker")).toBe("juice");
+    // ٠٩/١١ (الموجة ٣): المشاوي الأربعة على منيو المشاوي القائم.
+    for (const id of ["shawarma", "steakhouse", "ocakbasi", "smokehouse"]) expect(kindOf(id), id).toBe("grill");
     // ولكلّ طابعٍ منيوٌ موجود — لا معاينة على بيانات ناقصة.
     for (const t of ALL_THEMES) expect(isDemoKind(demoKindForSuits(t.suits, t.id)), t.id).toBe(true);
     // والطابع الجديد يُعاين على منيوٍ طابعُه هو نفسه.

@@ -139,8 +139,10 @@ export function Finjan({ className, style }: { className?: string; style?: CSSPr
       <path d="M5 11C12 14.4 28 14.4 35 11" fill="none" stroke="#c9a04a" strokeWidth="1.7" />
       <path d="M13.4 31.2H26.6" stroke="#c9a04a" strokeWidth="1.4" />
       <ellipse cx="20" cy="7" rx="16.5" ry="4.2" fill="#fffdf8" stroke="#b9a988" strokeWidth=".8" />
-      <ellipse cx="20" cy="7.3" rx="13.6" ry="3" fill="#d7a443" />
-      <ellipse cx="17" cy="6.6" rx="5" ry="1" fill="#f6dc96" opacity=".7" />
+      <g className="m-dl-coffee">
+        <ellipse cx="20" cy="7.3" rx="13.6" ry="3" fill="#d7a443" />
+        <ellipse cx="17" cy="6.6" rx="5" ry="1" fill="#f6dc96" opacity=".7" />
+      </g>
     </svg>
   );
 }
@@ -191,12 +193,13 @@ export function DallahHead({ restaurant, corner, children }: HeadProps) {
             <Steam />
           </span>
           <Pot width="4.6rem" className="m-dl-pot m-dl-pot-3 z-[1] -ms-4" style={{ transform: "scaleX(-1)" }} />
-          {/* أمام الصفّ: فنجالان عن يمين الكبيرة، وصحن التمر عن يسارها. */}
-          <span aria-hidden="true" className="m-dl-cups absolute bottom-0 end-[8%] z-[3] flex items-end gap-0.5">
+          {/* أمام الصفّ: الفنجالان تحت منقار الكبيرة (يساراً في الاتّجاهين — المنقار يسار الرسم، ومنه
+              تصبّ حين يُضاف صنف)، وصحن التمر في الجهة الأخرى. */}
+          <span aria-hidden="true" className="m-dl-cups absolute bottom-0 left-[8%] z-[3] flex items-end gap-0.5">
             <Finjan className="m-dl-finjan block h-[1.55rem] w-[1.85rem]" />
             <Finjan className="m-dl-finjan block h-[1.55rem] w-[1.85rem]" />
           </span>
-          <Dates className="m-dl-dates absolute bottom-0 start-[7%] z-[3] block h-[1.6rem] w-[3.1rem]" />
+          <Dates className="m-dl-dates absolute bottom-0 right-[7%] z-[3] block h-[1.6rem] w-[3.1rem]" />
         </div>
         <span aria-hidden="true" className="m-dl-shelf relative z-[4] -mx-3 block h-[18px]" />
       </div>
@@ -234,8 +237,8 @@ export function DallahHead({ restaurant, corner, children }: HeadProps) {
 /** الفنجال وبخاره، ثم الاسم، ثم حبّات الهيل إلى العدد — والعدد تمرة. */
 export function DallahHeading({ name, items, photo }: SkinHeadingProps) {
   return (
-    <div className="m-h m-finjan-h mb-4">
-      <div className="flex items-center gap-2.5 px-1">
+    <div className="m-h m-finjan-h mb-5">
+      <div className="flex items-center gap-3 px-1">
         <span aria-hidden="true" className="m-dl-cup relative block shrink-0">
           <svg viewBox="0 0 20 18" className="m-dl-cup-steam absolute bottom-[78%] left-1/2 block h-4 w-5 -translate-x-1/2">
             <path className="m-dl-wisp" d="M7 17c-3-4 3-6 0-10s3-5 1-7" fill="none" strokeWidth="1.6" strokeLinecap="round" />
@@ -243,11 +246,11 @@ export function DallahHeading({ name, items, photo }: SkinHeadingProps) {
           </svg>
           <Finjan className="block h-[1.9rem] w-[2.25rem]" />
         </span>
-        <h2 className="min-w-0 text-[1.5rem] font-bold leading-[1.5]" style={{ ...display, color: "var(--m-text)" }}>
+        <h2 className="min-w-0 text-[1.45rem] font-bold leading-[1.5]" style={{ ...display, color: "var(--m-text)" }}>
           {name}
         </h2>
         <span aria-hidden="true" className="m-dl-pods block h-2.5 min-w-6 flex-1" />
-        {items && <span className="m-dl-date shrink-0 px-2.5 py-0.5 text-[11px] font-bold">{items}</span>}
+        {items && <span className="m-dl-date shrink-0 px-2.5 py-1 text-[11px] font-bold">{items}</span>}
       </div>
       {photo && <div className="m-dl-photo mt-3">{photo}</div>}
     </div>

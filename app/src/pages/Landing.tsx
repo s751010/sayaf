@@ -38,6 +38,7 @@ import { Icon, type IconName } from "@/lib/icons";
 import { ALL_THEMES } from "@/lib/themes";
 import { fillColumns, themesOf, type ThemeCategoryId } from "@/lib/themeCategories";
 import { ThemeCategoryTabs } from "@/components/ThemeCategoryTabs";
+import { SuitsLine } from "@/components/ThemeSuggest";
 import { CTA_PRIMARY, CTA_SECONDARY, PRINT_DPI, THEMES_LABEL } from "@/lib/facts";
 import { absoluteUrl, useJsonLd, useSeo } from "@/lib/seo";
 import { SEGMENT_LINKS, segmentPath } from "@/lib/segmentLinks";
@@ -369,7 +370,7 @@ export default function Landing() {
             className="-mx-5 mb-6 sm:mx-0"
             listClassName="sm:mx-auto sm:max-w-3xl sm:justify-center"
           />
-          {/* الأعمدة من عدد البطاقات (`fillColumns`): أربعةٌ وعشرون وأربعة ⇒ اثنان ثم أربعة، وثلاثة
+          {/* الأعمدة من عدد البطاقات (`fillColumns`): ستّةٌ وثلاثون وأربعة ⇒ اثنان ثم أربعة، وثلاثة
               ⇒ ثلاثة — لا طابعٌ وحيد في آخر صفّ. و`auto-rows-fr`: البطاقات كلّها بطولٍ واحد
               لا صفّاً صفّاً. */}
           <div
@@ -401,9 +402,7 @@ export default function Landing() {
                       <p className="font-bold text-ink">{t.name}</p>
                       <p className="mt-1 text-sm leading-relaxed text-dim">{t.tagline}</p>
                       {/* «وتحته الأماكن التي يناسبها» وعدٌ في عنوان القسم — فيُرى هنا. */}
-                      {!!t.suits?.length && (
-                        <p className="mt-1.5 text-xs font-bold text-dim">يناسب: {t.suits.join(" · ")}</p>
-                      )}
+                      <SuitsLine theme={t} className="mt-1.5 text-xs font-bold" />
                     </div>
                     <span className="mt-0.5 shrink-0 text-xs font-bold text-gold group-hover:underline">جرّبه ↑</span>
                   </div>

@@ -43,6 +43,18 @@
 @import "./skins/barista.css";
 @import "./skins/karak.css";
 @import "./skins/samovar.css";
+@import "./skins/v60.css";
+@import "./skins/latte.css";
+@import "./skins/grinder.css";
+@import "./skins/drive.css";
+@import "./skins/woodfire.css";
+@import "./skins/pizzabox.css";
+@import "./skins/slices.css";
+@import "./skins/napoli.css";
+@import "./skins/shawarma.css";
+@import "./skins/steakhouse.css";
+@import "./skins/ocakbasi.css";
+@import "./skins/smokehouse.css";
 
 /* ══ المشترك ══════════════════════════════════════════════════════════ */
 

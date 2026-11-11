@@ -19,9 +19,10 @@ import { restaurantTypeLabel } from "@/lib/menuText";
 import type { Restaurant } from "@/lib/types";
 import { LogoMark } from "./LogoMark";
 import {
-  ArcadeHead, AsirHead, BagHead, BakeryHead, BaristaHead, BreakfastHead, BurgerHead, Corner, DallahHead, DukkanHead, FolioHead, GridHead,
-  GrillHead, HarborHead, JuiceHead, KarakHead, LetterboardHead, MastheadHead, MudHead, PaperHead, PatisserieHead, PizzaHead,
-  PosterHead, SamovarHead, SignHead,
+  ArcadeHead, AsirHead, BagHead, BakeryHead, BaristaHead, BreakfastHead, BurgerHead, Corner, DallahHead, DriveHead, DukkanHead, FolioHead,
+  GridHead, GrillHead, GrinderHead, HarborHead, JuiceHead, KarakHead, LatteHead, LetterboardHead, MastheadHead, MudHead, NapoliHead,
+  OcakbasiHead, PaperHead, PatisserieHead, PizzaboxHead, PizzaHead, PosterHead, SamovarHead, ShawarmaHead, SignHead, SlicesHead,
+  SmokehouseHead, SteakhouseHead, V60Head, WoodfireHead,
   type HeadProps,
 } from "./SkinHeads";
 
@@ -51,6 +52,18 @@ const SKIN_HEADS: Partial<Record<HeaderShape, ComponentType<HeadProps>>> = {
   machine: BaristaHead,
   kiosk: KarakHead,
   rug: SamovarHead,
+  dripper: V60Head,
+  saucer: LatteHead,
+  mill: GrinderHead,
+  lane: DriveHead,
+  dome: WoodfireHead,
+  carton: PizzaboxHead,
+  counter: SlicesHead,
+  signboard: NapoliHead,
+  spit: ShawarmaHead,
+  cuts: SteakhouseHead,
+  hood: OcakbasiHead,
+  chalk: SmokehouseHead,
 };
 
 /** قوس الروشان — لطابعٍ قديم قد يكون مخزَّناً بشكل `arch`. */

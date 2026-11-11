@@ -37,6 +37,7 @@ import { normalizeAr } from "@/lib/arabic";
 import { isSoldOut, orderableById, soldOutLast } from "@/lib/soldOut";
 import { isVatNumber } from "@/lib/legal";
 import { DishModal } from "@/components/menu/DishModal";
+import { useSkinMotion } from "@/lib/skinMotion";
 import { LoyaltyCard } from "@/components/menu/LoyaltyCard";
 import {
   DAYS,
@@ -711,6 +712,14 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
     return () => io.disconnect();
   }, [catNames]);
 
+  /**
+   * طبقة التفاعل المشتركة (`lib/skinMotion.ts`): التمرير والإضافة ودخول الأقسام إشاراتٌ على
+   * الجذر يقرؤها CSS الطابع — بلا حالة React ولا إعادة رسم. فوق العوائد المبكّرة كبقيّة
+   * الخطّافات (React #310)، والجذر يُركَّب في رسمة الجاهز فيتغيّر `key` معه.
+   */
+  const menuRoot = useRef<HTMLDivElement | null>(null);
+  const skinMotion = useSkinMotion(menuRoot, design.skin, `${state.status}|${catNames}`);
+
   /** الشريحة النشطة تُمرَّر إلى داخل الرؤية — في منيو بعشرة أقسام تكون خارجها. */
   useEffect(() => {
     if (!activeCat) return;
@@ -912,6 +921,14 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
    */
   const canAdd = (d: Dish) =>
     cartOn && ordersOpen && Number(d.price ?? 0) > 0 && !isSoldOut(d);
+  /** السلّة نفسها للنافذة، وإضافتها تُعلم الطابع («أُضيف» على الجذر) كزرّ البطاقة. */
+  const cartWithSignal: typeof cart = {
+    ...cart,
+    add: (...args: Parameters<typeof cart.add>) => {
+      cart.add(...args);
+      skinMotion.added();
+    },
+  };
 
   /**
    * شريحةٌ واحدة لكل ما تحت الاسم — كانت خمسة أشكال (شريحة · زرّان ممتلئان
@@ -928,6 +945,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
 
   return (
     <div
+      ref={menuRoot}
       dir={en ? "ltr" : "rtl"}
       // أصناف الخامة: العمق واللمعة والحافة تُشتقّ في CSS من `--m-*` نفسها.
       className={cn("min-h-dvh pb-16", skinClass(design))}
@@ -1311,7 +1329,10 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
                       {canAdd(d) && (
                         <AddToCartButton
                           label={en ? `Add ${dishName(d, en)}` : `أضِف ${d.name}`}
-                          onAdd={() => cart.add(d.id)}
+                          onAdd={(from) => {
+                            cart.add(d.id);
+                            skinMotion.added(from?.parentElement ?? null);
+                          }}
                           className={design.layout === "list" ? "bottom-3 end-0" : "top-2 end-2"}
                         />
                       )}
@@ -1595,7 +1616,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
           dish={openDish}
           en={en}
           // النافد يُفتح ليُقرأ (مكوّناته وحساسيته) ولا يُطلب: بلا سلّة لا زرّ إضافة.
-          cart={cartOn && ordersOpen && !isSoldOut(openDish) ? cart : null}
+          cart={cartOn && ordersOpen && !isSoldOut(openDish) ? cartWithSignal : null}
           popular={popularIds.has(openDish.id)}
           onClose={closeDishView}
         />

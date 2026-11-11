@@ -128,11 +128,11 @@ export function BrandControls({ brand, onChange }: { brand: Brand; onChange: (b:
       </div>
 
       <p className="mt-4 text-xs font-bold text-dim">الطابع</p>
-      {/* أربعة أعمدة (خمسة على الشاشة العريضة): أربعةٌ وعشرون طابعاً صفوفٌ تامّة على الأربعة،
-          وآخر صفٍّ أربعةٌ على الخمسة — لا طابعاً وحيداً. (والاثنان والعشرون تركا اثنين.)
+      {/* أربعة أعمدة (ستّة على الشاشة العريضة): ستّةٌ وثلاثون طابعاً صفوفٌ تامّة على الاثنين — وكانت
+          خمسةً حتى ٠٩/١١، فتركت الستّة والثلاثون طابعاً وحيداً في آخر صفّ. (والاثنان والعشرون تركا اثنين.)
           وفي الخانة يعلو الاسمَ قرصُ لون الطابع: أرضيته وحلقة تمييزه، فتُقرأ الشبكة
           لوحةَ ألوانٍ قبل أن تُقرأ أسماءً (تدقيق ٢٠٢٦/١١/٠٧). */}
-      <div className="mt-2 grid grid-cols-4 gap-1.5 sm:grid-cols-5 sm:gap-2" role="radiogroup" aria-label="طابع المنيو">
+      <div className="mt-2 grid grid-cols-4 gap-1.5 sm:grid-cols-6 sm:gap-2" role="radiogroup" aria-label="طابع المنيو">
         {ALL_THEMES.map((t) => {
           const on = brand.theme === t.id;
           return (

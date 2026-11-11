@@ -60,9 +60,14 @@ describe("الأقسام والطوابع", () => {
   });
 
   it("`themesOf` يحفظ ترتيب المالك، و«الكل» يعيد الكلّ كما هو", () => {
-    expect(themesOf("cafe", DESIGN_THEMES).map((t) => t.id)).toEqual(["roastery", "barista", "dallah", "letterboard", "editorial", "modern"]);
+    // ٠٩/١١: المقاهي ثمانية أشكالٍ للقهوة — وخرجت «مجلّة» و«عصري» (باقيتان على رفوفٍ أخرى).
+    expect(themesOf("cafe", DESIGN_THEMES).map((t) => t.id)).toEqual(["roastery", "v60", "latte", "barista", "grinder", "drive", "dallah", "letterboard"]);
     // ٠٧/١١: قسم الشاي — الكشك ثم البيت ثم «دلّة» ثم «ملصقات».
     expect(themesOf("tea", DESIGN_THEMES).map((t) => t.id)).toEqual(["karak", "samovar", "dallah", "sticker"]);
+    // ٠٩/١١: «بيتزا وإيطالي» ستّة — ريحان بيته، ثم أشكال البيتزا الأربعة، و«مجلّة».
+    expect(themesOf("pizza", DESIGN_THEMES).map((t) => t.id)).toEqual(["pizza", "woodfire", "napoli", "pizzabox", "slices", "editorial"]);
+    // ٠٩/١١ (الموجة ٣): «مشاوي وشاورما» ستّة — جمر بيته، ثم محلّات اللحم الأربعة، و«فاخر».
+    expect(themesOf("grill", DESIGN_THEMES).map((t) => t.id)).toEqual(["grill", "shawarma", "ocakbasi", "steakhouse", "smokehouse", "dark-gold"]);
     expect(themesOf(null, DESIGN_THEMES)).toEqual(DESIGN_THEMES);
     expect(categoryById("nope")).toBeNull();
   });
@@ -91,6 +96,10 @@ describe("قسم التاجر من نوع نشاطه — مفردات `themeSugg
     ["قهوة عربية", "cafe"],
     ["خولاني", "cafe"],
     ["إسبريسو بار", "cafe"],
+    // ٠٩/١١: بار التقطير وكشك القهوة السريع على رفّ المقاهي.
+    ["كافيه V60", "cafe"],
+    ["كشك قهوة", "cafe"],
+    ["كوفي درايف ثرو", "cafe"],
     // ٠٧/١١: الشاي — نوعاً («شاي» في `aliasType`) أو بيتَ شاي — على رفّ الشاي.
     ["شاي", "tea"],
     ["كرك", "tea"],
@@ -133,7 +142,7 @@ describe("`/demo`: القسم من `?kind=` و`?theme=` — ولا يغيّر م
   it.each([
     // ما يكتبه الشريط نفسه.
     ["seafood", "modern", "seafood"],
-    ["cafe", "modern", "cafe"],
+    ["cafe", "latte", "cafe"],
     ["restaurant", "dark-gold", "upscale"],
     // `?theme=` وحده: النوع من `demoKindForSuits` كما كان.
     [demoKindForSuits(ALL_THEMES.find((t) => t.id === "harbor")!.suits, "harbor"), "harbor", "seafood"],
@@ -147,7 +156,24 @@ describe("`/demo`: القسم من `?kind=` و`?theme=` — ولا يغيّر م
     // ٠٧/١١: طابعا الشاي على منيويهما ⇒ رفّ الشاي (الكرك بيته، وسماور أوّل رفٍّ يقف عليه).
     [demoKindForSuits(ALL_THEMES.find((t) => t.id === "karak")!.suits, "karak"), "karak", "tea"],
     [demoKindForSuits(ALL_THEMES.find((t) => t.id === "samovar")!.suits, "samovar"), "samovar", "tea"],
+    // ٠٩/١١: طوابع القهوة الأربعة على منيوَي القهوة القائمين ⇒ رفّ المقاهي (و«لاتيه» و«درايف» على
+    // رفّين آخرين أيضاً — المقاهي أوّلهما).
+    [demoKindForSuits(ALL_THEMES.find((t) => t.id === "v60")!.suits, "v60"), "v60", "cafe"],
+    [demoKindForSuits(ALL_THEMES.find((t) => t.id === "latte")!.suits, "latte"), "latte", "cafe"],
+    [demoKindForSuits(ALL_THEMES.find((t) => t.id === "grinder")!.suits, "grinder"), "grinder", "cafe"],
+    [demoKindForSuits(ALL_THEMES.find((t) => t.id === "drive")!.suits, "drive"), "drive", "cafe"],
     ["karak", null, "tea"],
+    // ٠٩/١١: طوابع البيتزا الأربعة على منيو البيتزا القائم ⇒ رفّ البيتزا (و«شريحة» و«علبة» على رفّ
+    // الوجبات السريعة أيضاً، و«نابولي» على الراقي — البيتزا أوّل ما يُضاء بمنيوه).
+    [demoKindForSuits(ALL_THEMES.find((t) => t.id === "woodfire")!.suits, "woodfire"), "woodfire", "pizza"],
+    [demoKindForSuits(ALL_THEMES.find((t) => t.id === "pizzabox")!.suits, "pizzabox"), "pizzabox", "pizza"],
+    [demoKindForSuits(ALL_THEMES.find((t) => t.id === "slices")!.suits, "slices"), "slices", "pizza"],
+    [demoKindForSuits(ALL_THEMES.find((t) => t.id === "napoli")!.suits, "napoli"), "napoli", "pizza"],
+    // ٠٩/١١ (الموجة ٣): المشاوي الأربعة على منيو المشاوي ⇒ رفّ المشاوي.
+    [demoKindForSuits(ALL_THEMES.find((t) => t.id === "shawarma")!.suits, "shawarma"), "shawarma", "grill"],
+    [demoKindForSuits(ALL_THEMES.find((t) => t.id === "steakhouse")!.suits, "steakhouse"), "steakhouse", "grill"],
+    [demoKindForSuits(ALL_THEMES.find((t) => t.id === "ocakbasi")!.suits, "ocakbasi"), "ocakbasi", "grill"],
+    [demoKindForSuits(ALL_THEMES.find((t) => t.id === "smokehouse")!.suits, "smokehouse"), "smokehouse", "grill"],
   ] as const)("kind=%s theme=%s ⇒ %s", (kind, theme, cat) => {
     expect(demoCategoryOf(kind, theme)).toBe(cat);
   });
