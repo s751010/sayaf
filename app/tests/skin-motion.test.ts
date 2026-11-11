@@ -9,7 +9,8 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import {
-  ADDED_MS, MOTION_SKINS, SCROLL_STEP, SCROLL_Y_MAX, SCROLL_Y_STEP, scrollDepth, scrollProgress, wantsMotion,
+  ADDED_MS, MOTION_SKINS, SCROLL_READERS, SCROLL_STEP, SCROLL_Y_MAX, SCROLL_Y_READERS, SCROLL_Y_STEP, scrollDepth,
+  scrollProgress, wantsMotion,
 } from "@/lib/skinMotion";
 import { ALL_THEMES } from "@/lib/themes";
 import { skinFile } from "./skin-css";
@@ -67,6 +68,32 @@ describe("الطوابع التي تقرأ الطبقة", () => {
     // خارج الحركة لا يُقرأ شيءٌ منها: الشكل الساكن لا ينتظر إشارة.
     const still = css.split("@media (prefers-reduced-motion: no-preference)")[0];
     expect(still).not.toMatch(/--m-scroll|data-m-(added|in|scrolling|motion)/);
+  });
+
+  /**
+   * ⚠️ المتغيّران لا يُكتبان على جذر المنيو: متغيّرٌ موروث يُكتب هناك في كلّ إطار
+   * يُعيد حساب أنماط كلّ بطاقة — ٣٠ مهمّة طويلة حتى ٣٠٠ms في تمريرةٍ واحدة
+   * (مراجعة الجودة ٢٠٢٦/١١/١٠). فلكلٍّ صاحبه: `--m-scroll` للشريط اللاصق،
+   * و`--m-scroll-y` للترويسة. وقارئٌ في CSS من غير صاحبه **لا يتحرّك** — يسقط هنا.
+   */
+  it("لكلّ متغيّرٍ صاحبه: الشريط والترويسة لا جذر المنيو", () => {
+    expect(SCROLL_READERS).toBe(".m-nav");
+    expect(SCROLL_Y_READERS).toBe("header");
+  });
+
+  it.each([...MOTION_SKINS])("«%s»: `--m-scroll` يقرؤه الشريط وحده، و`--m-scroll-y` الترويسة وحدها", (skin) => {
+    const css = skinFile(skin).replace(/\/\*[\s\S]*?\*\//g, "");
+    for (const m of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+      const selector = m[1].trim();
+      const body = m[2];
+      const readsP = /var\(--m-scroll[,)\s]/.test(body);
+      const readsY = /var\(--m-scroll-y\b/.test(body);
+      if (!readsP && !readsY) continue;
+      const onNav = selector.split(",").every((sel) => sel.includes(".m-nav"));
+      const offNav = selector.split(",").every((sel) => !sel.includes(".m-nav"));
+      if (readsP) expect(onNav, `${skin}: «${selector}» يقرأ --m-scroll خارج الشريط`).toBe(true);
+      if (readsY) expect(offNav, `${skin}: «${selector}» يقرأ --m-scroll-y في الشريط`).toBe(true);
+    }
   });
 
   it("حركة الإضافة أقصر من عمر إشارتها", () => {

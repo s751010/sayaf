@@ -10,8 +10,8 @@
  *
  * | ما يُكتب | أين | معناه |
  * |---|---|---|
- * | `--m-scroll` | جذر المنيو | تقدّم التمرير في الصفحة كلّها ‎0..1 |
- * | `--m-scroll-y` | جذر المنيو | ما مُرِّر بالبكسل (رقمٌ بلا وحدة، حتى `SCROLL_Y_MAX`) — للترويسة: تُرى أوّل شاشة وحدها |
+ * | `--m-scroll` | الشريط اللاصق (`SCROLL_READERS`) | تقدّم التمرير في الصفحة كلّها ‎0..1 |
+ * | `--m-scroll-y` | ترويسة الطابع (`SCROLL_Y_READERS`) | ما مُرِّر بالبكسل (رقمٌ بلا وحدة، حتى `SCROLL_Y_MAX`) — للترويسة: تُرى أوّل شاشة وحدها |
  * | `data-m-scrolling` | جذر المنيو | يمرّر الآن — يسقط بعد `SCROLL_IDLE_MS` من آخر حركة |
  * | `data-m-added` | الجذر، وغلاف البطاقة التي أُضيفت | أُضيف للسلّة لتوّه — يسقط بعد `ADDED_MS` |
  * | `data-m-in` | كلّ `.m-sec` | دخل القسم الشاشة (مرّةً، ولا يسقط) |
@@ -54,6 +54,15 @@ export const SCROLL_Y_MAX = 1600;
 export const SCROLL_IDLE_MS = 160;
 /** عمر إشارة «أُضيف» — أطول قليلاً من أطول حركة إضافةٍ في الطوابع. */
 export const ADDED_MS = 1200;
+
+/**
+ * من يحمل كلّ متغيّر — **القارئ وحده**، لا جذر المنيو:
+ * `--m-scroll` (تقدّم الصفحة) للشريط اللاصق وعنصرَيه الزائفين، و`--m-scroll-y`
+ * (ما مُرِّر بالبكسل) لترويسة الطابع. `skin-motion.test.ts` يحرس أن CSS لا
+ * يقرأ أحدهما من غير صاحبه.
+ */
+export const SCROLL_READERS = ".m-nav";
+export const SCROLL_Y_READERS = "header";
 
 /** تقدّم التمرير ‎0..1 مكمَّماً — صفحةٌ لا تتمرّر (أقصر من الشاشة) صفر. */
 export function scrollProgress(y: number, docHeight: number, viewHeight: number): number {
@@ -113,13 +122,50 @@ export function useSkinMotion(root: RefObject<HTMLElement | null>, skin: MenuSki
     let idle = 0;
     let lastP = "";
     let lastY = "";
+    /**
+     * ⚠️ المتغيّران يُكتبان على **قرّائهما وحدهم** (الترويسة والشريط اللاصق) لا
+     * على جذر المنيو. المتغيّر المخصّص موروث: كتابته على الجذر في كلّ إطار كانت
+     * تُعيد حساب أنماط **كلّ** بطاقة تحته — ٣٠ مهمّة طويلة حتى ٣٠٠ms في تمريرةٍ
+     * واحدة على جوالٍ متوسّط (مراجعة الجودة ٢٠٢٦/١١/١٠)، وقبل الطبقة كانت صفراً.
+     * والقرّاء عشرات العناصر لا آلاف. ولكلّ متغيّرٍ صاحبه: `--m-scroll` للشريط
+     * و`--m-scroll-y` للترويسة — وهذه لا تُكتب بعد أن تخرج من الشاشة.
+     */
+    let heads: HTMLElement[] = [];
+    let navs: HTMLElement[] = [];
+    /** أسفل الترويسة في الصفحة: بعده لا يراها أحد فلا يُكتب لها شيء. */
+    let headEnd = 0;
+    const readers = () => {
+      const gone = (list: HTMLElement[]) => list.some((t) => !t.isConnected);
+      if (heads.length + navs.length === 0 || gone(heads) || gone(navs)) {
+        heads = Array.from(el.querySelectorAll<HTMLElement>(SCROLL_Y_READERS));
+        navs = Array.from(el.querySelectorAll<HTMLElement>(SCROLL_READERS));
+        headEnd = 0;
+        lastP = lastY = "";
+      }
+      if (!headEnd && heads.length) {
+        headEnd = Math.max(...heads.map((h) => h.getBoundingClientRect().bottom)) + window.scrollY;
+      }
+    };
     const write = () => {
       frame = 0;
       const doc = document.documentElement;
+      readers();
       const p = String(scrollProgress(window.scrollY, doc.scrollHeight, window.innerHeight));
+      if (p !== lastP) {
+        lastP = p;
+        for (const t of navs) t.style.setProperty("--m-scroll", p);
+      }
+      // الترويسة خارج الشاشة ⇒ لا كتابة: رسمها لا يُرى، وحسابه ليس مجّاناً.
+      if (window.scrollY > headEnd) return;
       const y = String(scrollDepth(window.scrollY));
-      if (p !== lastP) el.style.setProperty("--m-scroll", (lastP = p));
-      if (y !== lastY) el.style.setProperty("--m-scroll-y", (lastY = y));
+      if (y !== lastY) {
+        lastY = y;
+        for (const t of heads) t.style.setProperty("--m-scroll-y", y);
+      }
+    };
+    const onResize = () => {
+      headEnd = 0;
+      onScroll();
     };
     const onScroll = () => {
       if (!frame) frame = requestAnimationFrame(write);
@@ -129,7 +175,7 @@ export function useSkinMotion(root: RefObject<HTMLElement | null>, skin: MenuSki
     };
     write();
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll, { passive: true });
+    window.addEventListener("resize", onResize, { passive: true });
 
     const io =
       typeof IntersectionObserver === "undefined"
@@ -149,10 +195,12 @@ export function useSkinMotion(root: RefObject<HTMLElement | null>, skin: MenuSki
 
     return () => {
       window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
+      window.removeEventListener("resize", onResize);
       if (frame) cancelAnimationFrame(frame);
       window.clearTimeout(idle);
       el.removeAttribute("data-m-scrolling");
+      for (const t of navs) t.style.removeProperty("--m-scroll");
+      for (const t of heads) t.style.removeProperty("--m-scroll-y");
       io?.disconnect();
     };
   }, [on, root, key]);
