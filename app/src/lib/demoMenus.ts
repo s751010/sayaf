@@ -24,11 +24,12 @@ export type DemoKind =
   | "grill" | "pizza"
   | "qahwa" | "espresso"
   | "karak" | "teahouse"
-  | "broast";
+  | "broast"
+  | "icecream";
 
 export const DEMO_KINDS: readonly DemoKind[] = [
   "restaurant", "cafe", "shaabi", "truck", "seafood", "sweets", "juice", "burger", "bakery", "breakfast", "grill", "pizza",
-  "qahwa", "espresso", "karak", "teahouse", "broast",
+  "qahwa", "espresso", "karak", "teahouse", "broast", "icecream",
 ];
 
 export function isDemoKind(v: string | null | undefined): v is DemoKind {
@@ -2110,6 +2111,129 @@ function broast(): DemoData {
   };
 }
 
+/* ── آيسكريم وجيلاتو — لطابع «مغرفة» (٢٠٢٦/١١/١١، الموجة ب) ─────────────────────────
+ * محلّ آيسكريم في الحيّ: الكرات بالكوب والبسكوتة، والجيلاتو بالكوب، والوافل والكريب، والميلك شيك، والإضافات
+ * (أقسامٌ يعرف `CANON` رموزها: «الآيسكريم» و«الجيلاتو» و«الوافل والكريب» حلى، و«المشروبات» و«الإضافات»).
+ * والأرقام تقديرٌ لكرةٍ ≈ ٧٠ غ (≈ ١٤٠ سعرة) — معقولةٌ عمداً. */
+
+function icecream(): DemoData {
+  const R = "demo-icecream";
+  const M = "demo-icecream-menu";
+  const dish = dishMaker(R, M);
+  const flavors = JSON.stringify([
+    { name: "فانيلا", price: 0 },
+    { name: "شوكولاتة", price: 0 },
+    { name: "فراولة", price: 0 },
+    { name: "فستق", price: 2, kcal: 10 },
+  ]);
+  return {
+    restaurant: restaurantOf(R, {
+      name: "كرزة",
+      type: "آيسكريم وجيلاتو",
+      address: "جدة — الكورنيش",
+      logo: "🍨",
+      allergens_text: "الآيسكريم والجيلاتو فيهما حليب، والبسكوت والوافل فيهما جلوتين وبيض، وبعض النكهات فيها مكسّرات — والمغرفة واحدة.",
+      working_hours: WEEK("14:00", "01:00", "02:00"),
+      loyalty_goal: 8,
+      loyalty_reward: "كوب كرتين مجاناً",
+      prep_minutes: 5,
+      category_order: JSON.stringify(["الآيسكريم", "الجيلاتو", "الوافل والكريب", "المشروبات", "الإضافات"]),
+    }),
+    menus: [menuOf(R, M, "scoop")],
+    dishes: [
+      dish("i1", "كوب آيسكريم — كرتان", "Ice Cream Cup — 2 Scoops", "الآيسكريم", 14, "🍨", {
+        description: "كرتان بنكهتين تختارهما، بصوصٍ وبسكوتة صغيرة.",
+        featured: true,
+        calories: 290,
+        sodium_mg: 110,
+        allergens: ["حليب", "جلوتين"],
+        options: flavors,
+      }),
+      dish("i2", "بسكوتة آيسكريم — كرة", "Cone — 1 Scoop", "الآيسكريم", 9, "🍦", {
+        description: "كرةٌ في بسكوتة مقرمشة — والثانية بأربعة ريالات.",
+        calories: 190,
+        sodium_mg: 80,
+        allergens: ["حليب", "جلوتين", "بيض"],
+        options: flavors,
+      }),
+      dish("i3", "سنداي فراولة", "Strawberry Sundae", "الآيسكريم", 18, "🍓", {
+        description: "ثلاث كرات فانيلا، وفراولة طازجة، وصوص فراولة، وكريمة.",
+        calories: 430,
+        sodium_mg: 160,
+        allergens: ["حليب"],
+      }),
+      dish("i4", "جيلاتو فستق حلبي", "Pistachio Gelato", "الجيلاتو", 16, "🍨", {
+        description: "جيلاتو كثيف بفستقٍ محمّص يُطحن كلّ صباح — كوب ١٥٠ غ.",
+        featured: true,
+        calories: 270,
+        sodium_mg: 90,
+        allergens: ["حليب", "مكسرات"],
+      }),
+      dish("i5", "سوربيه مانجو", "Mango Sorbet", "الجيلاتو", 15, "🥭", {
+        description: "مانجو وسكّر وماء — بلا حليب.",
+        calories: 170,
+        sodium_mg: 15,
+      }),
+      dish("i6", "جيلاتو تمر وهيل", "Date & Cardamom Gelato", "الجيلاتو", 16, "🍨", {
+        description: "دبس تمر سكّري وهيلٌ مطحون — كوب ١٥٠ غ.",
+        calories: 290,
+        sodium_mg: 95,
+        allergens: ["حليب"],
+      }),
+      dish("i7", "وافل بالآيسكريم", "Waffle with Ice Cream", "الوافل والكريب", 24, "🧇", {
+        description: "وافل بلجيكي ساخن، وكرتا فانيلا، وصوص شوكولاتة.",
+        calories: 640,
+        sodium_mg: 470,
+        allergens: ["جلوتين", "حليب", "بيض"],
+      }),
+      dish("i8", "كريب نوتيلا وموز", "Nutella & Banana Crêpe", "الوافل والكريب", 21, "🥞", {
+        description: "كريب رقيق بالنوتيلا وشرائح الموز.",
+        calories: 560,
+        sodium_mg: 220,
+        allergens: ["جلوتين", "حليب", "بيض", "مكسرات"],
+      }),
+      dish("i9", "ميلك شيك فانيلا", "Vanilla Milkshake", "المشروبات", 18, "🥤", {
+        description: "ثلاث كرات فانيلا وحليب بارد — ٤٠٠ مل.",
+        calories: 520,
+        sodium_mg: 290,
+        allergens: ["حليب"],
+      }),
+      dish("i10", "ميلك شيك فراولة", "Strawberry Milkshake", "المشروبات", 18, "🍓", {
+        description: "فراولة طازجة وآيسكريم وحليب — ٤٠٠ مل.",
+        calories: 480,
+        sodium_mg: 260,
+        allergens: ["حليب"],
+      }),
+      dish("i11", "أفوقاتو", "Affogato", "المشروبات", 16, "☕", {
+        description: "كرة فانيلا يُسكب عليها شوت إسبريسو ساخن.",
+        calories: 180,
+        sodium_mg: 60,
+        caffeine_mg: 63,
+        allergens: ["حليب"],
+      }),
+      dish("i12", "كرة إضافية", "Extra Scoop", "الإضافات", 5, "🍨", {
+        description: "أيّ نكهةٍ من الثلّاجة.",
+        calories: 140,
+        sodium_mg: 50,
+        allergens: ["حليب"],
+      }),
+      dish("i13", "صوص شوكولاتة", "Chocolate Sauce", "الإضافات", 3, "🍫", {
+        description: "شوكولاتة داكنة ساخنة — ٣٠ مل.",
+        calories: 90,
+        sodium_mg: 25,
+        allergens: ["حليب"],
+      }),
+      dish("i14", "مكسّرات محمّصة", "Roasted Nuts", "الإضافات", 4, "🥜", {
+        description: "لوز وبندق مكسّر.",
+        calories: 120,
+        sodium_mg: 5,
+        allergens: ["مكسرات"],
+        available: false,
+      }),
+    ],
+  };
+}
+
 /**
  * المنيو الذي يُعاين به طابعٌ ما وحده (`/demo?theme=…` من «عاينه كاملاً»):
  * منيوه إن كان له (`KIND_BY_THEME`)، وإلا أوّل نوعٍ في `suits` ⇒ منيو ذلك النوع.
@@ -2179,6 +2303,8 @@ const KIND_BY_THEME: Readonly<Record<string, DemoKind>> = {
   bucket: "broast",
   // ١١/١١: «سماش» على منيو البرجر القائم («برجر الحارة» سماشٌ أصلاً) — شارته «برجر» لا نوعٌ له منيو.
   smash: "burger",
+  // ١١/١١ (الموجة ب): «مغرفة» على منيوٍ جديد بأقلّ ما يلزم — «حلواني» يملك منيو الحلويات (كيكٌ وشرقيّ لا آيسكريم).
+  scoop: "icecream",
 };
 
 export function demoKindForSuits(suits: readonly string[] | undefined, themeId?: string | null): DemoKind {
@@ -2203,6 +2329,7 @@ const BUILDERS: Record<DemoKind, () => DemoData> = {
   karak,
   teahouse,
   broast,
+  icecream,
 };
 
 /** المنيو التجريبي لنوعٍ ما — والمجهول يسقط إلى «الديوان». */

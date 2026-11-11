@@ -145,10 +145,12 @@ describe("demoMenus", () => {
     expect(kindOf("bucket")).toBe("broast");
     // و«سماش» على منيو البرجر القائم (سماشٌ أصلاً).
     expect(kindOf("smash")).toBe("burger");
+    // ١١/١١ (الموجة ب): الثلاثة على منيوهاتها الجديدة.
+    expect(kindOf("scoop")).toBe("icecream");
     // ولكلّ طابعٍ منيوٌ موجود — لا معاينة على بيانات ناقصة.
     for (const t of ALL_THEMES) expect(isDemoKind(demoKindForSuits(t.suits, t.id)), t.id).toBe(true);
     // والطابع الجديد يُعاين على منيوٍ طابعُه هو نفسه.
-    for (const id of ["harbor", "patisserie", "juice", "burger", "bakery", "breakfast", "grill", "pizza", "dallah", "barista", "karak", "samovar"]) {
+    for (const id of ["harbor", "patisserie", "juice", "burger", "bakery", "breakfast", "grill", "pizza", "dallah", "barista", "karak", "samovar", "bucket", "scoop"]) {
       expect(demoData(kindOf(id)).menus[0].theme).toBe(id);
     }
   });

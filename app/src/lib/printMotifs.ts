@@ -937,6 +937,37 @@ function smash(ctx: Ctx, b: MotifBox, k: MotifInk): void {
   });
 }
 
+/** مغرفة — بسكوتةٌ بكرةٍ بالتمييز (مثلّثٌ بالخافت تحت دائرة)، وبينها نقطتا رشّةٍ بالخافت. */
+function scoop(ctx: Ctx, b: MotifBox, k: MotifInk): void {
+  const room = b.reach - b.outer;
+  const s = Math.min(b.mm * 2.4, room * 0.6);
+  alongTopBottom(b, s * 1.4, (x, w, top) => {
+    const cx = x + w / 2;
+    const cy = top ? b.outer + room * 0.5 : b.H - b.outer - room * 0.5;
+    const i = Math.round((x - b.outer) / w);
+    if (i % 2) {
+      ctx.fillStyle = k.muted;
+      for (const [dx, dy] of [[-0.14, -0.06], [0.12, 0.08]]) {
+        ctx.beginPath();
+        ctx.arc(cx + s * dx, cy + s * dy, s * 0.06, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      return;
+    }
+    ctx.fillStyle = k.muted;
+    ctx.beginPath();
+    ctx.moveTo(cx - s * 0.2, cy - s * 0.02);
+    ctx.lineTo(cx + s * 0.2, cy - s * 0.02);
+    ctx.lineTo(cx, cy + s * 0.38);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = k.accent;
+    ctx.beginPath();
+    ctx.arc(cx, cy - s * 0.12, s * 0.22, 0, Math.PI * 2);
+    ctx.fill();
+  });
+}
+
 const MOTIFS: Record<MenuSkin, ((ctx: Ctx, b: MotifBox, k: MotifInk) => void) | null> = {
   gold: folio,
   receipt,
@@ -973,6 +1004,7 @@ const MOTIFS: Record<MenuSkin, ((ctx: Ctx, b: MotifBox, k: MotifInk) => void) | 
   shawarma,
   bucket,
   smash,
+  scoop,
   // «لون علامتي» محايدٌ عمداً على الشاشة — وكذلك على الورق.
   store: null,
 };

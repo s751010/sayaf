@@ -95,6 +95,11 @@ export const BROAST = "بروست";
  * أوّلُه «سماش» بشارته، ثم «صاج» (طابع البرجر الأوّل، شارته «مطعم سريع» كما كانت).
  */
 export const BURGER = "برجر";
+/**
+ * والموجة ب (١١/١١، طلب المالك): صفٌّ فرعيّ وشارة تخصّص — «آيسكريم» («مغرفة»). لا كلمة له في `aliasType` («آيسكريم» يصير «مطعماً» أوّلُه
+ * «فاخر»)، ولا نوعَ جديداً: صفوفٌ تُقرأ من نصّ النوع كالبروست والبرجر.
+ */
+export const ICE_CREAM = "آيسكريم";
 /** ٠٩/١١ («شارة بتخصّصه»): البيتزا «بيتزا»، والمطعم الإيطالي صفٌّ وحده — أوّلُه «نابولي». */
 export const PIZZA = "بيتزا";
 export const ITALIAN = "مطعم إيطالي";
@@ -121,6 +126,7 @@ export const DRIVE_THRU = "قهوة سريعة";
  */
 export const SPECIALTY_BADGES: readonly string[] = [
   SPECIALTY, BREW_BAR, DRIVE_THRU, ARABIC_COFFEE, PIZZA, ITALIAN, SHAWARMA, BROAST, BURGER,
+  ICE_CREAM,
 ];
 
 export function isSpecialtyBadge(badge: string): boolean {
@@ -176,6 +182,8 @@ export const SUGGESTED: Readonly<Record<string, Row>> = {
   [BROAST]: ["bucket", "smash", "burger", "shawarma"],
   // ١١/١١: البرجر — السماش ثم الصاج، ثم «فاتورة» و«نيون» كما في الوجبات السريعة.
   [BURGER]: ["smash", "burger", "receipt", "neon"],
+  // ١١/١١ (الموجة ب): الآيسكريم — الثلّاجة، ثم حلواني (الحلى)، ثم عصّارة وملصقات (البارد الشبابي).
+  [ICE_CREAM]: ["scoop", "patisserie", "juice", "sticker"],
   // ٠٧/١١: «فوّال» ثالثَ الشعبي. ثم (٠٩/١١) «عسير» رابعاً بشارته كما كان قبل «دلّة» — والدلّة شارتها
   // تخصّصها «قهوة عربية».
   شعبي: ["najdi", "dukkan", "breakfast", "asir"],
@@ -245,6 +253,12 @@ interface SubRow {
 }
 
 const SUB_ROWS: readonly SubRow[] = [
+  // ١١/١١ (الموجة ب): الآيسكريم أوّلاً — «حلويات وآيسكريم» و«كافيه جيلاتو» محلّا آيسكريم.
+  {
+    key: ICE_CREAM,
+    within: ["مخبز وحلويات", "مطعم", "عصائر", "كافيه"],
+    hints: ["ايسكريم", "ايس كريم", "جيلاتو", "بوظه", "ice cream", "icecream", "gelato"],
+  },
   {
     key: BREAKFAST,
     within: ["شعبي", "مطعم"],

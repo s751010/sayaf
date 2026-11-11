@@ -37,7 +37,8 @@ import type { PatternId } from "./patterns";
  * والأقسام شرائحُ في دائرتها (علبة) · `counter` كاونتر زجاجٍ بصواني الشرائح تحت لوحة أسعارٍ
  * مضيئة (شريحة) · `signboard` لافتةٌ مرسومة باليد فوق بلاطٍ مزخرف (نابولي) · `spit` سيخ شاورما
  * عموديّ يدور ولهبه خلفه والشعار على قرصه (شاورما) · `bucket` سطل بروستٍ مقلّم يفيض بالقطع بين كوبَي صوص
- * والشعار ملصقه (سطل) · `flattop` لافتة نيون فوق صاج سماش يُبنى عليه البرجر طبقةً طبقة والشعار في حلقتها (سماش).
+ * والشعار ملصقه (سطل) · `flattop` لافتة نيون فوق صاج سماش يُبنى عليه البرجر طبقةً طبقة والشعار في حلقتها (سماش) ·
+ * `freezer` ثلّاجة آيسكريم بأحواضها والشعار على لافتتها (مغرفة).
  */
 export type HeaderShape =
   | "arch" | "band" | "frame" | "soft"
@@ -53,7 +54,8 @@ export type HeaderShape =
   | "dripper" | "saucer" | "mill" | "lane"
   | "dome" | "carton" | "counter" | "signboard"
   | "spit"
-  | "bucket" | "flattop";
+  | "bucket" | "flattop"
+  | "freezer";
 /**
  * تخطيط الأطباق — هذا ما يجعل الفرق بين الطوابع يُرى لا يُقرأ.
  * `deck` بطاقاتٌ تُسحب أفقياً لكل قسم، تكبر حين تتوسّط الشاشة.
@@ -72,7 +74,8 @@ export type HeadingStyle =
   | "brew" | "art" | "grind" | "sleeve"
   | "hearth" | "wedge" | "lightbox" | "brush"
   | "panel"
-  | "label" | "press";
+  | "label" | "press"
+  | "cone";
 /** شكل صورة الطبق — دائري للكافيهات، مربّع حادّ للمينيمال، وقوسُ نافذة للروشان. */
 export type ImageShape = "rounded" | "square" | "circle" | "arch";
 /**
@@ -96,6 +99,7 @@ export type MenuSkin =
   | "woodfire" | "pizzabox" | "slices" | "napoli"
   | "shawarma"
   | "bucket" | "smash"
+  | "scoop"
   | "gold" | "modern";
 /** كيف يُقدَّم السعر: نصّاً، أو شارة ملوّنة، أو خطّاً منقّطاً يقود إليه. */
 export type PriceStyle = "plain" | "badge" | "leader";
@@ -1731,6 +1735,51 @@ export const DESIGN_THEMES: MenuTheme[] = [
       layout: "grid",
       heading: "press",
       imageShape: "square",
+      priceStyle: "badge",
+      divider: "none",
+      depth: "raised",
+      entrance: "rise",
+    }),
+  },
+  /*
+   * ══ الطابع ٣٦ (٢٠٢٦/١١/١١) — الآيسكريم، طلب المالك (الموجة ب) ══
+   *
+   * ⚠️ المعرّف `scoop` — لا `icecream` (منيو تجريبي ونوع في `demoMenus.ts`).
+   */
+  /*
+   * «مغرفة» — محلّ الآيسكريم والجيلاتو والحلى البارد: **ثلّاجة عرضٍ** زجاجها مائل وأحواضها بنكهاتها، والشعار
+   * على **لافتتها**، والمغرفة **تنزلق فوق الأحواض مع التمرير** والنكهة التي تحتها تُضاء. و**حين يُضاف صنفٌ تُغرف
+   * كرةٌ وتطير إلى البسكوتة** فتستقرّ فوقها. والأقسام **بسكوتةٌ بكرةٍ** يتبدّل لونها لكلّ قسم — درجاتٌ من لون
+   * العلامة (`color-mix`) لا ألوانٌ جديدة. فاتحٌ ومبهج. الخطّان: لاله‌زار (للعناوين — مدوّرٌ مرح) وطجوال.
+   * ومختلفٌ عن «حلواني» (مظلّة وعلبة كيك) وعن «عصّارة» (شريحة حمضيّات).
+   */
+  {
+    id: "scoop",
+    name: "مغرفة",
+    tagline: "ثلّاجة آيسكريم بأحواضها، وتُغرف كرةٌ إلى البسكوتة حين تضيف",
+    suits: ["آيسكريم"],
+    vars: {
+      // كريمةٌ ورديّة خفيفة للأرضية، وحبرُ توتٍ داكن، والتمييز **فراولة** (الأبيض عليه ‎4.6)، والزينة **نعناع
+      // وفستق**. والبسكوتة والفانيلا والشوكولاتة وزجاج الثلّاجة خامة.
+      "--m-bg": "#fff7f8",
+      "--m-bg-2": "#fdecf1",
+      "--m-surface": "#ffffff",
+      "--m-text": "#3a1726",
+      "--m-muted": "#77455a",
+      "--m-accent": "#d6336c",
+      "--m-accent-2": "#3fb68e",
+      "--m-on-accent": "#ffffff",
+      "--m-border": "rgba(58,23,38,.12)",
+      "--m-font": FONT.tajawal,
+      "--m-display": FONT.lalezar,
+      "--m-radius": "1.25rem",
+    },
+    design: design({
+      skin: "scoop",
+      header: "freezer",
+      layout: "grid",
+      heading: "cone",
+      imageShape: "circle",
       priceStyle: "badge",
       divider: "none",
       depth: "raised",

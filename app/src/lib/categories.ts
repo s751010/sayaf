@@ -138,6 +138,19 @@ export const CANON: Canon[] = [
       "الكيك", "كعك", "حلويات شرقية", "حلويات غربية", "دونات", "دونات وكوكيز",
       "كوكيز", "dessert", "desserts", "sweets", "cake"],
   },
+  // ١١/١١ (الموجة ب، «مغرفة»): الآيسكريم والجيلاتو والوافل حلىً برمز الحلوى — ثلاثة أقسام بأسمائها الإنجليزية.
+  {
+    id: "icecream", ar: "الآيسكريم", en: "Ice Cream", icon: "cake", rank: 82,
+    alias: ["آيسكريم", "ايسكريم", "آيس كريم", "ايس كريم", "بوظة", "بوظه", "ice cream", "icecream"],
+  },
+  {
+    id: "gelato", ar: "الجيلاتو", en: "Gelato", icon: "cake", rank: 83,
+    alias: ["جيلاتو", "جيلاتي", "gelato"],
+  },
+  {
+    id: "waffles", ar: "الوافل والكريب", en: "Waffles & Crêpes", icon: "cake", rank: 84,
+    alias: ["وافل", "الوافل", "كريب", "الكريب", "وافل وكريب", "waffles", "waffle", "crepes"],
+  },
   {
     id: "hotcoffee", ar: "القهوة الساخنة", en: "Hot Coffee", icon: "dallah", rank: 90,
     alias: ["قهوة ساخنة", "القهوه الساخنه", "قهوة", "القهوة", "مشروبات ساخنة",
