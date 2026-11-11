@@ -25,32 +25,7 @@ import type { HeadingStyle } from "@/lib/themes";
 import type { Dish } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Burst } from "./SkinHeads";
-import { DukkanHeading } from "./heads/DukkanHead";
-import { HarborHeading } from "./heads/HarborHead";
-import { PatisserieHeading } from "./heads/PatisserieHead";
-import { JuiceHeading } from "./heads/JuiceHead";
-import { BurgerHeading } from "./heads/BurgerHead";
-import { BakeryHeading } from "./heads/BakeryHead";
-import { BreakfastHeading } from "./heads/BreakfastHead";
-import { GrillHeading } from "./heads/GrillHead";
-import { PizzaHeading } from "./heads/PizzaHead";
-import { DallahHeading } from "./heads/DallahHead";
-import { BaristaHeading } from "./heads/BaristaHead";
-import { KarakHeading } from "./heads/KarakHead";
-import { SamovarHeading } from "./heads/SamovarHead";
-import { V60Heading } from "./heads/V60Head";
-import { LatteHeading } from "./heads/LatteHead";
-import { GrinderHeading } from "./heads/GrinderHead";
-import { DriveHeading } from "./heads/DriveHead";
-import { WoodfireHeading } from "./heads/WoodfireHead";
-import { PizzaboxHeading } from "./heads/PizzaboxHead";
-import { SlicesHeading } from "./heads/SlicesHead";
-import { NapoliHeading } from "./heads/NapoliHead";
-import { ShawarmaHeading } from "./heads/ShawarmaHead";
-import { SteakhouseHeading } from "./heads/SteakhouseHead";
-import { OcakbasiHeading } from "./heads/OcakbasiHead";
-import { SmokehouseHeading } from "./heads/SmokehouseHead";
-import { AsirHeading } from "./heads/AsirHead";
+import { headingFor } from "./skinAssets";
 
 /** خطّ العناوين — يسقط إلى خطّ النصّ لكل طابع لا يذكر `--m-display` (§18). */
 const dFont: CSSProperties = { fontFamily: "var(--m-display, var(--m-font))" };
@@ -333,36 +308,9 @@ export function SectionHeading({
         شاورما (لوحة المحلّ المضيئة) · ستيك (ثورٌ صغير قطعتُه ملوّنة) · أوجاق (قبّةٌ يصعد إليها دخان) ·
         مدخنة (خيط دخانٍ يلفّ اسماً بالطباشير):
         كلٌّ في ملفّه (`heads/`) ── */
-  const FILE_HEADINGS = {
-    shelf: DukkanHeading,
-    frieze: AsirHeading,
-    rope: HarborHeading,
-    doily: PatisserieHeading,
-    tile: JuiceHeading,
-    melt: BurgerHeading,
-    peel: BakeryHeading,
-    plate: BreakfastHeading,
-    skewer: GrillHeading,
-    box: PizzaHeading,
-    finjan: DallahHeading,
-    cup: BaristaHeading,
-    glass: KarakHeading,
-    istikan: SamovarHeading,
-    brew: V60Heading,
-    art: LatteHeading,
-    grind: GrinderHeading,
-    sleeve: DriveHeading,
-    hearth: WoodfireHeading,
-    wedge: PizzaboxHeading,
-    lightbox: SlicesHeading,
-    brush: NapoliHeading,
-    panel: ShawarmaHeading,
-    cut: SteakhouseHeading,
-    ocak: OcakbasiHeading,
-    smoke: SmokehouseHeading,
-  } as const;
-  if (style in FILE_HEADINGS) {
-    const Skin = FILE_HEADINGS[style as keyof typeof FILE_HEADINGS];
+  // تصل مع خامتها (`skinAssets.ts`)؛ ووحدةٌ فشل تنزيلها ⇒ العنوان البسيط في الذيل.
+  const Skin = headingFor(style);
+  if (Skin) {
     return (
       <Skin
         name={name}

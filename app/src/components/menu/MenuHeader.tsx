@@ -19,14 +19,15 @@ import { restaurantTypeLabel } from "@/lib/menuText";
 import type { Restaurant } from "@/lib/types";
 import { LogoMark } from "./LogoMark";
 import {
-  ArcadeHead, AsirHead, BagHead, BakeryHead, BaristaHead, BreakfastHead, BurgerHead, Corner, DallahHead, DriveHead, DukkanHead, FolioHead,
-  GridHead, GrillHead, GrinderHead, HarborHead, JuiceHead, KarakHead, LatteHead, LetterboardHead, MastheadHead, MudHead, NapoliHead,
-  OcakbasiHead, PaperHead, PatisserieHead, PizzaboxHead, PizzaHead, PosterHead, SamovarHead, ShawarmaHead, SignHead, SlicesHead,
-  SmokehouseHead, SteakhouseHead, V60Head, WoodfireHead,
+  ArcadeHead, BagHead, Corner, FolioHead, GridHead, LetterboardHead, MastheadHead, MudHead, PaperHead, PosterHead, SignHead,
   type HeadProps,
 } from "./SkinHeads";
+import { headFor } from "./skinAssets";
 
-/** الترويسات التي بنيتها غير واجهة المتجر — لكلٍّ طابعه (`SkinHeads.tsx`). */
+/**
+ * الترويسات التي بنيتها غير واجهة المتجر — لكلٍّ طابعه (`SkinHeads.tsx`). وترويسات
+ * الطوابع التي في ملفّاتها (`heads/`) تأتي من `headFor` بعد أن تصل (`skinAssets.ts`).
+ */
 const SKIN_HEADS: Partial<Record<HeaderShape, ComponentType<HeadProps>>> = {
   paper: PaperHead,
   letterboard: LetterboardHead,
@@ -36,34 +37,8 @@ const SKIN_HEADS: Partial<Record<HeaderShape, ComponentType<HeadProps>>> = {
   arcade: ArcadeHead,
   mud: MudHead,
   bag: BagHead,
-  tin: DukkanHead,
-  mural: AsirHead,
   folio: FolioHead,
   grid: GridHead,
-  harbor: HarborHead,
-  awning: PatisserieHead,
-  slice: JuiceHead,
-  griddle: BurgerHead,
-  oven: BakeryHead,
-  tray: BreakfastHead,
-  brazier: GrillHead,
-  table: PizzaHead,
-  majlis: DallahHead,
-  machine: BaristaHead,
-  kiosk: KarakHead,
-  rug: SamovarHead,
-  dripper: V60Head,
-  saucer: LatteHead,
-  mill: GrinderHead,
-  lane: DriveHead,
-  dome: WoodfireHead,
-  carton: PizzaboxHead,
-  counter: SlicesHead,
-  signboard: NapoliHead,
-  spit: ShawarmaHead,
-  cuts: SteakhouseHead,
-  hood: OcakbasiHead,
-  chalk: SmokehouseHead,
 };
 
 /** قوس الروشان — لطابعٍ قديم قد يكون مخزَّناً بشكل `arch`. */
@@ -118,7 +93,8 @@ export function MenuHeader({
   children?: ReactNode;
 }) {
   const { header, pattern, patternOpacity } = theme.design;
-  const Skin = SKIN_HEADS[header];
+  // وحدةٌ لم تصل (فشل تنزيلها) ⇒ واجهة المتجر أدناه، لا ترويسة فارغة.
+  const Skin = SKIN_HEADS[header] ?? headFor(header) ?? undefined;
   if (Skin) {
     return (
       <Skin restaurant={restaurant} theme={theme} en={en} tags={tags} corner={corner}>

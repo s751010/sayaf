@@ -14,6 +14,7 @@ import { Logo } from "@/components/site";
 import { Skeleton } from "@/components/ui";
 import { MenuHeader } from "@/components/menu/MenuHeader";
 import { ReceiptEnd } from "@/components/menu/SkinHeads";
+import { useSkinAssets } from "@/components/menu/skinAssets";
 // خامات الطوابع وحركاتها — ملفٌّ مستقلّ عن `global.css` لأنها للمنيو وحده.
 import "@/styles/menu-skins.css";
 import { DishCard } from "@/components/menu/DishCard";
@@ -307,6 +308,12 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
   const themeId = tryTheme ?? (state.status === "ready" ? state.menus.find((m) => m.theme)?.theme : null);
   const theme = useMemo(() => getTheme(themeId), [themeId]);
   const design = theme.design;
+  /**
+   * خامة الطابع وترويسته تصلان عند الطلب (`skinAssets.ts`) — والمنيو لا يُرسم قبلهما:
+   * هيكل التحميل أهون من وميضِ منيوٍ بلا خامة ثم قفزته. والطابع لا يُعرف قبل البيانات،
+   * فلا تنزيل لطابعٍ افتراضيّ قد لا يكون طابع المطعم.
+   */
+  const skinReady = useSkinAssets(state.status === "ready" ? design : null);
   const rhythm = RHYTHM[design.density];
   /** لونا الطابع الفعليّان لزخارف العناوين المرسومة (سدو · مشربية) — صورٌ لا تقرأ `var()`. */
   const headingPalette = {
@@ -325,9 +332,12 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
     // الاثنان: خطّ النصّ وخطّ العناوين. طلبُ الأول وحده يترك عناوين الطابع
     // المقترن تُرسم بخطّ احتياطي بينما أسماء أطباقه سليمة — وهو أسوأ من
     // الاثنين احتياطيين لأنه يبدو خطأً لا اختياراً.
+    // ⚠️ لا قبل أن يُعرف الطابع: كان الافتراضي («فاخر») يطلب خطّه أثناء التحميل،
+    // فينزّل زبونُ كلّ منيو نوتو كوفي وإن كان طابعُ مطعمه غيره (قياس ١١/١١).
+    if (state.status !== "ready") return;
     void loadThemeFont(theme.vars["--m-font"]);
     void loadThemeFont(theme.vars["--m-display"]);
-  }, [theme.vars]);
+  }, [theme.vars, state.status]);
   /**
    * وسوم الصفحة وبياناتها المنظّمة.
    *
@@ -684,7 +694,9 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
    * — أوضح سبب للإحساس بالضياع في منيو طويل. الهامش العلوي بقدر ارتفاع الشريط
    * كي يتبدّل القسم عند وصوله للشريط لا عند خروجه من الشاشة.
    */
-  const catNames = categories.map((c) => c.name).join("|");
+  // فارغٌ حتى تصل الخامة: الأقسام لا تُرسم قبلها (هيكل التحميل)، فمراقبٌ يبدأ قبلها
+  // لا يجد ما يراقبه ولا يُعاد. وكذلك طبقة التفاعل تحت (`key`).
+  const catNames = skinReady ? categories.map((c) => c.name).join("|") : "";
   useEffect(() => {
     if (!catNames) return;
     const navH = navRef.current?.offsetHeight ?? 48;
@@ -779,8 +791,8 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
     };
   }, [readyRestaurantId, demo, preview]);
 
-  /* حالات غير جاهزة */
-  if (state.status === "loading") {
+  /* حالات غير جاهزة — والجاهز بلا خامته بعدُ هيكلٌ أيضاً (لا وميض بلا خامة). */
+  if (state.status === "loading" || (state.status === "ready" && !skinReady)) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-8">
         <Skeleton className="mx-auto h-40 max-w-md rounded-3xl" />

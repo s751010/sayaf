@@ -580,33 +580,9 @@ export function BagHead({ restaurant, corner, children }: HeadProps) {
   );
 }
 
-/* ══ دكّان · عسير — كلٌّ في ملفّه (`heads/`) ══════════════════════════════ */
-export { DukkanHead } from "./heads/DukkanHead";
-export { HarborHead } from "./heads/HarborHead";
-export { PatisserieHead } from "./heads/PatisserieHead";
-export { JuiceHead } from "./heads/JuiceHead";
-export { BurgerHead } from "./heads/BurgerHead";
-export { BakeryHead } from "./heads/BakeryHead";
-export { BreakfastHead } from "./heads/BreakfastHead";
-export { GrillHead } from "./heads/GrillHead";
-export { PizzaHead } from "./heads/PizzaHead";
-export { DallahHead } from "./heads/DallahHead";
-export { BaristaHead } from "./heads/BaristaHead";
-export { KarakHead } from "./heads/KarakHead";
-export { SamovarHead } from "./heads/SamovarHead";
-export { V60Head } from "./heads/V60Head";
-export { LatteHead } from "./heads/LatteHead";
-export { GrinderHead } from "./heads/GrinderHead";
-export { DriveHead } from "./heads/DriveHead";
-export { WoodfireHead } from "./heads/WoodfireHead";
-export { PizzaboxHead } from "./heads/PizzaboxHead";
-export { SlicesHead } from "./heads/SlicesHead";
-export { NapoliHead } from "./heads/NapoliHead";
-export { ShawarmaHead } from "./heads/ShawarmaHead";
-export { SteakhouseHead } from "./heads/SteakhouseHead";
-export { OcakbasiHead } from "./heads/OcakbasiHead";
-export { SmokehouseHead } from "./heads/SmokehouseHead";
-export { AsirHead } from "./heads/AsirHead";
+/* ══ دكّان · عسير وأخواتها — كلٌّ في ملفّه (`heads/`)، تُحمَّل عند الطلب
+ * (`skinAssets.ts`) ولا يُعاد تصديرها من هنا: سطرُ `export … from` يسحبها كلّها
+ * إلى حزمة المنيو. ══ */
 
 /* ══ فاخر — دفتر جلدٍ بخيطٍ ذهبيّ ══════════════════════════════════════ */
 

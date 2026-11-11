@@ -25,36 +25,11 @@
  * `--m-feature-border`) لا بـ`!important`.
  */
 
-/* ══ طوابع في ملفّاتها (`skins/<id>.css`) ══ ملفٌّ لكلّ طابعٍ جديد كي لا يتزاحم
- * عملان على هذا الملفّ. ⚠️ **هنا في الرأس لا في الذيل**: `@import` بعد أيّ قاعدة
- * يُسقطه postcss بتحذيرٍ ويخرج البناء بلا الملفّ (قيس ٢٧/١٠). فقواعدها تسبق ما
- * بعدها ترتيباً، وتغلبه بالخصوصية: كلّ انتقائيٍّ فيها يبدأ بـ`.m-skin-<id>`. */
-@import "./skins/dukkan.css";
-@import "./skins/asir.css";
-@import "./skins/harbor.css";
-@import "./skins/patisserie.css";
-@import "./skins/juice.css";
-@import "./skins/burger.css";
-@import "./skins/bakery.css";
-@import "./skins/breakfast.css";
-@import "./skins/grill.css";
-@import "./skins/pizza.css";
-@import "./skins/dallah.css";
-@import "./skins/barista.css";
-@import "./skins/karak.css";
-@import "./skins/samovar.css";
-@import "./skins/v60.css";
-@import "./skins/latte.css";
-@import "./skins/grinder.css";
-@import "./skins/drive.css";
-@import "./skins/woodfire.css";
-@import "./skins/pizzabox.css";
-@import "./skins/slices.css";
-@import "./skins/napoli.css";
-@import "./skins/shawarma.css";
-@import "./skins/steakhouse.css";
-@import "./skins/ocakbasi.css";
-@import "./skins/smokehouse.css";
+/* ══ طوابع في ملفّاتها (`skins/<id>.css`) ══ ملفٌّ لكلّ طابعٍ جديد، **لا يُستورد
+ * هنا**: كان `@import` في هذا الرأس يُدخل الستّة والعشرين كلّها الحزمة المشتركة لكلّ
+ * زائر. الآن تُنزَّل خامة الطابع حين يُرسم وحده (`components/menu/skinAssets.ts`)،
+ * فتصل **بعد** هذا الملفّ — وكلّ انتقائيٍّ فيها يبدأ بـ`.m-skin-<id>` فيغلب نظيره
+ * العامّ بالخصوصية لا بالترتيب (`skin-files.test.ts`). */
 
 /* ══ المشترك ══════════════════════════════════════════════════════════ */
 
