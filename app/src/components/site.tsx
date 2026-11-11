@@ -291,14 +291,14 @@ export function Footer() {
         <div>
           <p className="mb-3 font-display font-extrabold text-ink">روابط</p>
           <ul className="flex flex-col gap-2 text-sm text-dim">
-            <li><Link to="/about" className="inline-flex min-h-9 items-center hover:text-gold">من نحن</Link></li>
-            <li><Link to="/demo" className="inline-flex min-h-9 items-center hover:text-gold">منيو تجريبي</Link></li>
-            <li><Link to="/tools/calorie-calculator" className="inline-flex min-h-9 items-center hover:text-gold">حاسبة السعرات مجاناً</Link></li>
-            <li><a href="/#features" className="inline-flex min-h-9 items-center hover:text-gold">المزايا</a></li>
-            <li><a href="/#pricing" className="inline-flex min-h-9 items-center hover:text-gold">الأسعار</a></li>
-            <li><Link to="/help" className="inline-flex min-h-9 items-center hover:text-gold">المساعدة والأسئلة</Link></li>
-            <li><Link to="/blog" className="inline-flex min-h-9 items-center hover:text-gold">المدونة</Link></li>
-            <li><Link to="/login" className="inline-flex min-h-9 items-center hover:text-gold">دخول التجّار</Link></li>
+            <li><Link to="/about" className="inline-flex min-h-11 items-center hover:text-gold">من نحن</Link></li>
+            <li><Link to="/demo" className="inline-flex min-h-11 items-center hover:text-gold">منيو تجريبي</Link></li>
+            <li><Link to="/tools/calorie-calculator" className="inline-flex min-h-11 items-center hover:text-gold">حاسبة السعرات مجاناً</Link></li>
+            <li><a href="/#features" className="inline-flex min-h-11 items-center hover:text-gold">المزايا</a></li>
+            <li><a href="/#pricing" className="inline-flex min-h-11 items-center hover:text-gold">الأسعار</a></li>
+            <li><Link to="/help" className="inline-flex min-h-11 items-center hover:text-gold">المساعدة والأسئلة</Link></li>
+            <li><Link to="/blog" className="inline-flex min-h-11 items-center hover:text-gold">المدونة</Link></li>
+            <li><Link to="/login" className="inline-flex min-h-11 items-center hover:text-gold">دخول التجّار</Link></li>
           </ul>
           {/* صفحات الشرائح — أسماءٌ بلا محتوى (`segmentLinks.ts`) كي لا يسحب
               الذيل محتواها إلى الحزمة الرئيسية. */}
@@ -306,7 +306,7 @@ export function Footer() {
           <ul className="flex flex-col text-sm text-dim">
             {SEGMENT_LINKS.map((l) => (
               <li key={l.slug}>
-                <Link to={segmentPath(l.slug)} className="inline-flex min-h-9 items-center hover:text-gold">
+                <Link to={segmentPath(l.slug)} className="inline-flex min-h-11 items-center hover:text-gold">
                   {l.label}
                 </Link>
               </li>
@@ -317,40 +317,40 @@ export function Footer() {
           <p className="mb-3 font-display font-extrabold text-ink">تواصل معنا</p>
           <ul className="flex flex-col gap-2 text-sm text-dim">
             {s?.email && (
-              <li><a href={`mailto:${s.email}`} className="inline-flex min-h-9 items-center hover:text-gold" dir="ltr">{s.email}</a></li>
+              <li><a href={`mailto:${s.email}`} className="inline-flex min-h-11 items-center hover:text-gold" dir="ltr">{s.email}</a></li>
             )}
             {s?.phone && (
-              <li><a href={`tel:${s.phone}`} className="inline-flex min-h-9 items-center hover:text-gold" dir="ltr">{s.phone}</a></li>
+              <li><a href={`tel:${s.phone}`} className="inline-flex min-h-11 items-center hover:text-gold" dir="ltr">{s.phone}</a></li>
             )}
             {s?.twitter && (
-              <li><a href={s.twitter} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-9 items-center hover:text-gold">تويتر / X</a></li>
+              <li><a href={s.twitter} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center hover:text-gold">تويتر / X</a></li>
             )}
             {s?.instagram && (
-              <li><a href={s.instagram} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-9 items-center hover:text-gold">إنستغرام</a></li>
+              <li><a href={s.instagram} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center hover:text-gold">إنستغرام</a></li>
             )}
             {!s?.email && !s?.phone && (
               <li>
-                <a href="mailto:support@cloudsmenu.app" className="inline-flex min-h-9 items-center hover:text-gold" dir="ltr">
+                <a href="mailto:support@cloudsmenu.app" className="inline-flex min-h-11 items-center hover:text-gold" dir="ltr">
                   support@cloudsmenu.app
                 </a>
               </li>
             )}
-            <li><Link to="/help" className="inline-flex min-h-9 items-center hover:text-gold">مركز المساعدة</Link></li>
+            <li><Link to="/help" className="inline-flex min-h-11 items-center hover:text-gold">مركز المساعدة</Link></li>
           </ul>
           <SupportWhatsAppButton className="mt-3" />
           <ul className="mt-3 flex flex-col text-xs text-faint">
             <li>
-              <Link to="/help#policy" className="inline-flex min-h-9 items-center hover:text-gold">
+              <Link to="/help#policy" className="inline-flex min-h-11 items-center hover:text-gold">
                 سياسة الاشتراك والإلغاء
               </Link>
             </li>
             <li>
-              <Link to="/privacy" className="inline-flex min-h-9 items-center hover:text-gold">
+              <Link to="/privacy" className="inline-flex min-h-11 items-center hover:text-gold">
                 سياسة الخصوصية
               </Link>
             </li>
             <li>
-              <Link to="/terms" className="inline-flex min-h-9 items-center hover:text-gold">
+              <Link to="/terms" className="inline-flex min-h-11 items-center hover:text-gold">
                 شروط الاستخدام
               </Link>
             </li>

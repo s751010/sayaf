@@ -102,6 +102,17 @@ describe("مخطّطات الروابط", () => {
       expect(sanitizeHtml(`<a href="${href}">x</a>`)).toContain(href);
     });
   }
+
+  /**
+   * رابطٌ بلا بروتوكول (`//host`) يبدو داخلياً ويغادر إلى نطاق آخر — والمتصفّح
+   * يقرأ `/\host` مثله (مراجعة الأمن ٢٠٢٦/١١/٠٩، البند ١٣).
+   */
+  for (const href of ["//evil.example/x", "/\\evil.example/x", "//", "/\\"]) {
+    it(`يُنزع الرابط بلا بروتوكول: ${href}`, () => {
+      expect(sanitizeHtml(`<a href="${href}">x</a>`)).not.toContain("href");
+      expect(sanitizeHtml(`<img src="${href}">`)).not.toContain("src");
+    });
+  }
 });
 
 describe("المحتوى المشروع لا يُخسَر", () => {

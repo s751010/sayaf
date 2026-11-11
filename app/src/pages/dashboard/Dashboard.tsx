@@ -289,8 +289,8 @@ function Onboarding({ user, onDone }: { user: SessionUser; onDone: (r: Restauran
             </Select>
           </Field>
           {error && <ErrorNote>{error}</ErrorNote>}
-          <Button type="submit" disabled={busy} className="mt-1 w-full py-3">
-            {busy ? "جارٍ الإنشاء…" : "أنشئ مطعمي 🚀"}
+          <Button busy={busy} busyText="جارٍ الإنشاء…" type="submit" disabled={busy} className="mt-1 w-full py-3">
+            أنشئ مطعمي 🚀
           </Button>
         </form>
       </Card>
@@ -408,7 +408,7 @@ function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode
             // — أي تمريراً أفقياً لعنصر أو عنصرين، وهو ما كانت تداريه ضمادة
             // التدرّج على الحافة.
             compact
-              ? "press relative flex shrink-0 flex-col items-center gap-0.5 rounded-[10px] px-2 py-2 text-[9px] font-semibold"
+              ? "press relative flex min-w-11 shrink-0 flex-col items-center gap-0.5 rounded-[10px] px-2 py-2 text-[9px] font-semibold"
               : "press relative flex items-center gap-3 rounded-[10px] px-3.5 py-2.5 text-sm font-semibold",
             // النشط حبرٌ مقلوب — كصفّ «السعرات» في الملصق: أسود يحمل الأهمّ.
             // `isNavActive` لا `isActive`: أبواب الأقسام تُضاء في تبويباتها كلّها.

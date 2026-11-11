@@ -141,8 +141,8 @@ export function ApiKeysCard({
             placeholder="نقطة البيع"
           />
         </Field>
-        <Button onClick={generate} disabled={busy || live.length >= 5}>
-          {busy ? "…" : "أنشئ مفتاحاً"}
+        <Button busy={busy} busyText="يُنشئ…" onClick={generate} disabled={busy || live.length >= 5}>
+          أنشئ مفتاحاً
         </Button>
       </div>
 

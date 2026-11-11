@@ -11,6 +11,7 @@
  * «شامل الضريبة» تلقائياً — في كل صفحة معاً.
  */
 import { PLANS } from "@/lib/plans";
+import { isVatNumber } from "@/lib/vat";
 
 export type LegalIdentity = {
   /** الاسم النظامي كما في السجل التجاري (أو وثيقة العمل الحر). */
@@ -33,9 +34,8 @@ export const LEGAL: LegalIdentity = {
   email: null,
 };
 
-/** الرقم الضريبي صالح الشكل: ١٥ رقماً تبدأ وتنتهي بـ3 (صيغة الهيئة). */
-export const isVatNumber = (v: string | null | undefined): boolean =>
-  !!v && /^3\d{13}3$/.test(v.trim());
+/** الرقم الضريبي صالح الشكل — مصدره `lib/vat.ts` (ونظيره في الخادم). */
+export { isVatNumber };
 
 /** هل المنصّة مسجّلة في ضريبة القيمة المضافة؟ */
 export const VAT_REGISTERED = isVatNumber(LEGAL.vat);

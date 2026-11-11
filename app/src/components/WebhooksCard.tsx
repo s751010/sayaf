@@ -202,8 +202,8 @@ export function WebhooksCard({
       </div>
 
       {error && <ErrorNote>{error}</ErrorNote>}
-      <Button onClick={add} disabled={busy} className="sm:self-start">
-        {busy ? "…" : "أضِف وجهة"}
+      <Button busy={busy} onClick={add} disabled={busy} className="sm:self-start">
+        أضِف وجهة
       </Button>
 
       {hooks && hooks.length > 0 && (

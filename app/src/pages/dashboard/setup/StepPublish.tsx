@@ -67,8 +67,8 @@ export function StepPublish({
       {hidden && (
         <div role="alert" className="rounded-xl border border-bad/30 bg-bad/10 p-4">
           <p className="text-sm font-bold text-ink">قائمتك مخفيّة — لن يراها الزبون.</p>
-          <Button className="mt-3" onClick={() => void unhide()} disabled={busy}>
-            {busy ? "جارٍ النشر…" : "انشرها الآن"}
+          <Button busy={busy} busyText="جارٍ النشر…" className="mt-3" onClick={() => void unhide()} disabled={busy}>
+            انشرها الآن
           </Button>
         </div>
       )}

@@ -31,6 +31,8 @@ import { PickupTicket } from "@/components/menu/PickupTicket";
 import { allergenLabel, buildAllergenIndex, dishName, restaurantTypeLabel } from "@/lib/menuText";
 import { Chip, LangToggle, LAYOUT_CLASS, MenuSheet, sectionReserve } from "@/components/menu/chrome";
 import { SectionHeading, sectionCover } from "@/components/menu/SectionHeading";
+import { inFrame } from "@/lib/useDialog";
+import { chargesVatOnTop } from "@/lib/vat";
 import { normalizeAr } from "@/lib/arabic";
 import { isSoldOut, orderableById, soldOutLast } from "@/lib/soldOut";
 import { isVatNumber } from "@/lib/legal";
@@ -601,14 +603,16 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
    * ولم يكن للطبق رابطٌ يُشارَك. فالفتح يضيف مدخلاً للسجلّ، والرجوع يغلقه، ورابطٌ
    * يحمل `?dish=` يفتح الطبق عند الوصول.
    *
-   * ⚠️ الديمو والمعاينة بلا سجلّ: الديمو يسكن إطاراً في صفحة الهبوط، ومدخلٌ في
-   * سجلّه يجعل «رجوع» الزائر يغلق نافذةً لا يراها بدل أن يرجع.
+   * ⚠️ **داخل إطارٍ** بلا سجلّ: الديمو يسكن إطاراً في صفحة الهبوط، ومدخلٌ في
+   * سجلّه يجعل «رجوع» الزائر يغلق نافذةً لا يراها بدل أن يرجع. أمّا `/demo`
+   * مفتوحاً وحده (من إعلانٍ أو رابط) فله سجلّه — كان «رجوع» فيه يُخرج الزائر من
+   * المنيو كلّه (تدقيق ٢٠٢٦/١١/٠٩، البند ١). والعدّاد للمنيو الحقيقي وحده.
    */
-  const historyOn = !demo && !preview;
+  const historyOn = !inFrame();
   const openDishView = (d: Dish) => {
     setOpenDish(d);
+    if (!demo && !preview) trackDishView(d, { table, lang });
     if (historyOn) {
-      trackDishView(d, { table, lang });
       const url = new URL(window.location.href);
       url.searchParams.set("dish", d.id);
       window.history.pushState({ ...window.history.state, cmDish: d.id }, "", url);
@@ -1452,7 +1456,7 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
               {/* ⚠️ «شامل الضريبة» ادّعاءٌ بضريبة: مطعمٌ غير مسجّل لا يجوز أن
                   يقولها. فالعبارة تظهر حين يكون للمطعم رقم ضريبي، أو حين تُضاف
                   الضريبة فعلاً عند الدفع (فالزبون يحتاج أن يعرف قبل السلّة). */}
-              {restaurant.prices_include_vat === false ? (
+              {chargesVatOnTop(restaurant.prices_include_vat, restaurant.vat_number) ? (
                 <p>
                   {en
                     ? "Prices exclude 15% VAT — it is added at checkout."
@@ -1599,7 +1603,8 @@ export default function MenuPage({ demo }: { demo?: MenuData } = {}) {
             acceptingOrders={ordersOpen}
             prepMinutes={prepMinutes}
             minOrder={minOrder}
-            vatIncluded={restaurant.prices_include_vat !== false}
+            // الخادم لا يضيف ١٥٪ بلا رقمٍ ضريبي صالح — فالسلّة تعرض ما سيُحصَّل فعلاً.
+            vatIncluded={!chargesVatOnTop(restaurant.prices_include_vat, restaurant.vat_number)}
             vatNumber={restaurant.vat_number}
             onClose={() => setCartOpen(false)}
           />

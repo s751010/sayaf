@@ -114,6 +114,7 @@ describe("المصدر الواحد", () => {
       ["Restaurants.tsx", ["restaurants"]],
       ["Legal.tsx", ["privacy", "terms"]],
       ["CalorieTool.tsx", ["calories"]],
+      ["Login.tsx", ["login"]],
     ] as const) {
       for (const k of keys) expect(read(file), `${file} ⇐ ${k}`).toContain(`useSeo(STATIC_SEO.${k})`);
     }

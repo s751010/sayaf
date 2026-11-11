@@ -112,8 +112,8 @@ export function SupportBox({
           />
         </Field>
         {error && <ErrorNote>{error}</ErrorNote>}
-        <Button type="submit" disabled={busy} className="self-start">
-          {busy ? "جارٍ الإرسال…" : "إرسال الطلب"}
+        <Button busy={busy} busyText="جارٍ الإرسال…" type="submit" disabled={busy} className="self-start">
+          إرسال الطلب
         </Button>
       </form>
 

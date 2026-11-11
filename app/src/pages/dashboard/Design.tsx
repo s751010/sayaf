@@ -326,7 +326,7 @@ export default function Design() {
                 نصنع بطاقة أنيقة باسم مطعمك ولون علامتك، تظهر حين يُشارَك رابط
                 منيوك على واتساب. تقدر تستبدلها بصورتك في أي وقت.
               </p>
-              <Button
+              <Button busy={makingOg} busyText="جارٍ التوليد…"
                 className="mt-3"
                 variant="outline"
                 disabled={makingOg}
@@ -353,13 +353,13 @@ export default function Design() {
                   }
                 }}
               >
-                {makingOg ? "جارٍ التوليد…" : "ولّد صورة المشاركة"}
+                ولّد صورة المشاركة
               </Button>
             </div>
           )}
 
           <div className="mt-4 flex flex-wrap items-center gap-3">
-            <Button
+            <Button busy={savingBrand}
               disabled={savingBrand || !brandDirty}
               onClick={() =>
                 saveFields(
@@ -368,7 +368,7 @@ export default function Design() {
                 )
               }
             >
-              {savingBrand ? "جارٍ الحفظ…" : "حفظ"}
+              حفظ
             </Button>
             <SavedBadge dirty={brandDirty} />
           </div>
@@ -407,11 +407,11 @@ export default function Design() {
               })}
             </div>
             <div className="mt-4 flex flex-wrap items-center gap-3">
-              <Button
+              <Button busy={savingBrand}
                 disabled={savingBrand || !seasonDirty}
                 onClick={() => saveFields({ season: season || null }, "حُفظت الزينة ✓")}
               >
-                {savingBrand ? "جارٍ الحفظ…" : "حفظ"}
+                حفظ
               </Button>
               <SavedBadge dirty={seasonDirty} />
             </div>

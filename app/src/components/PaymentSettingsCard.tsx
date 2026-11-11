@@ -158,8 +158,8 @@ export function PaymentSettingsCard({
       {error && <ErrorNote>{error}</ErrorNote>}
 
       <div className="flex flex-wrap items-center gap-3">
-        <Button onClick={save} disabled={busy || !loaded}>
-          {busy ? "جارٍ الحفظ…" : "حفظ إعدادات الدفع"}
+        <Button busy={busy} onClick={save} disabled={busy || !loaded}>
+          حفظ إعدادات الدفع
         </Button>
         <a
           href="https://paylink.sa"

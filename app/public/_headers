@@ -34,7 +34,40 @@
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: microphone=(), camera=(), geolocation=()
-  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' https://plausible.io https://connect.facebook.net https://www.googletagmanager.com https://sc-static.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https:; connect-src 'self' https://wxrukupcyfypnqnotmxv.supabase.co https://plausible.io https://www.facebook.com https://connect.facebook.net https://www.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://tr.snapchat.com https://sc-static.net; form-action 'self' https://*.paylink.sa; frame-ancestors 'self'; worker-src 'self'; manifest-src 'self' blob:
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' https://plausible.io https://connect.facebook.net https://www.googletagmanager.com https://sc-static.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https:; connect-src 'self' https://wxrukupcyfypnqnotmxv.supabase.co https://plausible.io https://www.facebook.com https://connect.facebook.net https://www.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://tr.snapchat.com https://sc-static.net; form-action 'self' https://*.paylink.sa; frame-src 'self'; frame-ancestors 'self'; worker-src 'self'; manifest-src 'self' blob:
+  # يقطع صلة النافذة بأيّ نافذة طرفٍ ثالث تفتحها أو تفتحها (`window.opener`).
+  # نوافذ الطباعة `window.open("")` من أصلنا فتبقى موصولة.
+  Cross-Origin-Opener-Policy: same-origin
+
+# ═══ CSP ثانية أضيق للّوحة ولوحة المؤسّس (الأمن ٢٠٢٦/١١/٠٩، البند ٨) ═══
+#
+# Netlify يرسل كتلة `/*` وهذه معاً، والمتصفّح يفرض **السياستين كلتيهما** —
+# فالنتيجة تقاطعهما: تضيق ولا تتّسع. فهنا جلسة التاجر وسرّ المؤسّس
+# (`cm_fsecret`)، ولا بكسل يُحقن إلا في المنيو (§15) — فلا فيسبوك ولا قوقل
+# ولا سناب في `script-src` ولا `connect-src`.
+#
+# اللوحة تُبقي `plausible.io` (أحداث «إعداد منيوك»، `lib/track.ts`) و
+# `frame-src 'self'` (معاينة المنيو في خطوة النشر) و`*.paylink.sa` في
+# `form-action` (الاشتراك تحويلٌ إلى PayLink) و`blob:` للبيان والصور.
+# ولوحة المؤسّس أضيق: لا قياس ولا إطار ولا نموذج يغادرنا.
+#
+# ⚠️ `img-src https:` باقية واسعة في الكتل الثلاث: صور التجّار القديمة قد
+# تكون على أيّ نطاق — تُضيَّق بعد فحص أين تُستضاف (التقرير، ٨-٣).
+# و`'unsafe-inline'` في `style-src` باقية: `style={}` ومتغيّرات `--m-*`.
+#
+# ⚠️ تُسرد `/dashboard` و`/founder` بلا شرطة أيضاً: `/dashboard/*` لا يطابقها
+# حتماً. وبعد النشر: `curl -sI <الموقع>/dashboard` يجب أن يُظهر السياستين.
+/dashboard
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' https://plausible.io; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https:; connect-src 'self' https://wxrukupcyfypnqnotmxv.supabase.co https://plausible.io; form-action 'self' https://*.paylink.sa; frame-src 'self'; frame-ancestors 'self'; worker-src 'self'; manifest-src 'self' blob:
+
+/dashboard/*
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' https://plausible.io; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https:; connect-src 'self' https://wxrukupcyfypnqnotmxv.supabase.co https://plausible.io; form-action 'self' https://*.paylink.sa; frame-src 'self'; frame-ancestors 'self'; worker-src 'self'; manifest-src 'self' blob:
+
+/founder
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https:; connect-src 'self' https://wxrukupcyfypnqnotmxv.supabase.co; form-action 'self'; frame-src 'none'; frame-ancestors 'self'; worker-src 'self'; manifest-src 'self'
+
+/founder/*
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https:; connect-src 'self' https://wxrukupcyfypnqnotmxv.supabase.co; form-action 'self'; frame-src 'none'; frame-ancestors 'self'; worker-src 'self'; manifest-src 'self'
 
 /index.html
   Cache-Control: public, max-age=0, must-revalidate

@@ -9,7 +9,9 @@ import { track } from "@/lib/track";
 import { useDashboard } from "./Dashboard";
 import { PrintTabs } from "./Tabs";
 import { Icon } from "@/lib/icons";
-import { menuUrl } from "@/lib/menuUrl";
+import { MENU_DOMAIN, menuUrl } from "@/lib/menuUrl";
+import { printGate } from "@/lib/printKit";
+import { PRINT_GATE_NOTE_ID, PrintGateNote } from "@/components/PrintGateNote";
 import { GoogleMapsTip } from "@/components/GoogleMapsTip";
 
 function download(href: string, filename: string) {
@@ -53,6 +55,12 @@ export default function Qr() {
     document.title = "أكواد QR — كلاود منيو";
   }, []);
 
+  // الكود يُرى ويُجرَّب على الشاشة، ولا يُنزَّل ولا يُطبع قبل النطاق — الشرط
+  // نفسه في عدّة الطباعة (أمن ٢٠٢٦/١١/٠٩، البند ٧؛ قرار المالك).
+  const gate = printGate(MENU_DOMAIN, url);
+  const locked = !gate.ready;
+  const lockedProps = locked ? { disabled: true, "aria-describedby": PRINT_GATE_NOTE_ID } : {};
+
   const logo = withLogo ? (restaurant.logo_image?.trim() || null) : null;
 
   /**
@@ -79,6 +87,7 @@ export default function Qr() {
   }, [url, logo, qrColors.dark]);
 
   async function downloadSvg() {
+    if (locked) return;
     if (!url) return;
     let objectUrl: string | null = null;
     try {
@@ -102,6 +111,7 @@ export default function Qr() {
 
   /** يولّد كود كل طاولة في صفحة طباعة واحدة (اطبعها وقصّها). */
   async function printBatch() {
+    if (locked) return;
     if (!url) return;
     const n = Math.min(Math.max(parseInt(tablesCount) || 0, 1), 100);
     setBatchBusy(true);
@@ -160,6 +170,7 @@ export default function Qr() {
       </div>
 
       <PrintTabs />
+      <PrintGateNote gate={gate} />
 
       <div className="mt-6 grid gap-5 md:grid-cols-2">
         <Card className="flex flex-col gap-4">
@@ -227,13 +238,15 @@ export default function Qr() {
             <div className="flex gap-2">
               <Button
                 className="flex-1"
-                onClick={() =>
-                  download(dataUrl, `qr-${slug}${table ? `-table-${table}` : ""}.png`)
-                }
+                {...lockedProps}
+                onClick={() => {
+                  if (locked) return;
+                  download(dataUrl, `qr-${slug}${table ? `-table-${table}` : ""}.png`);
+                }}
               >
                 <Icon name="download" size={15} /> PNG
               </Button>
-              <Button variant="outline" className="flex-1" onClick={downloadSvg}>
+              <Button variant="outline" className="flex-1" {...lockedProps} onClick={downloadSvg}>
                 ⬇️ SVG
               </Button>
             </div>
@@ -273,8 +286,8 @@ export default function Qr() {
             className="max-w-40"
           />
         </Field>
-        <Button onClick={printBatch} disabled={batchBusy}>
-          {batchBusy ? "جارٍ التجهيز…" : "طباعة الكل"}
+        <Button busy={batchBusy} busyText="جارٍ التجهيز…" onClick={printBatch} disabled={batchBusy || locked} aria-describedby={locked ? PRINT_GATE_NOTE_ID : undefined}>
+          طباعة الكل
         </Button>
       </Card>
     </div>

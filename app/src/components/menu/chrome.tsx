@@ -9,10 +9,10 @@
  *
  * كلّها تُلوَّن بمتغيّرات `--m-*` (ثيم القائمة) لا بألوان اللوحة.
  */
-import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
+import { useRef, type CSSProperties, type ReactNode } from "react";
 import { type CardReserve } from "@/components/menu/DishCard";
 import type { DishLayout } from "@/lib/themes";
-import { trapTab } from "@/lib/focusTrap";
+import { useDialog } from "@/lib/useDialog";
 import { Icon } from "@/lib/icons";
 import type { Dish } from "@/lib/types";
 
@@ -104,31 +104,8 @@ export function MenuSheet({
   children: ReactNode;
 }) {
   const sheetRef = useRef<HTMLDivElement>(null);
-  /**
-   * مرّةً للّوح لا لكل رسم: `onClose` دالّةٌ مضمَّنة تتجدّد مع كل رسم، فلو سكن
-   * هذا في التأثير تحته لعاد التركيز إلى الزرّ ثم إلى اللوح مع كل ضغطة.
-   * واللوح نفسه لا أوّل زرّ فيه — كما في `DishModal`: قارئ الشاشة يبدأ من
-   * العنوان، ولا حلقة تركيز على «إغلاق» لمن فتح بلمسة.
-   */
-  useEffect(() => {
-    const prev = document.activeElement as HTMLElement | null;
-    sheetRef.current?.focus({ preventScroll: true });
-    return () => {
-      if (prev?.isConnected) prev.focus({ preventScroll: true });
-    };
-  }, []);
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-      else if (sheetRef.current) trapTab(e, sheetRef.current);
-    };
-    document.addEventListener("keydown", onKey);
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = "";
-    };
-  }, [onClose]);
+  // التركيز و«Esc» والتمرير و«رجوع» الجهاز — نسخة واحدة للنوافذ كلّها.
+  useDialog(sheetRef, onClose, { backButton: true });
 
   return (
     <div

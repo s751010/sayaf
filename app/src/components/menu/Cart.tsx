@@ -330,7 +330,8 @@ export function PickupBanner({
  * يقرأ آخر طلب من التخزين المحلّي، ويختفي وحده حين يُسلَّم أو يُلغى.
  */
 export function ActiveOrderStrip({ en }: { en: boolean }) {
-  const [order, setOrder] = useState<{ id: string; view: PublicOrder } | null>(null);
+  /** ‏`view: null` = تعذّر سؤال الخادم الآن — الطلب محفوظ ولا نعرف حالته. */
+  const [order, setOrder] = useState<{ id: string; view: PublicOrder | null } | null>(null);
 
   useEffect(() => {
     const id = getJSON<string>(K.LAST_ORDER);
@@ -346,17 +347,20 @@ export function ActiveOrderStrip({ en }: { en: boolean }) {
         }
         setOrder({ id, view });
       })
-      // ⚠️ **صامتة عمداً — ولا تُبلَّغ.** هذا استئنافُ طلبٍ قديم يحمله متصفّح
-      // الزبون؛ وفشلُه المتوقّع أن يكون الطلب حُذف أو انتهى. تبليغه يملأ
-      // `client_errors` بحالةٍ طبيعية فيُخفي العطل الحقيقي تحتها.
-      .catch(() => {});
+      // ⚠️ **لا تُبلَّغ** إلى `client_errors`: الطلب المحذوف أو المنتهي يصل
+      // `null` لا خطأً، فالفشل هنا شبكةٌ أو خادم — حالةٌ عابرة تملأ السجلّ.
+      // لكنها **لا تُبتلع**: الزبون الذي طلب لتوّه ثم ضعفت الشبكة كان يفقد
+      // طريقه إلى طلبه. فيبقى الشريط بلا حالة، وصفحة المتابعة تعيد المحاولة.
+      .catch(() => {
+        if (alive) setOrder({ id, view: null });
+      });
     return () => {
       alive = false;
     };
   }, []);
 
   if (!order) return null;
-  const ready = order.view.status === "ready";
+  const ready = order.view?.status === "ready";
 
   return (
     <a
@@ -377,17 +381,21 @@ export function ActiveOrderStrip({ en }: { en: boolean }) {
           color: ready ? "var(--m-accent)" : "var(--m-text)",
         }}
       >
-        {order.view.code}
+        {order.view ? order.view.code : <Icon name="ticket" size={18} />}
       </span>
       <span className="min-w-0 flex-1">
         <span className="block text-sm font-black" style={mFont}>
-          {ready
+          {!order.view
             ? en
-              ? "Your order is ready!"
-              : "طلبك جاهز للاستلام!"
-            : en
-              ? "Your order is on the way"
-              : "طلبك قيد التنفيذ"}
+              ? "You have an order"
+              : "لديك طلب"
+            : ready
+              ? en
+                ? "Your order is ready!"
+                : "طلبك جاهز للاستلام!"
+              : en
+                ? "Your order is on the way"
+                : "طلبك قيد التنفيذ"}
         </span>
         <span className="block text-xs" style={{ opacity: 0.75 }}>
           {en ? "Tap to track" : "اضغط للمتابعة"}

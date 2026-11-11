@@ -155,8 +155,8 @@ export function CategoryManager({
           <Button variant="ghost" onClick={onClose} disabled={busy}>
             إغلاق
           </Button>
-          <Button onClick={saveOrder} disabled={busy || !dirty}>
-            {busy ? "جارٍ الحفظ…" : "احفظ الترتيب"}
+          <Button busy={busy} onClick={saveOrder} disabled={busy || !dirty}>
+            احفظ الترتيب
           </Button>
         </div>
       </div>

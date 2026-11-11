@@ -53,9 +53,13 @@ describe("trapStep — «Tab» لا يخرج من النافذة", () => {
   it("‏`MenuSheet` يحبس ويعيد التركيز", () => {
     const chrome = src("src/components/menu/chrome.tsx");
     const sheet = chrome.slice(chrome.indexOf("export function MenuSheet"));
-    expect(sheet).toMatch(/trapTab\(e, sheetRef\.current\)/);
-    expect(sheet).toMatch(/prev\.focus\(/);
+    // الحبس والإعادة في خطّافٍ واحد للنوافذ كلّها (`lib/useDialog.ts`) —
+    // كانت نسخةً في كل نافذة، ونسخة نافذة الطبق بلا حبس (تدقيق ٢٠٢٦/١١/٠٩).
+    expect(sheet).toMatch(/useDialog\(sheetRef, onClose/);
     expect(sheet).toMatch(/tabIndex=\{-1\}/);
+    const hook = src("src/lib/useDialog.ts");
+    expect(hook).toMatch(/trapTab\(e, ref\.current\)/);
+    expect(hook).toMatch(/prev\.focus\(/);
   });
 });
 

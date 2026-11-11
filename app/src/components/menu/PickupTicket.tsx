@@ -14,6 +14,7 @@
  */
 import { useEffect, useState } from "react";
 import { verifyOrder, type PublicOrder } from "@/lib/data";
+import { ApiError } from "@/lib/api";
 import { formatMoney } from "@/lib/utils";
 import { vatAddedOnTop } from "@/lib/vat";
 import { isVatNumber } from "@/lib/legal";
@@ -195,8 +196,16 @@ export function PickupTicket({
         setOrder(result);
         setState("ok");
         onConfirmed();
-      } catch {
-        if (alive) setState("error");
+      } catch (e) {
+        if (!alive) return;
+        // ٤٢٩ = حدّ الزائر في `order-verify`: الدفع لم يفشل، السؤال كثُر. ننتظر
+        // ونعيد بدل «تعذّر تأكيد الطلب» لزبونٍ دفع فعلاً.
+        if (e instanceof ApiError && e.status === 429) {
+          setState("pending");
+          timer = window.setTimeout(check, 20000);
+          return;
+        }
+        setState("error");
       }
     };
     check();

@@ -159,8 +159,8 @@ export function StarterMenu({
             <Button variant="ghost" onClick={onClose} disabled={busy}>
               ابدأ بمنيو فارغ
             </Button>
-            <Button onClick={apply} disabled={busy || !chosen.length}>
-              {busy ? "جارٍ الإضافة…" : `أضِف ${chosen.length} صنفاً`}
+            <Button busy={busy} busyText="جارٍ الإضافة…" onClick={apply} disabled={busy || !chosen.length}>
+              {`أضِف ${chosen.length} صنفاً`}
             </Button>
           </div>
         </div>

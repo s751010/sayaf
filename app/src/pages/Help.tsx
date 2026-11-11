@@ -173,7 +173,7 @@ export default function Help() {
               key={f.q}
               className="rounded-2xl border border-line bg-panel px-5 py-4 [&[open]]:pb-5"
             >
-              <summary className="cursor-pointer list-none font-bold text-ink marker:hidden">
+              <summary className="-mx-5 -my-4 cursor-pointer list-none px-5 py-4 font-bold text-ink marker:hidden">
                 {f.q}
               </summary>
               <p className="mt-2 text-sm leading-relaxed text-dim">{f.a}</p>

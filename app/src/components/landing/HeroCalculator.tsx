@@ -107,7 +107,7 @@ export function HeroCalculator() {
                   onClick={() => choose(i)}
                   aria-pressed={active === i}
                   className={cn(
-                    "press relative min-h-9 rounded-full px-3 text-xs font-semibold transition-colors",
+                    "press hit min-h-9 rounded-full px-3 text-xs font-semibold transition-colors",
                     active === i ? "text-page" : "text-dim hover:text-ink"
                   )}
                 >

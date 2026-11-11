@@ -295,8 +295,8 @@ export default function Billing() {
           </div>
         )}
 
-        <Button className="mt-4 w-full py-3" onClick={checkout} disabled={busy}>
-          {busy ? "جارٍ فتح صفحة الدفع…" : "اشترك الآن"}
+        <Button busy={busy} busyText="جارٍ فتح صفحة الدفع…" className="mt-4 w-full py-3" onClick={checkout} disabled={busy}>
+          اشترك الآن
           {!busy && <Icon name="external" size={16} />}
         </Button>
 

@@ -170,8 +170,8 @@ function LoyaltyInner() {
             </Field>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <Button onClick={activate} disabled={activating}>
-              {activating ? "جارٍ التفعيل…" : "فعّل الآن"}
+            <Button busy={activating} busyText="جارٍ التفعيل…" onClick={activate} disabled={activating}>
+              فعّل الآن
             </Button>
             <span className="text-xs text-faint">
               يظهر للزبائن فوراً في منيوك — وتقدر تطفئه متى شئت.
@@ -208,8 +208,8 @@ function LoyaltyInner() {
             </Field>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <Button variant="outline" onClick={activate} disabled={activating || !settingsDirty}>
-              {activating ? "جارٍ الحفظ…" : "حفظ"}
+            <Button busy={activating} variant="outline" onClick={activate} disabled={activating || !settingsDirty}>
+              حفظ
             </Button>
             <SavedBadge dirty={settingsDirty} />
             <span className="ms-auto text-xs text-faint">
