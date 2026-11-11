@@ -680,7 +680,7 @@ function grinder(ctx: Ctx, b: MotifBox, k: MotifInk): void {
   });
 }
 
-/** درايف — خطّ مسارٍ متقطّع بالخافت على الضلعين، وسهمٌ بالتمييز كلّ ثلاث شُرَط. */
+/** درايف (أُعيد رسمه ١١/١١، مع الترويسة) — سيارةٌ جانبيّة بالتمييز وعجلتين بالنصّ، ثم شُرَط المسار وسهمٌ بالخافت. */
 function drive(ctx: Ctx, b: MotifBox, k: MotifInk): void {
   const room = b.reach - b.outer;
   const s = Math.min(b.mm * 2.4, room * 0.6);
@@ -688,20 +688,40 @@ function drive(ctx: Ctx, b: MotifBox, k: MotifInk): void {
     const cx = x + w / 2;
     const cy = top ? b.outer + room * 0.5 : b.H - b.outer - room * 0.5;
     const i = Math.round((x - b.outer) / w);
-    if (i % 3 === 1) {
-      // السهم: رأسٌ مثلّث على ساقٍ قصيرة، كالمرسوم على الإسفلت.
+    if (i % 4 === 1) {
+      // السيارة جانبيّةً كما في الترويسة: جسمٌ وكابينة بالتمييز، وعجلتان بالنصّ.
       ctx.fillStyle = k.accent;
-      ctx.fillRect(cx - s * 0.4, cy - s * 0.09, s * 0.42, s * 0.18);
+      rrect(ctx, cx - s * 0.46, cy - s * 0.06, s * 0.92, s * 0.24, s * 0.06);
+      ctx.fill();
       ctx.beginPath();
-      ctx.moveTo(cx + s * 0.42, cy);
-      ctx.lineTo(cx + s * 0.02, cy - s * 0.3);
-      ctx.lineTo(cx + s * 0.02, cy + s * 0.3);
+      ctx.moveTo(cx - s * 0.3, cy - s * 0.05);
+      ctx.lineTo(cx - s * 0.2, cy - s * 0.26);
+      ctx.lineTo(cx + s * 0.12, cy - s * 0.26);
+      ctx.lineTo(cx + s * 0.28, cy - s * 0.05);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = k.text;
+      for (const dx of [-0.26, 0.26]) {
+        ctx.beginPath();
+        ctx.arc(cx + s * dx, cy + s * 0.2, s * 0.1, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      return;
+    }
+    if (i % 4 === 3) {
+      // السهم: رأسٌ مثلّث على ساقٍ قصيرة، كالمرسوم على الإسفلت.
+      ctx.fillStyle = k.muted;
+      ctx.fillRect(cx - s * 0.4, cy - s * 0.07, s * 0.42, s * 0.14);
+      ctx.beginPath();
+      ctx.moveTo(cx + s * 0.38, cy);
+      ctx.lineTo(cx + s * 0.02, cy - s * 0.26);
+      ctx.lineTo(cx + s * 0.02, cy + s * 0.26);
       ctx.closePath();
       ctx.fill();
       return;
     }
     ctx.fillStyle = k.muted;
-    rrect(ctx, cx - s * 0.42, cy - s * 0.08, s * 0.84, s * 0.16, s * 0.08);
+    rrect(ctx, cx - s * 0.36, cy - s * 0.07, s * 0.72, s * 0.14, s * 0.07);
     ctx.fill();
   });
 }

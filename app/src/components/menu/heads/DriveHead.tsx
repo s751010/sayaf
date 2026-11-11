@@ -1,10 +1,11 @@
 /**
  * «درايف» — كشك القهوة السريع (٢٠٢٦/١١/٠٩).
  *
- * - `DriveHead`    **شبّاك الكشك** مدهونٌ بلون العلامة تحت مظلّةٍ مقلّمة، ولافتته المستديرة
- *   **شعارك**، ومن الشبّاك يدٌ تناول **كوباً بكمّ كرتونٍ مختوم** إلى نافذة سيارةٍ واقفة على
- *   المسار، وسهمٌ وخطٌّ متقطّع على الإسفلت. السيارة تدخل وتقف عند الفتح والكوب يُناوَل، وخطّ
- *   المسار يجري مع التمرير (`--m-scroll-y`، `lib/skinMotion.ts`).
+ * - `DriveHead`    **الكشك** مدهونٌ بلون العلامة تحت مظلّةٍ مقلّمة، ولافتته المستديرة **شعارك**،
+ *   وشبّاكٌ بإطارٍ ورفّ ستيل تمتدّ منه يدٌ تناول **كوباً بكمّ كرتونٍ مختوم** إلى **سيارةٍ كاملة**
+ *   واقفة على المسار، ولوحة منيو صغيرة مضيئة، وسهمٌ ومخروط وخطٌّ متقطّع على الإسفلت (أُعيد رسمه
+ *   ١١/١١: السيارة كانت مقصوصةً من حافّة الشاشة). السيارة تدخل وتقف عند الفتح والكوب يُناوَل،
+ *   وخطّ المسار يجري والعجلات تدور مع التمرير (`--m-scroll-y`، `lib/skinMotion.ts`).
  * - `DriveHeading` عنوان القسم **كوبٌ بكمّه** والختم بلون العلامة، ثم الاسم، ثم خطّ مسارٍ متقطّع
  *   إلى العدد على **لوحة مسار** داكنة.
  *
@@ -20,6 +21,8 @@ import type { SkinHeadingProps } from "./DukkanHead";
 
 const display: CSSProperties = { fontFamily: "var(--m-display, var(--m-font))" };
 const paint: CSSProperties = { fill: "var(--m-accent)" };
+/** خطوط المظلّة: لون العلامة أغمق قليلاً — يُقرأ على الأبيض وعلى دهان الكشك معاً. */
+const stripe: CSSProperties = { fill: "color-mix(in srgb, var(--m-accent) 78%, #000)" };
 
 /** الكوب الورقيّ بكمّه — بإحداثياته الخاصّة 0..24 × 0..34؛ والختم بلون العلامة. */
 function SleevedCup() {
@@ -36,91 +39,140 @@ function SleevedCup() {
   );
 }
 
-/** المشهد بإحداثيات 320×200: الكشك يميناً، والسيارة يساراً، والإسفلت تحتهما. */
+/**
+ * المشهد بإحداثيات 320×200 (أُعيد رسمه ٢٠٢٦/١١/١١، طلب المالك): **سيارةٌ كاملة** داخل الإطار يساراً
+ * — جانبيّةٌ بعجلتين وزجاجٍ وظلٍّ على الأرض، والسائق يمدّ يده من نافذته المفتوحة — و**الكشك** يميناً:
+ * سقفٌ داكن ولافتة الشعار فوقه، ومظلّةٌ مقلّمة، وشبّاكٌ بإطارٍ ورفّ ستيل تمتدّ منه يدٌ بالكوب، ولوحة
+ * منيو صغيرة مضيئة، والرصيف تحته؛ وعلى الإسفلت سهمٌ وخطّ مسارٍ متقطّع ومخروط. مسطّحٌ بلا تدرّجات.
+ * والسيارة والإسفلت والزجاج خامة؛ ودهان الكشك وخطوط مظلّته بلون العلامة.
+ */
 function Lane() {
   return (
-    <svg viewBox="0 0 320 200" aria-hidden="true" className="absolute inset-0 block h-full w-full overflow-visible">
+    <svg viewBox="0 0 320 200" aria-hidden="true" className="absolute inset-0 block h-full w-full">
       <defs>
-        <linearGradient id="m-dr-car" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#f6f7f8" />
-          <stop offset=".55" stopColor="#d7dbdf" />
-          <stop offset="1" stopColor="#a9b0b6" />
-        </linearGradient>
-        <linearGradient id="m-dr-glass" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#3b4650" />
-          <stop offset="1" stopColor="#1b2228" />
-        </linearGradient>
-        <linearGradient id="m-dr-shade" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stopColor="#000" stopOpacity=".16" />
-          <stop offset=".25" stopColor="#000" stopOpacity="0" />
-          <stop offset="1" stopColor="#000" stopOpacity=".1" />
-        </linearGradient>
         <clipPath id="m-dr-road">
-          <rect x="0" y="174" width="320" height="26" />
+          <rect x="0" y="152" width="320" height="48" />
         </clipPath>
       </defs>
 
-      {/* الإسفلت: داكنٌ بحصاه، وخطّ المسار المتقطّع يجري، وسهمٌ مرسوم. */}
-      <rect x="0" y="174" width="320" height="26" fill="#2b2f33" />
+      {/* السماء: شمسٌ وغيمتان مسطّحة. */}
+      <circle cx="34" cy="34" r="13" fill="#ffd66b" />
+      <g fill="#ffffff">
+        <path d="M66 52a9 9 0 0 1 17-4a7 7 0 0 1 11 6H62a5 5 0 0 1 4-2Z" />
+        <path d="M138 30a8 8 0 0 1 15-3a6 6 0 0 1 10 5h-28a4.5 4.5 0 0 1 3-2Z" />
+      </g>
+
+      {/* الرصيف والإسفلت: حافّة الرصيف، والسهم، وخطّ المسار المتقطّع يجري. */}
+      <rect x="0" y="144" width="320" height="8" fill="#d5d8d3" />
+      <rect x="0" y="144" width="320" height="2" fill="#ffffff" fillOpacity=".7" />
+      <rect x="0" y="152" width="320" height="48" fill="#2e3236" />
       <g clipPath="url(#m-dr-road)">
         <g className="m-dr-dashes">
           {Array.from({ length: 14 }, (_, i) => (
-            <rect key={i} x={-40 + i * 32} y="186" width="18" height="3" rx="1" fill="#f4f1e6" fillOpacity=".85" />
+            <rect key={i} x={-40 + i * 32} y="193" width="18" height="3" rx="1.5" fill="#f4f1e6" fillOpacity=".85" />
           ))}
         </g>
       </g>
-      <path d="M232 194H262V190L272 196L262 202V198H232Z" fill="#f4f1e6" fillOpacity=".8" />
-      {/* الكشك: جدارٌ مدهون بلون العلامة، ومظلّةٌ مقلّمة، والشبّاك المضاء. */}
-      <rect className="m-dr-paint" x="186" y="18" width="134" height="158" style={paint} />
-      <rect x="186" y="18" width="134" height="158" fill="url(#m-dr-shade)" />
-      <path d="M186 18H320V30H186Z" fill="#000" fillOpacity=".12" />
-      <g className="m-dr-awning">
-        <path d="M180 66H320V80H180Z" fill="#fdfcf9" />
-        {[0, 1, 2, 3, 4, 5, 6].map((i) => (
-          <path key={i} d={`M${180 + i * 20} 66h10v14h-10Z`} style={paint} />
-        ))}
-        <path d="M180 80Q185 86 190 80Q195 86 200 80Q205 86 210 80Q215 86 220 80Q225 86 230 80Q235 86 240 80Q245 86 250 80Q255 86 260 80Q265 86 270 80Q275 86 280 80Q285 86 290 80Q295 86 300 80Q305 86 310 80Q315 86 320 80" fill="#fdfcf9" stroke="#000" strokeOpacity=".08" />
-      </g>
-      <rect x="198" y="90" width="110" height="62" rx="4" fill="#2a2f34" />
-      <rect className="m-dr-glow" x="202" y="94" width="102" height="54" rx="2" fill="#ffe9b8" />
-      <path d="M202 94H304V110Q253 104 202 116Z" fill="#fff" fillOpacity=".35" />
-      {/* رفّ الشبّاك ستيل، والجرس عليه. */}
-      <rect x="192" y="150" width="122" height="7" rx="2" fill="#c9ced2" stroke="#8d949a" strokeWidth=".8" />
-      <rect x="192" y="150" width="122" height="2" rx="1" fill="#fff" fillOpacity=".7" />
+      <path className="m-dr-arrow" d="M202 163H232V158.5L244 166L232 173.5V169H202Z" fill="#f4f1e6" fillOpacity=".85" />
 
-      {/* اليد من الشبّاك: كمٌّ داكن، وكفٌّ تمسك الكوب — تُناوَل نحو السيارة. */}
+      {/* المخروط على الإسفلت أمام الكشك. */}
+      <g className="m-dr-cone">
+        <path d="M296 166L302 166L307 184H291Z" fill="#f26a21" />
+        <path d="M294.6 171.5H303.4L304.4 175.5H293.6Z" fill="#ffffff" />
+        <rect x="287" y="183" width="24" height="4" rx="1.2" fill="#d4561a" />
+      </g>
+
+      {/* الكشك: سقفٌ داكن، وجسمٌ مدهون بلون العلامة، وتنّورةٌ أغمق على الرصيف. */}
+      <rect x="196" y="44" width="116" height="10" rx="2" fill="#2b2f33" />
+      <rect className="m-dr-paint" x="200" y="54" width="108" height="92" style={paint} />
+      <rect x="200" y="136" width="108" height="10" fill="#000" fillOpacity=".14" />
+      <rect x="200" y="54" width="4" height="92" fill="#000" fillOpacity=".08" />
+
+      {/* المظلّة: خطوطٌ بيضاء وبلون العلامة الأغمق، وحافّةٌ مموّجة. */}
+      <g className="m-dr-awning">
+        <rect x="194" y="60" width="120" height="14" fill="#ffffff" />
+        {[0, 1, 2, 3, 4, 5].map((i) => (
+          <rect key={i} x={194 + i * 20} y="60" width="10" height="14" style={stripe} />
+        ))}
+        <path
+          d="M194 74h120v2a5 5 0 0 1-10 0a5 5 0 0 1-10 0a5 5 0 0 1-10 0a5 5 0 0 1-10 0a5 5 0 0 1-10 0a5 5 0 0 1-10 0a5 5 0 0 1-10 0a5 5 0 0 1-10 0a5 5 0 0 1-10 0a5 5 0 0 1-10 0a5 5 0 0 1-10 0a5 5 0 0 1-10 0Z"
+          fill="#ffffff"
+        />
+        <rect x="194" y="74" width="120" height="1.2" fill="#000" fillOpacity=".08" />
+      </g>
+
+      {/* الشبّاك: إطارٌ داكن، وزجاجٌ دافئ مضاء بلمعة، ورفّ ستيل. */}
+      <rect x="206" y="86" width="60" height="46" rx="3" fill="#23272b" />
+      <rect className="m-dr-glow" x="210" y="90" width="52" height="38" rx="1.5" fill="#fff0c7" />
+      <path d="M210 90H232L216 128H210Z" fill="#ffffff" fillOpacity=".45" />
+      <rect x="235" y="90" width="2" height="38" fill="#23272b" />
+      <rect x="202" y="131" width="68" height="5" rx="1.5" fill="#c9ced2" />
+      <rect x="202" y="131" width="68" height="1.4" rx=".7" fill="#ffffff" />
+
+      {/* لوحة المنيو الصغيرة المضيئة على وجه الكشك. */}
+      <g className="m-dr-board">
+        <rect x="274" y="88" width="30" height="42" rx="2.5" fill="#1f2327" />
+        <rect x="277" y="91" width="24" height="5" rx="1" style={paint} />
+        {[100, 107, 114, 121].map((y) => (
+          <g key={y}>
+            <rect x="277.5" y={y} width="14" height="2.6" rx="1.3" fill="#fff4d6" />
+            <rect x="294.5" y={y} width="6" height="2.6" rx="1.3" fill="#fff4d6" fillOpacity=".6" />
+          </g>
+        ))}
+        <rect x="286" y="130" width="3" height="16" fill="#1f2327" />
+      </g>
+
+      {/* اليد من الشبّاك: كمٌّ داكن وكفٌّ تمسك الكوب — تُناوَل إلى نافذة السيارة. */}
       <g className="m-dr-hand">
-        <path d="M232 120H206Q198 120 196 128L194 134H234Z" fill="#2f3b45" />
-        <ellipse cx="190" cy="128" rx="9" ry="7" fill="#c98f62" />
-        <g transform="translate(170 108) scale(1.25)">
+        <path d="M214 110H190Q184 110 183 116L182 121H214Z" fill="#33414c" />
+        <ellipse cx="180" cy="116" rx="6.5" ry="5.5" fill="#c98f62" />
+        <g transform="translate(160 97) scale(.95)">
           <SleevedCup />
         </g>
       </g>
 
-      {/* السيارة: بابٌ أماميّ بنافذةٍ مفتوحة، ومرآة، وعجلة — وجسمٌ لؤلؤيّ (خامة). */}
+      {/* السيارة كاملةً: ظلٌّ على الأرض، وجسمٌ بلونين مسطّحين، وزجاجٌ ونافذةٌ مفتوحة، وعجلتان. */}
       <g className="m-dr-car">
-        <path d="M-40 96Q-30 70 6 66L116 64Q142 64 158 86L170 108Q176 120 176 134V160Q176 168 168 168H-40Z" fill="url(#m-dr-car)" stroke="#8d949a" strokeWidth="1" />
-        <path d="M8 74L112 72Q132 72 146 92L154 106H8Z" fill="url(#m-dr-glass)" />
-        {/* النافذة مفتوحة: الزجاج نزل، ويبقى طرفه فوق الباب. */}
-        <path d="M14 104H150" stroke="#5a656e" strokeWidth="3" />
-        <path d="M30 80Q60 76 92 78" fill="none" stroke="#fff" strokeOpacity=".12" strokeWidth="5" strokeLinecap="round" />
-        {/* المقود ويد السائق ممدودة نحو الكوب. */}
-        <ellipse cx="54" cy="104" rx="16" ry="5" fill="none" stroke="#11161a" strokeWidth="3.4" />
-        <path d="M104 104Q130 100 150 96" fill="none" stroke="#c98f62" strokeWidth="7" strokeLinecap="round" />
-        <path d="M-40 120H170" stroke="#8d949a" strokeOpacity=".6" />
-        <rect x="118" y="124" width="18" height="4" rx="2" fill="#8d949a" />
-        {/* المرآة الجانبية على ساقها. */}
-        <path d="M156 92L166 88" stroke="#2b3036" strokeWidth="3" strokeLinecap="round" />
-        <ellipse cx="170" cy="84" rx="6" ry="8.5" fill="#2b3036" />
-        <ellipse cx="170.6" cy="84" rx="4" ry="6.4" fill="#8fa3b0" />
-        <circle cx="34" cy="168" r="23" fill="#1b1f23" />
-        <g className="m-dr-wheel">
-          <circle cx="34" cy="168" r="13" fill="#9aa1a7" />
-          <path d="M34 156V180M22 168H46M25.5 159.5L42.5 176.5M42.5 159.5L25.5 176.5" stroke="#5d6268" strokeWidth="2.4" />
-          <circle cx="34" cy="168" r="3.6" fill="#d7dbdf" />
-        </g>
+        <ellipse cx="96" cy="186" rx="84" ry="4.5" fill="#000" fillOpacity=".28" />
+        <path
+          d="M14 166V145Q14 134 25 133L40 131L55 110Q58 106 64 106H118Q124 106 128 110L148 130L166 133Q177 135 177 147V166Q177 174 169 174H22Q14 174 14 166Z"
+          fill="#2a8796"
+        />
+        {/* الكتف الفاتح فوق خطّ الجسم — لونٌ ثانٍ لا تدرّج. */}
+        <path d="M14 145Q14 134 25 133L40 131H148L166 133Q177 135 177 145Z" fill="#37a2b1" />
+        <rect x="14" y="152" width="163" height="2" fill="#1d6672" />
+        {/* الزجاج: خلفيّ، والنافذة الأماميّة مفتوحة يظهر منها السائق. */}
+        <path d="M46 129L58 113Q60 110 64 110H90V129Z" fill="#26323b" />
+        <path d="M96 110H118Q121 110 124 113L141 129H96Z" fill="#141a1f" />
+        <path d="M96 117H133" stroke="#3a4650" strokeWidth="2" />
+        <path d="M60 116Q72 112 86 113" fill="none" stroke="#ffffff" strokeOpacity=".22" strokeWidth="3" strokeLinecap="round" />
+        <circle cx="112" cy="120" r="6.2" fill="#2a2420" />
+        <path d="M120 125Q136 121 153 116" fill="none" stroke="#c98f62" strokeWidth="5" strokeLinecap="round" />
+        <rect x="91" y="110" width="5" height="62" fill="#1d6672" />
+        {/* المقابض، والمصباح الأماميّ والخلفيّ، والمرآة، والصدّام. */}
+        <rect x="76" y="140" width="10" height="2.6" rx="1.3" fill="#1d6672" />
+        <rect x="120" y="140" width="10" height="2.6" rx="1.3" fill="#1d6672" />
+        <path d="M170 138H177V146H168Z" fill="#fff3c4" />
+        <rect x="14" y="137" width="5" height="9" rx="1" fill="#e2412b" />
+        <path d="M141 125L149 122Q152 121 152 124V129H143Z" fill="#1d6672" />
+        <rect x="12" y="162" width="167" height="5" rx="2.5" fill="#23282c" />
+        {/* العجلتان: قوسٌ داكن، وإطار، وجنطٌ يدور. */}
+        {[48, 144].map((cx) => (
+          <g key={cx}>
+            <path d={`M${cx - 18} 174A18 18 0 0 1 ${cx + 18} 174Z`} fill="#1a1e21" />
+            <circle cx={cx} cy="170" r="14" fill="#1b1f23" />
+            <g className="m-dr-wheel">
+              <circle cx={cx} cy="170" r="8" fill="#c9ced2" />
+              <path
+                d={`M${cx} 163.5V176.5M${cx - 6.5} 170H${cx + 6.5}`}
+                stroke="#8d949a"
+                strokeWidth="2.2"
+              />
+              <circle cx={cx} cy="170" r="2.6" fill="#eef0f2" />
+            </g>
+          </g>
+        ))}
       </g>
-
     </svg>
   );
 }
@@ -131,11 +183,11 @@ export function DriveHead({ restaurant, corner, children }: HeadProps) {
   return (
     <header className="m-head m-head-lane relative overflow-hidden pb-1">
       <Corner>{corner}</Corner>
-      <div className="m-dr-sky relative pt-9">
+      <div className="m-dr-sky relative pt-14">
         <div className="m-dr-scene relative mx-auto aspect-[16/10] w-full max-w-[24rem]">
           <Lane />
           {/* لافتة الكشك المستديرة فوق المظلّة: شعارك في إطارٍ أبيض مضاء. */}
-          <span className="m-dr-sign absolute left-[78.4%] top-[21%] z-[2] block aspect-square w-[17%] -translate-x-1/2 -translate-y-1/2 rounded-full p-[3px]">
+          <span className="m-dr-sign absolute left-[79.4%] top-[14%] z-[2] block aspect-square w-[15%] -translate-x-1/2 -translate-y-1/2 rounded-full p-[3px]">
             <LogoMark
               restaurant={restaurant}
               size="relative h-full w-full"

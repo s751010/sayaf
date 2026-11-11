@@ -107,29 +107,36 @@ export function GrinderMini({ v }: { v: Vars }) {
   );
 }
 
-/** درايف: كشكٌ بلون العلامة بمظلّةٍ ولافتة، وسيارةٌ عند الشبّاك، وإسفلتٌ بخطّه المتقطّع. */
+/** درايف (أُعيد رسمه ١١/١١): كشكٌ بلون العلامة بمظلّةٍ ولافتة ولوحة منيو، وسيارةٌ كاملة عند الشبّاك والكوب يُناوَل. */
 export function DriveMini({ v }: { v: Vars }) {
   return (
-    <Frame
-      bg={`linear-gradient(180deg, #e0e9ee 0 62.5%, #2b2f33 62.5% 73.2%, ${v["--m-bg"]} 73.2%)`}
-    >
-      <rect x="92" y="6" width="68" height="62" fill={v["--m-accent"]} />
-      <path d="M88 26H160V32H88Z" fill="#fdfcf9" />
-      {[0, 1, 2, 3, 4, 5, 6].map((i) => (
-        <rect key={i} x={88 + i * 10.4} y="26" width="5.2" height="6" fill={v["--m-accent"]} />
-      ))}
-      <rect x="99" y="36" width="52" height="24" rx="2" fill="#ffe9b8" stroke="#2a2f34" strokeWidth="2" />
-      <circle cx="124" cy="16" r="8" fill="#ffffff" stroke={v["--m-text"]} strokeWidth="1.6" />
-      <circle cx="124" cy="16" r="5" fill={v["--m-surface"]} />
-      <path d="M-6 46Q0 34 14 33L58 32Q70 32 78 42L84 52V68H-6Z" fill="#dfe3e6" stroke="#8d949a" strokeWidth=".8" />
-      <path d="M8 37L56 36Q66 36 72 44L75 50H8Z" fill="#2b343b" />
-      <circle cx="18" cy="70" r="9" fill="#1b1f23" />
-      <circle cx="18" cy="70" r="4.5" fill="#9aa1a7" />
-      <rect x="0" y="70" width="160" height="12" fill="#2b2f33" />
+    <Frame bg={`linear-gradient(180deg, #d6e8f0 0 62%, #d5d8d3 62% 65%, #2e3236 65% 80%, ${v["--m-bg"]} 80%)`}>
+      {/* الكشك: سقفٌ داكن ولافتة، ومظلّةٌ مقلّمة، وشبّاكٌ ولوحة منيو. */}
+      <rect x="100" y="16" width="56" height="4" fill="#2b2f33" />
+      <circle cx="128" cy="11" r="7" fill="#ffffff" stroke={v["--m-text"]} strokeWidth="1.4" />
+      <rect x="102" y="20" width="52" height="50" fill={v["--m-accent"]} />
+      <rect x="100" y="24" width="56" height="7" fill="#ffffff" />
       {[0, 1, 2, 3, 4, 5].map((i) => (
-        <rect key={i} x={6 + i * 28} y="75" width="14" height="2" fill="#f4f1e6" opacity=".85" />
+        <rect key={i} x={100 + i * 9.4} y="24" width="4.7" height="7" fill={v["--m-accent"]} />
       ))}
-      <Lines v={v} y={89} />
+      <rect x="105" y="36" width="28" height="22" rx="1.5" fill="#fff0c7" stroke="#23272b" strokeWidth="2" />
+      <rect x="138" y="37" width="13" height="20" rx="1" fill="#1f2327" />
+      {/* السيارة كاملةً بظلّها وعجلتيها. */}
+      <ellipse cx="50" cy="83" rx="40" ry="2" fill="#000" opacity=".28" />
+      <path d="M10 76V66Q10 61 15 61L24 60L31 50Q32 48 35 48H62Q65 48 67 50L76 59L84 61Q89 62 89 67V76Z" fill="#2a8796" />
+      <path d="M27 59L33 51H45V59ZM48 51H62L70 59H48Z" fill="#26323b" />
+      <circle cx="27" cy="77" r="6.5" fill="#1b1f23" />
+      <circle cx="27" cy="77" r="3.2" fill="#c9ced2" />
+      <circle cx="72" cy="77" r="6.5" fill="#1b1f23" />
+      <circle cx="72" cy="77" r="3.2" fill="#c9ced2" />
+      {/* الكوب يُناوَل بين الشبّاك والسيارة. */}
+      <path d="M86 46H96L94.5 58H87.5Z" fill="#fdfcf9" />
+      <rect x="85" y="44" width="12" height="3" rx="1" fill="#2b2420" />
+      <rect x="86.6" y="50" width="8.8" height="4" fill="#c9a46e" />
+      {[0, 1, 2, 3, 4].map((i) => (
+        <rect key={i} x={4 + i * 34} y="85" width="16" height="2" fill="#f4f1e6" opacity=".85" />
+      ))}
+      <Lines v={v} y={92} />
     </Frame>
   );
 }
