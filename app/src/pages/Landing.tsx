@@ -437,8 +437,11 @@ export default function Landing() {
             <p className="mt-4 text-center text-xs text-faint" aria-live={touched ? "polite" : "off"}>
               منيو {cat.name} بطابع «{shownTheme.name}» — مرّره وافتح أي طبق.
             </p>
+            {/* مكانه محجوزٌ دائماً: ظهوره كان يُعيد توسيط عمود النصّ ٢٢px، واختفاؤه عند أوّل
+                لمسة كان يزيح الشريحة بين الضغط والرفع فتضيع النقرة. */}
+            <div className="mx-auto mt-3 h-11 max-w-[290px]">
             {touring && (
-              <div className="mx-auto mt-3 flex max-w-[290px] items-center gap-2">
+              <div className="flex h-full items-center gap-2">
                 <ol className="flex flex-1 gap-1.5" aria-label="جولة الأنواع">
                   {TOUR.map((id) => (
                     <li key={id} className="h-1 flex-1 overflow-hidden rounded-full bg-line">
@@ -461,6 +464,7 @@ export default function Landing() {
                 </button>
               </div>
             )}
+            </div>
           </div>
         </div>
       </section>
