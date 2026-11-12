@@ -78,15 +78,11 @@ export default function StoryPhone({ active, themeId, kind }: { active: number; 
   // ٣: ختمٌ جديد يُضاف — من ٢ إلى ٣ من خمسة.
   const stampSteps = useSteps(active === 2, 1, 900);
 
-  // ٤: طبقٌ بقيمه — والصوديوم فوق حدّ الهيئة (٢٠٠٠ ملغم) فتظهر علامة الملح.
-  const salty: Dish | undefined = shelf[1] ?? shelf[0];
-  const labelled: Dish | undefined = salty && {
-    ...salty,
-    calories: salty.calories ?? 640,
-    sodium_mg: 2150,
-    caffeine_mg: null,
-    allergens: salty.allergens?.length ? salty.allergens : ["gluten", "milk"],
-  };
+  // ٤: الطبق الأعلى صوديوماً في منيو النوع **بقيمه نفسها** — لا رقم مخترَع. وإن تجاوز
+  // حدّ الهيئة (٢٠٠٠ ملغم) ظهرت علامة الملح كما تظهر للزبون؛ وإلا فالملصق وحده.
+  const labelled: Dish | undefined = [...dishes]
+    .filter((d) => d.calories != null)
+    .sort((x, y) => (y.sodium_mg ?? 0) - (x.sodium_mg ?? 0))[0];
 
   const vars = { ...theme.vars, background: "var(--m-bg)", color: "var(--m-text)" } as CSSProperties;
 
@@ -182,7 +178,7 @@ export default function StoryPhone({ active, themeId, kind }: { active: number; 
                 values={{
                   kcal: labelled.calories,
                   sodium: labelled.sodium_mg,
-                  caffeine: null,
+                  caffeine: labelled.caffeine_mg,
                   burnMinutes: burnMinutes(labelled.calories),
                   highSodium: isHighSodium(labelled.sodium_mg),
                   allergens: labelled.allergens ?? [],

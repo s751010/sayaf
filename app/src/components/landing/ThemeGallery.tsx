@@ -103,14 +103,14 @@ export function ThemeGallery({
           ))}
         </div>
         {shelf.length > 3 && (
-          <div className="pointer-events-none absolute inset-x-0 top-[38%] hidden justify-between lg:flex" aria-hidden="false">
+          <div className="pointer-events-none absolute inset-x-0 top-[38%] hidden justify-between lg:flex">
             <button
               type="button"
               onClick={() => nudge(-1)}
               aria-label="الطابع السابق"
               className="press pointer-events-auto -ms-6 flex h-12 w-12 items-center justify-center rounded-full border border-line bg-panel text-ink shadow-[0_10px_24px_-14px_rgba(0,0,0,.5)] hover:border-ink/35"
             >
-              <Icon name="chevron" size={20} className="rotate-180" />
+              <Icon name="chevron" size={20} />
             </button>
             <button
               type="button"
@@ -118,7 +118,8 @@ export function ThemeGallery({
               aria-label="الطابع التالي"
               className="press pointer-events-auto -me-6 flex h-12 w-12 items-center justify-center rounded-full border border-line bg-panel text-ink shadow-[0_10px_24px_-14px_rgba(0,0,0,.5)] hover:border-ink/35"
             >
-              <Icon name="chevron" size={20} />
+              {/* الرمز يُعكس في RTL (`flip`) — فالسهمان يشيران إلى الخارج كلٌّ بجهته. */}
+              <Icon name="chevron" size={20} className="rotate-180" />
             </button>
           </div>
         )}

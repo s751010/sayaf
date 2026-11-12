@@ -501,7 +501,7 @@ export default function Landing() {
               {OUTCOMES.map((o, i) => (
                 <li key={o.title} data-step={i} className="min-h-[66vh] lg:flex lg:min-h-[74vh] lg:items-center">
                   <div
-                    className="story-step sticky top-[452px] rounded-[18px] border border-line bg-panel p-4 shadow-[0_24px_48px_-30px_rgba(0,0,0,.45)] sm:p-6 lg:static"
+                    className="story-step sticky top-[452px] [@media(max-height:719px)]:static rounded-[18px] border border-line bg-panel p-4 shadow-[0_24px_48px_-30px_rgba(0,0,0,.45)] sm:p-6 lg:static"
                     data-on={station === i || undefined}
                   >
                     <span className="flex items-center gap-3">

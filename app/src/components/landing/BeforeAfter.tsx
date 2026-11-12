@@ -199,8 +199,8 @@ export function BeforeAfter({ themeId }: { themeId: string }) {
         </div>
       </div>
       <figcaption className="mt-4 flex justify-between gap-6 px-2 text-sm font-bold text-dim" dir="ltr">
-        <span>← منيو PDF</span>
-        <span>كلاود منيو →</span>
+        <span dir="rtl">قبل: منيو PDF</span>
+        <span dir="rtl">بعد: كلاود منيو</span>
       </figcaption>
     </figure>
   );
