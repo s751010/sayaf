@@ -287,7 +287,8 @@ export default function Landing() {
       document.removeEventListener("focusout", off);
     };
   }, []);
-  const dock = cta.passed && !typing && !closing.visible;
+  // ويبقى غائباً تحت الخاتمة (الذيل): زرّها قيل، وشريطٌ فوق روابط الذيل يحجبها.
+  const dock = cta.passed && !typing && !closing.visible && !closing.passed;
 
   useSeo({
     title: "منيو يشبه مطعمك ويبيع عنك",
