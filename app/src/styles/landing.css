@@ -1,0 +1,239 @@
+/**
+ * صفحة الهبوط — «عرض حيّ للمنتج» (٢٠٢٦/١١/١١، §22).
+ *
+ * تُستورد من `pages/Landing.tsx` وحدها، فتصير ملفّ CSS لحزمة الهبوط الكسولة:
+ * لا يدفعها زائر منيو من كود QR.
+ *
+ * ⚠️ القاعدة نفسها في `global.css`: **المحتوى مكشوفٌ افتراضاً**، والحركة كلّها
+ * داخل `prefers-reduced-motion: no-preference`. ما يُخفى خارجها حالةٌ لا حركة
+ * (محطّةٌ غير مفتوحة في القصّة).
+ */
+
+/* ══ البطل ═══════════════════════════════════════════════════════════════ */
+
+/* منصّة الجوّال: قرصٌ دافئ خلفه وحلقة سدوٍ مقطّعة — الجوّال على «صينية» لا في فراغ. */
+.hero-stage {
+  position: relative;
+  isolation: isolate;
+}
+.hero-stage::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 8% -14% 4%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--c-gold) 22%, transparent), transparent 72%);
+}
+.hero-stage::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: 50%;
+  top: 50%;
+  width: 116%;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border-radius: 50%;
+  border: 2px dashed color-mix(in srgb, var(--c-sadu) 45%, transparent);
+  opacity: 0.6;
+}
+
+/* ملصق «منيو حيّ» على كتف الجوّال — من لغة «ملصقٌ وسدو» (§27). */
+.live-tag {
+  position: absolute;
+  z-index: 2;
+  top: 64px;
+  inset-inline-end: -18px;
+  rotate: 6deg;
+  border: 2px solid var(--c-rule);
+  background: var(--c-panel);
+  color: var(--c-ink);
+  box-shadow: 3px 3px 0 var(--c-rule);
+}
+.live-dot {
+  background: var(--c-sadu);
+}
+
+/* مسحة تبديل النوع/الطابع داخل الجوّال: شريط سدوٍ يعبر الشاشة ثم يذوب. */
+.phone-wipe {
+  opacity: 0;
+}
+
+/* شريط جولة الأنواع تحت الجوّال: يمتلئ في مدّة النوع (يُكتب `--tour-ms`). */
+.tour-fill {
+  transform-origin: right;
+  transform: scaleX(1);
+}
+
+/* ══ القصّة ══════════════════════════════════════════════════════════════ */
+
+.story-station {
+  position: absolute;
+  inset: 3.6rem 0 0;
+  visibility: hidden;
+  opacity: 0;
+}
+.story-station[data-on] {
+  visibility: visible;
+  opacity: 1;
+}
+.story-sheet,
+.story-pop {
+  opacity: 0;
+}
+.story-sheet[data-on],
+.story-pop[data-on] {
+  opacity: 1;
+}
+
+/* البطاقة النشطة في نصّ القصّة: خيط سدوٍ على حافّتها. */
+.story-step {
+  transition: border-color var(--dur-2) linear, box-shadow var(--dur-2) linear;
+}
+.story-step[data-on] {
+  border-color: var(--c-rule);
+  box-shadow: 4px 4px 0 var(--c-rule);
+}
+.story-step[data-on] .story-num {
+  background: var(--c-sadu);
+  color: #fff;
+}
+
+/* ══ قبل وبعد ════════════════════════════════════════════════════════════ */
+
+@property --ba {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 50%;
+}
+.ba {
+  --ba: var(--ba-pos, 50%);
+}
+.ba-after {
+  clip-path: inset(0 0 0 var(--ba));
+}
+.ba-rule,
+.ba-knob {
+  left: var(--ba);
+}
+.ba-rule {
+  translate: -50% 0;
+}
+
+/* ══ معرض الطوابع ════════════════════════════════════════════════════════ */
+
+.gal-rail {
+  scrollbar-width: thin;
+}
+
+/* ══ الحركة — داخل no-preference وحدها ══════════════════════════════════ */
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero-stage::after {
+    animation: sadu-turn 60s linear infinite;
+  }
+  @keyframes sadu-turn {
+    to {
+      rotate: 1turn;
+    }
+  }
+
+  .live-dot {
+    animation: live-pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes live-pulse {
+    50% {
+      opacity: 0.35;
+    }
+  }
+
+  .phone-wipe {
+    background:
+      linear-gradient(135deg, var(--c-sadu) 25%, transparent 25%) 0 0 / 18px 10px repeat-x,
+      linear-gradient(225deg, var(--c-sadu) 25%, transparent 25%) 0 0 / 18px 10px repeat-x,
+      linear-gradient(to bottom, transparent, color-mix(in srgb, var(--c-gold) 55%, transparent) 40%, transparent);
+    background-size: 18px 10px, 18px 10px, 100% 100%;
+    animation: phone-wipe 760ms var(--ease-out) both;
+  }
+  @keyframes phone-wipe {
+    from {
+      opacity: 0.95;
+      transform: translateY(-100%);
+    }
+    60% {
+      opacity: 0.6;
+    }
+    to {
+      opacity: 0;
+      transform: translateY(100%);
+    }
+  }
+
+  .tour-fill {
+    animation: tour-fill var(--tour-ms, 5200ms) linear both;
+  }
+  @keyframes tour-fill {
+    from {
+      transform: scaleX(0);
+    }
+  }
+
+  /* القصّة: المحطّة تنزلق قليلاً وتظهر؛ والسابقة تذوب. */
+  .story-station {
+    transition:
+      opacity 420ms var(--ease-out),
+      transform 520ms var(--ease-out),
+      visibility 0s linear 420ms;
+    transform: translateY(18px) scale(0.985);
+  }
+  .story-station[data-on] {
+    transition:
+      opacity 420ms var(--ease-out) 80ms,
+      transform 520ms var(--ease-out) 80ms,
+      visibility 0s;
+    transform: none;
+  }
+  .story-sheet {
+    transform: translateY(100%);
+    transition: transform 460ms var(--ease-out), opacity 200ms linear;
+  }
+  .story-sheet[data-on] {
+    transform: none;
+  }
+  .story-pop {
+    transform: scale(0.4);
+    transition: transform 340ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 160ms linear;
+  }
+  .story-pop[data-on] {
+    transform: none;
+  }
+
+  /* قبل وبعد: المقبض يتأرجح مرّة حين يظهر القسم — تلميحٌ بأنه يُسحب. */
+  .ba[data-hint] {
+    animation: ba-hint 2.2s var(--ease-io) 1 both;
+  }
+  @keyframes ba-hint {
+    0% { --ba: 50%; }
+    30% { --ba: 22%; }
+    65% { --ba: 78%; }
+    100% { --ba: 50%; }
+  }
+  .ba-pinch {
+    animation: pinch 2.4s ease-in-out infinite;
+  }
+  @keyframes pinch {
+    50% {
+      transform: scale(1.06);
+    }
+  }
+
+  /* المعرض: المعاينة «تُمرَّر» حين يقف عليها المؤشّر أو التركيز أو اللمس. */
+  .gal-prev > * {
+    transition: transform 1.6s var(--ease-out);
+  }
+  .gal-card:hover .gal-prev > *,
+  .gal-card:focus-visible .gal-prev > *,
+  .gal-card:active .gal-prev > * {
+    transform: scale(1.06) translateY(-5%);
+  }
+}

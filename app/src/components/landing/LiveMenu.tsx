@@ -21,10 +21,14 @@ import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { useFirstInteraction, useNearViewport } from "@/lib/useNearViewport";
 import { cn } from "@/lib/utils";
 import { Icon } from "@/lib/icons";
-import { ALL_THEMES, getTheme, isHex } from "@/lib/themes";
+import { ALL_THEMES, getTheme, isHex, type MenuTheme } from "@/lib/themes";
 import type { DemoKind } from "@/lib/demoMenus";
 
-export type Brand = { name: string; color: string | null; theme: string; logo: string | null };
+/**
+ * هويّة الزائر في الجوّال. و`kind` (٢٠٢٦/١١/١١) منيو نوعه من «وش نوع مطعمك؟» —
+ * يصل الإطار برسالة لا برابط، فلا يُعاد بناؤه مع كل نقرة. بلا `kind` يبقى منيو الرابط.
+ */
+export type Brand = { name: string; color: string | null; theme: string; logo: string | null; kind?: DemoKind };
 
 export const DEFAULT_BRAND: Brand = { name: "", color: null, theme: "dark-gold", logo: null };
 
@@ -37,7 +41,21 @@ const SCREEN_W = 390;
 const SCREEN_H = 844;
 const SCALE = 0.74;
 
-export function BrandControls({ brand, onChange }: { brand: Brand; onChange: (b: Brand) => void }) {
+export function BrandControls({
+  brand,
+  onChange,
+  themes = ALL_THEMES,
+  themesLabel = "الطابع",
+}: {
+  brand: Brand;
+  onChange: (b: Brand) => void;
+  /**
+   * الطوابع المعروضة — الهبوط يمرّر طوابع نوع الزائر (٤–٩) لا الثمانية والثلاثين:
+   * جدار أزرارٍ بعشرة صفوف كان يدفع زرّ التجربة ١٩٠٠px تحت أوّل شاشة (٢٠٢٦/١١/١١).
+   */
+  themes?: readonly MenuTheme[];
+  themesLabel?: string;
+}) {
   const set = (patch: Partial<Brand>) => onChange({ ...brand, ...patch });
 
   // يُبطَل الرابط القديم عند تبديل الشعار وعند المغادرة — لا يبقى ملفٌّ معلّقاً في الذاكرة.
@@ -127,13 +145,13 @@ export function BrandControls({ brand, onChange }: { brand: Brand; onChange: (b:
         </label>
       </div>
 
-      <p className="mt-4 text-xs font-bold text-dim">الطابع</p>
+      <p className="mt-4 text-xs font-bold text-dim">{themesLabel}</p>
       {/* أربعة أعمدة (ستّة على الشاشة العريضة) — كانت خمسةً حتى ٠٩/١١، فتركت الستّة والثلاثون طابعاً
           وحيداً في آخر صفّ. والثمانية والثلاثون (١١/١١) آخر صفّها اثنان على الاثنين: لا طابع وحيد.
           وفي الخانة يعلو الاسمَ قرصُ لون الطابع: أرضيته وحلقة تمييزه، فتُقرأ الشبكة
           لوحةَ ألوانٍ قبل أن تُقرأ أسماءً (تدقيق ٢٠٢٦/١١/٠٧). */}
       <div className="mt-2 grid grid-cols-4 gap-1.5 sm:grid-cols-6 sm:gap-2" role="radiogroup" aria-label="طابع المنيو">
-        {ALL_THEMES.map((t) => {
+        {themes.map((t) => {
           const on = brand.theme === t.id;
           return (
             <button
@@ -177,8 +195,23 @@ export function BrandControls({ brand, onChange }: { brand: Brand; onChange: (b:
  * الجوّال: إطارٌ ثابت المقاس فيه المنيو الحقيقي بمقاس شاشة آيفون، مصغّراً.
  * الرسالة تُرسَل بعد أن يُعلن الإطار جاهزيته، ثم مع كل تغيير بعد مهلة قصيرة
  * (الكتابة حرفاً حرفاً لا تستحق إعادة رسم لكل ضغطة).
+ *
+ * ‏`src` يُثبَّت عند أوّل رسم: النوع والطابع بعده **برسالة** — تغيير الرابط كان
+ * سيبني نسخة التطبيق الثانية من الصفر مع كل نقرة على «وش نوع مطعمك؟».
+ * و`onReady` لجولة البطل: لا تدور الأنواع على هيكلٍ فارغ.
  */
-export function PhoneMenu({ brand, kind }: { brand: Brand; kind?: DemoKind }) {
+export function PhoneMenu({
+  brand,
+  kind,
+  onReady,
+  peek = 0,
+}: {
+  brand: Brand;
+  kind?: DemoKind;
+  onReady?: () => void;
+  /** يزيد ⇒ «لمحة»: يُمرَّر المنيو قليلاً ويعود فيُرى الطابع يتحرّك (جولة البطل وحدها). */
+  peek?: number;
+}) {
   const frame = useRef<HTMLIFrameElement>(null);
   const box = useRef<HTMLDivElement>(null);
   const [ready, setReady] = useState(false);
@@ -189,11 +222,25 @@ export function PhoneMenu({ brand, kind }: { brand: Brand; kind?: DemoKind }) {
   const visible = useNearViewport(box, { rootMargin: "200px", afterLoad: true });
   const woke = useFirstInteraction(4000);
   const near = visible && woke;
+  const [src] = useState(() => {
+    const q = new URLSearchParams({ embed: "1" });
+    const k = kind ?? brand.kind;
+    if (k) q.set("kind", k);
+    if (brand.kind && brand.theme) q.set("theme", brand.theme);
+    return `/demo?${q.toString()}`;
+  });
+  const readyCb = useRef(onReady);
+  useEffect(() => {
+    readyCb.current = onReady;
+  }, [onReady]);
 
   useEffect(() => {
     const onMessage = (e: MessageEvent) => {
       if (e.origin !== window.location.origin || e.source !== frame.current?.contentWindow) return;
-      if ((e.data as { type?: string } | null)?.type === "cm-ready") setReady(true);
+      if ((e.data as { type?: string } | null)?.type === "cm-ready") {
+        setReady(true);
+        readyCb.current?.();
+      }
     };
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
@@ -203,31 +250,43 @@ export function PhoneMenu({ brand, kind }: { brand: Brand; kind?: DemoKind }) {
     if (!ready) return;
     const t = window.setTimeout(() => {
       frame.current?.contentWindow?.postMessage(
-        { type: "cm-brand", name: brand.name, color: brand.color, theme: brand.theme, logo: brand.logo },
+        { type: "cm-brand", name: brand.name, color: brand.color, theme: brand.theme, logo: brand.logo, kind: brand.kind },
         window.location.origin
       );
     }, 120);
     return () => window.clearTimeout(t);
   }, [brand, ready]);
 
+  useEffect(() => {
+    if (!ready || !peek) return;
+    // بعد الرسالة وإعادة رسم المنيو بنوعه — لا قبلها فتُمرَّر شجرةٌ تُستبدل.
+    const t = window.setTimeout(() => {
+      frame.current?.contentWindow?.postMessage({ type: "cm-peek" }, window.location.origin);
+    }, 900);
+    return () => window.clearTimeout(t);
+  }, [peek, ready]);
+
   const w = Math.round(SCREEN_W * SCALE);
   const h = Math.round(SCREEN_H * SCALE);
+  // مسحة عند تبديل النوع أو الطابع: الإطار يُعاد رسمه دفعةً، والمسحة تجعلها «تحوّلاً» لا ومضة.
+  const flip = `${brand.kind ?? ""}:${brand.theme}`;
 
   return (
     <div className="mx-auto w-fit">
       <div
-        className="relative rounded-[46px] bg-[#0d0d0f] p-[10px] shadow-[0_40px_80px_-30px_rgba(0,0,0,.55),inset_0_0_0_1px_rgba(255,255,255,.08)]"
+        className="phone-shell relative rounded-[46px] bg-[#0d0d0f] p-[10px] shadow-[0_40px_80px_-30px_rgba(0,0,0,.55),inset_0_0_0_1px_rgba(255,255,255,.08)]"
         dir="ltr"
       >
         <div ref={box} className="relative overflow-hidden rounded-[36px] bg-[#141210]" style={{ width: w, height: h }}>
           {!ready && <div className="skeleton absolute inset-0" aria-hidden="true" />}
           {near && <iframe
             ref={frame}
-            src={kind ? `/demo?embed=1&kind=${kind}` : "/demo?embed=1"}
+            src={src}
             title="معاينة منيو مطعمك"
             className={cn("absolute left-0 top-0 border-0 transition-opacity duration-300", ready ? "opacity-100" : "opacity-0")}
             style={{ width: SCREEN_W, height: SCREEN_H, transform: `scale(${SCALE})`, transformOrigin: "0 0" }}
           />}
+          {ready && <span key={flip} aria-hidden="true" className="phone-wipe pointer-events-none absolute inset-0" />}
           {/* الجزيرة: حلية جوّال لا تُغطّي إلا الغلاف، ولا تلتقط اللمس. */}
           <span
             aria-hidden="true"

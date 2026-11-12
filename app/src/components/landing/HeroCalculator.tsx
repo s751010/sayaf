@@ -7,10 +7,12 @@
  *
  * ═══ قبل أن يلمسها ═══
  *
- * تكتب الأمثلة الثلاثة بنفسها حرفاً حرفاً، ويقفز الملصق مع كل **سطرٍ مكتمل**
- * (لا مع كل حرف: «حليب 2» قبل «200» رقمٌ كاذب يومض). وأوّل لمسة — تركيز في
- * الحقل أو ضغط مثال — تُسلّمه الحاسبة كاملة ويتوقّف العرض نهائياً: عرضٌ يستأنف
- * نفسه بعد أن يتدخّل الزائر يُقرأ عصياناً لا حياة.
+ * تكتب **المثال الأوّل مرّةً واحدة** حرفاً حرفاً حين تدخل الشاشة، ويعدّ الملصق
+ * مع كل **سطرٍ مكتمل** (لا مع كل حرف: «حليب 2» قبل «200» رقمٌ كاذب يومض)، ثم
+ * تبقى مملوءة بيد الزائر. (كانت تدور على الأمثلة كلّها بلا نهاية وتفتح فارغة —
+ * أصفارٌ أوّل ما يُرى؛ طلب المالك ٢٠٢٦/١١/١١.) وأوّل لمسة — تركيز في الحقل أو
+ * ضغط مثال — تُسلّمه الحاسبة كاملة ويتوقّف العرض نهائياً: عرضٌ يستأنف نفسه بعد
+ * أن يتدخّل الزائر يُقرأ عصياناً لا حياة.
  *
  * ⚠️ **يتوقّف خارج الشاشة** (`IntersectionObserver`): كان مشهد البطل السابق
  * يدور مؤقّته والزائر في آخر الصفحة أو في تبويب آخر — هدرٌ بلا ناظر.
@@ -29,7 +31,6 @@ import { cn } from "@/lib/utils";
 
 const TYPE_MS = 34;
 const LINE_MS = 420;
-const HOLD_MS = 5200;
 
 const exampleText = (i: number) => RECIPE_EXAMPLES[i]?.text ?? "";
 
@@ -53,16 +54,12 @@ export function HeroCalculator() {
   useEffect(() => {
     if (!auto || !onScreen) return;
     const target = exampleText(idx);
-    const t =
-      text.length < target.length
-        ? window.setTimeout(
-            () => setText(target.slice(0, text.length + 1)),
-            target[text.length] === "\n" ? LINE_MS : TYPE_MS
-          )
-        : window.setTimeout(() => {
-            setIdx((i) => (i + 1) % RECIPE_EXAMPLES.length);
-            setText("");
-          }, HOLD_MS);
+    // اكتمل المثال ⇒ ينتهي العرض: مرّةٌ واحدة، والحاسبة بعدها بيد الزائر.
+    if (text.length >= target.length) return setAuto(false);
+    const t = window.setTimeout(
+      () => setText(target.slice(0, text.length + 1)),
+      target[text.length] === "\n" ? LINE_MS : TYPE_MS
+    );
     return () => window.clearTimeout(t);
   }, [auto, onScreen, text, idx]);
 
