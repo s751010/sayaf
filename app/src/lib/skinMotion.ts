@@ -38,8 +38,12 @@ export const MOTION_SKINS: ReadonlySet<MenuSkin> = new Set<MenuSkin>([
   "v60", "latte", "grinder", "drive",
   // ٠٩/١١ (الموجة ٢): البيتزا — حطب · علبة · شريحة · نابولي.
   "woodfire", "pizzabox", "slices", "napoli",
-  // ٠٩/١١ (الموجة ٣): المشاوي — شاورما · ستيك · أوجاق · مدخنة.
-  "shawarma", "steakhouse", "ocakbasi", "smokehouse",
+  // ٠٩/١١ (الموجة ٣): المشاوي — شاورما (و«ستيك» و«أوجاق» و«مدخنة» حذفها المالك ١١/١١).
+  "shawarma",
+  // ١١/١١ (الموجة أ): البروست والبرجر — سطل · سماش.
+  "bucket", "smash",
+  // ١١/١١ (الموجة ب): الآيسكريم والسوشي والمناقيش — مغرفة · عيدان · زعتر.
+  "scoop", "chopsticks", "zaatar",
   // ١٠/١١ (الموجة ٤): الأربعة القائمة لهذه الأقسام — دلّة · باريستا · ريحان · جمر.
   "dallah", "barista", "pizza", "grill",
 ]);

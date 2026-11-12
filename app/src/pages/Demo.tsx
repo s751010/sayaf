@@ -5,7 +5,7 @@
  * ولا صف في قاعدة البيانات. العميل المحتمل يجرّب التجربة الحقيقية كاملة (بحث،
  * تصنيفات، تفاصيل الطبق، الإضافات، بطاقة الولاء) قبل أن يسجّل.
  *
- * `?kind=cafe|shaabi|truck|seafood|sweets|juice|burger|bakery|breakfast|grill|pizza|qahwa|espresso|karak|teahouse` يفتح منيو نوع نشاطٍ آخر
+ * `?kind=cafe|shaabi|truck|seafood|sweets|juice|burger|bakery|breakfast|grill|pizza|qahwa|espresso|karak|teahouse|broast|icecream|sushi|manakish` يفتح منيو نوع نشاطٍ آخر
  * (`lib/demoMenus.ts`) — صفحات الشرائح تفتح منيوها هي لا منيو مطعم الستيك.
  * و`?theme=` وحده يختار منيو عالم الطابع (`demoKindForSuits`).
  *

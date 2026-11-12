@@ -95,6 +95,10 @@ describe("demoMenus", () => {
     // ٠٧/١١: «عرض السهرة» كاستا كرك وبراتا بالجبن، و«جلسة الشاي» إبريقٌ وبقصم وحلاوة.
     ["karak", "k7", [["k1", 2], ["b1", 1]]],
     ["teahouse", "x1", [["h2", 1], ["d1", 1], ["d2", 1]]],
+    // ١١/١١: «وجبة ٤ قطع» بروستٌ وبطاطس وثومية ومشروب.
+    ["broast", "k6", [["k1", 1], ["k8", 1], ["k9", 1], ["k12", 1]]],
+    // ١١/١١ (الموجة ب): «فطور اثنين» منقوشتا زعتر ومنقوشة جبن وكأسا شاي.
+    ["manakish", "m8", [["m1", 2], ["m2", 1], ["m10", 2]]],
   ] as const)("«%s»: «%s» أرخص من أجزائه، وسعراته وصوديومه مجموعها", (kind, combo, parts) => {
     const { dishes } = demoData(kind);
     const by = (id: string) => dishes.find((d) => d.id === id)!;
@@ -138,11 +142,19 @@ describe("demoMenus", () => {
     expect(kindOf("neon")).toBe("burger");
     expect(kindOf("sticker")).toBe("juice");
     // ٠٩/١١ (الموجة ٣): المشاوي الأربعة على منيو المشاوي القائم.
-    for (const id of ["shawarma", "steakhouse", "ocakbasi", "smokehouse"]) expect(kindOf(id), id).toBe("grill");
+    expect(kindOf("shawarma")).toBe("grill");
+    // ١١/١١: «سطل» على منيو البروست.
+    expect(kindOf("bucket")).toBe("broast");
+    // و«سماش» على منيو البرجر القائم (سماشٌ أصلاً).
+    expect(kindOf("smash")).toBe("burger");
+    // ١١/١١ (الموجة ب): الثلاثة على منيوهاتها الجديدة.
+    expect(kindOf("scoop")).toBe("icecream");
+    expect(kindOf("chopsticks")).toBe("sushi");
+    expect(kindOf("zaatar")).toBe("manakish");
     // ولكلّ طابعٍ منيوٌ موجود — لا معاينة على بيانات ناقصة.
     for (const t of ALL_THEMES) expect(isDemoKind(demoKindForSuits(t.suits, t.id)), t.id).toBe(true);
     // والطابع الجديد يُعاين على منيوٍ طابعُه هو نفسه.
-    for (const id of ["harbor", "patisserie", "juice", "burger", "bakery", "breakfast", "grill", "pizza", "dallah", "barista", "karak", "samovar"]) {
+    for (const id of ["harbor", "patisserie", "juice", "burger", "bakery", "breakfast", "grill", "pizza", "dallah", "barista", "karak", "samovar", "bucket", "scoop", "chopsticks", "zaatar"]) {
       expect(demoData(kindOf(id)).menus[0].theme).toBe(id);
     }
   });

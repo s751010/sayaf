@@ -19,10 +19,11 @@ import { restaurantTypeLabel } from "@/lib/menuText";
 import type { Restaurant } from "@/lib/types";
 import { LogoMark } from "./LogoMark";
 import {
-  ArcadeHead, AsirHead, BagHead, BakeryHead, BaristaHead, BreakfastHead, BurgerHead, Corner, DallahHead, DriveHead, DukkanHead, FolioHead,
+  ArcadeHead, AsirHead, BagHead, BakeryHead, BaristaHead, BreakfastHead, BucketHead, BurgerHead, Corner, DallahHead, DriveHead, DukkanHead, FolioHead,
   GridHead, GrillHead, GrinderHead, HarborHead, JuiceHead, KarakHead, LatteHead, LetterboardHead, MastheadHead, MudHead, NapoliHead,
-  OcakbasiHead, PaperHead, PatisserieHead, PizzaboxHead, PizzaHead, PosterHead, SamovarHead, ShawarmaHead, SignHead, SlicesHead,
-  SmokehouseHead, SteakhouseHead, V60Head, WoodfireHead,
+  PaperHead, PatisserieHead, PizzaboxHead, PizzaHead, PosterHead, SamovarHead, ShawarmaHead, SignHead, SlicesHead, SmashHead,
+  ScoopHead, ChopsticksHead, ZaatarHead,
+  V60Head, WoodfireHead,
   type HeadProps,
 } from "./SkinHeads";
 
@@ -61,9 +62,11 @@ const SKIN_HEADS: Partial<Record<HeaderShape, ComponentType<HeadProps>>> = {
   counter: SlicesHead,
   signboard: NapoliHead,
   spit: ShawarmaHead,
-  cuts: SteakhouseHead,
-  hood: OcakbasiHead,
-  chalk: SmokehouseHead,
+  bucket: BucketHead,
+  flattop: SmashHead,
+  freezer: ScoopHead,
+  board: ChopsticksHead,
+  saj: ZaatarHead,
 };
 
 /** قوس الروشان — لطابعٍ قديم قد يكون مخزَّناً بشكل `arch`. */

@@ -9,8 +9,8 @@ import { describe, expect, it } from "vitest";
 import { ALL_THEMES } from "@/lib/themes";
 import { STARTER_TYPES, aliasType } from "@/lib/starterMenus";
 import {
-  ARABIC_COFFEE, BAKERY, BREAKFAST, BREW_BAR, DRIVE_THRU, GRILL, ITALIAN, OCAKBASI, PIZZA, POPULAR_CAFE, ROW_SIZE, SHAWARMA, SMOKEHOUSE,
-  SPECIALTY, SPECIALTY_BADGES, STEAKHOUSE,
+  ARABIC_COFFEE, BAKERY, BREAKFAST, BREW_BAR, BROAST, BURGER, DRIVE_THRU, GRILL, ICE_CREAM, ITALIAN, MANAKISH, PIZZA, POPULAR_CAFE, ROW_SIZE, SHAWARMA,
+  SPECIALTY, SPECIALTY_BADGES, SUSHI,
   SUGGESTED, TEA_HOUSE, badgeTypeOf, cafeFlavor, isSpecialtyBadge, rankThemes, suggestionKey,
 } from "@/lib/themeSuggest";
 
@@ -20,7 +20,7 @@ describe("مفردات واحدة مع `aliasType`", () => {
   it("مفاتيح الجدول = أنواع `STARTERS` + الكافيه الشعبي + المخبز والفطور والمشاوي والبيتزا والقهوة وبيت الشاي", () => {
     const extra = [
       POPULAR_CAFE, BAKERY, BREAKFAST, GRILL, PIZZA, ITALIAN, ARABIC_COFFEE, SPECIALTY, TEA_HOUSE, BREW_BAR, DRIVE_THRU,
-      SHAWARMA, STEAKHOUSE, SMOKEHOUSE, OCAKBASI,
+      SHAWARMA, BROAST, BURGER, ICE_CREAM, SUSHI, MANAKISH,
     ];
     const keys = Object.keys(SUGGESTED).filter((k) => !extra.includes(k)).sort();
     expect(keys).toEqual([...STARTER_TYPES].sort());
@@ -152,7 +152,9 @@ describe("والصفّان بعدهما: المشاوي والبيتزا (٠٧/�
     expect(suggestionKey("بيتزا ومعكرونة")).toBe(PIZZA);
     // المخبز يبقى مخبزاً ولو خبز البيتزا، والبرجر برجراً.
     expect(suggestionKey("مخبز وبيتزا")).toBe(BAKERY);
-    expect(suggestionKey("برجر")).toBe("مطعم سريع");
+    // ١١/١١: البرجر صفّه — «برجر» (أوّله «سماش»)، و«وجبات سريعة» على النوع.
+    expect(suggestionKey("برجر")).toBe(BURGER);
+    expect(suggestionKey("وجبات سريعة")).toBe("مطعم سريع");
   });
 
   it("«جمر» كلمةً، و«شيشة» مقهى لا مشوى", () => {
@@ -233,7 +235,7 @@ describe("طوابع القهوة الأربعة (٠٩/١١، اختيار ال�
     expect(suggestionKey("قهوة سفري")).toBe(DRIVE_THRU);
     // ‏«كشك كرك» شاي، و«مطعم درايف ثرو» ليس كافيه.
     expect(suggestionKey("كشك كرك")).toBe("شاي");
-    expect(suggestionKey("برجر درايف ثرو")).toBe("مطعم سريع");
+    expect(suggestionKey("برجر درايف ثرو")).toBe(BURGER);
     // زرّ «شعبي» يغلبه كما يغلب المختصّ.
     expect(suggestionKey("كشك قهوة", "popular")).toBe(POPULAR_CAFE);
     expect(badgeTypeOf(DRIVE_THRU)).toBe(DRIVE_THRU);
@@ -276,32 +278,25 @@ describe("«شارة بتخصّصه» (٠٩/١١، قرار المالك)", () =
   });
 });
 
-describe("المشاوي الأربعة (٠٩/١١، الموجة ٣)", () => {
-  it("كلٌّ بشارة تخصّصه — و«شاورما» «مطعم سريع» معها، و«أوجاق» «مشويات» معها", () => {
+describe("المشاوي (٠٩/١١، الموجة ٣ — وحذف «أوجاق» و«ستيك» و«مدخنة» ١١/١١)", () => {
+  it("«شاورما» بشارة تخصّصه و«مطعم سريع» معها", () => {
     expect(byId.get("shawarma")!.suits).toEqual([SHAWARMA, "مطعم سريع"]);
-    expect(byId.get("steakhouse")!.suits).toEqual([STEAKHOUSE]);
-    expect(byId.get("ocakbasi")!.suits).toEqual([OCAKBASI, "مشويات"]);
-    expect(byId.get("smokehouse")!.suits).toEqual([SMOKEHOUSE]);
   });
 
-  it("صاحب المشويات يرى محلّات اللحم — «جمر» أوّلاً كما كان، و«فاخر» خرج إلى «مطعم»", () => {
-    expect(SUGGESTED["مشويات"]).toEqual(["grill", "shawarma", "ocakbasi", "steakhouse"]);
-    expect(byId.get("dark-gold")!.suits).toEqual(["مطعم"]);
+  it("صاحب المشويات: «جمر» أوّلاً، ثم الشاورما، و«فاخر» و«عسير» عادت إليهما «مشويات»", () => {
+    expect(SUGGESTED["مشويات"]).toEqual(["grill", "shawarma", "dark-gold", "asir"]);
+    expect(byId.get("dark-gold")!.suits).toEqual(["مطعم", "مشويات"]);
+    expect(byId.get("asir")!.suits).toEqual(["شعبي", "مشويات"]);
   });
 
   it.each([
     ["شاورما", "shawarma"],
     ["شاورما سورية", "shawarma"],
     ["Doner Kebab", "shawarma"],
-    ["ستيك هاوس", "steakhouse"],
-    ["Steak House", "steakhouse"],
-    ["مطعم واقيو", "steakhouse"],
-    ["بريسكت وأضلاع مدخنة", "smokehouse"],
-    ["BBQ Smokehouse", "smokehouse"],
-    ["مطعم تركي", "ocakbasi"],
-    ["مشويات تركية", "ocakbasi"],
-    ["مشاوي شامية", "ocakbasi"],
-    ["كباب أضنة", "ocakbasi"],
+    // صفوف المحذوفة سقطت: الستيك والتركي على «مطعم» («فاخر»)، والمشويات التركية على «جمر».
+    ["ستيك هاوس", "dark-gold"],
+    ["مطعم تركي", "dark-gold"],
+    ["مشويات تركية", "grill"],
     ["مشويات", "grill"],
     ["مطعم الجمر", "grill"],
   ] as const)("«%s» ⇒ «%s» أوّلاً", (raw, first) => {
@@ -311,6 +306,75 @@ describe("المشاوي الأربعة (٠٩/١١، الموجة ٣)", () => {
   it("«شيشة» و«حلويات شامية» و«كافيه تركي» ليست مشاوي", () => {
     expect(suggestionKey("كافيه وشيشة")).toBe("كافيه");
     expect(suggestionKey("حلويات شامية")).toBe("مخبز وحلويات");
+  });
+});
+
+describe("البروست (١١/١١، «سطل»)", () => {
+  it("«سطل» بشارة تخصّصه وحدها، وأوّل صفّه", () => {
+    expect(byId.get("bucket")!.suits).toEqual([BROAST]);
+    expect(SUGGESTED[BROAST][0]).toBe("bucket");
+    expect(badgeTypeOf(BROAST)).toBe(BROAST);
+  });
+
+  it.each([
+    ["بروست", "bucket"],
+    ["مطعم بروست", "bucket"],
+    ["بروستد ودجاج", "bucket"],
+    ["دجاج مقلي", "bucket"],
+    ["Fried Chicken", "bucket"],
+    ["Broast House", "bucket"],
+    // الشاورما قبله، و«دجاج مشوي» مشاوٍ.
+    ["شاورما وبروست", "shawarma"],
+    ["دجاج مشوي", "grill"],
+  ] as const)("«%s» ⇒ «%s» أوّلاً", (raw, first) => {
+    expect(rankThemes(ALL_THEMES, raw).suggested).toBe(first);
+  });
+});
+
+describe("الموجة ب (١١/١١): الآيسكريم والسوشي والمناقيش", () => {
+  it("كلٌّ بشارة تخصّصه وحدها، وأوّل صفّه", () => {
+    expect(byId.get("scoop")!.suits).toEqual([ICE_CREAM]);
+    expect(byId.get("chopsticks")!.suits).toEqual([SUSHI]);
+    expect(byId.get("zaatar")!.suits).toEqual([MANAKISH]);
+    for (const [key, first] of [[ICE_CREAM, "scoop"], [SUSHI, "chopsticks"], [MANAKISH, "zaatar"]] as const) {
+      expect(SUGGESTED[key][0]).toBe(first);
+      expect(badgeTypeOf(key)).toBe(key);
+    }
+  });
+
+  it.each([
+    ["آيسكريم", "scoop"],
+    ["ايسكريم وحلا", "scoop"],
+    ["جيلاتو", "scoop"],
+    ["بوظة شامية", "scoop"],
+    ["Gelato Bar", "scoop"],
+    ["حلويات وآيسكريم", "scoop"],
+    ["سوشي", "chopsticks"],
+    ["مطعم ياباني", "chopsticks"],
+    ["مطعم آسيوي", "chopsticks"],
+    ["رامن", "chopsticks"],
+    ["Sushi Bar", "chopsticks"],
+    ["مناقيش", "zaatar"],
+    ["منقوشة وفطائر", "zaatar"],
+    ["فطائر", "zaatar"],
+    ["Manakish", "zaatar"],
+    // المخبز والفرن يبقيان «فرن»، والفطور «فوّال».
+    ["مخبز ومعجّنات", "bakery"],
+    ["فطائر وكرواسون من الفرن", "bakery"],
+    ["فطور ومناقيش", "breakfast"],
+  ] as const)("«%s» ⇒ «%s» أوّلاً", (raw, first) => {
+    expect(rankThemes(ALL_THEMES, raw).suggested).toBe(first);
+  });
+});
+
+describe("البرجر (١١/١١، «سماش»)", () => {
+  it("«سماش» بشارة «برجر» وأوّل صفّها، و«صاج» ثانيه بشارته العامّة", () => {
+    expect(byId.get("smash")!.suits).toEqual([BURGER]);
+    expect(SUGGESTED[BURGER]).toEqual(["smash", "burger", "receipt", "neon"]);
+    expect(byId.get("burger")!.suits).toEqual(["مطعم سريع"]);
+    // «شاورما وبرجر» محلّ شاورما، و«برجر وبروست» محلّ بروست.
+    expect(suggestionKey("شاورما وبرجر")).toBe(SHAWARMA);
+    expect(suggestionKey("بروست وبرجر")).toBe(BROAST);
   });
 });
 
@@ -385,14 +449,16 @@ describe("`rankThemes` يرتّب ولا يحذف", () => {
     ["أسماك", "harbor", false],
     ["حلويات", "patisserie", false],
     ["عصيرات", "juice", false],
-    // ٠٧/١١: للبرجر والوجبات السريعة طابعهما («صاج») — ونيون ثانيه.
-    ["برجر", "burger", false],
+    // ٠٧/١١: للوجبات السريعة طابعها («صاج»). و(١١/١١) للبرجر صفّه أوّلُه «سماش» و«صاج» ثانيه.
+    ["برجر", "smash", false],
+    ["سماش برجر", "smash", false],
     ["وجبات سريعة", "burger", false],
-    ["Burger House", "burger", false],
+    ["Burger House", "smash", false],
     // ٠٧/١١: المخبز والفطور الشعبي — صفّان فرعيّان من نصّ النوع.
     ["مخبز", "bakery", false],
     ["مخبز تميس", "bakery", false],
-    ["فطائر ومعجّنات", "bakery", false],
+    // ١١/١١ (الموجة ب): «فطائر» و«معجّنات» بلا مخبزٍ ولا فرنٍ محلُّ مناقيش أوّلُه «زعتر» — و«فرن» ثانيه.
+    ["فطائر ومعجّنات", "zaatar", false],
     ["فرن الحارة", "bakery", false],
     ["Bakery", "bakery", false],
     ["فول وتميس", "breakfast", false],

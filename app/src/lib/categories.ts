@@ -93,6 +93,20 @@ export const CANON: Canon[] = [
     alias: ["أسماك", "اسماك", "الأسماك", "سمك", "بحريات", "البحريات", "مأكولات بحرية",
       "الروبيان", "روبيان", "جمبري", "seafood", "fish"],
   },
+  // ١١/١١ (الموجة ب، «عيدان»): أقسام السوشي الثلاثة أسماكٌ برمز السمكة — ولكلٍّ اسمه الإنجليزي، فلا تُكتب
+  // ثلاثتها «Sushi» للزبون الإنجليزي.
+  {
+    id: "maki", ar: "الماكي", en: "Maki", icon: "fish", rank: 56,
+    alias: ["ماكي", "رولز", "سوشي رول", "maki", "rolls", "sushi rolls"],
+  },
+  {
+    id: "nigiri", ar: "النيغيري", en: "Nigiri", icon: "fish", rank: 57,
+    alias: ["نيغيري", "نيجيري", "nigiri"],
+  },
+  {
+    id: "sashimi", ar: "الساشيمي", en: "Sashimi", icon: "fish", rank: 58,
+    alias: ["ساشيمي", "sashimi"],
+  },
   {
     id: "sandwiches", ar: "السندويتشات", en: "Sandwiches", icon: "sandwich", rank: 60,
     alias: ["سندويتشات", "ساندويتشات", "سندويشات", "سندويش", "ساندويش", "شاورما",
@@ -123,6 +137,11 @@ export const CANON: Canon[] = [
     alias: ["بروست", "البروست", "مقليات", "المقليات", "دجاج مقلي", "كرسبي",
       "broast", "fried", "fried chicken"],
   },
+  // ١١/١١ (الموجة ب، «زعتر»): المناقيش خبزٌ مسطّح برمز الرغيف — والفطائر بعدها على قسم المعجّنات كما كانت.
+  {
+    id: "manakish", ar: "المناقيش", en: "Manakish", icon: "bread", rank: 69,
+    alias: ["مناقيش", "منقوشة", "منقوشه", "مناقيش وفطائر", "manakish", "manaqish", "manakeesh"],
+  },
   {
     id: "bakery", ar: "المخبوزات والمعجنات", en: "Bakery", icon: "croissant", rank: 70,
     alias: ["مخبوزات", "معجنات", "المعجنات", "مخبوزات ومعجنات", "فطائر", "فطاير",
@@ -137,6 +156,19 @@ export const CANON: Canon[] = [
     alias: ["حلويات", "حلى", "حلا", "الحلى", "تحلية", "التحلية", "ديزرت", "كيك",
       "الكيك", "كعك", "حلويات شرقية", "حلويات غربية", "دونات", "دونات وكوكيز",
       "كوكيز", "dessert", "desserts", "sweets", "cake"],
+  },
+  // ١١/١١ (الموجة ب، «مغرفة»): الآيسكريم والجيلاتو والوافل حلىً برمز الحلوى — ثلاثة أقسام بأسمائها الإنجليزية.
+  {
+    id: "icecream", ar: "الآيسكريم", en: "Ice Cream", icon: "cake", rank: 82,
+    alias: ["آيسكريم", "ايسكريم", "آيس كريم", "ايس كريم", "بوظة", "بوظه", "ice cream", "icecream"],
+  },
+  {
+    id: "gelato", ar: "الجيلاتو", en: "Gelato", icon: "cake", rank: 83,
+    alias: ["جيلاتو", "جيلاتي", "gelato"],
+  },
+  {
+    id: "waffles", ar: "الوافل والكريب", en: "Waffles & Crêpes", icon: "cake", rank: 84,
+    alias: ["وافل", "الوافل", "كريب", "الكريب", "وافل وكريب", "waffles", "waffle", "crepes"],
   },
   {
     id: "hotcoffee", ar: "القهوة الساخنة", en: "Hot Coffee", icon: "dallah", rank: 90,

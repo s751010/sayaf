@@ -680,7 +680,7 @@ function grinder(ctx: Ctx, b: MotifBox, k: MotifInk): void {
   });
 }
 
-/** درايف — خطّ مسارٍ متقطّع بالخافت على الضلعين، وسهمٌ بالتمييز كلّ ثلاث شُرَط. */
+/** درايف (أُعيد رسمه ١١/١١، مع الترويسة) — سيارةٌ جانبيّة بالتمييز وعجلتين بالنصّ، ثم شُرَط المسار وسهمٌ بالخافت. */
 function drive(ctx: Ctx, b: MotifBox, k: MotifInk): void {
   const room = b.reach - b.outer;
   const s = Math.min(b.mm * 2.4, room * 0.6);
@@ -688,20 +688,40 @@ function drive(ctx: Ctx, b: MotifBox, k: MotifInk): void {
     const cx = x + w / 2;
     const cy = top ? b.outer + room * 0.5 : b.H - b.outer - room * 0.5;
     const i = Math.round((x - b.outer) / w);
-    if (i % 3 === 1) {
-      // السهم: رأسٌ مثلّث على ساقٍ قصيرة، كالمرسوم على الإسفلت.
+    if (i % 4 === 1) {
+      // السيارة جانبيّةً كما في الترويسة: جسمٌ وكابينة بالتمييز، وعجلتان بالنصّ.
       ctx.fillStyle = k.accent;
-      ctx.fillRect(cx - s * 0.4, cy - s * 0.09, s * 0.42, s * 0.18);
+      rrect(ctx, cx - s * 0.46, cy - s * 0.06, s * 0.92, s * 0.24, s * 0.06);
+      ctx.fill();
       ctx.beginPath();
-      ctx.moveTo(cx + s * 0.42, cy);
-      ctx.lineTo(cx + s * 0.02, cy - s * 0.3);
-      ctx.lineTo(cx + s * 0.02, cy + s * 0.3);
+      ctx.moveTo(cx - s * 0.3, cy - s * 0.05);
+      ctx.lineTo(cx - s * 0.2, cy - s * 0.26);
+      ctx.lineTo(cx + s * 0.12, cy - s * 0.26);
+      ctx.lineTo(cx + s * 0.28, cy - s * 0.05);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = k.text;
+      for (const dx of [-0.26, 0.26]) {
+        ctx.beginPath();
+        ctx.arc(cx + s * dx, cy + s * 0.2, s * 0.1, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      return;
+    }
+    if (i % 4 === 3) {
+      // السهم: رأسٌ مثلّث على ساقٍ قصيرة، كالمرسوم على الإسفلت.
+      ctx.fillStyle = k.muted;
+      ctx.fillRect(cx - s * 0.4, cy - s * 0.07, s * 0.42, s * 0.14);
+      ctx.beginPath();
+      ctx.moveTo(cx + s * 0.38, cy);
+      ctx.lineTo(cx + s * 0.02, cy - s * 0.26);
+      ctx.lineTo(cx + s * 0.02, cy + s * 0.26);
       ctx.closePath();
       ctx.fill();
       return;
     }
     ctx.fillStyle = k.muted;
-    rrect(ctx, cx - s * 0.42, cy - s * 0.08, s * 0.84, s * 0.16, s * 0.08);
+    rrect(ctx, cx - s * 0.36, cy - s * 0.07, s * 0.72, s * 0.14, s * 0.07);
     ctx.fill();
   });
 }
@@ -847,87 +867,161 @@ function shawarma(ctx: Ctx, b: MotifBox, k: MotifInk): void {
   });
 }
 
-/** ستيك — حبل الجزّار: خطّان متقاطعان بالخافت كخيط الصرّة، وعقدةٌ بالتمييز عند كلّ تقاطع. */
-function steakhouse(ctx: Ctx, b: MotifBox, k: MotifInk): void {
+/** سطل — دبّوس بروستٍ بالخافت (عظمةٌ وجسم)، وبينها قطرة صوصٍ بالتمييز. */
+function bucket(ctx: Ctx, b: MotifBox, k: MotifInk): void {
   const room = b.reach - b.outer;
   const s = Math.min(b.mm * 2.4, room * 0.6);
   alongTopBottom(b, s * 1.4, (x, w, top) => {
     const cx = x + w / 2;
     const cy = top ? b.outer + room * 0.5 : b.H - b.outer - room * 0.5;
-    ctx.strokeStyle = k.muted;
-    ctx.lineWidth = b.mm * 0.28;
-    ctx.beginPath();
-    ctx.moveTo(x, cy - s * 0.18);
-    ctx.lineTo(x + w, cy + s * 0.18);
-    ctx.moveTo(x, cy + s * 0.18);
-    ctx.lineTo(x + w, cy - s * 0.18);
-    ctx.stroke();
-    ctx.fillStyle = k.accent;
-    ctx.beginPath();
-    ctx.ellipse(cx, cy, s * 0.16, s * 0.1, 0, 0, Math.PI * 2);
-    ctx.fill();
-  });
-}
-
-/** أوجاق — قبّة نحاسٍ صغيرة بالتمييز فوق جمرٍ بالخافت، وبينها زهرةُ بلاطٍ بالخافت. */
-function ocakbasi(ctx: Ctx, b: MotifBox, k: MotifInk): void {
-  const room = b.reach - b.outer;
-  const s = Math.min(b.mm * 2.6, room * 0.66);
-  alongTopBottom(b, s * 1.5, (x, w, top) => {
-    const cx = x + w / 2;
-    const cy = top ? b.outer + room * 0.5 : b.H - b.outer - room * 0.5;
     const i = Math.round((x - b.outer) / w);
     if (i % 2) {
-      ctx.fillStyle = k.muted;
-      for (let p = 0; p < 4; p++) {
-        const a = (Math.PI / 2) * p + Math.PI / 4;
-        ctx.beginPath();
-        ctx.ellipse(cx + Math.cos(a) * s * 0.14, cy + Math.sin(a) * s * 0.14, s * 0.12, s * 0.05, a, 0, Math.PI * 2);
-        ctx.fill();
-      }
+      // قطرة الصوص: دائرةٌ برأسٍ مدبّب إلى أعلى.
+      ctx.fillStyle = k.accent;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - s * 0.32);
+      ctx.quadraticCurveTo(cx + s * 0.22, cy - s * 0.02, cx + s * 0.2, cy + s * 0.1);
+      ctx.arc(cx, cy + s * 0.1, s * 0.2, 0, Math.PI);
+      ctx.quadraticCurveTo(cx - s * 0.22, cy - s * 0.02, cx, cy - s * 0.32);
+      ctx.fill();
       return;
     }
-    ctx.fillStyle = k.accent;
-    ctx.beginPath();
-    ctx.moveTo(cx - s * 0.1, cy - s * 0.36);
-    ctx.lineTo(cx + s * 0.1, cy - s * 0.36);
-    ctx.lineTo(cx + s * 0.1, cy - s * 0.24);
-    ctx.lineTo(cx + s * 0.44, cy + s * 0.06);
-    ctx.lineTo(cx - s * 0.44, cy + s * 0.06);
-    ctx.lineTo(cx - s * 0.1, cy - s * 0.24);
-    ctx.closePath();
-    ctx.fill();
     ctx.fillStyle = k.muted;
-    for (const dx of [-0.24, 0, 0.24]) {
+    ctx.beginPath();
+    ctx.ellipse(cx - s * 0.1, cy, s * 0.26, s * 0.18, -0.4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = k.muted;
+    ctx.lineWidth = s * 0.08;
+    ctx.beginPath();
+    ctx.moveTo(cx + s * 0.08, cy + s * 0.06);
+    ctx.lineTo(cx + s * 0.3, cy + s * 0.16);
+    ctx.stroke();
+    for (const dy of [0.1, 0.24]) {
       ctx.beginPath();
-      ctx.arc(cx + s * dx, cy + s * 0.28, s * 0.08, 0, Math.PI * 2);
+      ctx.arc(cx + s * 0.34, cy + s * dy, s * 0.07, 0, Math.PI * 2);
       ctx.fill();
     }
   });
 }
 
-/** مدخنة — علامات العدّ بالطباشير: أربعٌ قائمة بالخافت وخامسةٌ مائلة بالتمييز. */
-function smokehouse(ctx: Ctx, b: MotifBox, k: MotifInk): void {
+/** سماش — قرص لحمٍ مكبوس بالخافت (بيضيٌّ بحافّةٍ مموّجة)، وبينها شريحة جبنٍ مائلة بالتمييز. */
+function smash(ctx: Ctx, b: MotifBox, k: MotifInk): void {
   const room = b.reach - b.outer;
   const s = Math.min(b.mm * 2.4, room * 0.6);
-  alongTopBottom(b, s * 1.6, (x, w, top) => {
+  alongTopBottom(b, s * 1.4, (x, w, top) => {
     const cx = x + w / 2;
     const cy = top ? b.outer + room * 0.5 : b.H - b.outer - room * 0.5;
-    ctx.lineCap = "round";
-    ctx.strokeStyle = k.muted;
-    ctx.lineWidth = b.mm * 0.3;
-    ctx.beginPath();
-    for (const dx of [-0.3, -0.1, 0.1, 0.3]) {
-      ctx.moveTo(cx + s * dx, cy - s * 0.32);
-      ctx.lineTo(cx + s * dx, cy + s * 0.32);
+    const i = Math.round((x - b.outer) / w);
+    if (i % 2) {
+      ctx.fillStyle = k.accent;
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(Math.PI / 4);
+      ctx.fillRect(-s * 0.18, -s * 0.18, s * 0.36, s * 0.36);
+      ctx.restore();
+      return;
     }
-    ctx.stroke();
-    ctx.strokeStyle = k.accent;
-    ctx.lineWidth = b.mm * 0.38;
+    ctx.fillStyle = k.muted;
     ctx.beginPath();
-    ctx.moveTo(cx - s * 0.44, cy + s * 0.2);
-    ctx.lineTo(cx + s * 0.44, cy - s * 0.2);
-    ctx.stroke();
+    const n = 14;
+    for (let p = 0; p <= n; p++) {
+      const t = (p / n) * Math.PI * 2;
+      const r = 1 + (p % 2 ? 0.08 : -0.04);
+      const px = cx + Math.cos(t) * s * 0.42 * r;
+      const py = cy + Math.sin(t) * s * 0.16 * r;
+      if (p) ctx.lineTo(px, py);
+      else ctx.moveTo(px, py);
+    }
+    ctx.closePath();
+    ctx.fill();
+  });
+}
+
+/** مغرفة — بسكوتةٌ بكرةٍ بالتمييز (مثلّثٌ بالخافت تحت دائرة)، وبينها نقطتا رشّةٍ بالخافت. */
+function scoop(ctx: Ctx, b: MotifBox, k: MotifInk): void {
+  const room = b.reach - b.outer;
+  const s = Math.min(b.mm * 2.4, room * 0.6);
+  alongTopBottom(b, s * 1.4, (x, w, top) => {
+    const cx = x + w / 2;
+    const cy = top ? b.outer + room * 0.5 : b.H - b.outer - room * 0.5;
+    const i = Math.round((x - b.outer) / w);
+    if (i % 2) {
+      ctx.fillStyle = k.muted;
+      for (const [dx, dy] of [[-0.14, -0.06], [0.12, 0.08]]) {
+        ctx.beginPath();
+        ctx.arc(cx + s * dx, cy + s * dy, s * 0.06, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      return;
+    }
+    ctx.fillStyle = k.muted;
+    ctx.beginPath();
+    ctx.moveTo(cx - s * 0.2, cy - s * 0.02);
+    ctx.lineTo(cx + s * 0.2, cy - s * 0.02);
+    ctx.lineTo(cx, cy + s * 0.38);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = k.accent;
+    ctx.beginPath();
+    ctx.arc(cx, cy - s * 0.12, s * 0.22, 0, Math.PI * 2);
+    ctx.fill();
+  });
+}
+
+/** عيدان — زوج عيدانٍ مائلٌ بالخافت، وبينها ختمٌ مربّعٌ صغير بالتمييز (الهانكو). */
+function chopsticks(ctx: Ctx, b: MotifBox, k: MotifInk): void {
+  const room = b.reach - b.outer;
+  const s = Math.min(b.mm * 2.4, room * 0.6);
+  alongTopBottom(b, s * 1.4, (x, w, top) => {
+    const cx = x + w / 2;
+    const cy = top ? b.outer + room * 0.5 : b.H - b.outer - room * 0.5;
+    const i = Math.round((x - b.outer) / w);
+    if (i % 2) {
+      ctx.fillStyle = k.accent;
+      rrect(ctx, cx - s * 0.17, cy - s * 0.17, s * 0.34, s * 0.34, s * 0.06);
+      ctx.fill();
+      return;
+    }
+    ctx.strokeStyle = k.muted;
+    ctx.lineCap = "round";
+    ctx.lineWidth = s * 0.07;
+    for (const d of [-0.08, 0.08]) {
+      ctx.beginPath();
+      ctx.moveTo(cx - s * 0.42, cy + d * s + s * 0.1);
+      ctx.lineTo(cx + s * 0.42, cy + d * s * 0.4 - s * 0.1);
+      ctx.stroke();
+    }
+    ctx.lineCap = "butt";
+  });
+}
+
+/** زعتر — منقوشةٌ مستديرة بالخافت عليها نقاط زعترٍ بالتمييز، وبينها ورقتا زعترٍ بالتمييز. */
+function zaatar(ctx: Ctx, b: MotifBox, k: MotifInk): void {
+  const room = b.reach - b.outer;
+  const s = Math.min(b.mm * 2.4, room * 0.6);
+  alongTopBottom(b, s * 1.4, (x, w, top) => {
+    const cx = x + w / 2;
+    const cy = top ? b.outer + room * 0.5 : b.H - b.outer - room * 0.5;
+    const i = Math.round((x - b.outer) / w);
+    ctx.fillStyle = k.accent;
+    if (i % 2) {
+      for (const r of [-0.5, 0.5]) {
+        ctx.beginPath();
+        ctx.ellipse(cx + r * s * 0.18, cy, s * 0.16, s * 0.07, r * 0.9, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      return;
+    }
+    ctx.fillStyle = k.muted;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, s * 0.42, s * 0.3, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = k.accent;
+    for (const [dx, dy] of [[-0.2, -0.08], [0, 0.1], [0.18, -0.04], [-0.06, -0.14], [0.12, 0.14]]) {
+      ctx.beginPath();
+      ctx.arc(cx + s * dx, cy + s * dy, s * 0.05, 0, Math.PI * 2);
+      ctx.fill();
+    }
   });
 }
 
@@ -965,9 +1059,11 @@ const MOTIFS: Record<MenuSkin, ((ctx: Ctx, b: MotifBox, k: MotifInk) => void) | 
   slices,
   napoli,
   shawarma,
-  steakhouse,
-  ocakbasi,
-  smokehouse,
+  bucket,
+  smash,
+  scoop,
+  chopsticks,
+  zaatar,
   // «لون علامتي» محايدٌ عمداً على الشاشة — وكذلك على الورق.
   store: null,
 };

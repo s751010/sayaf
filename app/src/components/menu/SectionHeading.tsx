@@ -47,9 +47,11 @@ import { PizzaboxHeading } from "./heads/PizzaboxHead";
 import { SlicesHeading } from "./heads/SlicesHead";
 import { NapoliHeading } from "./heads/NapoliHead";
 import { ShawarmaHeading } from "./heads/ShawarmaHead";
-import { SteakhouseHeading } from "./heads/SteakhouseHead";
-import { OcakbasiHeading } from "./heads/OcakbasiHead";
-import { SmokehouseHeading } from "./heads/SmokehouseHead";
+import { BucketHeading } from "./heads/BucketHead";
+import { SmashHeading } from "./heads/SmashHead";
+import { ScoopHeading } from "./heads/ScoopHead";
+import { ChopsticksHeading } from "./heads/ChopsticksHead";
+import { ZaatarHeading } from "./heads/ZaatarHead";
 import { AsirHeading } from "./heads/AsirHead";
 
 /** خطّ العناوين — يسقط إلى خطّ النصّ لكل طابع لا يذكر `--m-display` (§18). */
@@ -330,8 +332,9 @@ export function SectionHeading({
         تقطير (قمعٌ صغير وقطرته) · لاتيه (فنجانٌ ورسمة القسم) · مطحنة (قرص درجة الطحن وكومته) ·
         درايف (كوبٌ بكمّه ولوحة مسار) · حطب (فوهةٌ تتّقد وحطبٌ إلى بلاطة فخّار) · علبة (شريحةٌ
         تخرج من دائرتها ولاصق توصيل) · شريحة (شريطُ لوحة أسعارٍ مضيئة) · نابولي (بلاطةٌ وخطّ فرشاة) ·
-        شاورما (لوحة المحلّ المضيئة) · ستيك (ثورٌ صغير قطعتُه ملوّنة) · أوجاق (قبّةٌ يصعد إليها دخان) ·
-        مدخنة (خيط دخانٍ يلفّ اسماً بالطباشير):
+        شاورما (لوحة المحلّ المضيئة) · سطل (ملصق علبة الوجبة إلى دائرة العدد) ·
+        سماش (قرص لحمٍ يُكبس وشريط صاجٍ إلى أنبوب نيون) · مغرفة (بسكوتةٌ بكرةٍ بلون القسم) ·
+        عيدان (ختمٌ أحمر برمز القسم وضربة فرشاة) · زعتر (رغيف منقوشة برمز القسم):
         كلٌّ في ملفّه (`heads/`) ── */
   const FILE_HEADINGS = {
     shelf: DukkanHeading,
@@ -357,9 +360,11 @@ export function SectionHeading({
     lightbox: SlicesHeading,
     brush: NapoliHeading,
     panel: ShawarmaHeading,
-    cut: SteakhouseHeading,
-    ocak: OcakbasiHeading,
-    smoke: SmokehouseHeading,
+    label: BucketHeading,
+    press: SmashHeading,
+    cone: ScoopHeading,
+    hanko: ChopsticksHeading,
+    loaf: ZaatarHeading,
   } as const;
   if (style in FILE_HEADINGS) {
     const Skin = FILE_HEADINGS[style as keyof typeof FILE_HEADINGS];

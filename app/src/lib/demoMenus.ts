@@ -23,11 +23,13 @@ export type DemoKind =
   | "bakery" | "breakfast"
   | "grill" | "pizza"
   | "qahwa" | "espresso"
-  | "karak" | "teahouse";
+  | "karak" | "teahouse"
+  | "broast"
+  | "icecream" | "sushi" | "manakish";
 
 export const DEMO_KINDS: readonly DemoKind[] = [
   "restaurant", "cafe", "shaabi", "truck", "seafood", "sweets", "juice", "burger", "bakery", "breakfast", "grill", "pizza",
-  "qahwa", "espresso", "karak", "teahouse",
+  "qahwa", "espresso", "karak", "teahouse", "broast", "icecream", "sushi", "manakish",
 ];
 
 export function isDemoKind(v: string | null | undefined): v is DemoKind {
@@ -1234,11 +1236,6 @@ function grill(): DemoData {
         calories: 860,
         sodium_mg: 720,
       }),
-      dish("g17", "بريسكت مدخّن", "Smoked Brisket", "المشويات", 58, "🍖", {
-        description: "صدر بقر مدخّن اثنتي عشرة ساعة على خشب البلوط، ٢٥٠ غ مع خبز وصوص الباربكيو.",
-        calories: 780,
-        sodium_mg: 1480,
-      }),
       dish("g7", "شاورما لحم", "Meat Shawarma", "الشاورما", 12, "🌯", {
         description: "لحم من السيخ بالطحينة والبصل والبقدونس في خبز صاج.",
         featured: true,
@@ -1999,6 +1996,463 @@ function teahouse(): DemoData {
   };
 }
 
+/* ── بروست ودجاج مقلي — لطابع «سطل» (٢٠٢٦/١١/١١) ─────────────────────────────
+ * محلّ بروست في الحيّ: القطع بالعدد والحرّاق بدرجاته، ووجباتٌ بالبطاطس والصوص، وساندويتشات، والصوصات
+ * تُشترى وحدها مع الإضافات (أقسامٌ يعرف `CANON` رموزها — «الحرّاق» و«الصوصات» بلا رمز طعام).
+ * و«وجبة ٤ قطع» أرخص من أجزائها، وسعراتها وصوديومها مجموعها (يحرسه `demo-menus.test.ts`). */
+
+function broast(): DemoData {
+  const R = "demo-broast";
+  const M = "demo-broast-menu";
+  const dish = dishMaker(R, M);
+  return {
+    restaurant: restaurantOf(R, {
+      name: "قرمشة",
+      type: "بروست ودجاج مقلي",
+      address: "الدمام — حي الشاطئ",
+      logo: "🍗",
+      allergens_text: "التتبيلة والطحين فيهما جلوتين وحليب، والصوصات فيها بيض وخردل — ونقلي كلّ شيءٍ في الزيت نفسه.",
+      working_hours: WEEK("12:00", "01:00", "02:00"),
+      loyalty_goal: 6,
+      loyalty_reward: "وجبة ٤ قطع مجاناً",
+      prep_minutes: 10,
+      category_order: JSON.stringify(["البروست", "الوجبات", "الساندويتشات", "الإضافات", "المشروبات"]),
+    }),
+    menus: [menuOf(R, M, "bucket")],
+    dishes: [
+      dish("k1", "بروست ٤ قطع", "Broast — 4 pcs", "البروست", 24, "🍗", {
+        description: "أربع قطع دجاج متبّلة ١٢ ساعة، مقرمشة من الخارج وطريّة من الداخل.",
+        featured: true,
+        calories: 920,
+        sodium_mg: 1680,
+        allergens: ["جلوتين", "حليب"],
+        options: JSON.stringify([
+          { name: "صدر بدل فخذ", price: 3, kcal: 40 },
+          { name: "خبز إضافي", price: 1, kcal: 160 },
+        ]),
+      }),
+      dish("k2", "بروست ٨ قطع — عائلي", "Family Broast — 8 pcs", "البروست", 44, "🍗", {
+        description: "ثماني قطع مع خبز وثومية — تكفي ثلاثة.",
+        calories: 1840,
+        sodium_mg: 3360,
+        allergens: ["جلوتين", "حليب", "بيض"],
+      }),
+      dish("k3", "ستربس — ٥ قطع", "Strips — 5 pcs", "البروست", 22, "🍗", {
+        description: "شرائح صدر بلا عظم بطبقة كرسبي.",
+        calories: 610,
+        sodium_mg: 1240,
+        allergens: ["جلوتين", "حليب", "بيض"],
+      }),
+      dish("k4", "بروست حرّاق ٤ قطع", "Hot Broast — 4 pcs", "البروست", 26, "🌶️", {
+        description: "القطع نفسها بتتبيلة الشطّة والفلفل الأحمر — حرارةٌ متوسّطة.",
+        calories: 940,
+        sodium_mg: 1790,
+        allergens: ["جلوتين", "حليب"],
+        options: JSON.stringify([
+          { name: "حرّاق نار", price: 0 },
+          { name: "حرّاق خفيف", price: 0 },
+        ]),
+      }),
+      dish("k5", "أجنحة حارّة — ٨ قطع", "Hot Wings — 8 pcs", "البروست", 21, "🌶️", {
+        description: "أجنحة مقلية مغموسة بصوص الحارّ والعسل.",
+        calories: 720,
+        sodium_mg: 1520,
+        allergens: ["جلوتين"],
+      }),
+      dish("k6", "وجبة ٤ قطع", "4-pc Meal", "الوجبات", 31, "🍟", {
+        description: "بروست ٤ قطع مع بطاطس وسط وثومية ومشروب غازي.",
+        featured: true,
+        // ٩٢٠ بروست + ٣٤٠ بطاطس + ٩٠ ثومية + ١٤٠ مشروب — والصوديوم كذلك.
+        calories: 1490,
+        sodium_mg: 2300,
+        allergens: ["جلوتين", "حليب", "بيض"],
+      }),
+      dish("k7", "ساندويتش بروست", "Broast Sandwich", "الساندويتشات", 14, "🥪", {
+        description: "قطعتا صدر في خبز صامولي مع كولسلو ومخلل.",
+        calories: 560,
+        sodium_mg: 1180,
+        allergens: ["جلوتين", "حليب", "بيض"],
+      }),
+      dish("k13", "لفافة بروست حرّاق", "Hot Broast Wrap", "الساندويتشات", 15, "🌯", {
+        description: "ستربس حرّاق في خبز تورتيلا مع خسّ وصوص حارّ ومخلل.",
+        calories: 590,
+        sodium_mg: 1320,
+        allergens: ["جلوتين", "حليب", "بيض"],
+      }),
+      dish("k8", "بطاطس مقلية", "Fries", "الإضافات", 7, "🍟", {
+        description: "حجم وسط بملح البحر والبابريكا.",
+        calories: 340,
+        sodium_mg: 420,
+      }),
+      dish("k9", "ثومية", "Garlic Dip", "الإضافات", 2, "🧄", {
+        description: "ثومية بيضاء كثيفة — ٥٠ مل.",
+        calories: 90,
+        sodium_mg: 180,
+        allergens: ["بيض"],
+      }),
+      dish("k10", "صوص حارّ", "Hot Sauce", "الإضافات", 2, "🌶️", {
+        description: "شطّة حمراء بالخلّ والثوم — ٥٠ مل.",
+        calories: 25,
+        sodium_mg: 410,
+      }),
+      dish("k11", "صوص عسل وخردل", "Honey Mustard", "الإضافات", 3, "🍯", {
+        description: "عسل وخردل حبوب — ٥٠ مل.",
+        calories: 110,
+        sodium_mg: 160,
+        allergens: ["خردل"],
+        available: false,
+      }),
+      dish("k12", "مشروب غازي", "Soft Drink", "المشروبات", 4, "🥤", {
+        description: "٣٣٠ مل.",
+        calories: 140,
+        sodium_mg: 20,
+      }),
+    ],
+  };
+}
+
+/* ── آيسكريم وجيلاتو — لطابع «مغرفة» (٢٠٢٦/١١/١١، الموجة ب) ─────────────────────────
+ * محلّ آيسكريم في الحيّ: الكرات بالكوب والبسكوتة، والجيلاتو بالكوب، والوافل والكريب، والميلك شيك، والإضافات
+ * (أقسامٌ يعرف `CANON` رموزها: «الآيسكريم» و«الجيلاتو» و«الوافل والكريب» حلى، و«المشروبات» و«الإضافات»).
+ * والأرقام تقديرٌ لكرةٍ ≈ ٧٠ غ (≈ ١٤٠ سعرة) — معقولةٌ عمداً. */
+
+function icecream(): DemoData {
+  const R = "demo-icecream";
+  const M = "demo-icecream-menu";
+  const dish = dishMaker(R, M);
+  const flavors = JSON.stringify([
+    { name: "فانيلا", price: 0 },
+    { name: "شوكولاتة", price: 0 },
+    { name: "فراولة", price: 0 },
+    { name: "فستق", price: 2, kcal: 10 },
+  ]);
+  return {
+    restaurant: restaurantOf(R, {
+      name: "كرزة",
+      type: "آيسكريم وجيلاتو",
+      address: "جدة — الكورنيش",
+      logo: "🍨",
+      allergens_text: "الآيسكريم والجيلاتو فيهما حليب، والبسكوت والوافل فيهما جلوتين وبيض، وبعض النكهات فيها مكسّرات — والمغرفة واحدة.",
+      working_hours: WEEK("14:00", "01:00", "02:00"),
+      loyalty_goal: 8,
+      loyalty_reward: "كوب كرتين مجاناً",
+      prep_minutes: 5,
+      category_order: JSON.stringify(["الآيسكريم", "الجيلاتو", "الوافل والكريب", "المشروبات", "الإضافات"]),
+    }),
+    menus: [menuOf(R, M, "scoop")],
+    dishes: [
+      dish("i1", "كوب آيسكريم — كرتان", "Ice Cream Cup — 2 Scoops", "الآيسكريم", 14, "🍨", {
+        description: "كرتان بنكهتين تختارهما، بصوصٍ وبسكوتة صغيرة.",
+        featured: true,
+        calories: 290,
+        sodium_mg: 110,
+        allergens: ["حليب", "جلوتين"],
+        options: flavors,
+      }),
+      dish("i2", "بسكوتة آيسكريم — كرة", "Cone — 1 Scoop", "الآيسكريم", 9, "🍦", {
+        description: "كرةٌ في بسكوتة مقرمشة — والثانية بأربعة ريالات.",
+        calories: 190,
+        sodium_mg: 80,
+        allergens: ["حليب", "جلوتين", "بيض"],
+        options: flavors,
+      }),
+      dish("i3", "سنداي فراولة", "Strawberry Sundae", "الآيسكريم", 18, "🍓", {
+        description: "ثلاث كرات فانيلا، وفراولة طازجة، وصوص فراولة، وكريمة.",
+        calories: 430,
+        sodium_mg: 160,
+        allergens: ["حليب"],
+      }),
+      dish("i4", "جيلاتو فستق حلبي", "Pistachio Gelato", "الجيلاتو", 16, "🍨", {
+        description: "جيلاتو كثيف بفستقٍ محمّص يُطحن كلّ صباح — كوب ١٥٠ غ.",
+        featured: true,
+        calories: 270,
+        sodium_mg: 90,
+        allergens: ["حليب", "مكسرات"],
+      }),
+      dish("i5", "سوربيه مانجو", "Mango Sorbet", "الجيلاتو", 15, "🥭", {
+        description: "مانجو وسكّر وماء — بلا حليب.",
+        calories: 170,
+        sodium_mg: 15,
+      }),
+      dish("i6", "جيلاتو تمر وهيل", "Date & Cardamom Gelato", "الجيلاتو", 16, "🍨", {
+        description: "دبس تمر سكّري وهيلٌ مطحون — كوب ١٥٠ غ.",
+        calories: 290,
+        sodium_mg: 95,
+        allergens: ["حليب"],
+      }),
+      dish("i7", "وافل بالآيسكريم", "Waffle with Ice Cream", "الوافل والكريب", 24, "🧇", {
+        description: "وافل بلجيكي ساخن، وكرتا فانيلا، وصوص شوكولاتة.",
+        calories: 640,
+        sodium_mg: 470,
+        allergens: ["جلوتين", "حليب", "بيض"],
+      }),
+      dish("i8", "كريب نوتيلا وموز", "Nutella & Banana Crêpe", "الوافل والكريب", 21, "🥞", {
+        description: "كريب رقيق بالنوتيلا وشرائح الموز.",
+        calories: 560,
+        sodium_mg: 220,
+        allergens: ["جلوتين", "حليب", "بيض", "مكسرات"],
+      }),
+      dish("i9", "ميلك شيك فانيلا", "Vanilla Milkshake", "المشروبات", 18, "🥤", {
+        description: "ثلاث كرات فانيلا وحليب بارد — ٤٠٠ مل.",
+        calories: 520,
+        sodium_mg: 290,
+        allergens: ["حليب"],
+      }),
+      dish("i10", "ميلك شيك فراولة", "Strawberry Milkshake", "المشروبات", 18, "🍓", {
+        description: "فراولة طازجة وآيسكريم وحليب — ٤٠٠ مل.",
+        calories: 480,
+        sodium_mg: 260,
+        allergens: ["حليب"],
+      }),
+      dish("i11", "أفوقاتو", "Affogato", "المشروبات", 16, "☕", {
+        description: "كرة فانيلا يُسكب عليها شوت إسبريسو ساخن.",
+        calories: 180,
+        sodium_mg: 60,
+        caffeine_mg: 63,
+        allergens: ["حليب"],
+      }),
+      dish("i12", "كرة إضافية", "Extra Scoop", "الإضافات", 5, "🍨", {
+        description: "أيّ نكهةٍ من الثلّاجة.",
+        calories: 140,
+        sodium_mg: 50,
+        allergens: ["حليب"],
+      }),
+      dish("i13", "صوص شوكولاتة", "Chocolate Sauce", "الإضافات", 3, "🍫", {
+        description: "شوكولاتة داكنة ساخنة — ٣٠ مل.",
+        calories: 90,
+        sodium_mg: 25,
+        allergens: ["حليب"],
+      }),
+      dish("i14", "مكسّرات محمّصة", "Roasted Nuts", "الإضافات", 4, "🥜", {
+        description: "لوز وبندق مكسّر.",
+        calories: 120,
+        sodium_mg: 5,
+        allergens: ["مكسرات"],
+        available: false,
+      }),
+    ],
+  };
+}
+
+/* ── سوشي وآسيوي — لطابع «عيدان» (٢٠٢٦/١١/١١، الموجة ب) ─────────────────────────────
+ * مطعم سوشي هادئ: الماكي والنيغيري والساشيمي (أقسامٌ لها في `CANON` أسماؤها الإنجليزية ورمز السمكة)، والمقبلات
+ * والشوربات والمشروبات. القطع بالعدد كما تُطلب، و«الطبق المشكّل» أرخص من أجزائه. والصويا في كلّ ما يُغمس. */
+
+function sushi(): DemoData {
+  const R = "demo-sushi";
+  const M = "demo-sushi-menu";
+  const dish = dishMaker(R, M);
+  return {
+    restaurant: restaurantOf(R, {
+      name: "موجة",
+      type: "سوشي ومطبخ آسيوي",
+      address: "الرياض — حي الملقا",
+      logo: "🍣",
+      allergens_text: "السوشي فيه أسماك وصويا وسمسم، والتمبورا فيها جلوتين وبيض، وبعض الصوصات فيها قشريات — والسكّين واحدة.",
+      working_hours: WEEK("13:00", "00:00", "01:00"),
+      loyalty_goal: 6,
+      loyalty_reward: "طبق ماكي مجاناً",
+      prep_minutes: 20,
+      category_order: JSON.stringify(["الماكي", "النيغيري", "الساشيمي", "المقبلات", "الشوربات", "المشروبات"]),
+    }),
+    menus: [menuOf(R, M, "chopsticks")],
+    dishes: [
+      dish("s1", "كاليفورنيا رول — ٨ قطع", "California Roll — 8 pcs", "الماكي", 32, "🍣", {
+        description: "سلطعون وأفوكادو وخيار، ملفوفٌ بالأرز وبذور السمسم.",
+        featured: true,
+        calories: 330,
+        sodium_mg: 780,
+        allergens: ["قشريات", "سمسم", "صويا", "بيض"],
+      }),
+      dish("s2", "سلمون أفوكادو رول — ٨ قطع", "Salmon Avocado Roll — 8 pcs", "الماكي", 36, "🍣", {
+        description: "سلمون نرويجي وأفوكادو بالنوري.",
+        calories: 360,
+        sodium_mg: 640,
+        allergens: ["أسماك", "صويا", "سمسم"],
+      }),
+      dish("s3", "روبيان تمبورا رول — ٨ قطع", "Shrimp Tempura Roll — 8 pcs", "الماكي", 39, "🍤", {
+        description: "روبيان مقرمش وصوص سبايسي مايو وبصل مقرمش.",
+        calories: 480,
+        sodium_mg: 920,
+        allergens: ["قشريات", "جلوتين", "بيض", "صويا"],
+        options: JSON.stringify([
+          { name: "بلا سبايسي", price: 0 },
+          { name: "صوص إضافي", price: 3, kcal: 90 },
+        ]),
+      }),
+      dish("s4", "نيغيري سلمون — قطعتان", "Salmon Nigiri — 2 pcs", "النيغيري", 18, "🍣", {
+        description: "شريحتا سلمون على أرزٍ بالخلّ، ولمسة وسابي.",
+        featured: true,
+        calories: 140,
+        sodium_mg: 320,
+        allergens: ["أسماك", "صويا"],
+      }),
+      dish("s5", "نيغيري تونة — قطعتان", "Tuna Nigiri — 2 pcs", "النيغيري", 20, "🍣", {
+        description: "تونة حمراء على أرزٍ بالخلّ.",
+        calories: 130,
+        sodium_mg: 300,
+        allergens: ["أسماك", "صويا"],
+      }),
+      dish("s6", "نيغيري روبيان — قطعتان", "Shrimp Nigiri — 2 pcs", "النيغيري", 17, "🍤", {
+        description: "روبيان مسلوق مفرود على الأرز.",
+        calories: 120,
+        sodium_mg: 340,
+        allergens: ["قشريات", "صويا"],
+      }),
+      dish("s7", "ساشيمي سلمون — ٥ شرائح", "Salmon Sashimi — 5 slices", "الساشيمي", 34, "🐟", {
+        description: "شرائح سلمون بلا أرز، مع زنجبيلٍ ووسابي.",
+        calories: 210,
+        sodium_mg: 90,
+        allergens: ["أسماك"],
+      }),
+      dish("s8", "طبق ساشيمي مشكّل — ١٢ شريحة", "Mixed Sashimi — 12 slices", "الساشيمي", 72, "🐟", {
+        description: "سلمون وتونة وسيباس — يكفي اثنين.",
+        calories: 470,
+        sodium_mg: 230,
+        allergens: ["أسماك"],
+      }),
+      dish("s9", "إدامامي بالملح", "Salted Edamame", "المقبلات", 16, "🫛", {
+        description: "فول صويا أخضر مسلوق بملح البحر.",
+        calories: 190,
+        sodium_mg: 480,
+        allergens: ["صويا"],
+      }),
+      dish("s10", "غيوزا دجاج — ٥ قطع", "Chicken Gyoza — 5 pcs", "المقبلات", 24, "🥟", {
+        description: "زلابية مقليّة من تحت ومطهوّة بالبخار من فوق، بصوص الصويا والخلّ.",
+        calories: 310,
+        sodium_mg: 690,
+        allergens: ["جلوتين", "صويا", "سمسم"],
+      }),
+      dish("s11", "شوربة ميسو", "Miso Soup", "الشوربات", 12, "🍲", {
+        description: "مرق ميسو وتوفو وأعشاب بحرية وبصل أخضر.",
+        calories: 80,
+        sodium_mg: 860,
+        allergens: ["صويا"],
+      }),
+      dish("s12", "رامن دجاج", "Chicken Ramen", "الشوربات", 42, "🍜", {
+        description: "مرق دجاج ثمانيَ ساعات، ونودلز، وبيضة منقوعة، ودجاج مشوي.",
+        calories: 620,
+        sodium_mg: 1880,
+        allergens: ["جلوتين", "بيض", "صويا", "سمسم"],
+      }),
+      dish("s13", "شاي ياسمين", "Jasmine Tea", "المشروبات", 10, "🍵", {
+        description: "إبريقٌ لشخصين.",
+        calories: 0,
+        sodium_mg: 5,
+        caffeine_mg: 25,
+      }),
+      dish("s14", "ليمونادة يوزو", "Yuzu Lemonade", "المشروبات", 16, "🍋", {
+        description: "يوزو وليمون ونعناع — ٣٥٠ مل.",
+        calories: 120,
+        sodium_mg: 10,
+        available: false,
+      }),
+    ],
+  };
+}
+
+/* ── مناقيش وفطائر — لطابع «زعتر» (٢٠٢٦/١١/١١، الموجة ب) ─────────────────────────────
+ * محلّ مناقيش على الصاج: المنقوشة كبيرةً بالحبّة (زعتر · جبن · لحم بعجين · محمّرة)، والفطائر الصغيرة بالقطعة
+ * والصينيّة، وسلطةٌ واحدة، والمشروبات (شايٌ ولبن). أقسامٌ لها في `CANON` رموزها: الرغيف والمعجّنات والسلطة
+ * والقارورة. و«فطور اثنين» أرخص من أجزائه. */
+
+function manakish(): DemoData {
+  const R = "demo-manakish";
+  const M = "demo-manakish-menu";
+  const dish = dishMaker(R, M);
+  return {
+    restaurant: restaurantOf(R, {
+      name: "منقوشتي",
+      type: "مناقيش وفطائر على الصاج",
+      address: "الخبر — حي العقربية",
+      logo: "🫓",
+      allergens_text: "العجين فيه جلوتين، والجبن والعكاوي حليب، والزعتر فيه سمسم، والمحمّرة فيها جوز — والصاج واحد.",
+      working_hours: WEEK("06:00", "23:00", "00:00"),
+      loyalty_goal: 8,
+      loyalty_reward: "منقوشة زعتر مجاناً",
+      prep_minutes: 10,
+      category_order: JSON.stringify(["المناقيش", "الفطائر", "السلطات", "المشروبات"]),
+    }),
+    menus: [menuOf(R, M, "zaatar")],
+    dishes: [
+      dish("m1", "منقوشة زعتر", "Zaatar Manousheh", "المناقيش", 6, "🫓", {
+        description: "زعتر بلدي وزيت زيتون على عجينٍ رقيق من الصاج.",
+        featured: true,
+        calories: 420,
+        sodium_mg: 620,
+        allergens: ["جلوتين", "سمسم"],
+        options: JSON.stringify([
+          { name: "طماطم ونعناع", price: 1, kcal: 10 },
+          { name: "نصّ جبن", price: 3, kcal: 150 },
+        ]),
+      }),
+      dish("m2", "منقوشة جبن عكاوي", "Akkawi Cheese Manousheh", "المناقيش", 10, "🧀", {
+        description: "عكاوي وموزاريلا تذوب على الصاج.",
+        calories: 610,
+        sodium_mg: 1240,
+        allergens: ["جلوتين", "حليب"],
+      }),
+      dish("m3", "لحم بعجين", "Lahm Bi Ajeen", "المناقيش", 12, "🥩", {
+        description: "لحم غنم مفروم بالطماطم والبصل والدبس.",
+        calories: 560,
+        sodium_mg: 980,
+        allergens: ["جلوتين"],
+      }),
+      dish("m4", "منقوشة محمّرة", "Muhammara Manousheh", "المناقيش", 8, "🌶️", {
+        description: "فليفلة حمراء وجوز ودبس رمّان.",
+        calories: 480,
+        sodium_mg: 710,
+        allergens: ["جلوتين", "مكسرات"],
+        available: false,
+      }),
+      dish("m5", "فطيرة سبانخ", "Spinach Fatayer", "الفطائر", 3, "🥬", {
+        description: "مثلّثةٌ بالسبانخ والسمّاق والبصل.",
+        calories: 160,
+        sodium_mg: 290,
+        allergens: ["جلوتين"],
+      }),
+      dish("m6", "فطيرة جبن", "Cheese Fatayer", "الفطائر", 3, "🧀", {
+        description: "جبنة بيضاء وبقدونس.",
+        calories: 190,
+        sodium_mg: 340,
+        allergens: ["جلوتين", "حليب"],
+      }),
+      dish("m7", "صينيّة فطائر مشكّلة — ١٢ حبّة", "Mixed Fatayer Tray — 12 pcs", "الفطائر", 32, "🥟", {
+        description: "سبانخ وجبن ولحم — للضيوف والدوام.",
+        calories: 2100,
+        sodium_mg: 3800,
+        allergens: ["جلوتين", "حليب"],
+      }),
+      dish("m8", "فطور اثنين", "Breakfast for Two", "الفطائر", 26, "🫓", {
+        description: "منقوشتا زعتر ومنقوشة جبن، وكأسا شاي.",
+        featured: true,
+        // ٤٢٠ × ٢ + ٦١٠ + ٢ × ٣٠ — والصوديوم كذلك.
+        calories: 1510,
+        sodium_mg: 2490,
+        allergens: ["جلوتين", "حليب", "سمسم"],
+      }),
+      dish("m9", "فتّوش", "Fattoush", "السلطات", 12, "🥗", {
+        description: "خضار مقطّعة وخبزٌ محمّص ودبس رمّان وسمّاق.",
+        calories: 210,
+        sodium_mg: 420,
+        allergens: ["جلوتين"],
+      }),
+      dish("m10", "شاي بالنعناع", "Mint Tea", "المشروبات", 3, "🍵", {
+        description: "كأسٌ بنعناعٍ أخضر.",
+        calories: 30,
+        sodium_mg: 5,
+        caffeine_mg: 30,
+      }),
+      dish("m11", "لبن عيران", "Ayran", "المشروبات", 4, "🥛", {
+        description: "لبن بالملح — ٢٥٠ مل.",
+        calories: 90,
+        sodium_mg: 320,
+        allergens: ["حليب"],
+      }),
+    ],
+  };
+}
+
 /**
  * المنيو الذي يُعاين به طابعٌ ما وحده (`/demo?theme=…` من «عاينه كاملاً»):
  * منيوه إن كان له (`KIND_BY_THEME`)، وإلا أوّل نوعٍ في `suits` ⇒ منيو ذلك النوع.
@@ -2061,12 +2515,18 @@ const KIND_BY_THEME: Readonly<Record<string, DemoKind>> = {
   napoli: "pizza",
   neon: "burger",
   sticker: "juice",
-  // ٠٩/١١ (الموجة ٣): المشاوي الأربعة على منيو المشاوي القائم — وأُضيف إليه صنفان لا غير: ستيك ريب آي
-  // وبريسكت مدخّن، كي لا يُعاين «ستيك» و«مدخنة» على منيوٍ بلا ستيكٍ ولا مدخّن.
+  // ٠٩/١١ (الموجة ٣): «شاورما» على منيو المشاوي القائم. (وأُضيف إليه يومها «ستيك ريب آي على الفحم» و«بريسكت
+  // مدخّن» لـ«ستيك» و«مدخنة»؛ وحُذف الطابعان ١١/١١ فسقط البريسكت وبقي الريب آي — على الفحم، يخدم «جمر».)
   shawarma: "grill",
-  steakhouse: "grill",
-  ocakbasi: "grill",
-  smokehouse: "grill",
+  // ١١/١١: «سطل» على منيو البروست — نوعٌ جديد بأقلّ ما يلزم (بروست وحرّاق · وجبات · ساندويتشات · صوصات).
+  bucket: "broast",
+  // ١١/١١: «سماش» على منيو البرجر القائم («برجر الحارة» سماشٌ أصلاً) — شارته «برجر» لا نوعٌ له منيو.
+  smash: "burger",
+  // ١١/١١ (الموجة ب): الثلاثة على منيوهاتٍ جديدة بأقلّ ما يلزم — «حلواني» يملك منيو الحلويات (كيكٌ وشرقيّ لا
+  // آيسكريم)، و«فرن» منيو المخبز (كرواسون ورغيف لا صاج).
+  scoop: "icecream",
+  chopsticks: "sushi",
+  zaatar: "manakish",
 };
 
 export function demoKindForSuits(suits: readonly string[] | undefined, themeId?: string | null): DemoKind {
@@ -2090,6 +2550,10 @@ const BUILDERS: Record<DemoKind, () => DemoData> = {
   espresso,
   karak,
   teahouse,
+  broast,
+  icecream,
+  sushi,
+  manakish,
 };
 
 /** المنيو التجريبي لنوعٍ ما — والمجهول يسقط إلى «الديوان». */

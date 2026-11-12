@@ -71,11 +71,16 @@ const PAGES = [
   { path: "/demo?theme=pizzabox", anchor: "بيتزيريا ريحانة", role: "text", label: "علبة على منيو البيتزا" },
   { path: "/demo?theme=slices", anchor: "بيتزيريا ريحانة", role: "text", label: "شريحة على منيو البيتزا" },
   { path: "/demo?theme=napoli", anchor: "بيتزيريا ريحانة", role: "text", label: "نابولي على منيو البيتزا" },
-  // ٠٩/١١ (الموجة ٣): المشاوي الأربعة على منيو المشاوي القائم.
+  // ٠٩/١١ (الموجة ٣): «شاورما» على منيو المشاوي القائم.
   { path: "/demo?theme=shawarma", anchor: "مشويات المنقل", role: "text", label: "شاورما على منيو المشاوي" },
-  { path: "/demo?theme=steakhouse", anchor: "مشويات المنقل", role: "text", label: "ستيك على منيو المشاوي" },
-  { path: "/demo?theme=ocakbasi", anchor: "مشويات المنقل", role: "text", label: "أوجاق على منيو المشاوي" },
-  { path: "/demo?theme=smokehouse", anchor: "مشويات المنقل", role: "text", label: "مدخنة على منيو المشاوي" },
+  // ١١/١١ (الموجة أ): «سطل» على منيو البروست الجديد، والمنيو نفسه بنوعه.
+  { path: "/demo?theme=bucket", anchor: "قرمشة", role: "text", label: "سطل على منيو البروست" },
+  { path: "/demo?kind=broast", anchor: "قرمشة", role: "text", label: "منيو البروست التجريبي" },
+  // ١١/١١ (الموجة ب): «مغرفة» و«عيدان» و«زعتر» على منيوهاتها الجديدة.
+  { path: "/demo?theme=scoop", anchor: "كرزة", role: "text", label: "مغرفة على منيو الآيسكريم" },
+  { path: "/demo?theme=chopsticks", anchor: "موجة", role: "text", label: "عيدان على منيو السوشي" },
+  { path: "/demo?theme=zaatar", anchor: "منقوشتي", role: "text", label: "زعتر على منيو المناقيش" },
+  { path: "/demo?theme=smash", anchor: "برجر الحارة", role: "text", label: "سماش على منيو البرجر" },
   // مقالٌ ثابت: نصّه يُحمَّل كسولاً (`import.meta.glob`) ويمرّ على المنقّي في
   // متصفّح حقيقي — ويُعرض ولو سقطت الشبكة. والمرساة عنوانٌ **داخل النصّ** لا
   // عنوان المقال: هي ما يثبت أن الملفّ الكسول وصل ومرّ على المنقّي سليماً.
@@ -205,7 +210,7 @@ test("المنيو التجريبي: اختيار قسمٍ يبدّل المني
   await expect(page.getByText("مطعم شاطئ النورس", { exact: false }).first()).toBeVisible();
   await expect(page.getByText("مطعم الديوان", { exact: false })).toHaveCount(0);
   const themes = picker.getByRole("group", { name: "طوابع «بحري»" });
-  await expect(themes.getByRole("button")).toHaveText(["مرفأ", "عصري", "فاخر"]);
+  await expect(themes.getByRole("button")).toHaveText(["مرفأ", "عيدان", "عصري", "فاخر"]);
   await expect(themes.getByRole("button", { name: "مرفأ" })).toHaveAttribute("aria-pressed", "true");
 
   // طابعٌ آخر من القسم: المنيو نفسه بلباسٍ آخر.
@@ -217,7 +222,7 @@ test("المنيو التجريبي: اختيار قسمٍ يبدّل المني
   // قسمٌ آخر: منيوه وطوابعه.
   await picker.getByRole("tab", { name: "فطور" }).click();
   await expect(page.getByText("فوّال باب مكة", { exact: false }).first()).toBeVisible();
-  await expect(picker.getByRole("group", { name: "طوابع «فطور»" }).getByRole("button")).toHaveText(["فوّال", "دكّان", "فرن"]);
+  await expect(picker.getByRole("group", { name: "طوابع «فطور»" }).getByRole("button")).toHaveText(["فوّال", "زعتر", "دكّان", "فرن"]);
 
   // لا يغطّي المنيو: في مجرى الصفحة قبل ترويسته، ولا فيض أفقيّ على ٣٢٠.
   const pickerBox = (await picker.boundingBox())!;

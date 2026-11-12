@@ -1,0 +1,361 @@
+/*
+ * ══ عيدان — مطعم السوشي والمطبخ الآسيوي (٢٠٢٦/١١/١١، الموجة ب) ════════════════════════════
+ * الطابع السابع والثلاثون. ستارة مدخلٍ بلون العلامة والشعار في دائرتها، ولوح خشبٍ بقطعه، وصحن صويا،
+ * وعيدانٌ على مسندها، وسيرٌ ناقل تحت المسرح **تمرّ عليه الصحون مع التمرير** (`--m-scroll-y`). **وحين يُضاف
+ * صنفٌ تلتقط العيدان قطعة التونة** وترفعها ثم تردّها، والصويا يرتجّ، والزرّ يُختم، وختمٌ صغير يقفز فوق شريط
+ * الطلب (`data-m-added`). والأقسام ختمٌ أحمر يُضغط وضربة فرشاة تُخطّ حين يدخل القسم (`data-m-in`)، وتحت
+ * الشريط خطّ حبرٍ يمتدّ بتقدّم الصفحة (`--m-scroll`).
+ * الترويسة وعنوان القسم في `components/menu/heads/ChopsticksHead.tsx`.
+ *
+ * ⚠️ مستورَدٌ من **رأس** `menu-skins.css` — فكلّ انتقائيٍّ هنا يبدأ بـ`.m-skin-chopsticks`.
+ *
+ * هادئٌ ونظيف: ورقٌ فاتح، وحبرٌ أسود، وأحمرٌ واحد. ما يتبع العلامة: الستارة والختم وحافّة صحن السير الأولى
+ * والأزرار. وما لا يتبعها خامة: الخشب والأرزّ والسمك والنوري والوسابي والزنجبيل والصويا.
+ */
+.m-skin-chopsticks {
+  display: flow-root;
+  /* الزخرفة: أليافُ ورقٍ أرزيّ خافتة. */
+  background-image:
+    repeating-linear-gradient(115deg, rgba(25, 23, 20, 0.025) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(25deg, rgba(25, 23, 20, 0.02) 0 1px, transparent 1px 13px);
+}
+
+/* ── المسرح: ورقٌ أفتح، والستارة والسير ── */
+.m-skin-chopsticks .m-ch-stage {
+  background: linear-gradient(180deg, var(--m-surface), var(--m-bg));
+  border-bottom: 1px solid var(--m-border);
+}
+.m-skin-chopsticks .m-ch-scene {
+  margin-bottom: 0.5rem;
+}
+.m-skin-chopsticks .m-ch-cloth {
+  fill: var(--m-accent);
+}
+.m-skin-chopsticks .m-ch-stick {
+  stroke: var(--m-accent-2);
+}
+.m-skin-chopsticks .m-ch-seal {
+  box-shadow: 0 0 0 2px #ffffff;
+}
+.m-skin-chopsticks .m-ch-belt {
+  background: color-mix(in srgb, var(--m-accent-2) 92%, var(--m-bg));
+  box-shadow: inset 0 3px 0 #c9ced2, inset 0 -3px 0 #9aa1a6;
+}
+.m-skin-chopsticks .m-ch-rail {
+  fill: var(--m-accent-2);
+}
+.m-skin-chopsticks .m-ch-p0 {
+  fill: var(--m-accent);
+}
+.m-skin-chopsticks .m-ch-p1 {
+  fill: #e8c25a;
+}
+.m-skin-chopsticks .m-ch-p2 {
+  fill: #d9d4ca;
+}
+.m-skin-chopsticks .m-ch-window {
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 4px var(--m-surface),
+    0 0 0 5px var(--m-border),
+    0 14px 22px -16px rgba(25, 23, 20, 0.4);
+}
+
+/* ── عنوان القسم: ختمٌ أحمر وضربة فرشاة ── */
+.m-skin-chopsticks .m-ch-hanko {
+  border-radius: 7px;
+  background: var(--m-accent);
+  color: var(--m-on-accent);
+  box-shadow:
+    inset 0 0 0 2px var(--m-accent),
+    inset 0 0 0 3.5px color-mix(in srgb, var(--m-on-accent) 70%, transparent);
+  rotate: -4deg;
+}
+.m-skin-chopsticks .m-ch-brush {
+  fill: color-mix(in srgb, var(--m-text) 14%, transparent);
+}
+.m-skin-chopsticks .m-ch-count {
+  color: var(--m-muted);
+}
+.m-skin-chopsticks .m-ch-photo {
+  padding: 5px;
+  border-radius: 6px;
+  background: var(--m-surface);
+  box-shadow: 0 0 0 1px var(--m-border);
+}
+.m-skin-chopsticks .m-ch-photo .m-img {
+  border-radius: 3px;
+}
+
+/* ── الطبق بلا صورة: قطعة ماكي من فوق على لوحٍ حجريّ داكن ── */
+.m-skin-chopsticks .m-art {
+  --m-art-bg:
+    repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 8px),
+    #2a2724;
+  --m-art-plate:
+    radial-gradient(circle at 50% 50%, #f2875a 0 14%, transparent 15%),
+    radial-gradient(circle at 42% 42%, #e6dfcd 0 2%, transparent 3%),
+    radial-gradient(circle closest-side, #fbf8f0 0 66%, #1e2522 68% 100%);
+  --m-art-ring: 0 0 0 3px #fbf8f0, 0 0 0 4px rgba(25, 23, 20, 0.3);
+  --m-art-lift: 0 10px 14px -8px rgba(0, 0, 0, 0.55);
+  --m-art-well: 0 0 transparent;
+  --m-art-mark: rgba(255, 255, 255, 0.12);
+  --cm-tint: rgba(255, 255, 255, 0.12);
+}
+.m-skin-chopsticks .m-art-plate {
+  --m-accent-ink: #191714;
+}
+
+/* ── البطاقة والأزرار: حوافّ رقيقة، وزرٌّ مربّع كالختم ── */
+.m-skin-chopsticks .m-card,
+.m-skin-chopsticks .m-feature {
+  --m-border: color-mix(in srgb, var(--m-text) 11%, transparent);
+}
+.m-skin-chopsticks .m-chips > *,
+.m-skin-chopsticks .m-tab {
+  border-radius: 4px;
+}
+.m-skin-chopsticks .m-add {
+  border-radius: 6px;
+}
+.m-skin-chopsticks .m-soldout {
+  border-radius: 3px;
+  background: var(--m-surface);
+  color: var(--m-text);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--m-text) 40%, transparent);
+}
+
+/* ── شاشات الطلب ── */
+.m-skin-chopsticks .m-o-card {
+  border-radius: 8px;
+}
+.m-skin-chopsticks .m-o-cta {
+  border-radius: 6px;
+}
+.m-skin-chopsticks .m-o-field,
+.m-skin-chopsticks .m-o-ghost,
+.m-skin-chopsticks .m-o-opt,
+.m-skin-chopsticks .m-o-soldout,
+.m-skin-chopsticks .m-o-step,
+.m-skin-chopsticks .m-o-chip {
+  border-radius: 6px;
+}
+.m-skin-chopsticks .m-o-thumb {
+  border-radius: 4px;
+}
+
+/* ── الحركة ──
+ * عند الفتح: الستارة تنسدل، والقطع تُصفّ على اللوح. ومع التمرير: صحون السير تمرّ (`--m-scroll-y`)، والستارة
+ * تتمايل ما دام يمرّر، وخطّ الحبر تحت الشريط يمتدّ (`--m-scroll`). وحين يدخل القسم يُضغط ختمه وتُخطّ فرشاته
+ * (`data-m-in`). وحين يُضاف صنفٌ تلتقط العيدان القطعة وترفعها وتردّها، والزرّ يُختم، وختمٌ فوق شريط الطلب. */
+@media (prefers-reduced-motion: no-preference) {
+  .m-skin-chopsticks .m-ch-track {
+    translate: calc(var(--m-scroll-y, 0) * -0.45px) 0;
+    will-change: translate;
+  }
+  .m-skin-chopsticks .m-ch-noren {
+    transform-box: fill-box;
+    transform-origin: 50% 0;
+    animation: m-ch-drop 0.6s cubic-bezier(0.3, 1.2, 0.5, 1) both;
+  }
+  .m-skin-chopsticks[data-m-scrolling] .m-ch-noren {
+    animation: m-ch-sway 0.9s ease-in-out infinite alternate;
+  }
+  .m-skin-chopsticks .m-ch-sticks {
+    animation: m-ch-place 0.45s ease-out 0.4s both;
+  }
+  .m-skin-chopsticks .m-ch-sticks {
+    transform-box: view-box;
+    transform-origin: 121px 159px;
+  }
+  .m-skin-chopsticks .m-ch-pick,
+  .m-skin-chopsticks .m-ch-soy {
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+  }
+  .m-skin-chopsticks .m-ch-soy {
+    transform-origin: 50% 50%;
+  }
+  /* الشريط: خطّ حبرٍ يمتدّ بتقدّم الصفحة. */
+  .m-skin-chopsticks[data-m-motion] .m-nav::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: -1px;
+    height: 2px;
+    background: var(--m-text);
+    transform-origin: 100% 50%;
+    transform: scaleX(var(--m-scroll, 0));
+    pointer-events: none;
+  }
+  [dir="ltr"].m-skin-chopsticks[data-m-motion] .m-nav::after {
+    transform-origin: 0 50%;
+  }
+  /* القسم يدخل: الختم يُضغط، والفرشاة تُخطّ. */
+  .m-skin-chopsticks .m-sec[data-m-in] .m-ch-hanko {
+    animation: m-ch-stamp 0.45s cubic-bezier(0.3, 1.4, 0.5, 1) 0.05s both;
+  }
+  .m-skin-chopsticks .m-sec[data-m-in] .m-ch-brush {
+    transform-origin: 100% 50%;
+    animation: m-ch-stroke 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.2s both;
+  }
+  [dir="ltr"].m-skin-chopsticks .m-sec[data-m-in] .m-ch-brush {
+    transform-origin: 0 50%;
+  }
+  /* أُضيف: العيدان تلتقط القطعة وترفعها ثم تردّها، والصويا يرتجّ. */
+  .m-skin-chopsticks[data-m-added] .m-ch-sticks {
+    animation: m-ch-pick 1.15s cubic-bezier(0.45, 0, 0.3, 1) both;
+  }
+  .m-skin-chopsticks[data-m-added] .m-ch-pick {
+    animation: m-ch-lift 1.15s cubic-bezier(0.45, 0, 0.3, 1) both;
+  }
+  .m-skin-chopsticks[data-m-added] .m-ch-soy {
+    animation: m-ch-ripple 0.5s ease-out 0.6s both;
+  }
+  .m-skin-chopsticks [data-m-added] > .m-add {
+    animation: m-ch-press 0.45s cubic-bezier(0.3, 0.7, 0.3, 1.3) both;
+  }
+  .m-skin-chopsticks [data-m-added] > .m-add::after {
+    content: "";
+    position: absolute;
+    inset: -5px;
+    border-radius: 8px;
+    box-shadow: 0 0 0 2px var(--m-accent);
+    pointer-events: none;
+    animation: m-ch-ring 0.6s ease-out both;
+  }
+  .m-skin-chopsticks[data-m-added] .m-cart::before {
+    content: "";
+    position: absolute;
+    top: -1.2rem;
+    inset-inline-end: 1.5rem;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    background: #c8102e;
+    box-shadow: inset 0 0 0 2px #c8102e, inset 0 0 0 3.5px rgba(255, 255, 255, 0.7);
+    pointer-events: none;
+    animation: m-ch-cart 1s cubic-bezier(0.3, 1.2, 0.5, 1) both;
+  }
+  .m-skin-chopsticks .m-sheet.anim-fade-up {
+    animation: m-ch-sheet 0.24s cubic-bezier(0.2, 0.9, 0.25, 1) backwards;
+  }
+  .m-skin-chopsticks .m-add:active {
+    transform: scale(0.94);
+  }
+  .m-skin-chopsticks .m-card.m-surface:active,
+  .m-skin-chopsticks .m-feature:active {
+    transform: scale(0.99);
+  }
+}
+
+@keyframes m-ch-drop {
+  from {
+    transform: scaleY(0.3);
+    opacity: 0;
+  }
+}
+@keyframes m-ch-sway {
+  from {
+    transform: skewX(-2.5deg);
+  }
+  to {
+    transform: skewX(2.5deg);
+  }
+}
+@keyframes m-ch-place {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+@keyframes m-ch-stamp {
+  0% {
+    opacity: 0;
+    scale: 1.5;
+  }
+  60% {
+    opacity: 1;
+    scale: 0.92;
+  }
+}
+@keyframes m-ch-stroke {
+  from {
+    transform: scaleX(0);
+  }
+}
+/* العيدان: تميل وتنزل إلى القطعة، ترفعها، تمسكها لحظة، تردّها، وتعود إلى مسندها. */
+@keyframes m-ch-pick {
+  0% {
+    transform: none;
+  }
+  28%,
+  36% {
+    transform: translate(-6px, -57px) rotate(-18deg);
+  }
+  60%,
+  72% {
+    transform: translate(-6px, -83px) rotate(-18deg);
+  }
+  86% {
+    transform: translate(-6px, -57px) rotate(-18deg);
+  }
+  100% {
+    transform: none;
+  }
+}
+@keyframes m-ch-lift {
+  0%,
+  36% {
+    transform: none;
+  }
+  60%,
+  72% {
+    transform: translateY(-26px) rotate(-4deg);
+  }
+  86%,
+  100% {
+    transform: none;
+  }
+}
+@keyframes m-ch-ripple {
+  40% {
+    transform: scale(1.12, 0.8);
+  }
+}
+@keyframes m-ch-press {
+  40% {
+    transform: scale(0.88) rotate(-4deg);
+  }
+}
+@keyframes m-ch-ring {
+  from {
+    opacity: 1;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.3);
+  }
+}
+@keyframes m-ch-cart {
+  0% {
+    opacity: 0;
+    transform: scale(1.6) rotate(-10deg);
+  }
+  30%,
+  75% {
+    opacity: 1;
+    transform: rotate(-4deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-8px) rotate(-4deg);
+  }
+}
+@keyframes m-ch-sheet {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
