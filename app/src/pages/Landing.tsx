@@ -185,11 +185,14 @@ function SectionHead({ title, sub, id }: { title: ReactNode; sub?: string; id?: 
 }
 
 /** هيكل جوّال القصّة — واحدٌ للحاسوب، وأقصر منه تحت كلّ محطّةٍ على الجوّال. */
-function StoryShell({ children, short }: { children: ReactNode; short?: boolean }) {
+const HEIGHTS = { full: "h-[560px]", tall: "h-[460px]", low: "h-[340px]" } as const;
+function StoryShell({ children, short }: { children: ReactNode; short?: "tall" | "low" }) {
   return (
     <div className="mx-auto w-fit">
       <div className="phone-shell relative rounded-[44px] bg-[#0d0d0f] p-[9px] shadow-[0_40px_80px_-34px_rgba(0,0,0,.5),inset_0_0_0_1px_rgba(255,255,255,.08)]">
-        <div className={cn("relative w-[272px] overflow-hidden rounded-[35px] bg-[#141210]", short ? "h-[460px]" : "h-[560px]")}>
+        {/* `translateZ(0)`: شريط السلّة داخل الشاشة `position: fixed` — وبلا تحويلٍ على الغلاف
+            يُثبَّت على النافذة فيخرج من الجوّال إلى أسفل الصفحة. */}
+        <div className={cn("relative w-[272px] overflow-hidden rounded-[35px] bg-[#141210] [transform:translateZ(0)]", HEIGHTS[short ?? "full"])}>
           {children}
           <span aria-hidden="true" className="pointer-events-none absolute left-1/2 top-2 h-[20px] w-[78px] -translate-x-1/2 rounded-full bg-[#0d0d0f]" />
         </div>
@@ -366,7 +369,7 @@ export default function Landing() {
     <div className="flex min-h-dvh flex-col pb-[calc(76px+env(safe-area-inset-bottom))] lg:pb-0">
       <span aria-hidden="true" className="scroll-rail" />
 
-      <Navbar />
+      <Navbar quietCta={dock} />
 
       {/* ١. البطل — «وش نوع مطعمك؟» والجوّال يتحوّل أمامه. */}
       <section ref={hero.ref} className="glow-bg relative overflow-hidden">
@@ -461,7 +464,7 @@ export default function Landing() {
             <p className="mt-4 text-center text-xs text-faint" aria-live={touched ? "polite" : "off"}>
               منيو {cat.name} بطابع «{shownTheme.name}» —{" "}
               <span className="[@media(hover:none)]:hidden">مرّره وافتح أي طبق.</span>
-              <span className="hidden [@media(hover:none)]:inline">اضغطه وجرّبه على جوّالك.</span>
+              <span className="hidden [@media(hover:none)]:inline">اضغطه ليفتح بملء الشاشة.</span>
             </p>
             {/* مكانه محجوزٌ دائماً: ظهوره كان يُعيد توسيط عمود النصّ ٢٢px، واختفاؤه عند أوّل
                 لمسة كان يزيح الشريحة بين الضغط والرفع فتضيع النقرة. */}
@@ -531,7 +534,7 @@ export default function Landing() {
                     )}
                   </div>
                   <div className="mt-5 lg:hidden">
-                    <StoryShell short>{storyScreen(i, station === i)}</StoryShell>
+                    <StoryShell short={i === 2 ? "low" : "tall"}>{storyScreen(i, station === i)}</StoryShell>
                   </div>
                 </li>
               ))}
