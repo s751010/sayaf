@@ -18,7 +18,7 @@ import { useEffect, useMemo, useState } from "react";
 import { getTheme, isHex, splitThemeId, themeBaseOf, themeIdOf } from "@/lib/themes";
 import MenuPage, { type MenuData } from "./MenuPage";
 import { CTA_PRIMARY } from "@/lib/facts";
-import { demoData, demoKindForSuits } from "@/lib/demoMenus";
+import { demoData, demoKindForSuits, isDemoKind, type DemoKind } from "@/lib/demoMenus";
 import { demoCategoryOf, type ThemeCategory } from "@/lib/themeCategories";
 import { DemoPicker } from "@/components/DemoPicker";
 
@@ -37,8 +37,15 @@ export default function Demo() {
    * إلى الافتراضي ولا يكسر شيئاً.
    */
   const theme = params.get("theme")?.trim();
+  /**
+   * نوع المنيو من الهبوط برسالة (`cm-brand.kind`، ٢٠٢٦/١١/١١): «وش نوع مطعمك؟» يبدّل
+   * منيو الجوّال **بلا إعادة تحميل الإطار** — تغيير `src` كان يبني التطبيق كلّه ثانيةً
+   * مع كل نقرة. ولا يُقبل إلا نوعٌ معروف (`isDemoKind`).
+   */
+  const [msgKind, setMsgKind] = useState<DemoKind | null>(null);
   // بلا `kind`: الطابع المعايَن وحده يختار منيو عالمه («مرفأ» ⇒ مطعم أسماك).
-  const kind = params.get("kind") ?? (theme ? demoKindForSuits(getTheme(theme).suits, themeBaseOf(theme)) : null);
+  const kind =
+    msgKind ?? params.get("kind") ?? (theme ? demoKindForSuits(getTheme(theme).suits, themeBaseOf(theme)) : null);
   const DEMO = useMemo(() => demoData(kind), [kind]);
 
   /**
@@ -52,10 +59,23 @@ export default function Demo() {
   const embeddedParam = params.get("embed") === "1";
   useEffect(() => {
     if (!embeddedParam) return;
+    /**
+     * «لمحة»: جولة الهبوط تمرّر المنيو قليلاً ثم تعيده — فيُرى الطابع **يتحرّك**
+     * (طبقة `skinMotion` تقرأ التمرير) لا لقطةً ساكنة. ولا لمحة لمن طلب تقليل الحركة.
+     */
+    let back: number | undefined;
+    const peek = () => {
+      if (!window.matchMedia || !window.matchMedia("(prefers-reduced-motion: no-preference)").matches) return;
+      window.clearTimeout(back);
+      window.scrollTo({ top: 260, behavior: "smooth" });
+      back = window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 1500);
+    };
     const onMessage = (e: MessageEvent) => {
       if (e.origin !== window.location.origin) return;
       const d = e.data as Record<string, unknown> | null;
+      if (d?.type === "cm-peek") return peek();
       if (!d || d.type !== "cm-brand") return;
+      if (typeof d.kind === "string" && isDemoKind(d.kind)) setMsgKind(d.kind);
       setBrand({
         name: typeof d.name === "string" ? d.name.trim().slice(0, 40) : undefined,
         color: typeof d.color === "string" && isHex(d.color) ? d.color : undefined,
@@ -66,16 +86,29 @@ export default function Demo() {
     window.addEventListener("message", onMessage);
     // الأمّ لا تعرف متى صار الإطار جاهزاً للاستماع — فيُعلنها هو.
     window.parent?.postMessage({ type: "cm-ready" }, window.location.origin);
-    return () => window.removeEventListener("message", onMessage);
+    return () => {
+      window.removeEventListener("message", onMessage);
+      window.clearTimeout(back);
+    };
   }, [embeddedParam]);
 
   const data: MenuData = useMemo(() => {
     const base = brand.theme ?? theme;
-    if (!base && !brand.color && !brand.name && !brand.logo) return DEMO;
+    /**
+     * داخل إطار الهبوط **لا ساعات عمل**: الإطار واجهة المنتج، وزائرٌ يفتح الهبوط
+     * الثالثة فجراً كان يرى «يفتح 13:00 · مغلق للطلبات الآن» بلا زرّ إضافة — منيو
+     * مطفأ في أوّل شاشة. وبلا ساعات يبقى الطلب مفتوحاً (`?? true` في `MenuPage`)
+     * ولا تُعرض حالةٌ أصلاً — فلا ساعة مزيّفة ولا «مفتوح الآن» مدّعاة.
+     */
+    const hours = embeddedParam ? null : DEMO.restaurant.working_hours;
+    if (!base && !brand.color && !brand.name && !brand.logo) {
+      return embeddedParam ? { ...DEMO, restaurant: { ...DEMO.restaurant, working_hours: hours } } : DEMO;
+    }
     return {
       ...DEMO,
       restaurant: {
         ...DEMO.restaurant,
+        working_hours: hours,
         name: brand.name || DEMO.restaurant.name,
         // «مأكولات سعودية معاصرة» تحت «برجر البيت» تكذب — فتُخفى مع اسم الزائر.
         type: brand.name ? null : DEMO.restaurant.type,
@@ -86,7 +119,7 @@ export default function Demo() {
         theme: themeIdOf(splitThemeId(base ?? m.theme).base ?? "dark-gold", brand.color ?? splitThemeId(base).hex),
       })),
     };
-  }, [DEMO, brand, theme]);
+  }, [DEMO, brand, theme, embeddedParam]);
 
   /**
    * `?embed=1` — الديمو معروضاً داخل إطار جوّال في صفحة الهبوط.
