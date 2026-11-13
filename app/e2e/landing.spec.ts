@@ -201,3 +201,16 @@ test("معرض الطوابع: رفّ النوع، و«شوف الكلّ» يف�
   await rail.locator(".gal-card").nth(1).click();
   await expect(page.getByText(/مرّره وافتح أي طبق/)).toBeInViewport();
 });
+
+/**
+ * جوّال البطل واجهة المنتج: زائرٌ يفتح الهبوط الثالثة فجراً بتوقيت الرياض كان يرى
+ * «مغلق للطلبات الآن» بلا زرّ إضافة. داخل الإطار (`?embed=1`) لا ساعات عمل — والصفحة
+ * المستقلّة `/demo` تبقى بساعاتها (هناك تُعرض الميزة نفسها).
+ */
+test("إطار الهبوط مفتوح للطلب في أي ساعة — الثالثة فجراً بتوقيت الرياض", async ({ page }) => {
+  await page.clock.setFixedTime(new Date("2026-11-10T00:00:00Z")); // 03:00 الرياض
+  await page.goto("/demo?embed=1");
+  await expect(page.getByRole("button", { name: /^أضِف / }).first()).toBeVisible();
+  await expect(page.getByText(/مغلق/)).toHaveCount(0);
+  await expect(page.getByText(/^يفتح /)).toHaveCount(0);
+});

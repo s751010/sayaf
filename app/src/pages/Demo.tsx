@@ -94,11 +94,21 @@ export default function Demo() {
 
   const data: MenuData = useMemo(() => {
     const base = brand.theme ?? theme;
-    if (!base && !brand.color && !brand.name && !brand.logo) return DEMO;
+    /**
+     * داخل إطار الهبوط **لا ساعات عمل**: الإطار واجهة المنتج، وزائرٌ يفتح الهبوط
+     * الثالثة فجراً كان يرى «يفتح 13:00 · مغلق للطلبات الآن» بلا زرّ إضافة — منيو
+     * مطفأ في أوّل شاشة. وبلا ساعات يبقى الطلب مفتوحاً (`?? true` في `MenuPage`)
+     * ولا تُعرض حالةٌ أصلاً — فلا ساعة مزيّفة ولا «مفتوح الآن» مدّعاة.
+     */
+    const hours = embeddedParam ? null : DEMO.restaurant.working_hours;
+    if (!base && !brand.color && !brand.name && !brand.logo) {
+      return embeddedParam ? { ...DEMO, restaurant: { ...DEMO.restaurant, working_hours: hours } } : DEMO;
+    }
     return {
       ...DEMO,
       restaurant: {
         ...DEMO.restaurant,
+        working_hours: hours,
         name: brand.name || DEMO.restaurant.name,
         // «مأكولات سعودية معاصرة» تحت «برجر البيت» تكذب — فتُخفى مع اسم الزائر.
         type: brand.name ? null : DEMO.restaurant.type,
@@ -109,7 +119,7 @@ export default function Demo() {
         theme: themeIdOf(splitThemeId(base ?? m.theme).base ?? "dark-gold", brand.color ?? splitThemeId(base).hex),
       })),
     };
-  }, [DEMO, brand, theme]);
+  }, [DEMO, brand, theme, embeddedParam]);
 
   /**
    * `?embed=1` — الديمو معروضاً داخل إطار جوّال في صفحة الهبوط.

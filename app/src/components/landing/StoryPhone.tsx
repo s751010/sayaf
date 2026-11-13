@@ -129,16 +129,30 @@ export default function StoryPhone({ active, themeId, kind }: { active: number; 
             </div>
           ))}
         </div>
-        <div className="story-sheet absolute inset-x-0 bottom-0 px-3 pb-3" data-on={cartSteps >= 3 || undefined}>
+        {/* شاشة المراجعة كما يرسمها `CartReview`: الزرّ يحمل المبلغ، والبطاقة تُكتب في
+            صفحة البوّابة لا هنا — فلا أزرار وسائل دفعٍ ليست في المنتج. وعلى الجوّال بطاقة
+            المحطّة تغطّي أسفل الشاشة، فالورقة تصعد إلى ما يُرى منها. */}
+        <div className="story-sheet m-order absolute inset-x-0 top-[122px] px-3 pb-3 lg:bottom-0 lg:top-auto" data-on={cartSteps >= 3 || undefined}>
           <div className="rounded-[16px] border p-3" style={{ background: "var(--m-surface)", borderColor: "var(--m-border)" }}>
-            <p className="text-xs font-black">الدفع — {formatPrice(cartTotal)} ر.س</p>
-            <div className="mt-2 grid grid-cols-2 gap-2 text-[11px] font-bold">
-              <span className="flex h-9 items-center justify-center rounded-[10px] bg-black text-white">Apple Pay</span>
-              <span className="flex h-9 items-center justify-center rounded-[10px] border" style={{ borderColor: "var(--m-border)" }}>
-                مدى
+            <div className="flex items-center justify-between text-xs font-black">
+              <span>الإجمالي</span>
+              <span dir="ltr" className="m-o-num">
+                {formatPrice(cartTotal)} ر.س
               </span>
             </div>
-            <p className="mt-2 text-[10px] opacity-75">يصل المبلغ حساب المطعم مباشرة.</p>
+            <div className="m-o-cta mt-2 flex min-h-11 w-full items-center justify-between gap-2 px-3 text-[11px] font-black">
+              <span className="flex items-center gap-1.5">
+                <Icon name="lock" size={13} />
+                ادفع واطلب للاستلام
+              </span>
+              <span dir="ltr" className="m-o-num">
+                {formatPrice(cartTotal)} ر.س
+              </span>
+            </div>
+            <p className="mt-2 flex items-center justify-center gap-1 text-[10px]" style={{ color: "var(--m-muted)" }}>
+              <Icon name="lock" size={10} />
+              بيانات بطاقتك في صفحة بوّابة الدفع وحدها.
+            </p>
           </div>
         </div>
         <div className="absolute inset-x-0 bottom-0" style={{ visibility: cartSteps >= 3 ? "hidden" : undefined }}>
