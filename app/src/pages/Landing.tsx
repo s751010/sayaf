@@ -63,7 +63,7 @@ const CALC_MIN_H = "min-h-[850px] md:min-h-[480px]";
 /** «قبل وبعد»: الجوّال ٥٤٠ + الإطار ١٨ + التعليق ٤٨. */
 const BA_MIN_H = "min-h-[610px]";
 /** المعرض: الشريط (بطاقة ~٣٤٠) + الأقسام + «شوف الكلّ». */
-const GALLERY_MIN_H = "min-h-[560px]";
+const GALLERY_MIN_H = "min-h-[404px] sm:min-h-[456px]";
 
 /**
  * عنوان يتجمّع كلمةً كلمة — بالكلمة لا بالحرف (التقسيم الحرفي يكسر وصل
@@ -184,6 +184,20 @@ function SectionHead({ title, sub, id }: { title: ReactNode; sub?: string; id?: 
   );
 }
 
+/** هيكل جوّال القصّة — واحدٌ للحاسوب، وأقصر منه تحت كلّ محطّةٍ على الجوّال. */
+function StoryShell({ children, short }: { children: ReactNode; short?: boolean }) {
+  return (
+    <div className="mx-auto w-fit">
+      <div className="phone-shell relative rounded-[44px] bg-[#0d0d0f] p-[9px] shadow-[0_40px_80px_-34px_rgba(0,0,0,.5),inset_0_0_0_1px_rgba(255,255,255,.08)]">
+        <div className={cn("relative w-[272px] overflow-hidden rounded-[35px] bg-[#141210]", short ? "h-[460px]" : "h-[560px]")}>
+          {children}
+          <span aria-hidden="true" className="pointer-events-none absolute left-1/2 top-2 h-[20px] w-[78px] -translate-x-1/2 rounded-full bg-[#0d0d0f]" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Landing() {
   const [cycle, setCycle] = useState<BillingCycle>("monthly");
   const [openFaq, setOpenFaq] = useState<number | null>(0);
@@ -261,6 +275,15 @@ export default function Landing() {
     root.querySelectorAll("[data-step]").forEach((el) => io.observe(el));
     return () => io.disconnect();
   }, []);
+
+  const storyScreen = (at: number, play: boolean) =>
+    storyNear ? (
+      <Suspense fallback={<div className="skeleton absolute inset-0" />}>
+        <StoryPhone active={at} play={play} themeId={brand.theme} kind={brand.kind ?? FIRST.kind} />
+      </Suspense>
+    ) : (
+      <div className="skeleton absolute inset-0" aria-hidden="true" />
+    );
 
   /* ── الكسولات ── */
   const calcRef = useRef<HTMLDivElement>(null);
@@ -433,10 +456,12 @@ export default function Landing() {
                 <span className="live-dot h-2 w-2 rounded-full" />
                 منيو حيّ
               </span>
-              <PhoneMenu brand={brand} onReady={onReady} peek={peek} />
+              <PhoneMenu brand={brand} onReady={onReady} peek={peek} tapHref={`/demo?kind=${cat.kind}&theme=${brand.theme}`} />
             </div>
             <p className="mt-4 text-center text-xs text-faint" aria-live={touched ? "polite" : "off"}>
-              منيو {cat.name} بطابع «{shownTheme.name}» — مرّره وافتح أي طبق.
+              منيو {cat.name} بطابع «{shownTheme.name}» —{" "}
+              <span className="[@media(hover:none)]:hidden">مرّره وافتح أي طبق.</span>
+              <span className="hidden [@media(hover:none)]:inline">اضغطه وجرّبه على جوّالك.</span>
             </p>
             {/* مكانه محجوزٌ دائماً: ظهوره كان يُعيد توسيط عمود النصّ ٢٢px، واختفاؤه عند أوّل
                 لمسة كان يزيح الشريحة بين الضغط والرفع فتضيع النقرة. */}
@@ -478,31 +503,17 @@ export default function Landing() {
             sub="من أوّل مسحٍ للكود إلى عودة الزبون — هذا ما يفعله المنيو، يشتغل أمامك."
           />
           <div ref={storyRef} className="relative grid lg:grid-cols-[minmax(0,1fr)_auto] lg:gap-x-16">
-            {/* الجوّال: أوّلاً في الشجرة (يلتصق فوق البطاقات على الجوّال)، وعلى الحاسوب في العمود الثاني. */}
-            {/* على الجوّال: الجوّال مصغّراً ملتصقٌ أعلى الشاشة، وبطاقة كلّ محطّة ملتصقةٌ تحته
-                (`top` = الشريط ٦٨ + الجوّال ٣٦٠ + ١٦) — فلا تغطّيه إلا وهي تغادر. */}
-            <div className="sticky top-[68px] z-0 h-[368px] lg:col-start-2 lg:row-start-1 lg:top-24 lg:h-auto lg:self-start lg:py-6">
-              <div className="mx-auto w-fit origin-top scale-[.62] lg:scale-100">
-                <div className="phone-shell relative rounded-[44px] bg-[#0d0d0f] p-[9px] shadow-[0_40px_80px_-34px_rgba(0,0,0,.5),inset_0_0_0_1px_rgba(255,255,255,.08)]">
-                  <div className="relative h-[560px] w-[272px] overflow-hidden rounded-[35px] bg-[#141210]">
-                    {storyNear ? (
-                      <Suspense fallback={<div className="skeleton absolute inset-0" />}>
-                        <StoryPhone active={station} themeId={brand.theme} kind={brand.kind ?? FIRST.kind} />
-                      </Suspense>
-                    ) : (
-                      <div className="skeleton absolute inset-0" aria-hidden="true" />
-                    )}
-                    <span aria-hidden="true" className="pointer-events-none absolute left-1/2 top-2 h-[20px] w-[78px] -translate-x-1/2 rounded-full bg-[#0d0d0f]" />
-                  </div>
-                </div>
-              </div>
+            {/* الحاسوب: جوّالٌ واحد ثابت والنصّ يمرّ بجانبه. والجوّال (أدناه) لكلّ محطّةٍ شاشتها
+                تحت نصّها — الالتصاق المزدوج كان يراكم البطاقات فوق الشاشة وفوق بعضها. */}
+            <div className="sticky top-24 z-0 hidden self-start py-6 lg:col-start-2 lg:row-start-1 lg:block">
+              <StoryShell>{storyScreen(station, true)}</StoryShell>
             </div>
 
-            <ol className="relative z-10 flex flex-col pb-[6vh] lg:col-start-1 lg:row-start-1 lg:pb-[18vh] lg:pt-[8vh]">
+            <ol className="relative z-10 flex flex-col gap-14 pb-16 lg:col-start-1 lg:row-start-1 lg:gap-0 lg:pb-[18vh] lg:pt-[8vh]">
               {OUTCOMES.map((o, i) => (
-                <li key={o.title} data-step={i} className="min-h-[66vh] lg:flex lg:min-h-[74vh] lg:items-center">
+                <li key={o.title} data-step={i} className="lg:flex lg:min-h-[74vh] lg:items-center">
                   <div
-                    className="story-step sticky top-[452px] [@media(max-height:719px)]:static rounded-[18px] border border-line bg-panel p-4 shadow-[0_24px_48px_-30px_rgba(0,0,0,.45)] sm:p-6 lg:static"
+                    className="story-step rounded-[18px] border border-line bg-panel p-4 shadow-[0_24px_48px_-30px_rgba(0,0,0,.45)] sm:p-6 lg:w-full"
                     data-on={station === i || undefined}
                   >
                     <span className="flex items-center gap-3">
@@ -518,6 +529,9 @@ export default function Landing() {
                         جرّب الحاسبة بنفسك ↓
                       </a>
                     )}
+                  </div>
+                  <div className="mt-5 lg:hidden">
+                    <StoryShell short>{storyScreen(i, station === i)}</StoryShell>
                   </div>
                 </li>
               ))}

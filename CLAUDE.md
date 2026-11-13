@@ -113,7 +113,9 @@ app/src/
     menu/Cart.tsx        السلّة نفسها: useCart · CartBar · AddToCartButton (§13)
     menu/CartReview.tsx  شاشة المراجعة والدفع (§13)
     menu/PickupTicket.tsx تذكرة الاستلام بعد الدفع (§13)
-    landing/LiveMenu.tsx بطل الهبوط: منيو الزائر نفسه (`/demo` في إطار) باسمه وشعاره ولونه وطابعه (§22)
+    landing/LiveMenu.tsx بطل الهبوط: منيو الزائر نفسه (`/demo` في إطار) باسمه وشعاره ولونه وطابعه (§22) — وعلى شاشات اللمس ضغطته تفتح `/demo` بملء الشاشة (`tapHref`)
+    landing/StoryPhone.tsx قصّة الهبوط بأربع محطّات من قطع المنيو الحقيقية (لا إطار ثانٍ) — جوّالٌ ثابت على الحاسوب، و**شاشةٌ تحت كلّ محطّة على الجوّال بلا التصاق** (§22)
+    landing/BeforeAfter.tsx «قبل وبعد»: PDF مقابل المنيو الحيّ بمنزلق · landing/ThemeGallery.tsx معرض الطوابع: رفّ النوع و«شوف الكلّ»
     landing/HeroCalculator.tsx قسم الحاسبة في الهبوط بلا تسجيل (lazy، §27)
     landing/PricingCards.tsx بطاقات الأسعار — أرقامها من lib/plans لا من نصّ
     landing/Reveal.tsx  كشف الأقسام عند التمرير
@@ -160,7 +162,7 @@ app/src/
     demoMenus.ts        المنيو التجريبي لكل نوع نشاط (الديوان · مقهى · شعبي · عربة · أسماك · حلويات · عصير · برجر · مخبز · فطور · مشاوي · بيتزا · قهوة سعودية · إسبريسو · كشك كرك · بيت شاي · بروست · آيسكريم · سوشي · مناقيش) — أرقامها معقولة عمداً
     patterns.ts         زخارف SVG (سدو، مشربية، جيري CC0، نخيل، أهلّة، قطّ عسيري، نجمة)
     fonts.ts            تحميل خطوط الطوابع عند الطلب (§18)
-    skinMotion.ts       طبقة تفاعل الطوابع (`useSkinMotion` في `MenuPage`): `--m-scroll` و`--m-scroll-y` و`data-m-scrolling` و`data-m-added` (١٢٠٠ms) على الجذر و`data-m-in` على كلّ قسم — مستمعٌ واحد ومراقبٌ واحد وبلا state؛ والحركة CSS وحدها داخل `no-preference` (`skin-motion.test.ts`). طابعٌ يتحرّك = سطرٌ في `MOTION_SKINS`
+    skinMotion.ts       طبقة تفاعل الطوابع (`useSkinMotion` في `MenuPage`): `--m-scroll` على `.m-nav` و`--m-scroll-y` على `header` **وحدهما** (متغيّرٌ يُكتب على الجذر كلّ إطار كلّف ٣–٥ ثوانٍ مهامّ طويلة)، و`data-m-scrolling` و`data-m-added` (١٢٠٠ms) على الجذر و`data-m-in` على كلّ قسم — مستمعٌ واحد ومراقبٌ واحد وبلا state؛ والحركة CSS وحدها داخل `no-preference` (`skin-motion.test.ts`). طابعٌ يتحرّك = سطرٌ في `MOTION_SKINS`
     tasting.ts          بطاقة التذوّق في «تقطير»: المنشأ والنكهات من اسم الصنف ووصفه — لا عمود في القاعدة، وما لا يذكره التاجر لا يُعرض
     icons.tsx           ٧٤ أيقونة مرسومة يدوياً — مسارات واحدة للـDOM وللـcanvas (§20)
     seasons.ts          الزينة الموسمية (رمضان/الوطني/التأسيس)
