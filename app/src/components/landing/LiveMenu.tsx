@@ -18,6 +18,7 @@
  * وعند مغادرة الصفحة — لا رفع، ولا تخزين.
  */
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
+import { Link } from "react-router-dom";
 import { useFirstInteraction, useNearViewport } from "@/lib/useNearViewport";
 import { cn } from "@/lib/utils";
 import { Icon } from "@/lib/icons";
@@ -205,12 +206,19 @@ export function PhoneMenu({
   kind,
   onReady,
   peek = 0,
+  tapHref,
 }: {
   brand: Brand;
   kind?: DemoKind;
   onReady?: () => void;
   /** يزيد ⇒ «لمحة»: يُمرَّر المنيو قليلاً ويعود فيُرى الطابع يتحرّك (جولة البطل وحدها). */
   peek?: number;
+  /**
+   * على شاشات اللمس: الإطار يبتلع تمرير الصفحة (الإصبع فوقه يمرّر المنيو لا الهبوط)،
+   * وجوّالٌ داخل جوّال تجربةٌ مصغّرة بلا داعٍ. فغطاءٌ شفّاف يترك التمرير للصفحة،
+   * والضغطة تفتح المنيو نفسه بملء الشاشة.
+   */
+  tapHref?: string;
 }) {
   const frame = useRef<HTMLIFrameElement>(null);
   const box = useRef<HTMLDivElement>(null);
@@ -287,6 +295,17 @@ export function PhoneMenu({
             style={{ width: SCREEN_W, height: SCREEN_H, transform: `scale(${SCALE})`, transformOrigin: "0 0" }}
           />}
           {ready && <span key={flip} aria-hidden="true" className="phone-wipe pointer-events-none absolute inset-0" />}
+          {tapHref && (
+            <Link
+              to={tapHref}
+              dir="rtl"
+              className="absolute inset-0 z-10 hidden items-center justify-center [@media(hover:none)]:flex"
+            >
+              <span className="rounded-full bg-[#0d0d0f]/85 px-4 py-2.5 text-sm font-black text-white shadow-lg">
+                جرّبه على جوّالك ←
+              </span>
+            </Link>
+          )}
           {/* الجزيرة: حلية جوّال لا تُغطّي إلا الغلاف، ولا تلتقط اللمس. */}
           <span
             aria-hidden="true"
