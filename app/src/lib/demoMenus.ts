@@ -2531,6 +2531,14 @@ const KIND_BY_THEME: Readonly<Record<string, DemoKind>> = {
   slate: "cafe",
   zaman: "shaabi",
   invite: "restaurant",
+  crate: "juice",
+  basta: "seafood",
+  wasm: "grill",
+  roll: "pizza",
+  menuboard: "burger",
+  sabah: "breakfast",
+  recipe: "bakery",
+  fatla: "karak",
 };
 
 export function demoKindForSuits(suits: readonly string[] | undefined, themeId?: string | null): DemoKind {

@@ -57,6 +57,7 @@ export type HeaderShape =
   | "spit"
   | "bucket" | "flattop"
   | "chalkboard" | "laminate" | "card"
+  | "teabag" | "notebook" | "placemat" | "overhead" | "paperroll" | "plank" | "icebed" | "cratelabel"
   | "freezer" | "board" | "saj";
 /**
  * تخطيط الأطباق — هذا ما يجعل الفرق بين الطوابع يُرى لا يُقرأ.
@@ -78,7 +79,8 @@ export type HeadingStyle =
   | "panel"
   | "label" | "press"
   | "cone" | "hanko" | "loaf"
-  | "chalk" | "ribbon" | "course";
+  | "chalk" | "ribbon" | "course"
+  | "tag" | "ruled" | "sun" | "backlit" | "marker" | "brand" | "enamel" | "stencil";
 /** شكل صورة الطبق — دائري للكافيهات، مربّع حادّ للمينيمال، وقوسُ نافذة للروشان. */
 export type ImageShape = "rounded" | "square" | "circle" | "arch";
 /**
@@ -104,6 +106,7 @@ export type MenuSkin =
   | "bucket" | "smash"
   | "scoop" | "chopsticks" | "zaatar"
   | "slate" | "zaman" | "invite"
+  | "fatla" | "recipe" | "sabah" | "menuboard" | "roll" | "wasm" | "basta" | "crate"
   | "gold" | "modern";
 /** كيف يُقدَّم السعر: نصّاً، أو شارة ملوّنة، أو خطّاً منقّطاً يقود إليه. */
 export type PriceStyle = "plain" | "badge" | "leader";
@@ -1879,7 +1882,7 @@ export const DESIGN_THEMES: MenuTheme[] = [
   {
     id: "slate",
     name: "سبّورة",
-    tagline: "سبّورة مقهى بإطار خشب: اسمك بالطباشير، والأسعار في دوائر مرسومة باليد، والصور ملصوقة بشريط",
+    tagline: "سبّورة مقهى بإطار خشب، واسمك بالطباشير والسعر في دائرة",
     vars: {
       // لوحٌ أخضر قاتم وطباشير أبيض دافئ؛ التمييز طباشير أصفر (الحبر الداكن عليه)، والزينة ورديّ طباشير.
       "--m-bg": "#1f2a26",
@@ -1909,7 +1912,7 @@ export const DESIGN_THEMES: MenuTheme[] = [
   {
     id: "zaman",
     name: "قائمة زمان",
-    tagline: "قائمة المطعم الشعبي المغلّفة: إطار أحمر وأخضر، وأصناف مرقّمة، ولمعة تغليف تمرّ على الورق",
+    tagline: "قائمة المطعم المغلّفة: أحمر وأخضر وأصناف مرقّمة",
     vars: {
       // ورقٌ أصفر قديم وحبر أسود؛ التمييز أحمر المطبعة (الأبيض عليه ‎5.9)، والزينة أخضر اللافتات.
       "--m-bg": "#fbf1d3",
@@ -1939,7 +1942,7 @@ export const DESIGN_THEMES: MenuTheme[] = [
   {
     id: "invite",
     name: "دعوة",
-    tagline: "بطاقة قائمة عشاء مطبوعة: ورق قطنيّ، وحروف مذهّبة، وختم شمع بشعارك، وكلّ صنفٍ في وسط السطر",
+    tagline: "بطاقة عشاء بإكليل مذهّب وختم شمع، وكلّ صنفٍ وسط السطر",
     vars: {
       // ورقٌ عاجيّ وحبر أخضر قاتم؛ التمييز ذهبٌ داكن يُقرأ (الأبيض عليه ‎5.0)، واللمعة تدرّجٌ فوقه خامة.
       "--m-bg": "#f6f1e4",
@@ -1966,6 +1969,166 @@ export const DESIGN_THEMES: MenuTheme[] = [
       density: "airy",
       entrance: "fade",
     }),
+  },
+  {
+    id: "fatla",
+    name: "فتلة",
+    tagline: "استكانة شاي وكيسها بخيطه، وكلّ صنفٍ بطاقة معلّقة",
+    vars: {
+      "--m-bg": "#f4e8d2",
+      "--m-bg-2": "#ead9bb",
+      "--m-surface": "#fffaf0",
+      "--m-text": "#2b1b12",
+      "--m-muted": "#6a5444",
+      "--m-accent": "#a3391f",
+      "--m-accent-2": "#2e7d5b",
+      "--m-on-accent": "#ffffff",
+      "--m-border": "rgba(43,27,18,.16)",
+      "--m-font": FONT.tajawal,
+      "--m-display": FONT.reem,
+      "--m-radius": "0.6rem",
+    },
+    design: design({ skin: "fatla", header: "teabag", heading: "tag", layout: "grid", imageShape: "rounded", priceStyle: "badge", divider: "none", depth: "raised", entrance: "rise" }),
+  },
+  {
+    id: "recipe",
+    name: "وصفة",
+    tagline: "دفتر وصفات مسطّر بخطّ اليد، وشريط لاصق وملعقة خشب",
+    vars: {
+      "--m-bg": "#fffdf6",
+      "--m-bg-2": "#f6efe0",
+      "--m-surface": "#ffffff",
+      "--m-text": "#2c2430",
+      "--m-muted": "#6b6070",
+      "--m-accent": "#b3365a",
+      "--m-accent-2": "#2f8a80",
+      "--m-on-accent": "#ffffff",
+      "--m-border": "rgba(44,36,48,.14)",
+      "--m-font": FONT.tajawal,
+      "--m-display": FONT.ruqaa,
+      "--m-radius": "0.5rem",
+    },
+    design: design({ skin: "recipe", header: "notebook", heading: "ruled", layout: "list", imageShape: "rounded", priceStyle: "leader", divider: "none", entrance: "fade" }),
+  },
+  {
+    id: "sabah",
+    name: "صباح الخير",
+    tagline: "مفرش ورق الفطور: شمس تشرق وبيضة عيون وحافّة مربّعات",
+    vars: {
+      "--m-bg": "#fff6d8",
+      "--m-bg-2": "#ffeab0",
+      "--m-surface": "#fffdf3",
+      "--m-text": "#33240f",
+      "--m-muted": "#6d5a3c",
+      "--m-accent": "#c2470c",
+      "--m-accent-2": "#2f7fb5",
+      "--m-on-accent": "#ffffff",
+      "--m-border": "rgba(51,36,15,.14)",
+      "--m-font": FONT.cairo,
+      "--m-display": FONT.lalezar,
+      "--m-radius": "1rem",
+    },
+    design: design({ skin: "sabah", header: "placemat", heading: "sun", layout: "grid", imageShape: "rounded", priceStyle: "badge", divider: "none", depth: "raised", entrance: "rise" }),
+  },
+  {
+    id: "menuboard",
+    name: "لوحة مضيئة",
+    tagline: "لوحة الكاونتر المعلّقة: ألواح مضيئة ووجبات مرقّمة",
+    vars: {
+      "--m-bg": "#17181c",
+      "--m-bg-2": "#101114",
+      "--m-surface": "#24262c",
+      "--m-text": "#f7f5ef",
+      "--m-muted": "#b5b3ab",
+      "--m-accent": "#d62a1e",
+      "--m-accent-2": "#ffc629",
+      "--m-on-accent": "#ffffff",
+      "--m-border": "rgba(247,245,239,.16)",
+      "--m-font": FONT.cairo,
+      "--m-display": FONT.lalezar,
+      "--m-radius": "0.7rem",
+    },
+    design: design({ skin: "menuboard", header: "overhead", heading: "backlit", layout: "grid", imageShape: "rounded", priceStyle: "badge", divider: "none", depth: "raised", entrance: "rise" }),
+  },
+  {
+    id: "roll",
+    name: "لفّة ورق",
+    tagline: "لفّة ورق معلّقة على الجدار، مكتوبة بقلم عريض",
+    vars: {
+      "--m-bg": "#f3ecdc",
+      "--m-bg-2": "#e8dfca",
+      "--m-surface": "#faf5e9",
+      "--m-text": "#191613",
+      "--m-muted": "#57503f",
+      "--m-accent": "#b3261e",
+      "--m-accent-2": "#2e6b34",
+      "--m-on-accent": "#ffffff",
+      "--m-border": "rgba(25,22,19,.16)",
+      "--m-font": FONT.cairo,
+      "--m-display": FONT.lalezar,
+      "--m-radius": "0.3rem",
+    },
+    design: design({ skin: "roll", header: "paperroll", heading: "marker", layout: "list", imageShape: "square", priceStyle: "leader", divider: "none", entrance: "fade" }),
+  },
+  {
+    id: "wasm",
+    name: "وَسْم",
+    tagline: "لوح بلّوط محروق الحروف، وميسم يكوي شعارك",
+    vars: {
+      "--m-bg": "#e6c99c",
+      "--m-bg-2": "#d9b782",
+      "--m-surface": "#efd9b3",
+      "--m-text": "#2e1708",
+      "--m-muted": "#5f4124",
+      "--m-accent": "#9c2f12",
+      "--m-accent-2": "#5a3a1c",
+      "--m-on-accent": "#ffffff",
+      "--m-border": "rgba(46,23,8,.2)",
+      "--m-font": FONT.cairo,
+      "--m-display": FONT.kufi,
+      "--m-radius": "0.4rem",
+    },
+    design: design({ skin: "wasm", header: "plank", heading: "brand", layout: "list", imageShape: "square", priceStyle: "leader", divider: "none", entrance: "fade" }),
+  },
+  {
+    id: "basta",
+    name: "بسطة",
+    tagline: "بسطة السمك على الثلج، والأسعار بطاقات مغروزة بقلم أزرق",
+    vars: {
+      "--m-bg": "#e9f3f8",
+      "--m-bg-2": "#d6e7f0",
+      "--m-surface": "#ffffff",
+      "--m-text": "#0d2436",
+      "--m-muted": "#4a6172",
+      "--m-accent": "#0f4c81",
+      "--m-accent-2": "#c8322b",
+      "--m-on-accent": "#ffffff",
+      "--m-border": "rgba(13,36,54,.14)",
+      "--m-font": FONT.cairo,
+      "--m-display": FONT.ruqaa,
+      "--m-radius": "0.5rem",
+    },
+    design: design({ skin: "basta", header: "icebed", heading: "enamel", layout: "grid", imageShape: "rounded", priceStyle: "plain", divider: "none", depth: "raised", entrance: "rise" }),
+  },
+  {
+    id: "crate",
+    name: "صندوق فواكه",
+    tagline: "ملصق صندوق الفواكه القديم: شمس مشعّة وبرتقال وخشب",
+    vars: {
+      "--m-bg": "#f8edd0",
+      "--m-bg-2": "#efdcae",
+      "--m-surface": "#fff8e4",
+      "--m-text": "#2a1a0c",
+      "--m-muted": "#6a4f33",
+      "--m-accent": "#c8410b",
+      "--m-accent-2": "#2f7d32",
+      "--m-on-accent": "#ffffff",
+      "--m-border": "rgba(42,26,12,.16)",
+      "--m-font": FONT.cairo,
+      "--m-display": FONT.lalezar,
+      "--m-radius": "0.8rem",
+    },
+    design: design({ skin: "crate", header: "cratelabel", heading: "stencil", layout: "grid", imageShape: "rounded", priceStyle: "badge", divider: "none", depth: "raised", entrance: "rise" }),
   },
 ];
 

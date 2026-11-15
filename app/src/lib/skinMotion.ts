@@ -48,6 +48,14 @@ export const MOTION_SKINS: ReadonlySet<MenuSkin> = new Set<MenuSkin>([
   "dallah", "barista", "pizza", "grill",
   // ١٥/١١ (التوقيع): سبّورة · قائمة زمان · دعوة.
   "slate", "zaman", "invite",
+  "crate",
+  "basta",
+  "wasm",
+  "roll",
+  "menuboard",
+  "sabah",
+  "recipe",
+  "fatla",
 ]);
 
 /** درجة `--m-scroll`: مئتان وخمسون درجةً للصفحة كلّها — أنعم ممّا تميّزه العين في شريط. */

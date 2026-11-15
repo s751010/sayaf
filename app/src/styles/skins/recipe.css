@@ -1,0 +1,324 @@
+/*
+ * ══ وصفة — دفتر وصفات المخبز (٢٠٢٦/١١/١٥، طوابع «التوقيع») ══════════════════════════════════
+ * ورق دفترٍ مسطّر بهامشه الأحمر، وفي رأسه مفرش مربّعاتٍ بحافّة دانتيل وبطاقة وصفةٍ بمشبك خشب. **الأصناف أسطرٌ
+ * على الدفتر** بقلبٍ أمام كلٍّ منها، والسعر بخطّ اليد تحته خطّان، والصور مطبوعةٌ ملصوقة بشريط. وعناوين الأقسام
+ * على شريطٍ لاصق ورقيّ مخطّط، و«طبق اليوم» بطاقة فهرسةٍ بمشبك ورق.
+ *
+ * ⚠️ مستورَدٌ من **رأس** `menu-skins.css` — فكلّ انتقائيٍّ هنا يبدأ بـ`.m-skin-recipe`.
+ * ما يتبع العلامة: التوتيّ (`--m-accent`) والنعناعيّ (`--m-accent-2`). وما لا يتبعها خامة: الورق والخشب.
+ */
+.m-skin-recipe {
+  display: flow-root;
+  --m-rc-rule: rgba(77, 132, 196, 0.2);
+  /* الهامش الأحمر (على جهة البدء)، ثم سطور الدفتر. */
+  background-image:
+    linear-gradient(90deg, transparent 0 calc(100% - 1.15rem), rgba(214, 72, 96, 0.32) calc(100% - 1.15rem) calc(100% - 1.05rem), transparent calc(100% - 1.05rem)),
+    repeating-linear-gradient(180deg, transparent 0 calc(2rem - 1px), var(--m-rc-rule) calc(2rem - 1px) 2rem);
+}
+[dir="ltr"] .m-skin-recipe {
+  background-image:
+    linear-gradient(90deg, transparent 0 1.05rem, rgba(214, 72, 96, 0.32) 1.05rem 1.15rem, transparent 1.15rem),
+    repeating-linear-gradient(180deg, transparent 0 calc(2rem - 1px), var(--m-rc-rule) calc(2rem - 1px) 2rem);
+}
+
+/* ── الترويسة ── */
+.m-skin-recipe .m-rc-cloth {
+  --c: color-mix(in srgb, var(--m-accent) 34%, transparent);
+  background:
+    radial-gradient(circle at 50% 100%, var(--m-bg) 0 7px, transparent 7.5px) 0 100% / 18px 9px repeat-x,
+    linear-gradient(90deg, var(--c) 50%, transparent 0) 0 0 / 22px 22px,
+    linear-gradient(180deg, var(--c) 50%, transparent 0) 0 0 / 22px 22px,
+    #fff;
+}
+.m-skin-recipe .m-rc-card {
+  background:
+    repeating-linear-gradient(180deg, transparent 0 1.55rem, rgba(77, 132, 196, 0.16) 1.55rem calc(1.55rem + 1px)),
+    #fff;
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1px rgba(44, 36, 48, 0.08),
+    0 18px 26px -18px rgba(44, 36, 48, 0.5);
+  rotate: -1.4deg;
+  transform-origin: 50% 0;
+}
+/* المشبك: خشبتان وزنبرك. */
+.m-skin-recipe .m-rc-pin {
+  background:
+    linear-gradient(180deg, transparent 0 44%, #8b8f96 44% 52%, transparent 52%),
+    linear-gradient(90deg, #d9a766 0 46%, #a8773c 46% 54%, #e3b578 54%);
+  border-radius: 3px 3px 5px 5px;
+  box-shadow: 0 3px 5px -1px rgba(0, 0, 0, 0.35);
+}
+.m-skin-recipe .m-rc-kicker {
+  color: var(--m-accent-2);
+}
+.m-skin-recipe .m-rc-ring {
+  border: 2px dashed color-mix(in srgb, var(--m-accent) 60%, transparent);
+}
+.m-skin-recipe .m-rc-ink {
+  stroke: var(--m-accent);
+}
+.m-skin-recipe .m-rc-ink2 {
+  stroke: var(--m-accent-2);
+}
+.m-skin-recipe .m-rc-fill {
+  fill: var(--m-accent);
+}
+.m-skin-recipe .m-rc-fill2 {
+  fill: var(--m-accent-2);
+}
+.m-skin-recipe .m-chips > * {
+  background: #fff;
+  border: 1.5px dashed color-mix(in srgb, var(--m-accent-2) 60%, transparent);
+  border-radius: 999px;
+}
+
+/* ── الشريط اللاصق ── */
+.m-skin-recipe .m-nav {
+  background: color-mix(in srgb, var(--m-bg) 95%, transparent);
+  backdrop-filter: blur(4px);
+  border-bottom: 2px dashed color-mix(in srgb, var(--m-accent) 40%, transparent);
+}
+.m-skin-recipe .m-tab {
+  border-radius: 999px;
+  border: 1.5px solid color-mix(in srgb, var(--m-text) 14%, transparent);
+  background: #fff;
+}
+
+/* ── عنوان القسم: شريطٌ لاصق مخطّط ── */
+.m-skin-recipe .m-rc-tape {
+  background:
+    repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.5) 0 6px, transparent 6px 14px),
+    color-mix(in srgb, var(--m-accent) 26%, #fff);
+  clip-path: polygon(0 0, 100% 0, calc(100% - 5px) 20%, 100% 40%, calc(100% - 5px) 60%, 100% 80%, calc(100% - 5px) 100%, 5px 100%, 0 80%, 5px 60%, 0 40%, 5px 20%);
+  rotate: -1.6deg;
+}
+.m-skin-recipe .m-rc-count {
+  color: var(--m-accent-2);
+  border: 1.6px solid var(--m-accent-2);
+  border-radius: 58% 42% 55% 45% / 48% 60% 40% 52%;
+  rotate: 4deg;
+  background: #fff;
+}
+.m-skin-recipe .m-rc-photo .m-img {
+  border-radius: 3px;
+  box-shadow:
+    0 0 0 6px #fff,
+    0 0 0 7px rgba(44, 36, 48, 0.1),
+    0 16px 22px -14px rgba(44, 36, 48, 0.5);
+}
+
+/* ── الصنف: سطرٌ في الدفتر ── */
+.m-skin-recipe .m-row {
+  gap: 0.6rem;
+  border-bottom: 1.5px dotted color-mix(in srgb, var(--m-accent) 30%, transparent);
+}
+.m-skin-recipe .m-row::before {
+  content: "♥";
+  flex: none;
+  margin-top: 0.2rem;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--m-accent);
+}
+.m-skin-recipe .m-row:nth-of-type(even)::before {
+  color: var(--m-accent-2);
+}
+.m-skin-recipe .m-row .m-name {
+  font-size: 1.06rem;
+}
+/* السعر بخطّ اليد وتحته خطّان. */
+.m-skin-recipe .m-card .m-price,
+.m-skin-recipe .m-feature .m-price {
+  display: inline-block;
+  width: fit-content;
+  padding-bottom: 0.1rem;
+  font-family: var(--m-display, var(--m-font));
+  font-size: 1.25rem;
+  color: var(--m-accent);
+  --m-accent-ink: var(--m-accent);
+  border-bottom: 4px double color-mix(in srgb, var(--m-accent) 65%, transparent);
+  rotate: -2deg;
+}
+.m-skin-recipe .m-row .m-thumb {
+  overflow: visible;
+  rotate: 2.5deg;
+  border-radius: 2px;
+  box-shadow:
+    0 0 0 4px #fff,
+    0 0 0 5px rgba(44, 36, 48, 0.1),
+    0 10px 14px -8px rgba(44, 36, 48, 0.5);
+}
+.m-skin-recipe .m-row:nth-of-type(even) .m-thumb {
+  rotate: -2deg;
+}
+.m-skin-recipe .m-row .m-thumb::after {
+  content: "";
+  position: absolute;
+  top: -11px;
+  left: 50%;
+  width: 36px;
+  height: 13px;
+  translate: -50% 0;
+  rotate: -5deg;
+  background:
+    repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.5) 0 4px, transparent 4px 9px),
+    color-mix(in srgb, var(--m-accent-2) 45%, #fff);
+  opacity: 0.9;
+}
+.m-skin-recipe .m-row .m-thumb .m-img {
+  border-radius: 2px;
+}
+.m-skin-recipe .m-add {
+  border-radius: 58% 42% 55% 45% / 48% 60% 40% 52%;
+  box-shadow: 0 3px 0 color-mix(in srgb, var(--m-accent) 60%, #000);
+}
+.m-skin-recipe .m-soldout {
+  background: #fff;
+  color: var(--m-accent);
+  border: 1.6px solid var(--m-accent);
+  border-radius: 58% 42% 55% 45% / 48% 60% 40% 52%;
+  rotate: -4deg;
+}
+
+/* ── طبق اليوم: بطاقة فهرسةٍ بمشبك ورق ── */
+.m-skin-recipe .m-feature {
+  position: relative;
+  background:
+    linear-gradient(180deg, transparent 0 1.9rem, rgba(214, 72, 96, 0.4) 1.9rem calc(1.9rem + 1.5px), transparent calc(1.9rem + 1.5px)),
+    #fff;
+  border: 1px solid rgba(44, 36, 48, 0.1);
+  border-radius: 6px;
+  box-shadow: 0 16px 24px -18px rgba(44, 36, 48, 0.55);
+  rotate: 0.6deg;
+}
+.m-skin-recipe .m-feature::after {
+  content: "";
+  position: absolute;
+  top: -12px;
+  inset-inline-start: 1.6rem;
+  width: 13px;
+  height: 34px;
+  border: 2.5px solid #9aa0a8;
+  border-radius: 8px;
+  box-shadow: inset 0 -12px 0 -9.5px #9aa0a8;
+  rotate: 6deg;
+}
+
+/* ── الطبق بلا صورة: صحنٌ على مفرش المربّعات ── */
+.m-skin-recipe .m-art {
+  --c: color-mix(in srgb, var(--m-accent) 22%, transparent);
+  --m-art-bg:
+    linear-gradient(90deg, var(--c) 50%, transparent 0) 0 0 / 18px 18px,
+    linear-gradient(180deg, var(--c) 50%, transparent 0) 0 0 / 18px 18px,
+    #fff;
+  --m-art-plate: radial-gradient(circle closest-side, #fff 0 62%, #f5eef1 64% 88%, color-mix(in srgb, var(--m-accent-2) 60%, #fff) 90% 94%, #fff 96% 100%);
+  --m-art-ring: 0 0 0 1px rgba(44, 36, 48, 0.1);
+  --m-art-lift: 0 10px 14px -8px rgba(44, 36, 48, 0.4);
+  --m-art-well: 0 0 transparent;
+  --m-art-mark: transparent;
+}
+.m-skin-recipe .m-card.m-surface {
+  border: 1px solid rgba(44, 36, 48, 0.1);
+  box-shadow: 0 14px 20px -16px rgba(44, 36, 48, 0.5);
+}
+.m-skin-recipe .m-o-card {
+  border-radius: 10px;
+}
+.m-skin-recipe .m-o-cta {
+  border-radius: 999px;
+  box-shadow: 0 4px 0 color-mix(in srgb, var(--m-accent) 60%, #000);
+}
+.m-skin-recipe .m-o-field,
+.m-skin-recipe .m-o-ghost,
+.m-skin-recipe .m-o-opt,
+.m-skin-recipe .m-o-soldout,
+.m-skin-recipe .m-o-step,
+.m-skin-recipe .m-o-chip {
+  border-radius: 10px;
+}
+
+/* ── الحركة ──
+ * عند الفتح: البطاقة تتأرجح على مشبكها حتى تسكن، والقلبان ينبضان. ومع التمرير يدور مضرب البيض
+ * (`--m-scroll-y`). وحين يدخل القسم يُلصق شريطه من طرفه (`data-m-in`). وحين يُضاف صنفٌ ينبض القلبان ويُكبس
+ * الزرّ (`data-m-added`). وتحت الشريط خطّ توتيّ يمتدّ بتقدّم الصفحة (`--m-scroll`). */
+@media (prefers-reduced-motion: no-preference) {
+  .m-skin-recipe .m-rc-card {
+    animation: m-rc-settle 1.4s cubic-bezier(0.3, 1.2, 0.5, 1) 0.1s both;
+  }
+  .m-skin-recipe .m-rc-heart {
+    transform-box: fill-box;
+    transform-origin: 50% 60%;
+    animation: m-rc-beat 2.4s ease-in-out infinite;
+  }
+  .m-skin-recipe .m-rc-heart:nth-of-type(2) {
+    animation-delay: 0.5s;
+  }
+  .m-skin-recipe[data-m-added] .m-rc-heart {
+    animation-duration: 0.4s;
+  }
+  .m-skin-recipe[data-m-motion] .m-sec .m-rc-tape {
+    clip-path: inset(0 0 0 100%);
+    transition: clip-path 0.55s ease-out 0.1s;
+  }
+  [dir="ltr"] .m-skin-recipe[data-m-motion] .m-sec .m-rc-tape {
+    clip-path: inset(0 100% 0 0);
+  }
+  .m-skin-recipe[data-m-motion] .m-sec[data-m-in] .m-rc-tape {
+    clip-path: inset(0 0 0 0);
+  }
+  .m-skin-recipe .m-add:active {
+    translate: 0 2px;
+    box-shadow: 0 1px 0 color-mix(in srgb, var(--m-accent) 60%, #000);
+  }
+  @supports (animation-timeline: scroll()) or (scale: calc(1 * 1)) {
+    .m-skin-recipe[data-m-motion] .m-rc-whisk {
+      transform-box: fill-box;
+      transform-origin: 50% 20%;
+      rotate: calc(sin(var(--m-scroll-y, 0) * 3deg) * 16deg);
+    }
+    .m-skin-recipe[data-m-motion] .m-nav::after {
+      content: "";
+      position: absolute;
+      inset: auto 0 -3px;
+      height: 3px;
+      border-radius: 3px;
+      background: var(--m-accent);
+      transform-origin: 100% 50%;
+      scale: var(--m-scroll, 0) 1;
+    }
+    [dir="ltr"] .m-skin-recipe[data-m-motion] .m-nav::after {
+      transform-origin: 0 50%;
+    }
+  }
+}
+@keyframes m-rc-settle {
+  0% {
+    rotate: -9deg;
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  45% {
+    rotate: 4deg;
+  }
+  70% {
+    rotate: -3deg;
+  }
+  100% {
+    rotate: -1.4deg;
+  }
+}
+@keyframes m-rc-beat {
+  0%,
+  100% {
+    scale: 1;
+  }
+  20% {
+    scale: 1.25;
+  }
+  40% {
+    scale: 1;
+  }
+}

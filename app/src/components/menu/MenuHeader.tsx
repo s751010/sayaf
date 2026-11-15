@@ -23,7 +23,7 @@ import {
   GridHead, GrillHead, GrinderHead, HarborHead, JuiceHead, KarakHead, LatteHead, LetterboardHead, MastheadHead, MudHead, NapoliHead,
   PaperHead, PatisserieHead, PizzaboxHead, PizzaHead, PosterHead, SamovarHead, ShawarmaHead, SignHead, SlicesHead, SmashHead,
   ScoopHead, ChopsticksHead, ZaatarHead,
-  SlateHead, ZamanHead, InviteHead,
+  SlateHead, ZamanHead, InviteHead, CrateHead, BastaHead, WasmHead, RollHead, MenuboardHead, SabahHead, RecipeHead, FatlaHead,
   V60Head, WoodfireHead,
   type HeadProps,
 } from "./SkinHeads";
@@ -71,6 +71,14 @@ const SKIN_HEADS: Partial<Record<HeaderShape, ComponentType<HeadProps>>> = {
   chalkboard: SlateHead,
   laminate: ZamanHead,
   card: InviteHead,
+  cratelabel: CrateHead,
+  icebed: BastaHead,
+  plank: WasmHead,
+  paperroll: RollHead,
+  overhead: MenuboardHead,
+  placemat: SabahHead,
+  notebook: RecipeHead,
+  teabag: FatlaHead,
 };
 
 /** قوس الروشان — لطابعٍ قديم قد يكون مخزَّناً بشكل `arch`. */

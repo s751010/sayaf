@@ -1146,6 +1146,14 @@ const MOTIFS: Record<MenuSkin, ((ctx: Ctx, b: MotifBox, k: MotifInk) => void) | 
   slate,
   zaman,
   invite,
+  fatla: invite,
+  recipe: slate,
+  sabah: zaman,
+  menuboard: zaman,
+  roll: slate,
+  wasm: zaman,
+  basta: invite,
+  crate: zaman,
   // «لون علامتي» محايدٌ عمداً على الشاشة — وكذلك على الورق.
   store: null,
 };
