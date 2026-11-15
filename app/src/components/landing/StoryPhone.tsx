@@ -54,7 +54,18 @@ function useSteps(on: boolean, last: number, ms: number): number {
 
 const noop = () => {};
 
-export default function StoryPhone({ active, themeId, kind }: { active: number; themeId: string; kind: DemoKind }) {
+export default function StoryPhone({
+  active,
+  themeId,
+  kind,
+  play = true,
+}: {
+  active: number;
+  themeId: string;
+  kind: DemoKind;
+  /** على الجوّال لكلّ محطّةٍ شاشتها: تُعرض دائماً، و«تشتغل» حين تبلغها العين وحدها. */
+  play?: boolean;
+}) {
   const theme = getTheme(themeId);
   const data = useMemo(() => demoData(kind), [kind]);
   const dishes = useMemo(
@@ -70,13 +81,13 @@ export default function StoryPhone({ active, themeId, kind }: { active: number; 
   const shelf = [featured, ...dishes.filter((d) => d !== featured)].filter(Boolean).slice(0, 4) as Dish[];
 
   // ٢: الزبون يضيف طبقين ⇒ السلّة تمتلئ ⇒ الدفع.
-  const cartSteps = useSteps(active === 1, 3, 700);
+  const cartSteps = useSteps(play && active === 1, 3, 700);
   const picks = shelf.slice(0, 2);
   const cartCount = Math.min(cartSteps, 2);
   const cartTotal = picks.slice(0, cartCount).reduce((a, d) => a + (d.price ?? 0), 0);
 
   // ٣: ختمٌ جديد يُضاف — من ٢ إلى ٣ من خمسة.
-  const stampSteps = useSteps(active === 2, 1, 900);
+  const stampSteps = useSteps(play && active === 2, 1, 900);
 
   // ٤: الطبق الأعلى صوديوماً في منيو النوع **بقيمه نفسها** — لا رقم مخترَع. وإن تجاوز
   // حدّ الهيئة (٢٠٠٠ ملغم) ظهرت علامة الملح كما تظهر للزبون؛ وإلا فالملصق وحده.
@@ -130,9 +141,8 @@ export default function StoryPhone({ active, themeId, kind }: { active: number; 
           ))}
         </div>
         {/* شاشة المراجعة كما يرسمها `CartReview`: الزرّ يحمل المبلغ، والبطاقة تُكتب في
-            صفحة البوّابة لا هنا — فلا أزرار وسائل دفعٍ ليست في المنتج. وعلى الجوّال بطاقة
-            المحطّة تغطّي أسفل الشاشة، فالورقة تصعد إلى ما يُرى منها. */}
-        <div className="story-sheet m-order absolute inset-x-0 top-[122px] px-3 pb-3 lg:bottom-0 lg:top-auto" data-on={cartSteps >= 3 || undefined}>
+            صفحة البوّابة لا هنا — فلا أزرار وسائل دفعٍ ليست في المنتج. */}
+        <div className="story-sheet m-order absolute inset-x-0 bottom-0 px-3 pb-3" data-on={cartSteps >= 3 || undefined}>
           <div className="rounded-[16px] border p-3" style={{ background: "var(--m-surface)", borderColor: "var(--m-border)" }}>
             <div className="flex items-center justify-between text-xs font-black">
               <span>الإجمالي</span>

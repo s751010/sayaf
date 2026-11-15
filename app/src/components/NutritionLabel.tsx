@@ -119,7 +119,7 @@ export function NutritionLabel({
         )}
       </div>
       <div className="nlabel-hair mt-2.5" />
-      <p className="mt-2 text-[11px] leading-relaxed text-dim">
+      <p className="mt-2 text-xs leading-relaxed text-dim">
         يحتاج البالغ في المتوسّط إلى {DAILY_KCAL.toLocaleString("ar-SA-u-nu-latn")} سعرة حرارية يومياً.
         {(values.caffeine ?? 0) > 0 && ` والحدّ الأعلى اليومي من الكافيين للبالغ ${DAILY_CAFFEINE_MAX_MG} ملغم.`}
       </p>

@@ -112,7 +112,8 @@ const NAV_LINKS = [
   { to: "/blog", label: "المدونة" },
 ];
 
-export function Navbar() {
+/** `quietCta`: صفحةٌ لها شريط تجربةٍ سفلي ظاهر (الهبوط على الجوّال) — زرّ الرأس تحته تكرار. */
+export function Navbar({ quietCta = false }: { quietCta?: boolean } = {}) {
   const { user } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   /**
@@ -219,7 +220,7 @@ export function Navbar() {
               </Link>
               <Link
                 to="/login?mode=signup"
-                className="inline-flex min-h-11 items-center whitespace-nowrap rounded-xl bg-gold px-3 py-2 text-sm font-bold text-on-gold hover:bg-gold2 min-[360px]:px-4"
+                className={cn("inline-flex min-h-11 items-center whitespace-nowrap rounded-xl bg-gold px-3 py-2 text-sm font-bold text-on-gold hover:bg-gold2 min-[360px]:px-4", quietCta && "max-lg:hidden")}
               >
                 {CTA_PRIMARY}
               </Link>

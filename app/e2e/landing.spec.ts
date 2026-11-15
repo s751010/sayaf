@@ -199,7 +199,7 @@ test("معرض الطوابع: رفّ النوع، و«شوف الكلّ» يف�
   await all.click();
   expect(await page.locator("#landing-themes-all .gal-card").count()).toBeGreaterThan(30);
   await rail.locator(".gal-card").nth(1).click();
-  await expect(page.getByText(/مرّره وافتح أي طبق/)).toBeInViewport();
+  await expect(page.getByText(/مرّره وافتح أي طبق|اضغطه ليفتح بملء الشاشة/).locator("visible=true")).toBeInViewport();
 });
 
 /**
@@ -213,4 +213,37 @@ test("إطار الهبوط مفتوح للطلب في أي ساعة — الث�
   await expect(page.getByRole("button", { name: /^أضِف / }).first()).toBeVisible();
   await expect(page.getByText(/مغلق/)).toHaveCount(0);
   await expect(page.getByText(/^يفتح /)).toHaveCount(0);
+});
+
+/**
+ * الجوّال ليس حاسوباً مصغّراً (ملاحظة المالك ٢٠٢٦/١١/١٣): القصّة كانت بجوّالٍ ملتصق
+ * وبطاقاتٍ ملتصقة تتراكب فوقه وفوق بعضها. على الشاشة الضيّقة لكلّ محطّةٍ شاشتها تحت
+ * نصّها، ولا شيء يلتصق في القسم.
+ */
+test("القصّة على الجوّال: أربع شاشات تحت بطاقاتها، ولا التصاق", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  await page.locator("#how").scrollIntoViewIfNeeded();
+  await expect(page.locator("#how .phone-shell:visible")).toHaveCount(4);
+  const sticky = await page.locator("#how").evaluate((root) =>
+    [...root.querySelectorAll("*")].filter((el) => getComputedStyle(el).position === "sticky" && (el as HTMLElement).offsetParent !== null).length
+  );
+  expect(sticky).toBe(0);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+  for (const w of [390, 1280]) {
+    await page.setViewportSize({ width: w, height: 844 });
+    // شريط السلّة `fixed` داخل شاشة القصّة: يبقى محبوساً في إطار جوّاله، لا على النافذة.
+    await page.locator("#how [data-step='1']").scrollIntoViewIfNeeded();
+    await page.waitForTimeout(1200);
+    const escaped = await page.locator("#how").evaluate((root) =>
+      [...root.querySelectorAll<HTMLElement>("*")]
+        .filter((el) => getComputedStyle(el).position === "fixed" && el.offsetWidth > 0)
+        .filter((el) => {
+          const shell = el.closest(".phone-shell")?.getBoundingClientRect();
+          const r = el.getBoundingClientRect();
+          return !shell || r.left < shell.left - 1 || r.right > shell.right + 1 || r.bottom > shell.bottom + 1;
+        }).length
+    );
+    expect(escaped, `عرض ${w}`).toBe(0);
+  }
 });
