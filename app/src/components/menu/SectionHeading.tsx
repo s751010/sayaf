@@ -52,6 +52,9 @@ import { SmashHeading } from "./heads/SmashHead";
 import { ScoopHeading } from "./heads/ScoopHead";
 import { ChopsticksHeading } from "./heads/ChopsticksHead";
 import { ZaatarHeading } from "./heads/ZaatarHead";
+import { SlateHeading } from "./heads/SlateHead";
+import { ZamanHeading } from "./heads/ZamanHead";
+import { InviteHeading } from "./heads/InviteHead";
 import { AsirHeading } from "./heads/AsirHead";
 
 /** خطّ العناوين — يسقط إلى خطّ النصّ لكل طابع لا يذكر `--m-display` (§18). */
@@ -365,6 +368,9 @@ export function SectionHeading({
     cone: ScoopHeading,
     hanko: ChopsticksHeading,
     loaf: ZaatarHeading,
+    chalk: SlateHeading,
+    ribbon: ZamanHeading,
+    course: InviteHeading,
   } as const;
   if (style in FILE_HEADINGS) {
     const Skin = FILE_HEADINGS[style as keyof typeof FILE_HEADINGS];

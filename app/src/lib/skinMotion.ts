@@ -46,6 +46,8 @@ export const MOTION_SKINS: ReadonlySet<MenuSkin> = new Set<MenuSkin>([
   "scoop", "chopsticks", "zaatar",
   // ١٠/١١ (الموجة ٤): الأربعة القائمة لهذه الأقسام — دلّة · باريستا · ريحان · جمر.
   "dallah", "barista", "pizza", "grill",
+  // ١٥/١١ (التوقيع): سبّورة · قائمة زمان · دعوة.
+  "slate", "zaman", "invite",
 ]);
 
 /** درجة `--m-scroll`: مئتان وخمسون درجةً للصفحة كلّها — أنعم ممّا تميّزه العين في شريط. */

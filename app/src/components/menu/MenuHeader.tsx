@@ -23,6 +23,7 @@ import {
   GridHead, GrillHead, GrinderHead, HarborHead, JuiceHead, KarakHead, LatteHead, LetterboardHead, MastheadHead, MudHead, NapoliHead,
   PaperHead, PatisserieHead, PizzaboxHead, PizzaHead, PosterHead, SamovarHead, ShawarmaHead, SignHead, SlicesHead, SmashHead,
   ScoopHead, ChopsticksHead, ZaatarHead,
+  SlateHead, ZamanHead, InviteHead,
   V60Head, WoodfireHead,
   type HeadProps,
 } from "./SkinHeads";
@@ -67,6 +68,9 @@ const SKIN_HEADS: Partial<Record<HeaderShape, ComponentType<HeadProps>>> = {
   freezer: ScoopHead,
   board: ChopsticksHead,
   saj: ZaatarHead,
+  chalkboard: SlateHead,
+  laminate: ZamanHead,
+  card: InviteHead,
 };
 
 /** قوس الروشان — لطابعٍ قديم قد يكون مخزَّناً بشكل `arch`. */

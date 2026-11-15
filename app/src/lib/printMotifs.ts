@@ -1025,6 +1025,85 @@ function zaatar(ctx: Ctx, b: MotifBox, k: MotifInk): void {
   });
 }
 
+/** سبّورة — خطّ طباشير متقطّع حول الورقة، ونجمة طباشير صغيرة على طول الحافّتين. */
+function slate(ctx: Ctx, b: MotifBox, k: MotifInk): void {
+  ctx.strokeStyle = k.muted;
+  ctx.lineWidth = b.mm * 0.5;
+  ctx.setLineDash([b.mm * 2.2, b.mm * 0.9]);
+  ring(ctx, b, b.outer + b.mm * 0.4, b.mm * 1.2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  const room = b.reach - b.outer;
+  const s = Math.min(b.mm * 2, room * 0.5);
+  ctx.strokeStyle = k.accent;
+  ctx.lineWidth = b.mm * 0.32;
+  ctx.lineCap = "round";
+  alongTopBottom(b, s * 4, (x, w, top) => {
+    const cx = x + w / 2;
+    const cy = top ? b.outer + room * 0.62 : b.H - b.outer - room * 0.62;
+    for (let i = 0; i < 4; i++) {
+      const a = (Math.PI / 4) * i;
+      ctx.beginPath();
+      ctx.moveTo(cx - Math.cos(a) * s * 0.3, cy - Math.sin(a) * s * 0.3);
+      ctx.lineTo(cx + Math.cos(a) * s * 0.3, cy + Math.sin(a) * s * 0.3);
+      ctx.stroke();
+    }
+  });
+  ctx.lineCap = "butt";
+}
+
+/** قائمة زمان — إطار المطبعة المزدوج: خطّ عريض بالتمييز وخيطٌ بالخافت، ومعيّنات بينهما أعلى وأسفل. */
+function zaman(ctx: Ctx, b: MotifBox, k: MotifInk): void {
+  ctx.strokeStyle = k.accent;
+  ctx.lineWidth = b.mm * 0.9;
+  ring(ctx, b, b.outer + b.mm * 0.45, b.mm * 0.8);
+  ctx.stroke();
+  ctx.strokeStyle = k.muted;
+  ctx.lineWidth = b.mm * 0.3;
+  ring(ctx, b, b.outer + b.mm * 1.7, b.mm * 0.4);
+  ctx.stroke();
+  const room = b.reach - b.outer;
+  const s = Math.min(b.mm * 1.6, room * 0.4);
+  ctx.fillStyle = k.accent;
+  alongTopBottom(b, s * 3, (x, w, top) => {
+    const cx = x + w / 2;
+    const cy = top ? b.outer + room * 0.72 : b.H - b.outer - room * 0.72;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - s * 0.3);
+    ctx.lineTo(cx + s * 0.3, cy);
+    ctx.lineTo(cx, cy + s * 0.3);
+    ctx.lineTo(cx - s * 0.3, cy);
+    ctx.closePath();
+    ctx.fill();
+  });
+}
+
+/** دعوة — خيطان رفيعان كحافّة بطاقة مضغوطة، ومعيّنٌ مذهّب في منتصف كلّ ضلعٍ أفقي. */
+function invite(ctx: Ctx, b: MotifBox, k: MotifInk): void {
+  ctx.strokeStyle = k.accent;
+  ctx.lineWidth = b.mm * 0.3;
+  ring(ctx, b, b.outer + b.mm * 0.3, 0);
+  ctx.stroke();
+  ctx.lineWidth = b.mm * 0.16;
+  ring(ctx, b, b.outer + b.mm * 1.2, 0);
+  ctx.stroke();
+  const room = b.reach - b.outer;
+  const s = Math.min(b.mm * 1.8, room * 0.45);
+  ctx.fillStyle = k.accent;
+  for (const cy of [b.outer + room * 0.7, b.H - b.outer - room * 0.7]) {
+    const cx = b.W / 2;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - s * 0.35);
+    ctx.lineTo(cx + s * 0.35, cy);
+    ctx.lineTo(cx, cy + s * 0.35);
+    ctx.lineTo(cx - s * 0.35, cy);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillRect(cx - s * 2.2, cy - b.mm * 0.08, s * 1.5, b.mm * 0.16);
+    ctx.fillRect(cx + s * 0.7, cy - b.mm * 0.08, s * 1.5, b.mm * 0.16);
+  }
+}
+
 const MOTIFS: Record<MenuSkin, ((ctx: Ctx, b: MotifBox, k: MotifInk) => void) | null> = {
   gold: folio,
   receipt,
@@ -1064,6 +1143,9 @@ const MOTIFS: Record<MenuSkin, ((ctx: Ctx, b: MotifBox, k: MotifInk) => void) | 
   scoop,
   chopsticks,
   zaatar,
+  slate,
+  zaman,
+  invite,
   // «لون علامتي» محايدٌ عمداً على الشاشة — وكذلك على الورق.
   store: null,
 };

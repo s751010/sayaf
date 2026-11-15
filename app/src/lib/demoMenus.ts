@@ -2527,6 +2527,10 @@ const KIND_BY_THEME: Readonly<Record<string, DemoKind>> = {
   scoop: "icecream",
   chopsticks: "sushi",
   zaatar: "manakish",
+  // ١٥/١١ (التوقيع): كلٌّ على منيو قسمه القائم.
+  slate: "cafe",
+  zaman: "shaabi",
+  invite: "restaurant",
 };
 
 export function demoKindForSuits(suits: readonly string[] | undefined, themeId?: string | null): DemoKind {

@@ -1,0 +1,378 @@
+/*
+ * ══ دعوة — بطاقة قائمة العشاء المطبوعة (٢٠٢٦/١١/١٥، طوابع «التوقيع») ══════════════════════════
+ * ورقٌ قطنيّ عاجيّ بأليافه، وخيطان مذهّبان يحيطان الصفحة كلّها. **كلّ صنفٍ في وسط السطر**: الاسم بأميري،
+ * فالوصف، فالسعر بين شرطتين — كبطاقات قوائم التذوّق، وبينها معيّنٌ صغير. والصورة (إن وُجدت) دائرةٌ بإطارٍ
+ * مذهّب فوق الاسم، وزرّ الإضافة حلقةٌ رفيعة عند طرف السطر. وشريط الأقسام نصٌّ بلا حبوب، يحمل النشطُ منه خطّاً
+ * مذهّباً. ولمعة الذهب تدرّجٌ يمرّ ببطء على الإكليل والزخارف.
+ *
+ * ⚠️ مستورَدٌ من **رأس** `menu-skins.css` — فكلّ انتقائيٍّ هنا يبدأ بـ`.m-skin-invite`.
+ *
+ * ما يتبع العلامة: الذهب المقروء (`--m-accent`) والشريط والشمع (`--m-accent-2`). وما لا يتبعها خامة: الورق،
+ * ولمعة الذهب (`--m-iv-foil`).
+ */
+.m-skin-invite {
+  display: flow-root;
+  --m-iv-foil: linear-gradient(115deg, #8a6a1f 0%, #e7cd86 30%, #a8842c 48%, #f1dfa6 66%, #8a6a1f 100%);
+  --m-iv-line: color-mix(in srgb, var(--m-accent) 55%, transparent);
+  /* خيطا الإطار على الجانبين، ثم ألياف الورق. */
+  background-image:
+    linear-gradient(90deg, transparent 0 6px, var(--m-iv-line) 6px 7px, transparent 7px 10px, var(--m-iv-line) 10px 10.6px, transparent 10.6px),
+    linear-gradient(270deg, transparent 0 6px, var(--m-iv-line) 6px 7px, transparent 7px 10px, var(--m-iv-line) 10px 10.6px, transparent 10.6px),
+    repeating-linear-gradient(97deg, rgba(28, 42, 36, 0.016) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(8deg, rgba(134, 102, 28, 0.02) 0 1px, transparent 1px 7px);
+}
+
+/* ── البطاقة ── */
+.m-skin-invite .m-iv-card {
+  background:
+    radial-gradient(120% 80% at 50% 0%, rgba(255, 255, 255, 0.7), transparent 60%),
+    var(--m-surface);
+  border: 1px solid var(--m-iv-line);
+  outline: 1px solid color-mix(in srgb, var(--m-accent) 30%, transparent);
+  outline-offset: -6px;
+  box-shadow:
+    0 1px 0 #fff inset,
+    0 26px 34px -28px rgba(28, 42, 36, 0.55);
+}
+.m-skin-invite .m-iv-corner {
+  stroke: var(--m-accent);
+  fill: var(--m-accent);
+}
+.m-skin-invite .m-iv-crest {
+  background: var(--m-iv-foil);
+  box-shadow: 0 0 0 3px var(--m-surface);
+}
+.m-skin-invite .m-iv-kicker {
+  color: var(--m-accent);
+  letter-spacing: 0.06em;
+}
+.m-skin-invite .m-iv-flourish {
+  stroke: var(--m-accent);
+  fill: var(--m-accent);
+}
+/* الشريط: حريرٌ بطيّةٍ لامعة وذيلٍ مشقوق. */
+.m-skin-invite .m-iv-ribbon {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--m-accent-2) 80%, #000), var(--m-accent-2) 35%, color-mix(in srgb, var(--m-accent-2) 70%, #fff) 55%, var(--m-accent-2) 75%);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 9px), 0 100%);
+  filter: drop-shadow(1px 3px 2px rgba(0, 0, 0, 0.28));
+  transform-origin: 50% 0;
+}
+/* الشمع: قرصٌ غير منتظم بحافّةٍ سالت، ونقشٌ غائر. */
+.m-skin-invite .m-iv-seal {
+  color: color-mix(in srgb, var(--m-accent-2) 45%, #fff);
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.4), transparent 42%),
+    radial-gradient(circle, color-mix(in srgb, var(--m-accent-2) 86%, #000) 0 46%, var(--m-accent-2) 50% 100%);
+  border-radius: 46% 54% 52% 48% / 50% 46% 54% 50%;
+  box-shadow:
+    inset 0 -3px 5px rgba(0, 0, 0, 0.35),
+    inset 0 2px 3px rgba(255, 255, 255, 0.3),
+    0 6px 10px -3px rgba(28, 42, 36, 0.55);
+}
+.m-skin-invite .m-lang {
+  border-radius: 2px;
+  border: 1px solid var(--m-iv-line);
+  box-shadow: none;
+}
+.m-skin-invite .m-chips > * {
+  background: transparent;
+  border: 1px solid var(--m-iv-line);
+  border-radius: 2px;
+  box-shadow: none;
+}
+
+/* ── الشريط اللاصق: نصٌّ بلا حبوب ── */
+.m-skin-invite .m-nav {
+  --m-tab-on: transparent;
+  --m-tab-on-ink: var(--m-text);
+  --m-tab-ink: var(--m-muted);
+  background: color-mix(in srgb, var(--m-bg) 94%, transparent);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid var(--m-iv-line);
+}
+.m-skin-invite .m-tab {
+  border-radius: 0;
+  font-family: var(--m-display, var(--m-font));
+  font-size: 1.02rem;
+  box-shadow: inset 0 -2px 0 transparent;
+}
+.m-skin-invite .m-tab[aria-selected="true"],
+.m-skin-invite .m-tab[aria-current="true"],
+.m-skin-invite .m-tab[style*="--m-tab-on,"] {
+  box-shadow: inset 0 -2px 0 var(--m-accent);
+}
+
+/* ── عنوان القسم ── */
+.m-skin-invite .m-iv-star,
+.m-skin-invite .m-iv-count {
+  color: var(--m-accent);
+}
+.m-skin-invite .m-iv-count {
+  letter-spacing: 0.04em;
+}
+.m-skin-invite .m-iv-photo .m-img {
+  border-radius: 2px;
+  box-shadow:
+    0 0 0 5px var(--m-surface),
+    0 0 0 6px var(--m-iv-line),
+    0 18px 24px -16px rgba(28, 42, 36, 0.5);
+}
+
+/* ── الصنف: في وسط السطر ── */
+.m-skin-invite .m-row {
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 1.15rem 3.1rem 1.5rem;
+  text-align: center;
+}
+.m-skin-invite .m-row > span:first-of-type:not(.m-badge):not(.m-thumb),
+.m-skin-invite .m-row > .\@container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+.m-skin-invite .m-row > .\@container > span:first-child {
+  display: contents;
+}
+.m-skin-invite .m-row .m-name {
+  order: 1;
+  font-family: var(--m-display, var(--m-font));
+  font-size: 1.32rem;
+  line-height: 1.6;
+}
+.m-skin-invite .m-row .m-name + span {
+  display: none;
+}
+.m-skin-invite .m-row .m-desc {
+  order: 2;
+  max-width: 17rem;
+  padding-inline-end: 0;
+}
+.m-skin-invite .m-row .m-price {
+  order: 3;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.45rem;
+  font-family: var(--m-display, var(--m-font));
+  font-size: 1.08rem;
+  color: var(--m-accent);
+  --m-accent-ink: var(--m-accent);
+}
+.m-skin-invite .m-row .m-price::before,
+.m-skin-invite .m-row .m-price::after {
+  content: "";
+  width: 1.4rem;
+  height: 1px;
+  background: var(--m-iv-line);
+}
+.m-skin-invite .m-row > .\@container > span:last-child {
+  order: 4;
+  justify-content: center;
+  padding-inline-end: 0;
+}
+/* المعيّن بين الصنفين. */
+.m-skin-invite .m-row::after {
+  content: "";
+  position: absolute;
+  bottom: -3px;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  translate: -50% 0;
+  rotate: 45deg;
+  background: var(--m-iv-line);
+}
+.m-skin-invite .m-row .m-thumb {
+  order: -1;
+  padding: 3px;
+  border-radius: 50%;
+  background: var(--m-iv-foil);
+  box-shadow: 0 12px 16px -12px rgba(28, 42, 36, 0.6);
+}
+.m-skin-invite .m-row .m-thumb .m-img {
+  border-radius: 50% !important;
+  box-shadow: 0 0 0 2px var(--m-surface);
+}
+/* زرّ الإضافة: حلقةٌ رفيعة عند طرف السطر، في منتصف ارتفاعه. */
+.m-skin-invite .m-dishes .m-add,
+.m-skin-invite .m-list .m-add,
+.m-skin-invite .m-add {
+  background: var(--m-surface) !important;
+  color: var(--m-accent) !important;
+  border: 1px solid var(--m-accent);
+  box-shadow: 0 0 0 3px var(--m-bg), 0 0 0 4px var(--m-iv-line);
+}
+.m-skin-invite .m-row ~ .m-add,
+.m-skin-invite .m-row + .m-add {
+  bottom: auto;
+  top: 50%;
+  margin-top: -1.375rem;
+  inset-inline-end: 0.15rem;
+}
+.m-skin-invite .m-badge {
+  border-radius: 2px;
+  inset-inline-end: auto !important;
+  inset-inline-start: 0.25rem !important;
+}
+.m-skin-invite .m-soldout {
+  background: transparent;
+  color: var(--m-accent-2);
+  border: 1px solid var(--m-accent-2);
+  border-radius: 2px;
+  letter-spacing: 0.04em;
+}
+
+/* ── طبق اليوم: بطاقةٌ داخل البطاقة ── */
+.m-skin-invite .m-feature {
+  background: var(--m-surface);
+  border: 1px solid var(--m-iv-line);
+  outline: 1px solid color-mix(in srgb, var(--m-accent) 30%, transparent);
+  outline-offset: -5px;
+  border-radius: 2px;
+  box-shadow: 0 20px 28px -24px rgba(28, 42, 36, 0.55);
+}
+.m-skin-invite .m-feature .m-price {
+  font-family: var(--m-display, var(--m-font));
+  color: var(--m-accent);
+  --m-accent-ink: var(--m-accent);
+}
+
+/* ── الطبق بلا صورة: صحن خزفٍ بحافّةٍ مذهّبة ── */
+.m-skin-invite .m-art {
+  --m-art-bg: var(--m-bg-2);
+  --m-art-plate: radial-gradient(circle closest-side, #fffdf7 0 60%, #f1ead8 62% 84%, #c9a54a 86% 90%, #fffdf7 92% 100%);
+  --m-art-ring: 0 0 0 1px rgba(28, 42, 36, 0.12);
+  --m-art-lift: 0 12px 16px -10px rgba(28, 42, 36, 0.45);
+  --m-art-well: 0 0 transparent;
+  --m-art-mark: rgba(28, 42, 36, 0.05);
+}
+.m-skin-invite .m-card.m-surface {
+  border: 1px solid var(--m-iv-line);
+  box-shadow: 0 18px 24px -22px rgba(28, 42, 36, 0.5);
+}
+
+/* ── شريط الطلب ── */
+.m-skin-invite .m-cart {
+  border-radius: 2px !important;
+  outline: 1px solid color-mix(in srgb, var(--m-accent) 45%, transparent);
+  outline-offset: 3px;
+  font-family: var(--m-display, var(--m-font));
+  font-size: 1.02rem;
+}
+
+/* ── شاشات الطلب ── */
+.m-skin-invite .m-o-card {
+  border: 1px solid var(--m-iv-line);
+  border-radius: 2px;
+}
+.m-skin-invite .m-o-cta,
+.m-skin-invite .m-o-field,
+.m-skin-invite .m-o-ghost,
+.m-skin-invite .m-o-opt,
+.m-skin-invite .m-o-soldout,
+.m-skin-invite .m-o-step,
+.m-skin-invite .m-o-chip {
+  border-radius: 2px;
+}
+
+/* ── الحركة ──
+ * عند الفتح: البطاقة تُرفع برفق، وختم الشمع يُكبس على حافّتها. ولمعة الذهب تمرّ على حلقة الشعار. ومع التمرير
+ * يتمايل الشريط (`--m-scroll-y`). وحين يدخل القسم تُرسم زخرفته جناحاً جناحاً (`data-m-in`). وحين يُضاف
+ * صنفٌ ينبض الختم وتتّسع حلقة الزرّ (`data-m-added`). وتحت الشريط اللاصق خيطٌ مذهّب يمتدّ بتقدّم الصفحة
+ * (`--m-scroll`). */
+@media (prefers-reduced-motion: no-preference) {
+  .m-skin-invite .m-iv-card {
+    animation: m-iv-rise 0.7s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+  }
+  .m-skin-invite .m-iv-seal {
+    animation: m-iv-press 0.55s cubic-bezier(0.3, 1.5, 0.5, 1) 0.6s both;
+  }
+  .m-skin-invite .m-iv-crest {
+    background-size: 220% 220%;
+    animation: m-iv-foil 7s ease-in-out infinite alternate;
+  }
+  .m-skin-invite .m-iv-card .m-iv-flourish path {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: m-iv-draw 0.9s ease-out 0.5s forwards;
+  }
+  .m-skin-invite[data-m-motion] .m-sec .m-iv-flourish path {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    transition: stroke-dashoffset 0.9s ease-out 0.2s;
+  }
+  .m-skin-invite[data-m-motion] .m-sec[data-m-in] .m-iv-flourish path {
+    stroke-dashoffset: 0;
+  }
+  .m-skin-invite[data-m-motion] .m-sec .m-iv-star {
+    scale: 0;
+    rotate: -90deg;
+    transition: scale 0.5s ease-out, rotate 0.6s ease-out;
+  }
+  .m-skin-invite[data-m-motion] .m-sec[data-m-in] .m-iv-star {
+    scale: 1;
+    rotate: 0deg;
+  }
+  .m-skin-invite[data-m-added] .m-iv-seal {
+    animation: m-iv-pulse 0.6s ease-out;
+  }
+  .m-skin-invite .m-add:active {
+    scale: 0.9;
+  }
+  @supports (animation-timeline: scroll()) or (scale: calc(1 * 1)) {
+    .m-skin-invite[data-m-motion] .m-iv-ribbon {
+      rotate: calc(sin(var(--m-scroll-y, 0) * 1.6deg) * 5deg);
+    }
+    .m-skin-invite[data-m-motion] .m-nav::after {
+      content: "";
+      position: absolute;
+      inset: auto 0 -1px;
+      height: 2px;
+      background: var(--m-iv-foil);
+      transform-origin: 100% 50%;
+      scale: var(--m-scroll, 0) 1;
+    }
+    [dir="ltr"] .m-skin-invite[data-m-motion] .m-nav::after {
+      transform-origin: 0 50%;
+    }
+  }
+}
+@keyframes m-iv-rise {
+  from {
+    opacity: 0;
+    translate: 0 14px;
+  }
+}
+@keyframes m-iv-press {
+  from {
+    opacity: 0;
+    scale: 1.7;
+  }
+}
+@keyframes m-iv-foil {
+  from {
+    background-position: 0% 0%;
+  }
+  to {
+    background-position: 100% 100%;
+  }
+}
+@keyframes m-iv-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes m-iv-pulse {
+  0% {
+    scale: 1;
+  }
+  40% {
+    scale: 1.18;
+  }
+  100% {
+    scale: 1;
+  }
+}

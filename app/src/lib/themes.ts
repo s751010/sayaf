@@ -56,6 +56,7 @@ export type HeaderShape =
   | "dome" | "carton" | "counter" | "signboard"
   | "spit"
   | "bucket" | "flattop"
+  | "chalkboard" | "laminate" | "card"
   | "freezer" | "board" | "saj";
 /**
  * تخطيط الأطباق — هذا ما يجعل الفرق بين الطوابع يُرى لا يُقرأ.
@@ -76,7 +77,8 @@ export type HeadingStyle =
   | "hearth" | "wedge" | "lightbox" | "brush"
   | "panel"
   | "label" | "press"
-  | "cone" | "hanko" | "loaf";
+  | "cone" | "hanko" | "loaf"
+  | "chalk" | "ribbon" | "course";
 /** شكل صورة الطبق — دائري للكافيهات، مربّع حادّ للمينيمال، وقوسُ نافذة للروشان. */
 export type ImageShape = "rounded" | "square" | "circle" | "arch";
 /**
@@ -101,6 +103,7 @@ export type MenuSkin =
   | "shawarma"
   | "bucket" | "smash"
   | "scoop" | "chopsticks" | "zaatar"
+  | "slate" | "zaman" | "invite"
   | "gold" | "modern";
 /** كيف يُقدَّم السعر: نصّاً، أو شارة ملوّنة، أو خطّاً منقّطاً يقود إليه. */
 export type PriceStyle = "plain" | "badge" | "leader";
@@ -1866,6 +1869,102 @@ export const DESIGN_THEMES: MenuTheme[] = [
       divider: "none",
       depth: "raised",
       entrance: "rise",
+    }),
+  },
+
+  /*
+   * ══ الطوابع «التوقيع» (٢٠٢٦/١١/١٥) — طلب المالك: لكلّ قسمٍ طابعٌ جديد «كأنه منيو فعلي»، كلّ قسمٍ بعالمه،
+   * مرسومٌ بالكود وحده. الثلاثة الأولى: «سبّورة» للمقاهي، و«قائمة زمان» للشعبي، و«دعوة» للراقي. ══
+   */
+  {
+    id: "slate",
+    name: "سبّورة",
+    tagline: "سبّورة مقهى بإطار خشب: اسمك بالطباشير، والأسعار في دوائر مرسومة باليد، والصور ملصوقة بشريط",
+    vars: {
+      // لوحٌ أخضر قاتم وطباشير أبيض دافئ؛ التمييز طباشير أصفر (الحبر الداكن عليه)، والزينة ورديّ طباشير.
+      "--m-bg": "#1f2a26",
+      "--m-bg-2": "#18211e",
+      "--m-surface": "#26332e",
+      "--m-text": "#f4f1e6",
+      "--m-muted": "#b9c2b6",
+      "--m-accent": "#f3d264",
+      "--m-accent-2": "#f2a7a0",
+      "--m-on-accent": "#1c2420",
+      "--m-border": "rgba(244,241,230,.2)",
+      "--m-font": FONT.tajawal,
+      "--m-display": FONT.ruqaa,
+      "--m-radius": "0.5rem",
+    },
+    design: design({
+      skin: "slate",
+      header: "chalkboard",
+      layout: "list",
+      heading: "chalk",
+      imageShape: "square",
+      priceStyle: "leader",
+      divider: "none",
+      entrance: "fade",
+    }),
+  },
+  {
+    id: "zaman",
+    name: "قائمة زمان",
+    tagline: "قائمة المطعم الشعبي المغلّفة: إطار أحمر وأخضر، وأصناف مرقّمة، ولمعة تغليف تمرّ على الورق",
+    vars: {
+      // ورقٌ أصفر قديم وحبر أسود؛ التمييز أحمر المطبعة (الأبيض عليه ‎5.9)، والزينة أخضر اللافتات.
+      "--m-bg": "#fbf1d3",
+      "--m-bg-2": "#f3e4b8",
+      "--m-surface": "#fff9e6",
+      "--m-text": "#1d1a14",
+      "--m-muted": "#5b5140",
+      "--m-accent": "#b8242a",
+      "--m-accent-2": "#0e6f45",
+      "--m-on-accent": "#ffffff",
+      "--m-border": "rgba(29,26,20,.18)",
+      "--m-font": FONT.cairo,
+      "--m-display": FONT.ruqaa,
+      "--m-radius": "0.35rem",
+    },
+    design: design({
+      skin: "zaman",
+      header: "laminate",
+      layout: "list",
+      heading: "ribbon",
+      imageShape: "rounded",
+      priceStyle: "leader",
+      divider: "none",
+      entrance: "fade",
+    }),
+  },
+  {
+    id: "invite",
+    name: "دعوة",
+    tagline: "بطاقة قائمة عشاء مطبوعة: ورق قطنيّ، وحروف مذهّبة، وختم شمع بشعارك، وكلّ صنفٍ في وسط السطر",
+    vars: {
+      // ورقٌ عاجيّ وحبر أخضر قاتم؛ التمييز ذهبٌ داكن يُقرأ (الأبيض عليه ‎5.0)، واللمعة تدرّجٌ فوقه خامة.
+      "--m-bg": "#f6f1e4",
+      "--m-bg-2": "#ece4d0",
+      "--m-surface": "#fbf8ef",
+      "--m-text": "#1c2a24",
+      "--m-muted": "#5a6259",
+      "--m-accent": "#86661c",
+      "--m-accent-2": "#7b1e2b",
+      "--m-on-accent": "#ffffff",
+      "--m-border": "rgba(28,42,36,.16)",
+      "--m-font": FONT.tajawal,
+      "--m-display": FONT.amiri,
+      "--m-radius": "0.2rem",
+    },
+    design: design({
+      skin: "invite",
+      header: "card",
+      layout: "list",
+      heading: "course",
+      imageShape: "circle",
+      priceStyle: "plain",
+      divider: "none",
+      density: "airy",
+      entrance: "fade",
     }),
   },
 ];

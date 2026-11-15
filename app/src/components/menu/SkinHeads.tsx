@@ -608,6 +608,9 @@ export { SmashHead } from "./heads/SmashHead";
 export { ScoopHead } from "./heads/ScoopHead";
 export { ChopsticksHead } from "./heads/ChopsticksHead";
 export { ZaatarHead } from "./heads/ZaatarHead";
+export { SlateHead } from "./heads/SlateHead";
+export { ZamanHead } from "./heads/ZamanHead";
+export { InviteHead } from "./heads/InviteHead";
 export { AsirHead } from "./heads/AsirHead";
 
 /* ══ فاخر — دفتر جلدٍ بخيطٍ ذهبيّ ══════════════════════════════════════ */
