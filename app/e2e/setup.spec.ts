@@ -238,23 +238,23 @@ for (const size of [
       await expect(page.getByText("الخطوة 2 من 4")).toBeVisible();
       expect(w.dishes.map((d) => d.price)).toEqual([12, 18, 11]);
       const grid = page.locator("[data-setup-themes]");
-      await expect(grid.locator(":scope > div").first().getByText("محمصة", { exact: true })).toBeVisible();
+      await expect(grid.locator(":scope > div").first().getByText("سبّورة", { exact: true })).toBeVisible();
       await expect(grid.getByText("يناسب نوع نشاطك")).toHaveCount(1);
-      await grid.getByRole("button", { name: /محمصة/ }).click();
-      await expect(grid.getByRole("button", { name: /محمصة/ })).toHaveAttribute("aria-pressed", "true");
+      await grid.getByRole("button", { name: /سبّورة/ }).click();
+      await expect(grid.getByRole("button", { name: /سبّورة/ })).toHaveAttribute("aria-pressed", "true");
       await page.waitForTimeout(600);
       expect(w.menuWrites, "المُنتقي كتب طابعاً باللمس").toEqual([]);
       await shot(page, `${tag}-2-look`, "[data-setup-themes]");
       if (size.width === 320) await noSideScroll(page, 320);
-      await page.getByRole("button", { name: "طبّق «محمصة»" }).click();
+      await page.getByRole("button", { name: "طبّق «سبّورة»" }).click();
 
       // ── ٣: الشعار واللون ──
       await expect(page.getByText("الخطوة 3 من 4")).toBeVisible();
-      expect(w.menuWrites).toEqual([JSON.stringify({ theme: "roastery" })]);
+      expect(w.menuWrites).toEqual([JSON.stringify({ theme: "slate" })]);
       await page.getByRole("radio", { name: "#1f7a72" }).click();
       await page.getByRole("button", { name: "طبّق اللون" }).click();
       await expect(page.getByText("طُبّق ✓")).toBeVisible();
-      expect(w.menuWrites.at(-1)).toBe(JSON.stringify({ theme: "roastery:#1f7a72" }));
+      expect(w.menuWrites.at(-1)).toBe(JSON.stringify({ theme: "slate:#1f7a72" }));
       expect(w.restaurants[0].cover_color).toBe("#1f7a72");
       await shot(page, `${tag}-3-brand`);
       if (size.width === 320) await noSideScroll(page, 320);
