@@ -31,6 +31,9 @@ import { NapoliMini, PizzaboxMini, SlicesMini, WoodfireMini } from "./previews/P
 import { ShawarmaMini } from "./previews/GrillMinis";
 import { BucketMini, SmashMini } from "./previews/FastMinis";
 import { ChopsticksMini, ScoopMini, ZaatarMini } from "./previews/TreatMinis";
+import {
+  BastaMini, CrateMini, FatlaMini, InviteMini, MenuboardMini, RecipeMini, RollMini, SabahMini, SlateMini, WasmMini, ZamanMini,
+} from "./previews/SignatureMinis";
 
 type Vars = Record<string, string>;
 
@@ -1073,6 +1076,28 @@ export function ThemePreview({ theme }: { theme: MenuTheme }) {
       return <ChopsticksMini v={v} />;
     case "zaatar":
       return <ZaatarMini v={v} />;
+    case "slate":
+      return <SlateMini v={v} />;
+    case "zaman":
+      return <ZamanMini v={v} />;
+    case "invite":
+      return <InviteMini v={v} />;
+    case "fatla":
+      return <FatlaMini v={v} />;
+    case "recipe":
+      return <RecipeMini v={v} />;
+    case "sabah":
+      return <SabahMini v={v} />;
+    case "menuboard":
+      return <MenuboardMini v={v} />;
+    case "roll":
+      return <RollMini v={v} />;
+    case "wasm":
+      return <WasmMini v={v} />;
+    case "basta":
+      return <BastaMini v={v} />;
+    case "crate":
+      return <CrateMini v={v} />;
     case "gold":
       return <GoldMini theme={theme} />;
     case "modern":
