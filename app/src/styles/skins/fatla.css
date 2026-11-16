@@ -32,19 +32,11 @@
 }
 .m-skin-fatla .m-ft-string {
   border-top: 2px solid var(--m-ft-string);
-  border-inline-end: 2px solid var(--m-ft-string);
-  border-start-end-radius: 12px;
-}
-[dir="rtl"] .m-skin-fatla .m-ft-string {
-  border-inline-end: 0;
   border-right: 2px solid var(--m-ft-string);
   border-radius: 0 12px 0 0;
 }
-[dir="rtl"] .m-skin-fatla .m-ft-tag {
+.m-skin-fatla .m-ft-tag {
   inset-inline-end: auto;
-  right: -39%;
-}
-[dir="ltr"] .m-skin-fatla .m-ft-tag {
   right: -39%;
 }
 .m-skin-fatla .m-ft-tag {
@@ -87,19 +79,19 @@
 .m-skin-fatla .m-ft-label {
   color: #fff;
   background:
-    radial-gradient(circle at 14px 50%, var(--m-bg) 0 3.5px, rgba(255, 255, 255, 0.5) 4px 6px, transparent 6.5px),
-    var(--m-accent);
-  clip-path: polygon(11px 0, 100% 0, 100% 100%, 11px 100%, 0 50%);
-  transform-origin: 14px 0;
-  rotate: -1.5deg;
-}
-[dir="rtl"] .m-skin-fatla .m-ft-label {
-  background:
     radial-gradient(circle at calc(100% - 14px) 50%, var(--m-bg) 0 3.5px, rgba(255, 255, 255, 0.5) 4px 6px, transparent 6.5px),
     var(--m-accent);
   clip-path: polygon(0 0, calc(100% - 11px) 0, 100% 50%, calc(100% - 11px) 100%, 0 100%);
   transform-origin: calc(100% - 14px) 0;
   rotate: 1.5deg;
+}
+[dir="ltr"].m-skin-fatla .m-ft-label {
+  background:
+    radial-gradient(circle at 14px 50%, var(--m-bg) 0 3.5px, rgba(255, 255, 255, 0.5) 4px 6px, transparent 6.5px),
+    var(--m-accent);
+  clip-path: polygon(11px 0, 100% 0, 100% 100%, 11px 100%, 0 50%);
+  transform-origin: 14px 0;
+  rotate: -1.5deg;
 }
 .m-skin-fatla .m-ft-count {
   color: var(--m-accent-2);
@@ -208,11 +200,20 @@
   border-radius: 8px;
 }
 
+/* ── نافذة الطبق والسلّة ── */
+.m-skin-fatla .m-sheet {
+  border-top: 2px solid var(--m-ft-string);
+  border-radius: 1.5rem 1.5rem 0 0;
+}
+
 /* ── الحركة ──
  * البطاقة تتأرجح على خيطها كالبندول وتشتدّ ما دام يمرّر (`data-m-scrolling`)، والبخار يتصاعد. وحين يدخل القسم
  * تسقط بطاقته على الخيط وتتأرجح حتى تسكن (`data-m-in`). وحين يُضاف صنفٌ تقفز بطاقة الشعار ويُكبس الزرّ
  * (`data-m-added`). وتحت الشريط خيط شايٍ يمتدّ بتقدّم الصفحة (`--m-scroll`). */
 @media (prefers-reduced-motion: no-preference) {
+  .m-skin-fatla .m-sheet.anim-fade-up {
+    animation: m-fatla-sheet 0.26s cubic-bezier(0.2, 0.9, 0.25, 1) backwards;
+  }
   .m-skin-fatla .m-ft-swing {
     animation: m-ft-swing 3.6s ease-in-out infinite alternate;
   }
@@ -244,7 +245,6 @@
     translate: 0 2px;
     box-shadow: 0 1px 0 color-mix(in srgb, var(--m-accent) 60%, #000);
   }
-  @supports (animation-timeline: scroll()) or (scale: calc(1 * 1)) {
     .m-skin-fatla[data-m-motion] .m-nav::after {
       content: "";
       position: absolute;
@@ -254,10 +254,9 @@
       transform-origin: 100% 50%;
       scale: var(--m-scroll, 0) 1;
     }
-    [dir="ltr"] .m-skin-fatla[data-m-motion] .m-nav::after {
+    [dir="ltr"].m-skin-fatla[data-m-motion] .m-nav::after {
       transform-origin: 0 50%;
     }
-  }
 }
 @keyframes m-ft-swing {
   from {
@@ -297,5 +296,11 @@
 @keyframes m-ft-hop {
   40% {
     translate: 0 -8px;
+  }
+}
+@keyframes m-fatla-sheet {
+  from {
+    opacity: 0;
+    translate: 0 26px;
   }
 }

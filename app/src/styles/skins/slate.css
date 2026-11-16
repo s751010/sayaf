@@ -278,12 +278,21 @@
   border-radius: 8px;
 }
 
+/* ── نافذة الطبق والسلّة ── */
+.m-skin-slate .m-sheet {
+  border-top: 1.5px dashed color-mix(in srgb, var(--m-sl-chalk) 40%, transparent);
+  border-radius: 10px 10px 0 0;
+}
+
 /* ── الحركة ──
  * عند الفتح: الخطّان تحت الاسم يُرسمان، والنجوم تومض. والبخار يتمايل دائماً ويشتدّ ما دام يمرّر
  * (`data-m-scrolling`). وحين يدخل القسم يُرسم خطّه المتموّج وتدور دائرة رمزه (`data-m-in`). وحين يُضاف صنفٌ
  * تنبض دائرة السعر… والزرّ يُكبس، ونفثة غبار طباشير تعلو شريط الطلب (`data-m-added`). وتحت الشريط خطّ
  * طباشير يمتدّ بتقدّم الصفحة (`--m-scroll`). */
 @media (prefers-reduced-motion: no-preference) {
+  .m-skin-slate .m-sheet.anim-fade-up {
+    animation: m-slate-sheet 0.26s cubic-bezier(0.2, 0.9, 0.25, 1) backwards;
+  }
   .m-skin-slate .m-sl-under path {
     stroke-dasharray: 1;
     stroke-dashoffset: 1;
@@ -350,7 +359,6 @@
       radial-gradient(circle at 32% 35%, rgba(244, 241, 230, 0.55) 0 1.4px, transparent 2.4px);
     animation: m-sl-dust 0.9s ease-out forwards;
   }
-  @supports (animation-timeline: scroll()) or (scale: calc(1 * 1)) {
     .m-skin-slate[data-m-motion] .m-nav::after {
       content: "";
       position: absolute;
@@ -362,10 +370,9 @@
       scale: var(--m-scroll, 0) 1;
       filter: url(#m-sl-chalk);
     }
-    [dir="ltr"] .m-skin-slate[data-m-motion] .m-nav::after {
+    [dir="ltr"].m-skin-slate[data-m-motion] .m-nav::after {
       transform-origin: 0 50%;
     }
-  }
 }
 @keyframes m-sl-draw {
   to {
@@ -413,5 +420,11 @@
   to {
     translate: 0 -14px;
     opacity: 0;
+  }
+}
+@keyframes m-slate-sheet {
+  from {
+    opacity: 0;
+    translate: 0 26px;
   }
 }

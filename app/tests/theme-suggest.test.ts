@@ -115,7 +115,7 @@ describe("الكافيه: مختصّ أم شعبي — تلميحٌ من الن�
 describe("الصفّان الفرعيّان: المخبز والفطور", () => {
   it("الاسم المجرّد للنوع يبقى على صفّه — «مخبز وحلويات» من القائمة يبدأ بـ«حلواني»", () => {
     expect(suggestionKey("مخبز وحلويات")).toBe("مخبز وحلويات");
-    expect(rankThemes(ALL_THEMES, "مخبز وحلويات").suggested).toBe("patisserie");
+    expect(rankThemes(ALL_THEMES, "مخبز وحلويات").suggested).toBe("recipe");
     expect(suggestionKey("شعبي")).toBe("شعبي");
     expect(suggestionKey("حلويات")).toBe("مخبز وحلويات");
   });
@@ -206,7 +206,7 @@ describe("صفّا القهوة (٠٧/١١، «دلّة» و«باريستا»)"
 
 describe("طوابع القهوة الأربعة (٠٩/١١، اختيار المالك)", () => {
   it("الكافيه: «محمصة» أوّلاً كما كان، و«لوحة حروف» عادت بشارتها — والقمع بتخصّصه", () => {
-    expect(SUGGESTED["كافيه"]).toEqual(["roastery", "barista", "v60", "letterboard"]);
+    expect(SUGGESTED["كافيه"]).toEqual(["slate", "roastery", "barista", "letterboard"]);
     for (const id of ["roastery", "barista", "letterboard"]) expect(byId.get(id)!.suits, id).toContain("كافيه");
   });
 
@@ -244,7 +244,7 @@ describe("طوابع القهوة الأربعة (٠٩/١١، اختيار ال�
 
 describe("«شارة بتخصّصه» (٠٩/١١، قرار المالك)", () => {
   it("المطعم المجهول: طوابع عامّة بشارة «مطعم» — «فاخر» أوّلاً، و«عصري» عاد، ولا بيتزا", () => {
-    expect(SUGGESTED["مطعم"]).toEqual(["dark-gold", "modern", "editorial", "roshan"]);
+    expect(SUGGESTED["مطعم"]).toEqual(["dark-gold", "invite", "modern", "editorial"]);
     for (const id of SUGGESTED["مطعم"]) {
       expect(byId.get(id)!.suits, id).toContain("مطعم");
       expect(byId.get(id)!.suits!.some(isSpecialtyBadge), id).toBe(false);
@@ -253,7 +253,7 @@ describe("«شارة بتخصّصه» (٠٩/١١، قرار المالك)", () =
   });
 
   it("الوجبات السريعة عامّة — و«نيون» عاد؛ وصفحة العربات تعرض صاج · فاتورة · نيون", () => {
-    expect(SUGGESTED["مطعم سريع"].slice(0, 3)).toEqual(["burger", "receipt", "neon"]);
+    expect(SUGGESTED["مطعم سريع"].slice(0, 4)).toEqual(["menuboard", "burger", "receipt", "neon"]);
     expect(byId.get("neon")!.suits).toEqual(["مطعم سريع", "عصائر"]);
     // الثلاثة الأولى عامّة؛ والرابع «شاورما» (الموجة ٣) يحمل «مطعم سريع» شارةً ثانية مع تخصّصه.
     for (const id of SUGGESTED["مطعم سريع"]) expect(byId.get(id)!.suits, id).toContain("مطعم سريع");
@@ -268,8 +268,8 @@ describe("«شارة بتخصّصه» (٠٩/١١، قرار المالك)", () =
 
   it("المطعم الإيطالي صفٌّ وحده أوّلُه «نابولي» بشارته", () => {
     expect(byId.get("napoli")!.suits).toEqual([ITALIAN]);
-    expect(rankThemes(ALL_THEMES, "مطعم إيطالي").suggested).toBe("napoli");
-    expect(rankThemes(ALL_THEMES, "Trattoria").suggested).toBe("napoli");
+    expect(rankThemes(ALL_THEMES, "مطعم إيطالي").suggested).toBe("roll");
+    expect(rankThemes(ALL_THEMES, "Trattoria").suggested).toBe("roll");
   });
 
   it("الطابع المتخصّص لا يحمل إلا شارة تخصّصه — والعامّ لا يحمل تخصّصاً إلا مع نوعه", () => {
@@ -280,13 +280,14 @@ describe("«شارة بتخصّصه» (٠٩/١١، قرار المالك)", () =
 
 describe("المشاوي (٠٩/١١، الموجة ٣ — وحذف «أوجاق» و«ستيك» و«مدخنة» ١١/١١)", () => {
   it("«شاورما» بشارة تخصّصه و«مطعم سريع» معها", () => {
-    expect(byId.get("shawarma")!.suits).toEqual([SHAWARMA, "مطعم سريع"]);
+    expect(byId.get("shawarma")!.suits).toEqual([SHAWARMA]);
   });
 
   it("صاحب المشويات: «جمر» أوّلاً، ثم الشاورما، و«فاخر» و«عسير» عادت إليهما «مشويات»", () => {
-    expect(SUGGESTED["مشويات"]).toEqual(["grill", "shawarma", "dark-gold", "asir"]);
+    expect(SUGGESTED["مشويات"]).toEqual(["wasm", "grill", "dark-gold", "asir"]);
     expect(byId.get("dark-gold")!.suits).toEqual(["مطعم", "مشويات"]);
-    expect(byId.get("asir")!.suits).toEqual(["شعبي", "مشويات"]);
+    // ١٥/١١: «قائمة زمان» أخذت شارة «شعبي» الرابعة — و«عسير» بقي بشارة «مشويات».
+    expect(byId.get("asir")!.suits).toEqual(["مشويات"]);
   });
 
   it.each([
@@ -296,9 +297,9 @@ describe("المشاوي (٠٩/١١، الموجة ٣ — وحذف «أوجاق�
     // صفوف المحذوفة سقطت: الستيك والتركي على «مطعم» («فاخر»)، والمشويات التركية على «جمر».
     ["ستيك هاوس", "dark-gold"],
     ["مطعم تركي", "dark-gold"],
-    ["مشويات تركية", "grill"],
-    ["مشويات", "grill"],
-    ["مطعم الجمر", "grill"],
+    ["مشويات تركية", "wasm"],
+    ["مشويات", "wasm"],
+    ["مطعم الجمر", "wasm"],
   ] as const)("«%s» ⇒ «%s» أوّلاً", (raw, first) => {
     expect(rankThemes(ALL_THEMES, raw).suggested).toBe(first);
   });
@@ -325,7 +326,7 @@ describe("البروست (١١/١١، «سطل»)", () => {
     ["Broast House", "bucket"],
     // الشاورما قبله، و«دجاج مشوي» مشاوٍ.
     ["شاورما وبروست", "shawarma"],
-    ["دجاج مشوي", "grill"],
+    ["دجاج مشوي", "wasm"],
   ] as const)("«%s» ⇒ «%s» أوّلاً", (raw, first) => {
     expect(rankThemes(ALL_THEMES, raw).suggested).toBe(first);
   });
@@ -410,13 +411,13 @@ describe("الشاي نوعٌ تاسع (٠٧/١١، «كرك» و«سماور» 
   it("الشارة «شاي» على «كرك» و«سماور» و«ملصقات» — وبيت الشاي «شاي» أيضاً", () => {
     expect(badgeTypeOf(TEA_HOUSE)).toBe("شاي");
     for (const id of ["karak", "samovar", "sticker"]) expect(byId.get(id)!.suits, id).toContain("شاي");
-    expect(SUGGESTED["شاي"][0]).toBe("karak");
+    expect(SUGGESTED["شاي"][0]).toBe("fatla");
   });
 });
 
 describe("`rankThemes` يرتّب ولا يحذف", () => {
   it.each([
-    ["كافيه", "roastery", true],
+    ["كافيه", "slate", true],
     // ٠٧/١١: الكافيه الشعبي يبدأ بـ«دلّة» — كان «نجدي».
     ["مقهى شعبي", "dallah", true],
     ["قهوة عربية", "dallah", true],
@@ -428,31 +429,31 @@ describe("`rankThemes` يرتّب ولا يحذف", () => {
     ["كشك قهوة", "drive", true],
     ["Pour Over Bar", "v60", false],
     // ٠٧/١١: الشاي نوعٌ تاسع — الكشك أوّلُه، والبيت التراثي أوّلُه «سماور». ولا سؤال «مختصّ أم شعبي؟».
-    ["كرك", "karak", false],
-    ["كافيه كرك", "karak", false],
-    ["شاهي", "karak", false],
+    ["كرك", "fatla", false],
+    ["كافيه كرك", "fatla", false],
+    ["شاهي", "fatla", false],
     ["بيت شاي تراثي", "samovar", false],
-    ["مقهى شاي", "karak", false],
-    ["مطعم شعبي", "najdi", false],
+    ["مقهى شاي", "fatla", false],
+    ["مطعم شعبي", "zaman", false],
     // ٠٧/١١: للمشاوي طابعها («جمر») — و«فاخر» ثانيه بشارته.
-    ["مشاوي", "grill", false],
-    ["مشويات على الفحم", "grill", false],
+    ["مشاوي", "wasm", false],
+    ["مشويات على الفحم", "wasm", false],
     ["شاورما", "shawarma", false],
-    ["كباب وتكّة", "grill", false],
-    ["دجاج مشوي", "grill", false],
+    ["كباب وتكّة", "wasm", false],
+    ["دجاج مشوي", "wasm", false],
     // ٠٧/١١: وللبيتزا والمطبخ الإيطالي «ريحان».
     ["بيتزا", "pizza", false],
     ["بيتزا نابولية ومعكرونة", "pizza", false],
-    ["مطعم إيطالي", "napoli", false],
+    ["مطعم إيطالي", "roll", false],
     ["Pizza House", "pizza", false],
     // ٠٣/١١: للبحري طابعه («مرفأ») — وروشان ثانيه.
-    ["أسماك", "harbor", false],
-    ["حلويات", "patisserie", false],
-    ["عصيرات", "juice", false],
+    ["أسماك", "basta", false],
+    ["حلويات", "recipe", false],
+    ["عصيرات", "crate", false],
     // ٠٧/١١: للوجبات السريعة طابعها («صاج»). و(١١/١١) للبرجر صفّه أوّلُه «سماش» و«صاج» ثانيه.
     ["برجر", "smash", false],
     ["سماش برجر", "smash", false],
-    ["وجبات سريعة", "burger", false],
+    ["وجبات سريعة", "menuboard", false],
     ["Burger House", "smash", false],
     // ٠٧/١١: المخبز والفطور الشعبي — صفّان فرعيّان من نصّ النوع.
     ["مخبز", "bakery", false],

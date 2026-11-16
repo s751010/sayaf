@@ -142,7 +142,7 @@
   border-radius: 999px;
   box-shadow: 0 0 0 2px #fff;
 }
-[dir="ltr"] .m-skin-menuboard .m-card.m-surface::before {
+[dir="ltr"].m-skin-menuboard .m-card.m-surface::before {
   content: counter(m-mb-dish, decimal);
 }
 /* السعر فقاعةٌ صفراء بحبرٍ أسود. */
@@ -196,11 +196,20 @@
   border-radius: 6px;
 }
 
+/* ── نافذة الطبق والسلّة ── */
+.m-skin-menuboard .m-sheet {
+  border-top: 2px solid var(--m-accent-2);
+  border-radius: 10px 10px 0 0;
+}
+
 /* ── الحركة ──
  * عند الفتح: الألواح الثلاثة تشتعل كالفلورسنت (وميضٌ ثم ثبات) واحداً بعد آخر، والشريط النقطيّ يمرّ دائماً
  * ويسرع ما دام يمرّر (`data-m-scrolling`). وحين يدخل القسم يومض صندوق ضوئه ثم يثبت (`data-m-in`). وحين يُضاف
  * صنفٌ يومض شريط الطلب (`data-m-added`). وتحت الشريط اللاصق خطٌّ أصفر يمتدّ بتقدّم الصفحة (`--m-scroll`). */
 @media (prefers-reduced-motion: no-preference) {
+  .m-skin-menuboard .m-sheet.anim-fade-up {
+    animation: m-menuboard-sheet 0.26s cubic-bezier(0.2, 0.9, 0.25, 1) backwards;
+  }
   .m-skin-menuboard .m-mb-panel {
     animation: m-mb-strike 0.9s steps(1, end) both;
   }
@@ -229,7 +238,6 @@
   .m-skin-menuboard .m-add:active {
     translate: 0 2px;
   }
-  @supports (animation-timeline: scroll()) or (scale: calc(1 * 1)) {
     .m-skin-menuboard[data-m-motion] .m-nav::after {
       content: "";
       position: absolute;
@@ -240,10 +248,9 @@
       transform-origin: 100% 50%;
       scale: var(--m-scroll, 0) 1;
     }
-    [dir="ltr"] .m-skin-menuboard[data-m-motion] .m-nav::after {
+    [dir="ltr"].m-skin-menuboard[data-m-motion] .m-nav::after {
       transform-origin: 0 50%;
     }
-  }
 }
 @keyframes m-mb-strike {
   0% {
@@ -274,5 +281,11 @@
 @keyframes m-mb-flash {
   30% {
     filter: brightness(1.5);
+  }
+}
+@keyframes m-menuboard-sheet {
+  from {
+    opacity: 0;
+    translate: 0 26px;
   }
 }

@@ -213,11 +213,20 @@
   border-radius: 5px;
 }
 
+/* ── نافذة الطبق والسلّة ── */
+.m-skin-wasm .m-sheet {
+  border-top: 3px solid var(--m-ws-burn);
+  border-radius: 8px 8px 0 0;
+}
+
 /* ── الحركة ──
  * عند الفتح: الميسم ينزل فيكوي الدائرة ثم يرتفع ويغيب، والجمر يتوهّج حولها ثم يخبو، والدخان يتصاعد. وحين
  * يُضاف صنفٌ يعود الميسم فيكوي (`data-m-added`). وحين يدخل القسم يتوهّج خطّ فحمه (`data-m-in`). وتحت العارضة
  * خطّ جمرٍ يمتدّ بتقدّم الصفحة (`--m-scroll`). */
 @media (prefers-reduced-motion: no-preference) {
+  .m-skin-wasm .m-sheet.anim-fade-up {
+    animation: m-wasm-sheet 0.26s cubic-bezier(0.2, 0.9, 0.25, 1) backwards;
+  }
   .m-skin-wasm .m-ws-iron {
     animation: m-ws-press 1.5s cubic-bezier(0.4, 0, 0.3, 1) 0.25s both;
   }
@@ -234,7 +243,7 @@
     animation: m-ws-press-again 1s cubic-bezier(0.4, 0, 0.3, 1) both;
   }
   .m-skin-wasm[data-m-added] .m-ws-burn {
-    animation: m-ws-ember-again 1.2s ease-out 0.3s both;
+    animation: m-ws-ember-again 0.85s ease-out 0.3s both;
   }
   .m-skin-wasm[data-m-motion] .m-sec[data-m-in] .m-ws-coal {
     animation: m-ws-glow 1.8s ease-out 0.1s both;
@@ -242,7 +251,6 @@
   .m-skin-wasm .m-add:active {
     scale: 0.9;
   }
-  @supports (animation-timeline: scroll()) or (scale: calc(1 * 1)) {
     .m-skin-wasm[data-m-motion] .m-nav::after {
       content: "";
       position: absolute;
@@ -253,10 +261,9 @@
       transform-origin: 100% 50%;
       scale: var(--m-scroll, 0) 1;
     }
-    [dir="ltr"] .m-skin-wasm[data-m-motion] .m-nav::after {
+    [dir="ltr"].m-skin-wasm[data-m-motion] .m-nav::after {
       transform-origin: 0 50%;
     }
-  }
 }
 @keyframes m-ws-press {
   0% {
@@ -328,5 +335,11 @@
 @keyframes m-ws-glow {
   25% {
     filter: drop-shadow(0 0 6px var(--m-accent)) brightness(2.4) sepia(1) saturate(6) hue-rotate(-18deg);
+  }
+}
+@keyframes m-wasm-sheet {
+  from {
+    opacity: 0;
+    translate: 0 26px;
   }
 }

@@ -146,7 +146,7 @@
   border: 2px solid var(--m-accent);
   border-radius: 50%;
 }
-[dir="ltr"] .m-skin-zaman .m-row::before {
+[dir="ltr"].m-skin-zaman .m-row::before {
   content: counter(m-zm-dish, decimal);
 }
 .m-skin-zaman .m-row .m-name {
@@ -258,12 +258,21 @@
   background: linear-gradient(118deg, transparent 0 8%, rgba(255, 255, 255, 0.16) 12%, transparent 17%);
 }
 
+/* ── نافذة الطبق والسلّة ── */
+.m-skin-zaman .m-sheet {
+  border-top: 3px solid var(--m-accent);
+  border-radius: 8px 8px 0 0;
+}
+
 /* ── الحركة ──
  * النجمة حول الشعار تدور ببطء، وبخار الإبريق والاستكانة يتصاعد. ولمعة التغليف شريط ضوءٍ يعبر الصفحة كلّ
  * ثماني ثوانٍ (تحويلٌ على طبقةٍ ثابتة — لا إعادة رسم). وحين يدخل القسم ينفرد شريطه وتقفز دائرة رقمه
  * (`data-m-in`). وحين يُضاف صنفٌ يُختم الزرّ ويهتزّ شريط الطلب (`data-m-added`). وتحت الشريط اللاصق خطّ
  * أحمر يمتدّ بتقدّم الصفحة (`--m-scroll`). */
 @media (prefers-reduced-motion: no-preference) {
+  .m-skin-zaman .m-sheet.anim-fade-up {
+    animation: m-zaman-sheet 0.26s cubic-bezier(0.2, 0.9, 0.25, 1) backwards;
+  }
   .m-skin-zaman .m-zm-burst {
     animation: m-zm-spin 40s linear infinite;
   }
@@ -305,7 +314,6 @@
   .m-skin-zaman[data-m-added] .m-cart {
     animation: m-zm-stamp 0.4s ease-out;
   }
-  @supports (animation-timeline: scroll()) or (scale: calc(1 * 1)) {
     .m-skin-zaman[data-m-motion] .m-nav::after {
       content: "";
       position: absolute;
@@ -315,10 +323,9 @@
       transform-origin: 100% 50%;
       scale: var(--m-scroll, 0) 1;
     }
-    [dir="ltr"] .m-skin-zaman[data-m-motion] .m-nav::after {
+    [dir="ltr"].m-skin-zaman[data-m-motion] .m-nav::after {
       transform-origin: 0 50%;
     }
-  }
 }
 @keyframes m-zm-spin {
   to {
@@ -357,5 +364,11 @@
   }
   100% {
     scale: 1;
+  }
+}
+@keyframes m-zaman-sheet {
+  from {
+    opacity: 0;
+    translate: 0 26px;
   }
 }

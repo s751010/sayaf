@@ -222,11 +222,20 @@
   border-radius: 7px 11px 6px 10px;
 }
 
+/* ── نافذة الطبق والسلّة ── */
+.m-skin-roll .m-sheet {
+  border-top: 3px solid var(--m-rl-ink);
+  border-radius: 9px 14px 0 0;
+}
+
 /* ── الحركة ──
  * عند الفتح: الورق ينسحب من اللفّة (الترويسة تنزل)، ومع التمرير تدور عروق اللفّة (`--m-scroll-y`). وحين يدخل
  * القسم تُرسم ضربة ألوانه من طرفها (`data-m-in`). وحين يُضاف صنفٌ يهتزّ شريط الطلب كضربة قلم
  * (`data-m-added`). وتحت الشريط اللاصق خطّ ماركر أحمر يمتدّ بتقدّم الصفحة (`--m-scroll`). */
 @media (prefers-reduced-motion: no-preference) {
+  .m-skin-roll .m-sheet.anim-fade-up {
+    animation: m-roll-sheet 0.26s cubic-bezier(0.2, 0.9, 0.25, 1) backwards;
+  }
   .m-skin-roll .m-head-roll > div {
     animation: m-rl-unroll 0.8s cubic-bezier(0.2, 0.9, 0.3, 1) both;
   }
@@ -234,7 +243,7 @@
     clip-path: inset(0 0 0 100%);
     transition: clip-path 0.6s ease-out 0.15s;
   }
-  [dir="ltr"] .m-skin-roll[data-m-motion] .m-sec .m-rl-stroke {
+  [dir="ltr"].m-skin-roll[data-m-motion] .m-sec .m-rl-stroke {
     clip-path: inset(0 100% 0 0);
   }
   .m-skin-roll[data-m-motion] .m-sec[data-m-in] .m-rl-stroke {
@@ -247,7 +256,6 @@
     translate: 3px 3px;
     box-shadow: 0 0 0 2.5px var(--m-rl-ink);
   }
-  @supports (animation-timeline: scroll()) or (scale: calc(1 * 1)) {
     .m-skin-roll[data-m-motion] .m-rl-grain {
       translate: calc(mod(var(--m-scroll-y, 0) * 0.6, 60) * 1px) 0;
     }
@@ -261,10 +269,9 @@
       transform-origin: 100% 50%;
       scale: var(--m-scroll, 0) 1;
     }
-    [dir="ltr"] .m-skin-roll[data-m-motion] .m-nav::after {
+    [dir="ltr"].m-skin-roll[data-m-motion] .m-nav::after {
       transform-origin: 0 50%;
     }
-  }
 }
 @keyframes m-rl-unroll {
   from {
@@ -278,5 +285,11 @@
   }
   60% {
     rotate: 1deg;
+  }
+}
+@keyframes m-roll-sheet {
+  from {
+    opacity: 0;
+    translate: 0 26px;
   }
 }

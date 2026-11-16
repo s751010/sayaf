@@ -151,11 +151,20 @@
   border-radius: 0.9rem;
 }
 
+/* ── نافذة الطبق والسلّة ── */
+.m-skin-sabah .m-sheet {
+  border-top: 3px solid var(--m-sb-yolk);
+  border-radius: 1.6rem 1.6rem 0 0;
+}
+
 /* ── الحركة ──
  * الأشعّة تدور ببطء، والبخار يتصاعد، والصفار يهتزّ ما دام يمرّر (`data-m-scrolling`). وحين يدخل القسم تطلع
  * شمسه من خلف الأفق (`data-m-in`). وحين يُضاف صنفٌ ينتفخ الصفار ويُكبس الزرّ (`data-m-added`). وتحت الشريط
  * خطٌّ برتقاليّ يمتدّ بتقدّم الصفحة (`--m-scroll`). */
 @media (prefers-reduced-motion: no-preference) {
+  .m-skin-sabah .m-sheet.anim-fade-up {
+    animation: m-sabah-sheet 0.26s cubic-bezier(0.2, 0.9, 0.25, 1) backwards;
+  }
   .m-skin-sabah .m-sb-rays {
     animation: m-sb-spin 70s linear infinite;
   }
@@ -181,7 +190,6 @@
   .m-skin-sabah .m-add:active {
     scale: 0.88;
   }
-  @supports (animation-timeline: scroll()) or (scale: calc(1 * 1)) {
     .m-skin-sabah[data-m-motion] .m-nav::after {
       content: "";
       position: absolute;
@@ -191,10 +199,9 @@
       transform-origin: 100% 50%;
       scale: var(--m-scroll, 0) 1;
     }
-    [dir="ltr"] .m-skin-sabah[data-m-motion] .m-nav::after {
+    [dir="ltr"].m-skin-sabah[data-m-motion] .m-nav::after {
       transform-origin: 0 50%;
     }
-  }
 }
 @keyframes m-sb-spin {
   to {
@@ -226,5 +233,11 @@
 @keyframes m-sb-pop {
   40% {
     scale: 1.2;
+  }
+}
+@keyframes m-sabah-sheet {
+  from {
+    opacity: 0;
+    translate: 0 26px;
   }
 }
