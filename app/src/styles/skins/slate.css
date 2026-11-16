@@ -106,7 +106,7 @@
   background:
     linear-gradient(90deg, var(--m-sl-wood-2) 0 2px, var(--m-sl-wood) 2px calc(var(--m-sl-frame) - 1px), #5a3a1c calc(var(--m-sl-frame) - 1px) var(--m-sl-frame), transparent var(--m-sl-frame)),
     linear-gradient(270deg, var(--m-sl-wood-2) 0 2px, var(--m-sl-wood) 2px calc(var(--m-sl-frame) - 1px), #5a3a1c calc(var(--m-sl-frame) - 1px) var(--m-sl-frame), transparent var(--m-sl-frame)),
-    var(--m-bg-2);
+    var(--m-bg-2) !important;
   border-bottom: 1.5px dashed color-mix(in srgb, var(--m-sl-chalk) 35%, transparent);
   box-shadow: 0 8px 12px -10px rgba(0, 0, 0, 0.8);
 }

@@ -63,7 +63,7 @@
   background:
     linear-gradient(90deg, var(--m-rl-tile) 0 9px, rgba(0, 0, 0, 0.18) 9px 10px, transparent 10px),
     linear-gradient(270deg, var(--m-rl-tile) 0 9px, rgba(0, 0, 0, 0.18) 9px 10px, transparent 10px),
-    var(--m-bg);
+    var(--m-bg) !important;
   border-bottom: 3px solid var(--m-rl-ink);
 }
 .m-skin-roll .m-tab {

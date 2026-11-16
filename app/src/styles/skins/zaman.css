@@ -86,7 +86,7 @@
   background:
     linear-gradient(90deg, var(--m-accent) 0 4px, transparent 4px 6px, var(--m-accent-2) 6px 7.5px, transparent 7.5px),
     linear-gradient(270deg, var(--m-accent) 0 4px, transparent 4px 6px, var(--m-accent-2) 6px 7.5px, transparent 7.5px),
-    var(--m-bg-2);
+    var(--m-bg-2) !important;
   border-top: 3px solid var(--m-accent);
   border-bottom: 3px double var(--m-accent-2);
 }

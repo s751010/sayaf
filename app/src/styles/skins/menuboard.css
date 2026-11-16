@@ -71,7 +71,7 @@
   --m-tab-on: var(--m-accent-2);
   --m-tab-on-ink: #17181c;
   --m-tab-ink: var(--m-text);
-  background: #0b0b0d;
+  background: #0b0b0d !important;
   border-block: 2px solid #2c2e35;
   box-shadow: 0 10px 14px -10px #000;
 }

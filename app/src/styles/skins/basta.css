@@ -1,3 +1,273 @@
+/*
+ * ══ بسطة — بسطة السمك على الثلج (٢٠٢٦/١١/١٥، طوابع «التوقيع») ════════════════════════════════
+ * الصفحة ثلجٌ مجروش بأوجهه الباهتة، وفي رأسها سمكةٌ على كومة الثلج وبطاقة سعرٍ مغروزة بالشعار. **كلّ صنفٍ
+ * بطاقة سعرٍ بيضاء** بحدٍّ أزرق مزدوج، وسعره **بقلمٍ أزرق عريض** تحته خطّ أحمر — كبطاقات البسطة. وعناوين
+ * الأقسام لوحات مينا زرقاء ببرغيَيها.
+ *
+ * ⚠️ مستورَدٌ من **رأس** `menu-skins.css` — فكلّ انتقائيٍّ هنا يبدأ بـ`.m-skin-basta`.
+ * ما يتبع العلامة: الأزرق (`--m-accent`) والأحمر (`--m-accent-2`). وما لا يتبعها خامة: الثلج والسمكة والليمون.
+ */
 .m-skin-basta {
   display: flow-root;
+  /* أوجه الثلج: مثلّثاتٌ باهتة بزوايا مختلفة. */
+  background-image:
+    linear-gradient(118deg, transparent 0 46%, rgba(255, 255, 255, 0.75) 46% 54%, transparent 54%),
+    linear-gradient(62deg, transparent 0 40%, rgba(160, 205, 228, 0.22) 40% 52%, transparent 52%),
+    linear-gradient(152deg, transparent 0 58%, rgba(255, 255, 255, 0.6) 58% 66%, transparent 66%),
+    linear-gradient(28deg, transparent 0 30%, rgba(160, 205, 228, 0.18) 30% 40%, transparent 40%);
+  background-size: 92px 74px, 118px 96px, 140px 110px, 76px 88px;
+}
+.m-skin-basta .m-bs-stage {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--m-accent) 16%, #fff), var(--m-bg-2) 70%, #fff);
+}
+.m-skin-basta .m-bs-herb {
+  fill: #3f9a4a;
+}
+.m-skin-basta .m-bs-tag {
+  transform-origin: 50% 100%;
+  rotate: -7deg;
+  filter: drop-shadow(0 6px 5px rgba(13, 36, 54, 0.3));
+}
+.m-skin-basta .m-bs-card {
+  background: #fff;
+  border: 2.5px solid var(--m-accent);
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 2px #fff, inset 0 0 0 3px color-mix(in srgb, var(--m-accent) 40%, transparent);
+}
+.m-skin-basta .m-bs-spike {
+  background: linear-gradient(90deg, #8d9aa3, #dfe6ea 50%, #8d9aa3);
+}
+.m-skin-basta .m-bs-underline {
+  background: var(--m-accent-2);
+  border-radius: 5px 9px 4px 8px;
+  rotate: -1.2deg;
+}
+.m-skin-basta .m-chips > * {
+  background: #fff;
+  border: 2px solid var(--m-accent);
+  border-radius: 6px;
+}
+
+/* ── الشريط اللاصق ── */
+.m-skin-basta .m-nav {
+  background: rgba(255, 255, 255, 0.94) !important;
+  backdrop-filter: blur(6px);
+  border-bottom: 3px solid var(--m-accent);
+}
+.m-skin-basta .m-tab {
+  border-radius: 6px;
+  border: 2px solid color-mix(in srgb, var(--m-accent) 35%, transparent);
+  background: #fff;
+}
+
+/* ── عنوان القسم: لوحة مينا ── */
+.m-skin-basta .m-bs-enamel {
+  color: #fff;
+  background:
+    radial-gradient(circle at 9px 50%, #e8edf1 0 2.2px, #6a7780 2.6px 3.6px, transparent 4px),
+    radial-gradient(circle at calc(100% - 9px) 50%, #e8edf1 0 2.2px, #6a7780 2.6px 3.6px, transparent 4px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.22), transparent 45%),
+    var(--m-accent);
+  border-radius: 8px;
+  box-shadow:
+    inset 0 0 0 2.5px var(--m-accent),
+    inset 0 0 0 4.5px #fff,
+    0 8px 12px -8px rgba(13, 36, 54, 0.6);
+}
+.m-skin-basta .m-bs-count {
+  color: #fff;
+  background: var(--m-accent-2);
+  border-radius: 5px;
+  rotate: 4deg;
+}
+.m-skin-basta .m-bs-photo .m-img {
+  border-radius: 8px;
+  box-shadow:
+    0 0 0 4px #fff,
+    0 0 0 6px var(--m-accent),
+    0 14px 18px -12px rgba(13, 36, 54, 0.5);
+}
+
+/* ── الصنف: بطاقة سعر ── */
+.m-skin-basta .m-card.m-surface {
+  --m-surface: #ffffff;
+  border: 2.5px solid var(--m-accent);
+  border-radius: 8px;
+  box-shadow:
+    inset 0 0 0 2px #fff,
+    inset 0 0 0 3px color-mix(in srgb, var(--m-accent) 35%, transparent),
+    0 12px 14px -10px rgba(13, 36, 54, 0.45);
+}
+/* السعر بقلمٍ أزرق عريض، وتحته خطّ أحمر. */
+.m-skin-basta .m-card .m-price,
+.m-skin-basta .m-feature .m-price {
+  display: inline-block;
+  width: fit-content;
+  padding-bottom: 0.05rem;
+  font-family: var(--m-display, var(--m-font));
+  font-size: 1.5rem;
+  line-height: 1.3;
+  color: var(--m-accent);
+  --m-accent-ink: var(--m-accent);
+  border-bottom: 3.5px solid var(--m-accent-2);
+  border-radius: 0 0 4px 7px;
+  rotate: -2deg;
+}
+.m-skin-basta .m-add {
+  border-radius: 8px;
+  box-shadow:
+    0 0 0 2.5px #fff,
+    0 4px 0 color-mix(in srgb, var(--m-accent) 60%, #000);
+}
+.m-skin-basta .m-soldout {
+  background: #fff;
+  color: var(--m-accent-2);
+  border: 2.5px solid var(--m-accent-2);
+  border-radius: 5px;
+  rotate: -5deg;
+}
+.m-skin-basta .m-feature {
+  --m-surface: #ffffff;
+  border: 3px solid var(--m-accent-2);
+  border-radius: 8px;
+  box-shadow:
+    inset 0 0 0 2px #fff,
+    inset 0 0 0 3.5px color-mix(in srgb, var(--m-accent-2) 40%, transparent),
+    0 14px 18px -12px rgba(13, 36, 54, 0.5);
+}
+/* الطبق بلا صورة: صحنٌ على الثلج. */
+.m-skin-basta .m-art {
+  --m-art-bg:
+    linear-gradient(118deg, transparent 0 46%, rgba(255, 255, 255, 0.8) 46% 54%, transparent 54%) 0 0 / 46px 38px,
+    linear-gradient(62deg, transparent 0 40%, rgba(160, 205, 228, 0.35) 40% 52%, transparent 52%) 0 0 / 58px 48px,
+    #dcecf5;
+  --m-art-plate: radial-gradient(circle closest-side, #ffffff 0 62%, #eef4f8 64% 86%, var(--m-accent) 88% 92%, #fff 94% 100%);
+  --m-art-ring: 0 0 0 1px rgba(13, 36, 54, 0.12);
+  --m-art-lift: 0 10px 14px -8px rgba(13, 36, 54, 0.4);
+  --m-art-well: 0 0 transparent;
+  --m-art-mark: transparent;
+}
+.m-skin-basta .m-cart {
+  border-radius: 8px !important;
+  box-shadow:
+    0 0 0 2.5px #fff,
+    0 14px 18px -8px rgba(13, 36, 54, 0.55);
+}
+.m-skin-basta .m-o-card {
+  border: 2px solid color-mix(in srgb, var(--m-accent) 40%, transparent);
+  border-radius: 10px;
+}
+.m-skin-basta .m-o-cta {
+  border-radius: 8px;
+  box-shadow: 0 4px 0 color-mix(in srgb, var(--m-accent) 60%, #000);
+}
+.m-skin-basta .m-o-field,
+.m-skin-basta .m-o-ghost,
+.m-skin-basta .m-o-opt,
+.m-skin-basta .m-o-soldout,
+.m-skin-basta .m-o-step,
+.m-skin-basta .m-o-chip {
+  border-radius: 6px;
+}
+
+/* ── الحركة ──
+ * الثلج يلمع نجيمةً نجيمة، وذيل السمكة يضرب كلّ بضع ثوانٍ، وبطاقة الشعار تتمايل على مسمارها. وحين يدخل القسم
+ * تُثبَّت لوحته (تهبط وتستقرّ، `data-m-in`). وحين يُضاف صنفٌ يضرب الذيل ضربتين وتقفز البطاقة
+ * (`data-m-added`). وتحت الشريط اللاصق موجٌ أزرق يمتدّ بتقدّم الصفحة (`--m-scroll`). */
+@media (prefers-reduced-motion: no-preference) {
+  .m-skin-basta .m-bs-glint {
+    transform-box: fill-box;
+    transform-origin: 50% 50%;
+    animation: m-bs-glint 2.8s ease-in-out calc(var(--m-bs-i, 0) * 0.37s) infinite;
+  }
+  .m-skin-basta .m-bs-tail {
+    transform-box: fill-box;
+    transform-origin: 0 50%;
+    animation: m-bs-flick 5s ease-in-out 1.2s infinite;
+  }
+  .m-skin-basta[data-m-added] .m-bs-tail {
+    animation: m-bs-flick2 0.7s ease-in-out;
+  }
+  .m-skin-basta .m-bs-tag {
+    animation: m-bs-sway 3.4s ease-in-out infinite alternate;
+  }
+  .m-skin-basta[data-m-added] .m-bs-tag {
+    animation: m-bs-hop 0.6s ease-out;
+  }
+  .m-skin-basta[data-m-motion] .m-sec .m-bs-enamel {
+    opacity: 0;
+    translate: 0 -12px;
+    rotate: -4deg;
+    transition: opacity 0.25s linear, translate 0.5s cubic-bezier(0.3, 1.5, 0.5, 1), rotate 0.6s cubic-bezier(0.3, 1.5, 0.5, 1);
+  }
+  .m-skin-basta[data-m-motion] .m-sec[data-m-in] .m-bs-enamel {
+    opacity: 1;
+    translate: 0 0;
+    rotate: 0deg;
+  }
+  .m-skin-basta .m-add:active {
+    translate: 0 3px;
+    box-shadow: 0 0 0 2.5px #fff, 0 1px 0 color-mix(in srgb, var(--m-accent) 60%, #000);
+  }
+  @supports (animation-timeline: scroll()) or (scale: calc(1 * 1)) {
+    .m-skin-basta[data-m-motion] .m-nav::after {
+      content: "";
+      position: absolute;
+      inset: auto 0 -9px;
+      height: 6px;
+      background: radial-gradient(circle at 50% 0, var(--m-accent) 0 5px, transparent 5.5px) 0 0 / 14px 6px repeat-x;
+      transform-origin: 100% 50%;
+      scale: var(--m-scroll, 0) 1;
+    }
+    [dir="ltr"] .m-skin-basta[data-m-motion] .m-nav::after {
+      transform-origin: 0 50%;
+    }
+  }
+}
+@keyframes m-bs-glint {
+  0%,
+  100% {
+    scale: 0.3;
+    opacity: 0.2;
+  }
+  50% {
+    scale: 1;
+    opacity: 1;
+  }
+}
+@keyframes m-bs-flick {
+  0%,
+  82%,
+  100% {
+    rotate: 0deg;
+  }
+  87% {
+    rotate: -16deg;
+  }
+  93% {
+    rotate: 10deg;
+  }
+}
+@keyframes m-bs-flick2 {
+  25%,
+  65% {
+    rotate: -18deg;
+  }
+  45%,
+  85% {
+    rotate: 10deg;
+  }
+}
+@keyframes m-bs-sway {
+  from {
+    rotate: -9deg;
+  }
+  to {
+    rotate: -4deg;
+  }
+}
+@keyframes m-bs-hop {
+  40% {
+    translate: 0 -9px;
+  }
 }

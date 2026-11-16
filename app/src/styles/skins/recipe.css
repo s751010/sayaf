@@ -75,7 +75,7 @@
 
 /* ── الشريط اللاصق ── */
 .m-skin-recipe .m-nav {
-  background: color-mix(in srgb, var(--m-bg) 95%, transparent);
+  background: color-mix(in srgb, var(--m-bg) 95%, transparent) !important;
   backdrop-filter: blur(4px);
   border-bottom: 2px dashed color-mix(in srgb, var(--m-accent) 40%, transparent);
 }

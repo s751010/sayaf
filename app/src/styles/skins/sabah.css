@@ -49,7 +49,7 @@
 
 /* ── الشريط اللاصق ── */
 .m-skin-sabah .m-nav {
-  background: color-mix(in srgb, var(--m-bg) 96%, transparent);
+  background: color-mix(in srgb, var(--m-bg) 96%, transparent) !important;
   backdrop-filter: blur(4px);
   border-bottom: 3px solid var(--m-sb-yolk);
 }

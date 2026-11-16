@@ -67,7 +67,7 @@
 
 /* ── الشريط اللاصق ── */
 .m-skin-fatla .m-nav {
-  background: color-mix(in srgb, var(--m-bg) 96%, transparent);
+  background: color-mix(in srgb, var(--m-bg) 96%, transparent) !important;
   border-bottom: 2px solid var(--m-ft-string);
 }
 .m-skin-fatla .m-tab {

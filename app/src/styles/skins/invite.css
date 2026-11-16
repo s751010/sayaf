@@ -86,7 +86,7 @@
   --m-tab-on: transparent;
   --m-tab-on-ink: var(--m-text);
   --m-tab-ink: var(--m-muted);
-  background: color-mix(in srgb, var(--m-bg) 94%, transparent);
+  background: color-mix(in srgb, var(--m-bg) 94%, transparent) !important;
   backdrop-filter: blur(6px);
   border-bottom: 1px solid var(--m-iv-line);
 }
