@@ -154,7 +154,8 @@ describe("demoMenus", () => {
     // ولكلّ طابعٍ منيوٌ موجود — لا معاينة على بيانات ناقصة.
     for (const t of ALL_THEMES) expect(isDemoKind(demoKindForSuits(t.suits, t.id)), t.id).toBe(true);
     // والطابع الجديد يُعاين على منيوٍ طابعُه هو نفسه.
-    for (const id of ["harbor", "patisserie", "juice", "burger", "bakery", "breakfast", "grill", "pizza", "dallah", "barista", "karak", "samovar", "bucket", "scoop", "chopsticks", "zaatar"]) {
+    // (١٥/١١: منيوهات الأقسام العشرة لبست طوابع «التوقيع» — فهي التي تُعاين على منيوها اليوم.)
+    for (const id of ["basta", "patisserie", "crate", "menuboard", "recipe", "sabah", "wasm", "roll", "dallah", "barista", "fatla", "samovar", "bucket", "scoop", "chopsticks", "zaatar", "slate", "zaman"]) {
       expect(demoData(kindOf(id)).menus[0].theme).toBe(id);
     }
   });

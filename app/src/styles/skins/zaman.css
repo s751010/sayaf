@@ -1,0 +1,374 @@
+/*
+ * ══ قائمة زمان — قائمة المطعم الشعبي المغلّفة (٢٠٢٦/١١/١٥، طوابع «التوقيع») ══════════════════════
+ * ورقة مطبعةٍ قديمة بلونين: إطار أحمر وخيطٌ أخضر على جانبَي الصفحة كلّها، وورقٌ أصفر بنقط الطباعة. **الأصناف
+ * مرقّمة** بعدّاد CSS (٠١ · ٠٢ …) في صفوفٍ متناوبة اللون كجدول القائمة، والسعر **بطاقة حمراء**، و«طبق اليوم»
+ * **قسيمةٌ تُقصّ** بحدٍّ متقطّع ومقصّ، وعناوين الأقسام شريطٌ أخضر بطرفين مشقوقين. وفوق كلّ شيء **لمعة التغليف**:
+ * شريط ضوءٍ مائل يمرّ على الصفحة كلّ بضع ثوانٍ.
+ *
+ * ⚠️ مستورَدٌ من **رأس** `menu-skins.css` — فكلّ انتقائيٍّ هنا يبدأ بـ`.m-skin-zaman`.
+ *
+ * ما يتبع العلامة: الأحمر (`--m-accent`) والأخضر (`--m-accent-2`). وما لا يتبعها خامة: الورق والحبر والمعدن.
+ */
+.m-skin-zaman {
+  display: flow-root;
+  counter-reset: m-zm-dish;
+  --m-zm-ink: #1d1a14;
+  --m-zm-frame: 9px;
+  /* الإطار المزدوج على الجانبين، ثم نقط الطباعة، ثم اصفرار الورق عند أطرافه. */
+  background-image:
+    linear-gradient(90deg, var(--m-accent) 0 4px, transparent 4px 6px, var(--m-accent-2) 6px 7.5px, transparent 7.5px),
+    linear-gradient(270deg, var(--m-accent) 0 4px, transparent 4px 6px, var(--m-accent-2) 6px 7.5px, transparent 7.5px),
+    radial-gradient(circle, rgba(29, 26, 20, 0.07) 0 0.7px, transparent 1px),
+    radial-gradient(120% 50rem at 50% 20rem, transparent 55%, rgba(150, 110, 40, 0.1));
+  background-repeat: no-repeat, no-repeat, repeat, repeat-y;
+  background-size: auto, auto, 5px 5px, 100% 60rem;
+}
+
+/* ── الترويسة ── */
+.m-skin-zaman .m-zm-band {
+  color: var(--m-on-accent);
+  background:
+    radial-gradient(circle at 50% 100%, var(--m-bg) 0 9px, transparent 9.5px) 0 100% / 22px 12px repeat-x,
+    var(--m-accent);
+  box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.22);
+}
+.m-skin-zaman .m-zm-eyelet {
+  background: radial-gradient(circle, var(--m-bg) 0 32%, #6f6a60 34% 40%, #e8e4da 42% 62%, #8d877a 64% 70%, transparent 72%);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+.m-skin-zaman .m-zm-burst polygon {
+  fill: var(--m-accent-2);
+}
+.m-skin-zaman .m-zm-seal {
+  background: var(--m-bg);
+  box-shadow:
+    0 0 0 2px var(--m-bg),
+    0 0 0 4px var(--m-accent);
+}
+/* طباعة لونين لم يتطابق قالباهما: الأحمر فوق ظلٍّ أخضر مُزاح. */
+.m-skin-zaman .m-zm-name {
+  color: var(--m-accent);
+  text-shadow: 2.5px 2.5px 0 color-mix(in srgb, var(--m-accent-2) 85%, transparent);
+}
+.m-skin-zaman .m-zm-tag {
+  color: #fff;
+  background: var(--m-accent-2);
+  clip-path: polygon(0 0, 100% 0, calc(100% - 9px) 50%, 100% 100%, 0 100%, 9px 50%);
+}
+.m-skin-zaman .m-zm-red {
+  fill: var(--m-accent);
+}
+.m-skin-zaman .m-zm-green {
+  fill: var(--m-accent-2);
+}
+.m-skin-zaman .m-zm-rule {
+  height: 8px;
+  border-top: 3px solid var(--m-accent);
+  border-bottom: 1.5px solid var(--m-accent-2);
+}
+.m-skin-zaman .m-lang {
+  border: 2px solid var(--m-zm-ink);
+  border-radius: 6px;
+  box-shadow: 2px 2px 0 var(--m-zm-ink);
+}
+.m-skin-zaman .m-chips > * {
+  background: var(--m-surface);
+  border: 1.5px solid var(--m-zm-ink);
+  border-radius: 4px;
+  box-shadow: 2px 2px 0 var(--m-accent-2);
+}
+
+/* ── الشريط اللاصق ── */
+.m-skin-zaman .m-nav {
+  --m-tab-on: var(--m-accent);
+  --m-tab-on-ink: #fff;
+  --m-tab-ink: var(--m-text);
+  background:
+    linear-gradient(90deg, var(--m-accent) 0 4px, transparent 4px 6px, var(--m-accent-2) 6px 7.5px, transparent 7.5px),
+    linear-gradient(270deg, var(--m-accent) 0 4px, transparent 4px 6px, var(--m-accent-2) 6px 7.5px, transparent 7.5px),
+    var(--m-bg-2) !important;
+  border-top: 3px solid var(--m-accent);
+  border-bottom: 3px double var(--m-accent-2);
+}
+.m-skin-zaman .m-tab {
+  border-radius: 4px;
+  border: 1.5px solid color-mix(in srgb, var(--m-zm-ink) 55%, transparent);
+}
+
+/* ── عنوان القسم: الشريط الأخضر ── */
+.m-skin-zaman .m-zm-ribbon {
+  color: #fff;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0 2px, transparent 2px calc(100% - 2px), rgba(0, 0, 0, 0.2) calc(100% - 2px)),
+    var(--m-accent-2);
+  clip-path: polygon(0 0, 100% 0, calc(100% - 12px) 50%, 100% 100%, 0 100%, 12px 50%);
+}
+.m-skin-zaman .m-zm-no {
+  color: #fff;
+  background: var(--m-accent);
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 3.5px var(--m-accent);
+}
+.m-skin-zaman .m-zm-count {
+  color: var(--m-zm-ink);
+  background: #ffe27a;
+  border-radius: 3px;
+}
+.m-skin-zaman .m-zm-photo .m-img {
+  border-radius: 4px;
+  box-shadow:
+    0 0 0 2px var(--m-zm-ink),
+    4px 4px 0 var(--m-accent);
+}
+
+/* ── الصنف: سطرٌ مرقّم في جدول القائمة ── */
+.m-skin-zaman .m-row {
+  counter-increment: m-zm-dish;
+  padding-inline: 0.5rem;
+  gap: 0.6rem;
+}
+.m-skin-zaman .m-row:nth-of-type(even) {
+  background: color-mix(in srgb, var(--m-accent-2) 7%, transparent);
+}
+.m-skin-zaman .m-row::before {
+  content: counter(m-zm-dish, arabic-indic);
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.75rem;
+  height: 1.75rem;
+  padding-inline: 0.25rem;
+  margin-top: 0.05rem;
+  font: 800 0.86rem/1 var(--font-cairo), var(--m-font);
+  color: var(--m-accent);
+  border: 2px solid var(--m-accent);
+  border-radius: 50%;
+}
+[dir="ltr"].m-skin-zaman .m-row::before {
+  content: counter(m-zm-dish, decimal);
+}
+.m-skin-zaman .m-row .m-name {
+  font-size: 1.08rem;
+  font-weight: 800;
+}
+/* السعر بطاقةٌ حمراء بظلٍّ أخضر مُزاح. */
+.m-skin-zaman .m-card .m-price,
+.m-skin-zaman .m-feature .m-price {
+  display: inline-block;
+  width: fit-content;
+  padding: 0.12rem 0.55rem;
+  color: #fff;
+  --m-accent-ink: #fff;
+  --m-muted: rgba(255, 255, 255, 0.9);
+  background: var(--m-accent);
+  border-radius: 4px;
+  box-shadow: 2px 2px 0 var(--m-accent-2);
+}
+.m-skin-zaman .m-row .m-thumb {
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 2px var(--m-zm-ink),
+    3px 3px 0 var(--m-accent-2);
+}
+.m-skin-zaman .m-add {
+  border-radius: 8px;
+  box-shadow: 2.5px 2.5px 0 var(--m-zm-ink);
+}
+.m-skin-zaman .m-badge {
+  border-radius: 3px;
+}
+.m-skin-zaman .m-soldout {
+  background: var(--m-surface);
+  color: var(--m-accent);
+  border: 2px solid var(--m-accent);
+  border-radius: 4px;
+  rotate: -5deg;
+}
+
+/* ── طبق اليوم: قسيمةٌ تُقصّ ── */
+.m-skin-zaman .m-feature {
+  position: relative;
+  background: #fff6c9;
+  border: 2.5px dashed var(--m-zm-ink);
+  border-radius: 6px;
+  box-shadow: none;
+}
+.m-skin-zaman .m-feature::after {
+  content: "✂";
+  position: absolute;
+  top: -0.95rem;
+  inset-inline-end: 1.1rem;
+  padding-inline: 0.2rem;
+  font-size: 1.15rem;
+  line-height: 1;
+  color: var(--m-zm-ink);
+  background: var(--m-bg);
+}
+
+/* ── الطبق بلا صورة: صحنٌ مطبوع بلونين ── */
+.m-skin-zaman .m-art {
+  --m-art-bg:
+    radial-gradient(circle, rgba(29, 26, 20, 0.1) 0 0.8px, transparent 1.1px) 0 0 / 5px 5px,
+    #f3e4b8;
+  --m-art-plate: radial-gradient(circle closest-side, #fff9e6 0 62%, var(--m-accent-2) 64% 70%, #fff9e6 72% 88%, var(--m-accent) 90% 100%);
+  --m-art-ring: 0 0 0 2px var(--m-zm-ink);
+  --m-art-lift: 3px 3px 0 var(--m-zm-ink);
+  --m-art-well: 0 0 transparent;
+  --m-art-mark: rgba(29, 26, 20, 0.07);
+}
+.m-skin-zaman .m-card.m-surface {
+  border: 2px solid var(--m-zm-ink);
+  box-shadow: 4px 4px 0 var(--m-accent-2);
+}
+
+/* ── شريط الطلب ── */
+.m-skin-zaman .m-cart {
+  border: 2px solid var(--m-zm-ink) !important;
+  border-radius: 6px !important;
+  box-shadow: 4px 4px 0 var(--m-accent-2);
+}
+
+/* ── شاشات الطلب ── */
+.m-skin-zaman .m-o-card {
+  border: 2px solid var(--m-zm-ink);
+  border-radius: 6px;
+}
+.m-skin-zaman .m-o-cta {
+  border-radius: 6px;
+  box-shadow: 3px 3px 0 var(--m-zm-ink);
+}
+.m-skin-zaman .m-o-field,
+.m-skin-zaman .m-o-ghost,
+.m-skin-zaman .m-o-opt,
+.m-skin-zaman .m-o-soldout,
+.m-skin-zaman .m-o-step,
+.m-skin-zaman .m-o-chip {
+  border-radius: 4px;
+}
+
+/* ── لمعة التغليف — ثابتةٌ بلا حركة أيضاً (بريق الزاوية)، وتمرّ مع الحركة ── */
+.m-skin-zaman::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 31;
+  pointer-events: none;
+  background: linear-gradient(118deg, transparent 0 8%, rgba(255, 255, 255, 0.16) 12%, transparent 17%);
+}
+
+/* ── نافذة الطبق والسلّة ── */
+.m-skin-zaman .m-sheet {
+  border-top: 3px solid var(--m-accent);
+  border-radius: 8px 8px 0 0;
+}
+
+/* ── الحركة ──
+ * النجمة حول الشعار تدور ببطء، وبخار الإبريق والاستكانة يتصاعد. ولمعة التغليف شريط ضوءٍ يعبر الصفحة كلّ
+ * ثماني ثوانٍ (تحويلٌ على طبقةٍ ثابتة — لا إعادة رسم). وحين يدخل القسم ينفرد شريطه وتقفز دائرة رقمه
+ * (`data-m-in`). وحين يُضاف صنفٌ يُختم الزرّ ويهتزّ شريط الطلب (`data-m-added`). وتحت الشريط اللاصق خطّ
+ * أحمر يمتدّ بتقدّم الصفحة (`--m-scroll`). */
+@media (prefers-reduced-motion: no-preference) {
+  .m-skin-zaman .m-sheet.anim-fade-up {
+    animation: m-zaman-sheet 0.26s cubic-bezier(0.2, 0.9, 0.25, 1) backwards;
+  }
+  .m-skin-zaman .m-zm-burst {
+    animation: m-zm-spin 40s linear infinite;
+  }
+  .m-skin-zaman .m-zm-steam path {
+    animation: m-zm-steam 2.6s ease-out infinite;
+  }
+  .m-skin-zaman .m-zm-steam path:nth-child(2) {
+    animation-delay: 0.8s;
+  }
+  .m-skin-zaman .m-zm-steam path:nth-child(3) {
+    animation-delay: 1.5s;
+  }
+  .m-skin-zaman::after {
+    inset: 0 -120%;
+    background: linear-gradient(118deg, transparent 0 44%, rgba(255, 255, 255, 0.26) 48%, rgba(255, 255, 255, 0.07) 51%, transparent 55%);
+    animation: m-zm-glare 8s ease-in-out 1.2s infinite;
+  }
+  .m-skin-zaman[data-m-motion] .m-sec .m-zm-ribbon {
+    transform-origin: 50% 50%;
+    scale: 0.4 1;
+    opacity: 0;
+    transition: scale 0.55s cubic-bezier(0.2, 1.2, 0.4, 1), opacity 0.25s linear;
+  }
+  .m-skin-zaman[data-m-motion] .m-sec[data-m-in] .m-zm-ribbon {
+    scale: 1 1;
+    opacity: 1;
+  }
+  .m-skin-zaman[data-m-motion] .m-sec .m-zm-no {
+    scale: 0;
+    transition: scale 0.45s cubic-bezier(0.3, 1.7, 0.5, 1) 0.35s;
+  }
+  .m-skin-zaman[data-m-motion] .m-sec[data-m-in] .m-zm-no {
+    scale: 1;
+  }
+  .m-skin-zaman .m-add:active {
+    translate: 2px 2px;
+    box-shadow: 0 0 0 var(--m-zm-ink);
+  }
+  .m-skin-zaman[data-m-added] .m-cart {
+    animation: m-zm-stamp 0.4s ease-out;
+  }
+    .m-skin-zaman[data-m-motion] .m-nav::after {
+      content: "";
+      position: absolute;
+      inset: auto var(--m-zm-frame) -7px;
+      height: 3px;
+      background: var(--m-accent);
+      transform-origin: 100% 50%;
+      scale: var(--m-scroll, 0) 1;
+    }
+    [dir="ltr"].m-skin-zaman[data-m-motion] .m-nav::after {
+      transform-origin: 0 50%;
+    }
+}
+@keyframes m-zm-spin {
+  to {
+    rotate: 360deg;
+  }
+}
+@keyframes m-zm-steam {
+  0% {
+    translate: 0 4px;
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.9;
+  }
+  100% {
+    translate: 0 -8px;
+    opacity: 0;
+  }
+}
+@keyframes m-zm-glare {
+  0%,
+  55% {
+    translate: -45% 0;
+  }
+  100% {
+    translate: 45% 0;
+  }
+}
+@keyframes m-zm-stamp {
+  0% {
+    scale: 1;
+  }
+  40% {
+    scale: 0.96;
+    rotate: -1deg;
+  }
+  100% {
+    scale: 1;
+  }
+}
+@keyframes m-zaman-sheet {
+  from {
+    opacity: 0;
+    translate: 0 26px;
+  }
+}

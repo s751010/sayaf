@@ -1,0 +1,291 @@
+/*
+ * ══ لوحة مضيئة — لوحة الكاونتر المعلّقة (٢٠٢٦/١١/١٥، طوابع «التوقيع») ═══════════════════════════
+ * جدارٌ داكن بفواصل ألواحه، ولوحةٌ معلّقة بثلاثة ألواحٍ مضيئة وشريطٍ نقطيّ. **كلّ صنفٍ لوحٌ مضيء مرقّم**
+ * (عدّاد CSS في دائرةٍ حمراء) بهالة ضوءٍ حوله، والسعر فقاعةٌ صفراء. وعناوين الأقسام صندوق ضوءٍ برقمه.
+ *
+ * ⚠️ مستورَدٌ من **رأس** `menu-skins.css` — فكلّ انتقائيٍّ هنا يبدأ بـ`.m-skin-menuboard`.
+ * ما يتبع العلامة: الأحمر (`--m-accent`) والأصفر (`--m-accent-2`). وما لا يتبعها خامة: الألواح والمعدن.
+ */
+.m-skin-menuboard {
+  display: flow-root;
+  counter-reset: m-mb-dish;
+  --m-mb-lit: #fdfcf6;
+  --m-mb-ink: #17181c;
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 16rem),
+    repeating-linear-gradient(90deg, transparent 0 calc(50% - 1px), rgba(0, 0, 0, 0.45) calc(50% - 1px) 50%),
+    repeating-linear-gradient(180deg, transparent 0 15.9rem, rgba(0, 0, 0, 0.4) 15.9rem 16rem);
+  background-repeat: no-repeat, repeat, repeat;
+}
+
+/* ── اللوحة المعلّقة ── */
+.m-skin-menuboard .m-mb-rod {
+  background: linear-gradient(90deg, #6d7078, #c9ccd4 45%, #6d7078);
+}
+.m-skin-menuboard .m-mb-frame {
+  background: linear-gradient(180deg, #33353c, #1d1e23);
+  border-radius: 10px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 18px 30px -14px rgba(0, 0, 0, 0.9),
+    0 0 50px -6px rgba(255, 250, 225, 0.22);
+}
+.m-skin-menuboard .m-mb-panel {
+  background: radial-gradient(120% 90% at 50% 40%, #ffffff, var(--m-mb-lit) 60%, #ece8d8);
+  border-radius: 6px;
+  box-shadow: inset 0 0 14px rgba(255, 244, 200, 0.9);
+}
+.m-skin-menuboard .m-mb-side {
+  background: radial-gradient(120% 90% at 50% 40%, #fff7d6, var(--m-accent-2));
+}
+.m-skin-menuboard .m-mb-red {
+  fill: var(--m-accent);
+}
+.m-skin-menuboard .m-mb-type {
+  color: #fff;
+  background: var(--m-accent);
+  border-radius: 4px;
+}
+/* الشريط النقطيّ: حروفٌ من ضوء على شبكة نقط. */
+.m-skin-menuboard .m-mb-ticker {
+  color: var(--m-accent-2);
+  background:
+    radial-gradient(circle, transparent 0 1.1px, #0b0b0d 1.5px) 0 0 / 4px 4px,
+    #2a1c00;
+  border-radius: 5px;
+  box-shadow: inset 0 0 0 2px #000;
+  text-shadow: 0 0 8px color-mix(in srgb, var(--m-accent-2) 80%, transparent);
+}
+.m-skin-menuboard .m-lang {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25);
+}
+.m-skin-menuboard .m-chips > * {
+  background: #24262c;
+  color: var(--m-text);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+}
+
+/* ── الشريط اللاصق ── */
+.m-skin-menuboard .m-nav {
+  --m-tab-on: var(--m-accent-2);
+  --m-tab-on-ink: #17181c;
+  --m-tab-ink: var(--m-text);
+  background: #0b0b0d !important;
+  border-block: 2px solid #2c2e35;
+  box-shadow: 0 10px 14px -10px #000;
+}
+.m-skin-menuboard .m-tab {
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+/* ── عنوان القسم: صندوق ضوء ── */
+.m-skin-menuboard .m-mb-box {
+  border-radius: 7px;
+  box-shadow:
+    0 0 0 2px #000,
+    0 0 26px -4px rgba(255, 250, 225, 0.4);
+}
+.m-skin-menuboard .m-mb-no {
+  color: #fff;
+  background: var(--m-accent);
+}
+.m-skin-menuboard .m-mb-lit {
+  color: var(--m-mb-ink);
+  background: linear-gradient(180deg, #ffffff, var(--m-mb-lit) 70%, #ebe6d2);
+}
+.m-skin-menuboard .m-mb-count {
+  color: var(--m-mb-ink);
+  background: var(--m-accent-2);
+}
+.m-skin-menuboard .m-mb-photo .m-img {
+  border-radius: 8px;
+  box-shadow:
+    0 0 0 2px #000,
+    0 0 26px -4px rgba(255, 250, 225, 0.35);
+}
+
+/* ── الصنف: لوحٌ مضيء مرقّم ── */
+.m-skin-menuboard .m-card.m-surface,
+.m-skin-menuboard .m-feature {
+  --m-text: var(--m-mb-ink);
+  --m-muted: #5a5a58;
+  --m-border: rgba(23, 24, 28, 0.14);
+  --m-bg-2: #f1ecdb;
+  --m-surface: var(--m-mb-lit);
+  background-image: linear-gradient(180deg, #ffffff, var(--m-mb-lit) 65%, #efead7) !important;
+  border: 0;
+  box-shadow:
+    0 0 0 2px #000,
+    0 0 0 3px #3a3c44,
+    0 0 26px -2px rgba(255, 250, 225, 0.32);
+}
+.m-skin-menuboard .m-card.m-surface {
+  counter-increment: m-mb-dish;
+}
+.m-skin-menuboard .m-card.m-surface::before {
+  content: counter(m-mb-dish, arabic-indic);
+  position: absolute;
+  z-index: 3;
+  top: 0.45rem;
+  inset-inline-start: 0.45rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.7rem;
+  height: 1.7rem;
+  padding-inline: 0.3rem;
+  font: 900 0.9rem/1 var(--font-cairo), var(--m-font);
+  color: #fff;
+  background: var(--m-accent);
+  border-radius: 999px;
+  box-shadow: 0 0 0 2px #fff;
+}
+[dir="ltr"].m-skin-menuboard .m-card.m-surface::before {
+  content: counter(m-mb-dish, decimal);
+}
+/* السعر فقاعةٌ صفراء بحبرٍ أسود. */
+.m-skin-menuboard .m-card .m-price.m-shine,
+.m-skin-menuboard .m-feature .m-price.m-shine {
+  background: var(--m-accent-2) !important;
+  color: var(--m-mb-ink) !important;
+  --m-on-accent: var(--m-mb-ink);
+  border-radius: 999px;
+  padding: 0.18rem 0.7rem;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.25);
+}
+.m-skin-menuboard .m-add {
+  border-radius: 8px;
+  box-shadow:
+    0 0 0 2px #fff,
+    0 3px 0 rgba(0, 0, 0, 0.4);
+}
+.m-skin-menuboard .m-soldout {
+  border-radius: 4px;
+  background: #17181c;
+  color: var(--m-accent-2);
+}
+.m-skin-menuboard .m-art {
+  --m-art-bg: radial-gradient(120% 90% at 50% 40%, #fff7d6, var(--m-accent-2));
+  --m-art-plate: radial-gradient(circle closest-side, #fff 0 70%, #f0ead6 72% 90%, var(--m-accent) 92% 100%);
+  --m-art-ring: 0 0 0 1px rgba(23, 24, 28, 0.15);
+  --m-art-lift: 0 10px 14px -8px rgba(23, 24, 28, 0.45);
+  --m-art-well: 0 0 transparent;
+  --m-art-mark: rgba(255, 255, 255, 0.35);
+}
+.m-skin-menuboard .m-cart {
+  border-radius: 8px !important;
+  box-shadow:
+    0 0 0 2px #000,
+    0 0 26px -4px rgba(255, 250, 225, 0.4);
+}
+.m-skin-menuboard .m-o-card {
+  border-radius: 10px;
+}
+.m-skin-menuboard .m-o-cta {
+  border-radius: 8px;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.5);
+}
+.m-skin-menuboard .m-o-field,
+.m-skin-menuboard .m-o-ghost,
+.m-skin-menuboard .m-o-opt,
+.m-skin-menuboard .m-o-soldout,
+.m-skin-menuboard .m-o-step,
+.m-skin-menuboard .m-o-chip {
+  border-radius: 6px;
+}
+
+/* ── نافذة الطبق والسلّة ── */
+.m-skin-menuboard .m-sheet {
+  border-top: 2px solid var(--m-accent-2);
+  border-radius: 10px 10px 0 0;
+}
+
+/* ── الحركة ──
+ * عند الفتح: الألواح الثلاثة تشتعل كالفلورسنت (وميضٌ ثم ثبات) واحداً بعد آخر، والشريط النقطيّ يمرّ دائماً
+ * ويسرع ما دام يمرّر (`data-m-scrolling`). وحين يدخل القسم يومض صندوق ضوئه ثم يثبت (`data-m-in`). وحين يُضاف
+ * صنفٌ يومض شريط الطلب (`data-m-added`). وتحت الشريط اللاصق خطٌّ أصفر يمتدّ بتقدّم الصفحة (`--m-scroll`). */
+@media (prefers-reduced-motion: no-preference) {
+  .m-skin-menuboard .m-sheet.anim-fade-up {
+    animation: m-menuboard-sheet 0.26s cubic-bezier(0.2, 0.9, 0.25, 1) backwards;
+  }
+  .m-skin-menuboard .m-mb-panel {
+    animation: m-mb-strike 0.9s steps(1, end) both;
+  }
+  .m-skin-menuboard .m-mb-panel:nth-child(2) {
+    animation-delay: 0.18s;
+  }
+  .m-skin-menuboard .m-mb-panel:nth-child(3) {
+    animation-delay: 0.36s;
+  }
+  .m-skin-menuboard .m-mb-tick {
+    animation: m-mb-run 18s linear infinite;
+  }
+  .m-skin-menuboard[data-m-scrolling] .m-mb-tick {
+    animation-duration: 7s;
+  }
+  .m-skin-menuboard[data-m-motion] .m-sec .m-mb-lit {
+    filter: brightness(0.35);
+  }
+  .m-skin-menuboard[data-m-motion] .m-sec[data-m-in] .m-mb-lit {
+    filter: none;
+    animation: m-mb-strike 0.7s steps(1, end) both;
+  }
+  .m-skin-menuboard[data-m-added] .m-cart {
+    animation: m-mb-flash 0.5s ease-out;
+  }
+  .m-skin-menuboard .m-add:active {
+    translate: 0 2px;
+  }
+    .m-skin-menuboard[data-m-motion] .m-nav::after {
+      content: "";
+      position: absolute;
+      inset: auto 0 -2px;
+      height: 2px;
+      background: var(--m-accent-2);
+      box-shadow: 0 0 8px var(--m-accent-2);
+      transform-origin: 100% 50%;
+      scale: var(--m-scroll, 0) 1;
+    }
+    [dir="ltr"].m-skin-menuboard[data-m-motion] .m-nav::after {
+      transform-origin: 0 50%;
+    }
+}
+@keyframes m-mb-strike {
+  0% {
+    filter: brightness(0.3);
+  }
+  12% {
+    filter: brightness(1.1);
+  }
+  20% {
+    filter: brightness(0.4);
+  }
+  34% {
+    filter: brightness(1.1);
+  }
+  42% {
+    filter: brightness(0.6);
+  }
+  55%,
+  100% {
+    filter: none;
+  }
+}
+@keyframes m-mb-run {
+  to {
+    translate: -25% 0;
+  }
+}
+@keyframes m-mb-flash {
+  30% {
+    filter: brightness(1.5);
+  }
+}
+@keyframes m-menuboard-sheet {
+  from {
+    opacity: 0;
+    translate: 0 26px;
+  }
+}

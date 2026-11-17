@@ -210,8 +210,8 @@ test("المنيو التجريبي: اختيار قسمٍ يبدّل المني
   await expect(page.getByText("مطعم شاطئ النورس", { exact: false }).first()).toBeVisible();
   await expect(page.getByText("مطعم الديوان", { exact: false })).toHaveCount(0);
   const themes = picker.getByRole("group", { name: "طوابع «بحري»" });
-  await expect(themes.getByRole("button")).toHaveText(["مرفأ", "عيدان", "عصري", "فاخر"]);
-  await expect(themes.getByRole("button", { name: "مرفأ" })).toHaveAttribute("aria-pressed", "true");
+  await expect(themes.getByRole("button")).toHaveText(["بسطة", "مرفأ", "عيدان", "عصري", "فاخر"]);
+  await expect(themes.getByRole("button", { name: "بسطة" })).toHaveAttribute("aria-pressed", "true");
 
   // طابعٌ آخر من القسم: المنيو نفسه بلباسٍ آخر.
   await themes.getByRole("button", { name: "عصري" }).click();
@@ -222,7 +222,7 @@ test("المنيو التجريبي: اختيار قسمٍ يبدّل المني
   // قسمٌ آخر: منيوه وطوابعه.
   await picker.getByRole("tab", { name: "فطور" }).click();
   await expect(page.getByText("فوّال باب مكة", { exact: false }).first()).toBeVisible();
-  await expect(picker.getByRole("group", { name: "طوابع «فطور»" }).getByRole("button")).toHaveText(["فوّال", "زعتر", "دكّان", "فرن"]);
+  await expect(picker.getByRole("group", { name: "طوابع «فطور»" }).getByRole("button")).toHaveText(["صباح الخير", "فوّال", "زعتر", "دكّان", "فرن"]);
 
   // لا يغطّي المنيو: في مجرى الصفحة قبل ترويسته، ولا فيض أفقيّ على ٣٢٠.
   const pickerBox = (await picker.boundingBox())!;

@@ -130,6 +130,8 @@ export const DRIVE_THRU = "قهوة سريعة";
 export const SPECIALTY_BADGES: readonly string[] = [
   SPECIALTY, BREW_BAR, DRIVE_THRU, ARABIC_COFFEE, PIZZA, ITALIAN, SHAWARMA, BROAST, BURGER,
   ICE_CREAM, SUSHI, MANAKISH,
+  // ١٥/١١ (التوقيع): «صباح الخير» يحمل شارة الفطور — صفّه يقوده «فوّال» بشارته العامّة كما كان.
+  BREAKFAST,
 ];
 
 export function isSpecialtyBadge(badge: string): boolean {
@@ -149,11 +151,11 @@ type Row = readonly [string, string, string, string];
 export const SUGGESTED: Readonly<Record<string, Row>> = {
   // ٠٩/١١ («شارة بتخصّصه»): المطعم الذي لا نعرف نوعه — طوابع عامّة كلّها بشارة «مطعم»: «فاخر» أوّلاً
   // كما كان، و«عصري» عاد، و«مجلّة» و«روشان» (المطعم الراقي والمناسبات). ولا بيتزا: لها صفّها.
-  مطعم: ["dark-gold", "modern", "editorial", "roshan"],
+  مطعم: ["dark-gold", "invite", "modern", "editorial"],
   // ٠٧/١١: الكافيه **أشكالٌ للقهوة** — كيس البنّ («محمصة» أوّلاً كما كان)، والآلة، ثم القمع (بلا شارة
   // «كافيه»: شارته تخصّصه «قهوة مقطّرة»)، و«لوحة حروف» عادت إلى الكافيه بشارتها (لوحة المقهى أصلاً).
   // وصفحة الكافيه المختصّ (`segments.ts`) تعرض أوّل ثلاثة: محمصة · باريستا · تقطير.
-  كافيه: ["roastery", "barista", "v60", "letterboard"],
+  كافيه: ["slate", "roastery", "barista", "letterboard"],
   // ٠٩/١١: القهوة المختصّة بشارتها — الآلة، والفنجان بوردة الحليب، والمطحنة، ثم القمع.
   [SPECIALTY]: ["barista", "latte", "grinder", "v60"],
   // ٠٩/١١: بار التقطير يبدأ بالقمع، ثم المطحنة (يطحن لكلّ كوب)، ثم الكيس، ثم الآلة.
@@ -165,20 +167,20 @@ export const SUGGESTED: Readonly<Record<string, Row>> = {
   [ARABIC_COFFEE]: ["dallah", "najdi", "roshan", "samovar"],
   // ٠٣/١١: «عصّارة» أوّلاً. ثم (٠٩/١١، «شارة بتخصّصه») «نيون» — محلّ العصير الليلي — و«ملصقات» (وُلدت
   // لمحلّ العصير والشاي الشبابي) بشارتيهما، و«لوحة حروف» رابعةً بلا شارة (شارتها «كافيه»).
-  عصائر: ["juice", "neon", "sticker", "letterboard"],
+  عصائر: ["crate", "juice", "neon", "sticker"],
   // ٠٧/١١: «صاج» أوّلَ البرجر والوجبات السريعة، و«فاتورة» و«نيون» بشارتيهما — عاد «نيون» (٠٩/١١)،
   // وطوابع البيتزا السريعة إلى صفّ «بيتزا». وصفحة عربات الطعام تعرض أوّل ثلاثة: صاج · فاتورة · نيون.
   // ثم (الموجة ٣) «شاورما» رابعاً بشارته الثانية — الشاورما وجبةٌ سريعة قبل أن تكون مشوى.
-  "مطعم سريع": ["burger", "receipt", "neon", "shawarma"],
+  "مطعم سريع": ["menuboard", "burger", "receipt", "neon"],
   // ٠٩/١١: البيتزا أربعة أماكن لها بشارة «بيتزا» — «ريحان» أوّلاً كما كان (بيته ومنيوه)، ثم الفرن، ثم
   // البيع بالشريحة، ثم علبة التوصيل.
   [PIZZA]: ["pizza", "woodfire", "slices", "pizzabox"],
   // ٠٩/١١: المطعم الإيطالي — اللافتة والبلاط أوّلاً، ثم المفرش، ثم الفرن، ثم «مجلّة».
-  [ITALIAN]: ["napoli", "pizza", "woodfire", "editorial"],
+  [ITALIAN]: ["roll", "napoli", "pizza", "woodfire"],
   // ٠٧/١١: «جمر» أوّلَ المشويات. ثم (١١/١١، حُذف «أوجاق» و«ستيك» و«مدخنة») الشاورما، ثم «فاخر» (مطعم
   // المشاوي الراقي) و«عسير» (المشاوي الجنوبية) — وعادت إليهما شارة «مشويات» ثانيةً.
-  مشويات: ["grill", "shawarma", "dark-gold", "asir"],
-  [GRILL]: ["grill", "shawarma", "dark-gold", "asir"],
+  مشويات: ["wasm", "grill", "dark-gold", "asir"],
+  [GRILL]: ["wasm", "grill", "dark-gold", "asir"],
   // ٠٩/١١ (الموجة ٣): الشاورما يبدأ بطابعه، ثم المنقل، ثم الوجبات السريعة.
   [SHAWARMA]: ["shawarma", "grill", "burger", "bucket"],
   // ١١/١١: البروست يبدأ بالسطل، ثم الوجبات السريعة — والشاورما (محلّاتها تبيع البروست غالباً).
@@ -193,16 +195,16 @@ export const SUGGESTED: Readonly<Record<string, Row>> = {
   [MANAKISH]: ["zaatar", "bakery", "breakfast", "dukkan"],
   // ٠٧/١١: «فوّال» ثالثَ الشعبي. ثم (٠٩/١١) «عسير» رابعاً بشارته كما كان قبل «دلّة» — والدلّة شارتها
   // تخصّصها «قهوة عربية».
-  شعبي: ["najdi", "dukkan", "breakfast", "asir"],
-  [BREAKFAST]: ["breakfast", "dukkan", "najdi", "bakery"],
-  بحري: ["harbor", "roshan", "modern", "dark-gold"],
+  شعبي: ["zaman", "najdi", "dukkan", "breakfast"],
+  [BREAKFAST]: ["breakfast", "sabah", "dukkan", "najdi"],
+  بحري: ["basta", "harbor", "roshan", "modern"],
   // ٠٧/١١: «حلواني» أوّلُ الحلويات، و«فرن» ثانيه، و«مجلّة» ثالثتها بشارتها، و«لاتيه» رابعةً بلا شارة
   // (كافيه الحلا — وشارتها «قهوة مختصّة»). والمخبز نفسه (`BAKERY`) يبدأ بـ«فرن».
-  "مخبز وحلويات": ["patisserie", "bakery", "editorial", "latte"],
+  "مخبز وحلويات": ["recipe", "patisserie", "bakery", "editorial"],
   [BAKERY]: ["bakery", "patisserie", "letterboard", "editorial"],
   // ٠٧/١١: الشاي — الكشك ثم البيت ثم «ملصقات» (وُلدت لمحلّ الشاي الشبابي) ثم «دلّة» (المجلس يقدّم
   // الاثنين). وبيت الشاي يبدأ بالسماور.
-  شاي: ["karak", "samovar", "sticker", "dallah"],
+  شاي: ["fatla", "karak", "samovar", "sticker"],
   [TEA_HOUSE]: ["samovar", "dallah", "karak", "najdi"],
 };
 

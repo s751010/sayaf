@@ -1,0 +1,345 @@
+/*
+ * ══ وَسْم — لوح البلّوط المحروق (٢٠٢٦/١١/١٥، طوابع «التوقيع») ═════════════════════════════════
+ * الصفحة لوح بلّوطٍ بعروقه وعُقده، والحروف **محروقةٌ فيه** (بنّيّ داكن بظلٍّ فاتح تحته كأنه غائر). الشعار مكويٌّ
+ * بميسمٍ حديديّ في دائرةٍ متفحّمة الحافّة يتوهّج جمرها. الأصناف أسطرٌ بينها أخاديد منحوتة، والسعر على صفيحة
+ * حديدٍ بمسمارين، وشريط الأقسام عارضة حديد، والصور بإطارٍ محروق.
+ *
+ * ⚠️ مستورَدٌ من **رأس** `menu-skins.css` — فكلّ انتقائيٍّ هنا يبدأ بـ`.m-skin-wasm`.
+ * ما يتبع العلامة: الجمر (`--m-accent`). وما لا يتبعها خامة: الخشب والحديد والجلد.
+ */
+.m-skin-wasm {
+  display: flow-root;
+  --m-ws-burn: #2e1708;
+  --m-ws-iron: #2c2d30;
+  background-image:
+    radial-gradient(ellipse 60px 16px at 22% 18rem, rgba(94, 56, 20, 0.22), transparent 70%),
+    radial-gradient(ellipse 80px 20px at 78% 52rem, rgba(94, 56, 20, 0.2), transparent 70%),
+    radial-gradient(ellipse 50px 14px at 36% 88rem, rgba(94, 56, 20, 0.2), transparent 70%),
+    repeating-linear-gradient(88deg, rgba(94, 56, 20, 0.11) 0 2px, transparent 2px 13px),
+    repeating-linear-gradient(92deg, rgba(255, 240, 210, 0.16) 0 3px, transparent 3px 31px),
+    linear-gradient(90deg, rgba(94, 56, 20, 0.2), transparent 9% 91%, rgba(94, 56, 20, 0.2));
+  background-size: 100% 110rem, 100% 110rem, 100% 110rem, auto, auto, auto;
+}
+.m-skin-wasm .m-ws-burnt {
+  color: var(--m-ws-burn);
+  text-shadow:
+    0 1px 0 rgba(255, 236, 200, 0.55),
+    0 0 6px rgba(94, 40, 6, 0.25);
+}
+.m-skin-wasm .m-ws-strap {
+  background: linear-gradient(90deg, #4a2d14, #7a4d24 30%, #6a401c 70%, #4a2d14);
+  border-radius: 0 0 8px 8px;
+  box-shadow:
+    inset 0 0 0 2px rgba(0, 0, 0, 0.2),
+    inset 0 -8px 0 -5px #d9c08a,
+    0 4px 6px -2px rgba(0, 0, 0, 0.5);
+}
+.m-skin-wasm .m-ws-rivet {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #d5d6da, #6b6d72 60%, #33343a);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+}
+.m-skin-wasm .m-ws-burn {
+  background: radial-gradient(circle, rgba(94, 40, 6, 0.16) 0 58%, var(--m-ws-burn) 60% 66%, rgba(46, 23, 8, 0.55) 68%, transparent 74%);
+}
+.m-skin-wasm .m-ws-hot {
+  fill: var(--m-accent);
+}
+.m-skin-wasm .m-ws-iron {
+  translate: -50% 0;
+  opacity: 0;
+}
+.m-skin-wasm .m-ws-meat {
+  fill: #7a3b1a;
+}
+.m-skin-wasm .m-ws-veg {
+  fill: var(--m-accent);
+}
+.m-skin-wasm .m-lang {
+  border-radius: 5px;
+  box-shadow:
+    inset 0 0 0 2px var(--m-ws-burn),
+    0 1px 0 rgba(255, 236, 200, 0.6);
+}
+.m-skin-wasm .m-chips > * {
+  background: color-mix(in srgb, var(--m-ws-burn) 8%, transparent);
+  border: 2px solid var(--m-ws-burn);
+  border-radius: 5px;
+  box-shadow: 0 1px 0 rgba(255, 236, 200, 0.6);
+}
+
+/* ── الشريط اللاصق: عارضة حديد بمسمارين ── */
+.m-skin-wasm .m-nav {
+  --m-tab-on: var(--m-accent);
+  --m-tab-on-ink: #fff;
+  --m-tab-ink: #efe6d6;
+  background:
+    radial-gradient(circle at 10px 50%, #9a9ca2 0 3px, #3c3d42 3.5px 5px, transparent 5.5px),
+    radial-gradient(circle at calc(100% - 10px) 50%, #9a9ca2 0 3px, #3c3d42 3.5px 5px, transparent 5.5px),
+    linear-gradient(180deg, #45464b, var(--m-ws-iron) 55%, #1e1f22) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 8px 10px -6px rgba(0, 0, 0, 0.6);
+}
+.m-skin-wasm .m-tab {
+  border-radius: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+/* ── عنوان القسم ── */
+.m-skin-wasm .m-ws-plate {
+  color: var(--m-ws-burn);
+  background: radial-gradient(circle, rgba(94, 40, 6, 0.14) 0 62%, var(--m-ws-burn) 64% 72%, rgba(46, 23, 8, 0.4) 74%, transparent 82%);
+}
+.m-skin-wasm .m-ws-coal {
+  background: repeating-linear-gradient(90deg, var(--m-ws-burn) 0 9px, transparent 9px 13px);
+  border-radius: 3px;
+  box-shadow: 0 1px 0 rgba(255, 236, 200, 0.5);
+}
+.m-skin-wasm .m-ws-count {
+  color: #efe6d6;
+  background: var(--m-ws-iron);
+  border-radius: 4px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+.m-skin-wasm .m-ws-photo .m-img {
+  border-radius: 4px;
+  box-shadow:
+    0 0 0 3px var(--m-ws-burn),
+    0 0 0 6px rgba(46, 23, 8, 0.25),
+    0 14px 18px -12px rgba(0, 0, 0, 0.6);
+}
+
+/* ── الصنف: سطرٌ بين أخدودين ── */
+.m-skin-wasm .m-row {
+  border-bottom: 2px solid rgba(46, 23, 8, 0.34);
+  box-shadow: 0 1px 0 rgba(255, 236, 200, 0.5);
+}
+.m-skin-wasm .m-row .m-name {
+  font-size: 1.08rem;
+  font-weight: 800;
+  text-shadow: 0 1px 0 rgba(255, 236, 200, 0.5);
+}
+.m-skin-wasm .m-card .m-price,
+.m-skin-wasm .m-feature .m-price {
+  display: inline-block;
+  width: fit-content;
+  padding: 0.14rem 0.95rem;
+  color: #fff;
+  --m-accent-ink: #fff;
+  --m-muted: rgba(255, 255, 255, 0.85);
+  background:
+    radial-gradient(circle at 6px 50%, #c8cacf 0 1.6px, transparent 2.2px),
+    radial-gradient(circle at calc(100% - 6px) 50%, #c8cacf 0 1.6px, transparent 2.2px),
+    linear-gradient(180deg, #4a4b50, var(--m-ws-iron));
+  border-radius: 4px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 2px 3px rgba(0, 0, 0, 0.4);
+}
+.m-skin-wasm .m-row .m-thumb {
+  border-radius: 4px;
+  box-shadow:
+    0 0 0 3px var(--m-ws-burn),
+    0 0 0 5px rgba(46, 23, 8, 0.25),
+    0 10px 12px -8px rgba(0, 0, 0, 0.6);
+}
+.m-skin-wasm .m-add {
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 3px var(--m-ws-burn),
+    0 0 14px 2px color-mix(in srgb, var(--m-accent) 55%, transparent);
+}
+.m-skin-wasm .m-badge {
+  border-radius: 4px;
+}
+.m-skin-wasm .m-soldout {
+  background: var(--m-ws-iron);
+  color: #efe6d6;
+  border-radius: 4px;
+}
+/* طبق اليوم: لوحٌ أفتح مثبّتٌ بأربعة مسامير. */
+.m-skin-wasm .m-feature {
+  --m-surface: #f1dcb4;
+  background-image:
+    radial-gradient(circle at 10px 10px, #c8cacf 0 2.2px, #55575c 2.6px 4px, transparent 4.5px),
+    radial-gradient(circle at calc(100% - 10px) 10px, #c8cacf 0 2.2px, #55575c 2.6px 4px, transparent 4.5px),
+    radial-gradient(circle at 10px calc(100% - 10px), #c8cacf 0 2.2px, #55575c 2.6px 4px, transparent 4.5px),
+    radial-gradient(circle at calc(100% - 10px) calc(100% - 10px), #c8cacf 0 2.2px, #55575c 2.6px 4px, transparent 4.5px),
+    repeating-linear-gradient(88deg, rgba(94, 56, 20, 0.09) 0 2px, transparent 2px 11px) !important;
+  border: 2px solid var(--m-ws-burn);
+  border-radius: 6px;
+  box-shadow:
+    inset 0 0 0 3px rgba(255, 240, 210, 0.5),
+    0 16px 20px -14px rgba(0, 0, 0, 0.65);
+}
+.m-skin-wasm .m-art {
+  --m-art-bg: repeating-linear-gradient(88deg, rgba(94, 56, 20, 0.14) 0 2px, transparent 2px 11px), #cfa873;
+  --m-art-plate: radial-gradient(circle closest-side, #3a3b3f 0 70%, #1f2023 72% 84%, #6b6d72 86% 90%, #2c2d30 92% 100%);
+  --m-art-ring: 0 0 0 1px rgba(0, 0, 0, 0.4);
+  --m-art-lift: 0 10px 14px -8px rgba(0, 0, 0, 0.6);
+  --m-art-well: 0 0 transparent;
+  --m-art-mark: rgba(46, 23, 8, 0.1);
+}
+.m-skin-wasm .m-art-plate {
+  --m-accent-ink: #f3dfc0;
+}
+.m-skin-wasm .m-card.m-surface {
+  border: 2px solid var(--m-ws-burn);
+  box-shadow: 0 12px 16px -12px rgba(0, 0, 0, 0.6);
+}
+.m-skin-wasm .m-cart {
+  border-radius: 6px !important;
+  box-shadow:
+    0 0 0 2px var(--m-ws-burn),
+    0 14px 18px -8px rgba(0, 0, 0, 0.7);
+}
+.m-skin-wasm .m-o-card {
+  border: 2px solid var(--m-ws-burn);
+  border-radius: 6px;
+}
+.m-skin-wasm .m-o-cta {
+  border-radius: 6px;
+  box-shadow: 0 4px 0 color-mix(in srgb, var(--m-accent) 55%, #000);
+}
+.m-skin-wasm .m-o-field,
+.m-skin-wasm .m-o-ghost,
+.m-skin-wasm .m-o-opt,
+.m-skin-wasm .m-o-soldout,
+.m-skin-wasm .m-o-step,
+.m-skin-wasm .m-o-chip {
+  border-radius: 5px;
+}
+
+/* ── نافذة الطبق والسلّة ── */
+.m-skin-wasm .m-sheet {
+  border-top: 3px solid var(--m-ws-burn);
+  border-radius: 8px 8px 0 0;
+}
+
+/* ── الحركة ──
+ * عند الفتح: الميسم ينزل فيكوي الدائرة ثم يرتفع ويغيب، والجمر يتوهّج حولها ثم يخبو، والدخان يتصاعد. وحين
+ * يُضاف صنفٌ يعود الميسم فيكوي (`data-m-added`). وحين يدخل القسم يتوهّج خطّ فحمه (`data-m-in`). وتحت العارضة
+ * خطّ جمرٍ يمتدّ بتقدّم الصفحة (`--m-scroll`). */
+@media (prefers-reduced-motion: no-preference) {
+  .m-skin-wasm .m-sheet.anim-fade-up {
+    animation: m-wasm-sheet 0.26s cubic-bezier(0.2, 0.9, 0.25, 1) backwards;
+  }
+  .m-skin-wasm .m-ws-iron {
+    animation: m-ws-press 1.5s cubic-bezier(0.4, 0, 0.3, 1) 0.25s both;
+  }
+  .m-skin-wasm .m-ws-burn {
+    animation: m-ws-ember 2.6s ease-out 0.75s both;
+  }
+  .m-skin-wasm .m-ws-smoke path {
+    animation: m-ws-smoke 3s ease-out 0.9s infinite;
+  }
+  .m-skin-wasm .m-ws-smoke path:nth-child(2) {
+    animation-delay: 2.1s;
+  }
+  .m-skin-wasm[data-m-added] .m-ws-iron {
+    animation: m-ws-press-again 1s cubic-bezier(0.4, 0, 0.3, 1) both;
+  }
+  .m-skin-wasm[data-m-added] .m-ws-burn {
+    animation: m-ws-ember-again 0.85s ease-out 0.3s both;
+  }
+  .m-skin-wasm[data-m-motion] .m-sec[data-m-in] .m-ws-coal {
+    animation: m-ws-glow 1.8s ease-out 0.1s both;
+  }
+  .m-skin-wasm .m-add:active {
+    scale: 0.9;
+  }
+    .m-skin-wasm[data-m-motion] .m-nav::after {
+      content: "";
+      position: absolute;
+      inset: auto 0 -3px;
+      height: 3px;
+      background: linear-gradient(90deg, #ffb347, var(--m-accent));
+      box-shadow: 0 0 10px var(--m-accent);
+      transform-origin: 100% 50%;
+      scale: var(--m-scroll, 0) 1;
+    }
+    [dir="ltr"].m-skin-wasm[data-m-motion] .m-nav::after {
+      transform-origin: 0 50%;
+    }
+}
+@keyframes m-ws-press {
+  0% {
+    translate: -50% -70px;
+    opacity: 0;
+  }
+  22%,
+  55% {
+    translate: -50% 26px;
+    opacity: 1;
+  }
+  100% {
+    translate: -50% -70px;
+    opacity: 0;
+  }
+}
+@keyframes m-ws-press-again {
+  0% {
+    translate: -50% -70px;
+    opacity: 0;
+  }
+  25%,
+  55% {
+    translate: -50% 26px;
+    opacity: 1;
+  }
+  100% {
+    translate: -50% -70px;
+    opacity: 0;
+  }
+}
+@keyframes m-ws-ember {
+  0% {
+    box-shadow:
+      0 0 0 3px color-mix(in srgb, var(--m-accent) 90%, #ffb347),
+      0 0 34px 10px color-mix(in srgb, var(--m-accent) 80%, transparent);
+  }
+  100% {
+    box-shadow:
+      0 0 0 0 transparent,
+      0 0 0 0 transparent;
+  }
+}
+@keyframes m-ws-ember-again {
+  0% {
+    box-shadow:
+      0 0 0 3px color-mix(in srgb, var(--m-accent) 90%, #ffb347),
+      0 0 34px 10px color-mix(in srgb, var(--m-accent) 80%, transparent);
+  }
+  100% {
+    box-shadow:
+      0 0 0 0 transparent,
+      0 0 0 0 transparent;
+  }
+}
+@keyframes m-ws-smoke {
+  0% {
+    translate: 0 8px;
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    translate: 0 -14px;
+    opacity: 0;
+  }
+}
+@keyframes m-ws-glow {
+  25% {
+    filter: drop-shadow(0 0 6px var(--m-accent)) brightness(2.4) sepia(1) saturate(6) hue-rotate(-18deg);
+  }
+}
+@keyframes m-wasm-sheet {
+  from {
+    opacity: 0;
+    translate: 0 26px;
+  }
+}

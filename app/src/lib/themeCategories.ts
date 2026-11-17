@@ -77,17 +77,17 @@ export interface ThemeCategory {
  * «آسيوي» بطابعٍ واحد — رفٌّ ثلاثةٌ فأكثر، والسوشي يقف حيث يصدق: البحر والمطعم الراقي.
  */
 export const THEME_CATEGORIES: readonly ThemeCategory[] = [
-  { id: "cafe", name: "مقاهي", nameEn: "Cafés", icon: "dallah", themes: ["roastery", "v60", "latte", "barista", "grinder", "drive", "dallah", "letterboard"], kind: "cafe" },
-  { id: "tea", name: "شاي", nameEn: "Tea", icon: "istikana", themes: ["karak", "samovar", "dallah", "sticker"], kind: "karak" },
-  { id: "bakery", name: "مخابز وحلويات", nameEn: "Bakeries & sweets", icon: "croissant", themes: ["bakery", "patisserie", "scoop", "zaatar", "latte", "letterboard"], kind: "bakery" },
-  { id: "breakfast", name: "فطور", nameEn: "Breakfast", icon: "egg", themes: ["breakfast", "zaatar", "dukkan", "bakery"], kind: "breakfast" },
-  { id: "fast", name: "وجبات سريعة", nameEn: "Fast food", icon: "burger", themes: ["burger", "smash", "bucket", "shawarma", "neon", "receipt", "sticker", "slices", "pizzabox"], kind: "burger" },
-  { id: "pizza", name: "بيتزا وإيطالي", nameEn: "Pizza & Italian", icon: "pizza", themes: ["pizza", "woodfire", "napoli", "pizzabox", "slices", "editorial"], kind: "pizza" },
-  { id: "grill", name: "مشاوي وشاورما", nameEn: "Grills & shawarma", icon: "skewer", themes: ["grill", "shawarma", "dark-gold", "asir"], kind: "grill" },
-  { id: "shaabi", name: "شعبي", nameEn: "Traditional", icon: "pot", themes: ["najdi", "dallah", "samovar", "dukkan", "breakfast", "asir"], kind: "shaabi" },
-  { id: "seafood", name: "بحري", nameEn: "Seafood", icon: "fish", themes: ["harbor", "chopsticks", "modern", "dark-gold"], kind: "seafood" },
-  { id: "juice", name: "عصائر", nameEn: "Juices", icon: "juice", themes: ["juice", "drive", "sticker", "neon"], kind: "juice" },
-  { id: "upscale", name: "راقي ومناسبات", nameEn: "Fine dining & occasions", icon: "sparkle", themes: ["dark-gold", "chopsticks", "roshan", "dallah", "editorial", "napoli"], kind: "restaurant" },
+  { id: "cafe", name: "مقاهي", nameEn: "Cafés", icon: "dallah", themes: ["slate", "roastery", "v60", "latte", "barista", "grinder", "drive", "dallah", "letterboard"], kind: "cafe" },
+  { id: "tea", name: "شاي", nameEn: "Tea", icon: "istikana", themes: ["fatla", "karak", "samovar", "dallah", "sticker"], kind: "karak" },
+  { id: "bakery", name: "مخابز وحلويات", nameEn: "Bakeries & sweets", icon: "croissant", themes: ["recipe", "bakery", "patisserie", "scoop", "zaatar", "latte", "letterboard"], kind: "bakery" },
+  { id: "breakfast", name: "فطور", nameEn: "Breakfast", icon: "egg", themes: ["sabah", "breakfast", "zaatar", "dukkan", "bakery"], kind: "breakfast" },
+  { id: "fast", name: "وجبات سريعة", nameEn: "Fast food", icon: "burger", themes: ["menuboard", "burger", "smash", "bucket", "shawarma", "neon", "receipt", "sticker", "slices", "pizzabox"], kind: "burger" },
+  { id: "pizza", name: "بيتزا وإيطالي", nameEn: "Pizza & Italian", icon: "pizza", themes: ["roll", "pizza", "woodfire", "napoli", "pizzabox", "slices", "editorial"], kind: "pizza" },
+  { id: "grill", name: "مشاوي وشاورما", nameEn: "Grills & shawarma", icon: "skewer", themes: ["wasm", "grill", "shawarma", "dark-gold", "asir"], kind: "grill" },
+  { id: "shaabi", name: "شعبي", nameEn: "Traditional", icon: "pot", themes: ["zaman", "najdi", "dallah", "samovar", "dukkan", "breakfast", "asir"], kind: "shaabi" },
+  { id: "seafood", name: "بحري", nameEn: "Seafood", icon: "fish", themes: ["basta", "harbor", "chopsticks", "modern", "dark-gold"], kind: "seafood" },
+  { id: "juice", name: "عصائر", nameEn: "Juices", icon: "juice", themes: ["crate", "juice", "drive", "sticker", "neon"], kind: "juice" },
+  { id: "upscale", name: "راقي ومناسبات", nameEn: "Fine dining & occasions", icon: "sparkle", themes: ["invite", "dark-gold", "chopsticks", "roshan", "dallah", "editorial", "napoli"], kind: "restaurant" },
 ];
 
 /** أقلّ ما يكون في قسم — قسمٌ بطابعين قائمةٌ لا رفّ. */

@@ -53,7 +53,8 @@ describe("الأقسام والطوابع", () => {
       expect(isDemoKind(c.kind), `${c.id} ⇐ ${c.kind}`).toBe(true);
       expect(DEMO_KINDS).toContain(c.kind);
       // الشريط في `/demo` يفتح القسم بـ`kind` وأوّل طابع — فالمنيو بلباسه نفسه.
-      expect(demoData(c.kind).menus[0].theme, c.id).toBe(c.themes[0]);
+      // إلا «راقي»: منيوه «الديوان» وجهُ المنتج في `/demo` والهبوط فيبقى «فاخر» (ثابت §18)، وأوّل القسم «دعوة».
+      expect(demoData(c.kind).menus[0].theme, c.id).toBe(c.id === "upscale" ? "dark-gold" : c.themes[0]);
     }
     // نوعٌ واحد لقسمٍ واحد: وإلا لم يُعرف من `?kind=` أيّ رفٍّ يُضاء.
     expect(new Set(THEME_CATEGORIES.map((c) => c.kind)).size).toBe(THEME_CATEGORIES.length);
@@ -61,13 +62,13 @@ describe("الأقسام والطوابع", () => {
 
   it("`themesOf` يحفظ ترتيب المالك، و«الكل» يعيد الكلّ كما هو", () => {
     // ٠٩/١١: المقاهي ثمانية أشكالٍ للقهوة — وخرجت «مجلّة» و«عصري» (باقيتان على رفوفٍ أخرى).
-    expect(themesOf("cafe", DESIGN_THEMES).map((t) => t.id)).toEqual(["roastery", "v60", "latte", "barista", "grinder", "drive", "dallah", "letterboard"]);
+    expect(themesOf("cafe", DESIGN_THEMES).map((t) => t.id)).toEqual(["slate", "roastery", "v60", "latte", "barista", "grinder", "drive", "dallah", "letterboard"]);
     // ٠٧/١١: قسم الشاي — الكشك ثم البيت ثم «دلّة» ثم «ملصقات».
-    expect(themesOf("tea", DESIGN_THEMES).map((t) => t.id)).toEqual(["karak", "samovar", "dallah", "sticker"]);
+    expect(themesOf("tea", DESIGN_THEMES).map((t) => t.id)).toEqual(["fatla", "karak", "samovar", "dallah", "sticker"]);
     // ٠٩/١١: «بيتزا وإيطالي» ستّة — ريحان بيته، ثم أشكال البيتزا الأربعة، و«مجلّة».
-    expect(themesOf("pizza", DESIGN_THEMES).map((t) => t.id)).toEqual(["pizza", "woodfire", "napoli", "pizzabox", "slices", "editorial"]);
+    expect(themesOf("pizza", DESIGN_THEMES).map((t) => t.id)).toEqual(["roll", "pizza", "woodfire", "napoli", "pizzabox", "slices", "editorial"]);
     // ١١/١١: «مشاوي وشاورما» — جمر بيته، ثم الشاورما، و«فاخر» و«عسير» (حُذف «أوجاق» و«ستيك» و«مدخنة»).
-    expect(themesOf("grill", DESIGN_THEMES).map((t) => t.id)).toEqual(["grill", "shawarma", "dark-gold", "asir"]);
+    expect(themesOf("grill", DESIGN_THEMES).map((t) => t.id)).toEqual(["wasm", "grill", "shawarma", "dark-gold", "asir"]);
     expect(themesOf(null, DESIGN_THEMES)).toEqual(DESIGN_THEMES);
     expect(categoryById("nope")).toBeNull();
   });

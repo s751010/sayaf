@@ -294,7 +294,7 @@ function cafe(): DemoData {
       prep_minutes: 8,
       category_order: JSON.stringify(["إسبريسو وحليب", "تقطير", "باردة", "مخبوزات", "حلى"]),
     }),
-    menus: [menuOf(R, M, "roastery")],
+    menus: [menuOf(R, M, "slate")],
     dishes: [
       dish("c1", "لاتيه", "Latte", "إسبريسو وحليب", 18, "☕", {
         description: "شوتين إسبريسو من محصول إثيوبي مع ٢٠٠ مل حليب طازج.",
@@ -405,7 +405,7 @@ function shaabi(): DemoData {
       prep_minutes: 25,
       category_order: JSON.stringify(["الفطور", "المندي والمظبي", "الإيدامات", "المشروبات", "الحلا"]),
     }),
-    menus: [menuOf(R, M, "najdi")],
+    menus: [menuOf(R, M, "zaman")],
     dishes: [
       dish("s1", "فول بالسمن", "Fava Beans with Ghee", "الفطور", 12, "🫘", {
         description: "فول مدمّس بالسمن البري والكمّون، مع تميس حار.",
@@ -577,7 +577,7 @@ function seafood(): DemoData {
       prep_minutes: 30,
       category_order: JSON.stringify(["المقبلات", "الأسماك", "القشريات", "الأرز", "المشروبات"]),
     }),
-    menus: [menuOf(R, M, "harbor")],
+    menus: [menuOf(R, M, "basta")],
     dishes: [
       dish("f1", "سلطة الحمّص بالطحينة", "Hummus", "المقبلات", 16, "🥣", {
         description: "حمّص ناعم بالطحينة وزيت الزيتون.",
@@ -744,7 +744,7 @@ function juice(): DemoData {
       prep_minutes: 7,
       category_order: JSON.stringify(["عصير طازج", "سموذي", "كوكتيلات", "سلطات"]),
     }),
-    menus: [menuOf(R, M, "juice")],
+    menus: [menuOf(R, M, "crate")],
     dishes: [
       dish("j1", "برتقال طازج", "Fresh Orange", "عصير طازج", 12, "🍊", {
         description: "برتقال معصور أمامك، ٤٠٠ مل بلا سكر مضاف.",
@@ -820,7 +820,7 @@ function burger(): DemoData {
       prep_minutes: 12,
       category_order: JSON.stringify(["البرجر", "الوجبات", "الدجاج", "الجانبية", "المشروبات"]),
     }),
-    menus: [menuOf(R, M, "burger")],
+    menus: [menuOf(R, M, "menuboard")],
     dishes: [
       dish("b1", "سماش كلاسيك", "Classic Smash", "البرجر", 19, "🍔", {
         description: "قرص لحم مكبوس على الصاج، شيدر، بصل، مخلل، وصوص الحارة.",
@@ -935,7 +935,7 @@ function bakery(): DemoData {
       prep_minutes: 8,
       category_order: JSON.stringify(["الفطائر", "الكرواسون", "من الفرن", "حلا الفرن", "المشروبات"]),
     }),
-    menus: [menuOf(R, M, "bakery")],
+    menus: [menuOf(R, M, "recipe")],
     dishes: [
       dish("k1", "فطيرة زعتر", "Zaatar Fatayer", "الفطائر", 4, "🥐", {
         description: "عجينة الفرن بالزعتر البلدي وزيت الزيتون والسمسم.",
@@ -1061,7 +1061,7 @@ function breakfast(): DemoData {
       prep_minutes: 6,
       category_order: JSON.stringify(["الفول", "التميس", "البيض", "المطبّق", "الشاهي"]),
     }),
-    menus: [menuOf(R, M, "breakfast")],
+    menus: [menuOf(R, M, "sabah")],
     dishes: [
       dish("q1", "فول بالسمن", "Foul with Ghee", "الفول", 9, "🫘", {
         description: "فول مدمّس من القدرة، بالسمن البلدي والكمّون والشطّة.",
@@ -1186,7 +1186,7 @@ function grill(): DemoData {
       prep_minutes: 18,
       category_order: JSON.stringify(["المشويات", "الشاورما", "المقبلات", "المشروبات"]),
     }),
-    menus: [menuOf(R, M, "grill")],
+    menus: [menuOf(R, M, "wasm")],
     dishes: [
       dish("g1", "كباب لحم", "Lamb Kebab", "المشويات", 32, "🍢", {
         description: "سيخان من لحم الغنم المفروم بالبصل والبقدونس، على الفحم، مع خبز وبصل بالسمّاق.",
@@ -1319,7 +1319,7 @@ function pizza(): DemoData {
       prep_minutes: 15,
       category_order: JSON.stringify(["البيتزا", "المعكرونة", "المقبلات", "الحلى", "المشروبات"]),
     }),
-    menus: [menuOf(R, M, "pizza")],
+    menus: [menuOf(R, M, "roll")],
     dishes: [
       dish("p1", "مارغريتا", "Margherita", "البيتزا", 32, "🍕", {
         description: "صلصة طماطم وموزاريلا طازجة وريحان وزيت زيتون — ١٢ إنش.",
@@ -1727,7 +1727,7 @@ function karak(): DemoData {
       prep_minutes: 4,
       category_order: JSON.stringify(["الكرك", "شاي وأعشاب", "البراتا والفطائر", "الحلى"]),
     }),
-    menus: [menuOf(R, M, "karak")],
+    menus: [menuOf(R, M, "fatla")],
     dishes: [
       dish("k1", "كرك — كاسة", "Karak — Glass", "الكرك", 3, "🫖", {
         description: "١٥٠ مل شاي مغليّ بالحليب والهيل والزعفران، كما يُصبّ من البرّاد.",
@@ -2527,6 +2527,18 @@ const KIND_BY_THEME: Readonly<Record<string, DemoKind>> = {
   scoop: "icecream",
   chopsticks: "sushi",
   zaatar: "manakish",
+  // ١٥/١١ (التوقيع): كلٌّ على منيو قسمه القائم.
+  slate: "cafe",
+  zaman: "shaabi",
+  invite: "restaurant",
+  crate: "juice",
+  basta: "seafood",
+  wasm: "grill",
+  roll: "pizza",
+  menuboard: "burger",
+  sabah: "breakfast",
+  recipe: "bakery",
+  fatla: "karak",
 };
 
 export function demoKindForSuits(suits: readonly string[] | undefined, themeId?: string | null): DemoKind {

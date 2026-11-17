@@ -1,0 +1,295 @@
+/*
+ * ══ لفّة ورق — لفّة الورق المعلّقة على الجدار (٢٠٢٦/١١/١٥، طوابع «التوقيع») ═══════════════════════
+ * جدار بلاطٍ أبيض (حافّتان على الجانبين)، وعليه ورقٌ طويل ينزل من لفّةٍ على حاملٍ حديديّ. كلّ شيءٍ **مكتوبٌ
+ * بقلم الماركر**: الأسماء عريضة، والسعر بالأحمر في مستطيلٍ مرسوم، وأمام كلّ صنفٍ شرطة قلم، وبين الأصناف خطٌّ
+ * متقطّع بيد. وعناوين الأقسام تحتها ضربة الألوان الثلاثة. والصور ملصوقةٌ بشريطٍ ورقيّ.
+ *
+ * ⚠️ مستورَدٌ من **رأس** `menu-skins.css` — فكلّ انتقائيٍّ هنا يبدأ بـ`.m-skin-roll`.
+ * ما يتبع العلامة: أحمر الطماطم (`--m-accent`) وأخضر الريحان (`--m-accent-2`). وما لا يتبعها خامة: الورق والحديد.
+ */
+.m-skin-roll {
+  display: flow-root;
+  --m-rl-ink: #191613;
+  --m-rl-tile: #dfe3e2;
+  background-image:
+    linear-gradient(90deg, var(--m-rl-tile) 0 9px, rgba(0, 0, 0, 0.18) 9px 10px, rgba(0, 0, 0, 0.06) 10px 13px, transparent 13px),
+    linear-gradient(270deg, var(--m-rl-tile) 0 9px, rgba(0, 0, 0, 0.18) 9px 10px, rgba(0, 0, 0, 0.06) 10px 13px, transparent 13px),
+    repeating-linear-gradient(180deg, transparent 0 22px, rgba(25, 22, 19, 0.022) 22px 23px),
+    repeating-linear-gradient(92deg, rgba(25, 22, 19, 0.018) 0 1px, transparent 1px 5px);
+}
+.m-skin-roll .m-rl-holder {
+  background: var(--m-rl-tile);
+  filter: drop-shadow(0 6px 5px rgba(0, 0, 0, 0.25));
+}
+.m-skin-roll .m-rl-cheese {
+  fill: #f6c85a;
+}
+.m-skin-roll .m-rl-red {
+  fill: var(--m-accent);
+}
+.m-skin-roll .m-rl-green {
+  fill: var(--m-accent-2);
+}
+.m-skin-roll .m-rl-greenline {
+  stroke: var(--m-accent-2);
+}
+.m-skin-roll .m-rl-ring {
+  border: 3.5px solid var(--m-rl-ink);
+  border-radius: 58% 42% 55% 45% / 48% 60% 40% 52%;
+}
+/* ضربة الألوان الثلاثة: أخضر · ورق · أحمر. */
+.m-skin-roll .m-rl-tri {
+  background: linear-gradient(90deg, var(--m-accent-2) 0 33%, transparent 33% 36%, #fff 36% 64%, transparent 64% 67%, var(--m-accent) 67%);
+  border-radius: 4px 9px 5px 8px;
+  box-shadow: inset 0 0 0 1.5px rgba(25, 22, 19, 0.5);
+  rotate: -0.8deg;
+}
+.m-skin-roll .m-lang {
+  border: 2.5px solid var(--m-rl-ink);
+  border-radius: 7px;
+  box-shadow: none;
+}
+.m-skin-roll .m-chips > * {
+  background: transparent;
+  border: 2.5px solid var(--m-rl-ink);
+  border-radius: 9px 14px 8px 13px;
+}
+
+/* ── الشريط اللاصق ── */
+.m-skin-roll .m-nav {
+  --m-tab-on: var(--m-rl-ink);
+  --m-tab-on-ink: #fff;
+  --m-tab-ink: var(--m-text);
+  background:
+    linear-gradient(90deg, var(--m-rl-tile) 0 9px, rgba(0, 0, 0, 0.18) 9px 10px, transparent 10px),
+    linear-gradient(270deg, var(--m-rl-tile) 0 9px, rgba(0, 0, 0, 0.18) 9px 10px, transparent 10px),
+    var(--m-bg) !important;
+  border-bottom: 3px solid var(--m-rl-ink);
+}
+.m-skin-roll .m-tab {
+  border: 2.5px solid var(--m-rl-ink);
+  border-radius: 9px 14px 8px 13px;
+}
+
+/* ── عنوان القسم ── */
+.m-skin-roll .m-rl-count {
+  color: var(--m-rl-ink);
+  border: 2.5px solid var(--m-rl-ink);
+  border-radius: 58% 42% 55% 45% / 48% 60% 40% 52%;
+  rotate: 4deg;
+}
+.m-skin-roll .m-rl-photo .m-img {
+  border-radius: 2px;
+  box-shadow:
+    0 0 0 3px var(--m-rl-ink),
+    6px 6px 0 var(--m-accent);
+}
+
+/* ── الصنف: سطرٌ بالماركر ── */
+.m-skin-roll .m-row {
+  gap: 0.6rem;
+  border-bottom: 2.5px dashed color-mix(in srgb, var(--m-rl-ink) 28%, transparent);
+}
+.m-skin-roll .m-row::before {
+  content: "";
+  flex: none;
+  width: 0.85rem;
+  height: 4px;
+  margin-top: 0.72rem;
+  background: var(--m-accent-2);
+  border-radius: 3px;
+  rotate: -8deg;
+}
+.m-skin-roll .m-row .m-name {
+  font-size: 1.12rem;
+  font-weight: 900;
+}
+.m-skin-roll .m-card .m-price,
+.m-skin-roll .m-feature .m-price {
+  display: inline-block;
+  width: fit-content;
+  padding: 0.05rem 0.55rem;
+  font-family: var(--m-display, var(--m-font));
+  font-size: 1.2rem;
+  color: var(--m-accent);
+  --m-accent-ink: var(--m-accent);
+  border: 2.5px solid var(--m-accent);
+  border-radius: 8px 13px 7px 12px;
+  rotate: -2deg;
+}
+.m-skin-roll .m-row .m-thumb {
+  overflow: visible;
+  rotate: 2deg;
+  border-radius: 2px;
+  box-shadow:
+    0 0 0 3px var(--m-rl-ink),
+    4px 4px 0 var(--m-accent-2);
+}
+.m-skin-roll .m-row:nth-of-type(even) .m-thumb {
+  rotate: -2deg;
+}
+.m-skin-roll .m-row .m-thumb::after {
+  content: "";
+  position: absolute;
+  top: -11px;
+  left: 50%;
+  width: 36px;
+  height: 13px;
+  translate: -50% 0;
+  rotate: -5deg;
+  background: rgba(240, 220, 150, 0.85);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+.m-skin-roll .m-row .m-thumb .m-img {
+  border-radius: 2px;
+}
+.m-skin-roll .m-add {
+  border-radius: 58% 42% 55% 45% / 48% 60% 40% 52%;
+  box-shadow:
+    0 0 0 2.5px var(--m-rl-ink),
+    3px 3px 0 2px var(--m-rl-ink);
+}
+.m-skin-roll .m-badge {
+  border-radius: 6px 10px 5px 9px;
+}
+.m-skin-roll .m-soldout {
+  background: transparent;
+  color: var(--m-rl-ink);
+  border: 2.5px solid var(--m-rl-ink);
+  border-radius: 8px 13px 7px 12px;
+  rotate: -4deg;
+}
+/* طبق اليوم: ورقةٌ ملصوقة بشريطين على اللفّة. */
+.m-skin-roll .m-feature {
+  position: relative;
+  overflow: visible;
+  --m-surface: #fffdf5;
+  border: 3px solid var(--m-rl-ink);
+  border-radius: 6px 11px 7px 10px;
+  box-shadow: 6px 6px 0 var(--m-accent);
+  rotate: -0.7deg;
+}
+.m-skin-roll .m-feature::before,
+.m-skin-roll .m-feature::after {
+  content: "";
+  position: absolute;
+  z-index: 3;
+  top: -10px;
+  width: 44px;
+  height: 16px;
+  background: rgba(240, 220, 150, 0.9);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+.m-skin-roll .m-feature::before {
+  left: 12px;
+  rotate: -18deg;
+}
+.m-skin-roll .m-feature::after {
+  right: 12px;
+  rotate: 16deg;
+}
+.m-skin-roll .m-art {
+  --m-art-bg: #fff6d8;
+  --m-art-plate: radial-gradient(circle closest-side, #f6c85a 0 66%, #e0a23c 68% 80%, #c98a3a 82% 100%);
+  --m-art-ring: 0 0 0 3px var(--m-rl-ink);
+  --m-art-lift: 4px 4px 0 var(--m-rl-ink);
+  --m-art-well: 0 0 transparent;
+  --m-art-mark: rgba(25, 22, 19, 0.06);
+}
+.m-skin-roll .m-card.m-surface {
+  border: 3px solid var(--m-rl-ink);
+  box-shadow: 5px 5px 0 var(--m-accent-2);
+}
+.m-skin-roll .m-cart {
+  border: 3px solid var(--m-rl-ink) !important;
+  border-radius: 9px 14px 8px 13px !important;
+  box-shadow: 5px 5px 0 var(--m-rl-ink);
+}
+.m-skin-roll .m-o-card {
+  border: 2.5px solid var(--m-rl-ink);
+  border-radius: 8px 13px 7px 12px;
+}
+.m-skin-roll .m-o-cta {
+  border-radius: 9px 14px 8px 13px;
+  box-shadow: 4px 4px 0 var(--m-rl-ink);
+}
+.m-skin-roll .m-o-field,
+.m-skin-roll .m-o-ghost,
+.m-skin-roll .m-o-opt,
+.m-skin-roll .m-o-soldout,
+.m-skin-roll .m-o-step,
+.m-skin-roll .m-o-chip {
+  border-radius: 7px 11px 6px 10px;
+}
+
+/* ── نافذة الطبق والسلّة ── */
+.m-skin-roll .m-sheet {
+  border-top: 3px solid var(--m-rl-ink);
+  border-radius: 9px 14px 0 0;
+}
+
+/* ── الحركة ──
+ * عند الفتح: الورق ينسحب من اللفّة (الترويسة تنزل)، ومع التمرير تدور عروق اللفّة (`--m-scroll-y`). وحين يدخل
+ * القسم تُرسم ضربة ألوانه من طرفها (`data-m-in`). وحين يُضاف صنفٌ يهتزّ شريط الطلب كضربة قلم
+ * (`data-m-added`). وتحت الشريط اللاصق خطّ ماركر أحمر يمتدّ بتقدّم الصفحة (`--m-scroll`). */
+@media (prefers-reduced-motion: no-preference) {
+  .m-skin-roll .m-sheet.anim-fade-up {
+    animation: m-roll-sheet 0.26s cubic-bezier(0.2, 0.9, 0.25, 1) backwards;
+  }
+  .m-skin-roll .m-head-roll > div {
+    animation: m-rl-unroll 0.8s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+  }
+  .m-skin-roll[data-m-motion] .m-sec .m-rl-stroke {
+    clip-path: inset(0 0 0 100%);
+    transition: clip-path 0.6s ease-out 0.15s;
+  }
+  [dir="ltr"].m-skin-roll[data-m-motion] .m-sec .m-rl-stroke {
+    clip-path: inset(0 100% 0 0);
+  }
+  .m-skin-roll[data-m-motion] .m-sec[data-m-in] .m-rl-stroke {
+    clip-path: inset(0 0 0 0);
+  }
+  .m-skin-roll[data-m-added] .m-cart {
+    animation: m-rl-jot 0.4s ease-out;
+  }
+  .m-skin-roll .m-add:active {
+    translate: 3px 3px;
+    box-shadow: 0 0 0 2.5px var(--m-rl-ink);
+  }
+    .m-skin-roll[data-m-motion] .m-rl-grain {
+      translate: calc(mod(var(--m-scroll-y, 0) * 0.6, 60) * 1px) 0;
+    }
+    .m-skin-roll[data-m-motion] .m-nav::after {
+      content: "";
+      position: absolute;
+      inset: auto 10px -6px;
+      height: 4px;
+      border-radius: 4px;
+      background: var(--m-accent);
+      transform-origin: 100% 50%;
+      scale: var(--m-scroll, 0) 1;
+    }
+    [dir="ltr"].m-skin-roll[data-m-motion] .m-nav::after {
+      transform-origin: 0 50%;
+    }
+}
+@keyframes m-rl-unroll {
+  from {
+    translate: 0 -40px;
+    opacity: 0;
+  }
+}
+@keyframes m-rl-jot {
+  30% {
+    rotate: -1.5deg;
+  }
+  60% {
+    rotate: 1deg;
+  }
+}
+@keyframes m-roll-sheet {
+  from {
+    opacity: 0;
+    translate: 0 26px;
+  }
+}

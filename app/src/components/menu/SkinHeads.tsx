@@ -608,6 +608,17 @@ export { SmashHead } from "./heads/SmashHead";
 export { ScoopHead } from "./heads/ScoopHead";
 export { ChopsticksHead } from "./heads/ChopsticksHead";
 export { ZaatarHead } from "./heads/ZaatarHead";
+export { SlateHead } from "./heads/SlateHead";
+export { ZamanHead } from "./heads/ZamanHead";
+export { InviteHead } from "./heads/InviteHead";
+export { CrateHead } from "./heads/CrateHead";
+export { BastaHead } from "./heads/BastaHead";
+export { WasmHead } from "./heads/WasmHead";
+export { RollHead } from "./heads/RollHead";
+export { MenuboardHead } from "./heads/MenuboardHead";
+export { SabahHead } from "./heads/SabahHead";
+export { RecipeHead } from "./heads/RecipeHead";
+export { FatlaHead } from "./heads/FatlaHead";
 export { AsirHead } from "./heads/AsirHead";
 
 /* ══ فاخر — دفتر جلدٍ بخيطٍ ذهبيّ ══════════════════════════════════════ */

@@ -52,6 +52,17 @@ import { SmashHeading } from "./heads/SmashHead";
 import { ScoopHeading } from "./heads/ScoopHead";
 import { ChopsticksHeading } from "./heads/ChopsticksHead";
 import { ZaatarHeading } from "./heads/ZaatarHead";
+import { SlateHeading } from "./heads/SlateHead";
+import { ZamanHeading } from "./heads/ZamanHead";
+import { InviteHeading } from "./heads/InviteHead";
+import { CrateHeading } from "./heads/CrateHead";
+import { BastaHeading } from "./heads/BastaHead";
+import { WasmHeading } from "./heads/WasmHead";
+import { RollHeading } from "./heads/RollHead";
+import { MenuboardHeading } from "./heads/MenuboardHead";
+import { SabahHeading } from "./heads/SabahHead";
+import { RecipeHeading } from "./heads/RecipeHead";
+import { FatlaHeading } from "./heads/FatlaHead";
 import { AsirHeading } from "./heads/AsirHead";
 
 /** خطّ العناوين — يسقط إلى خطّ النصّ لكل طابع لا يذكر `--m-display` (§18). */
@@ -365,6 +376,17 @@ export function SectionHeading({
     cone: ScoopHeading,
     hanko: ChopsticksHeading,
     loaf: ZaatarHeading,
+    chalk: SlateHeading,
+    ribbon: ZamanHeading,
+    course: InviteHeading,
+    stencil: CrateHeading,
+    enamel: BastaHeading,
+    brand: WasmHeading,
+    marker: RollHeading,
+    backlit: MenuboardHeading,
+    sun: SabahHeading,
+    ruled: RecipeHeading,
+    tag: FatlaHeading,
   } as const;
   if (style in FILE_HEADINGS) {
     const Skin = FILE_HEADINGS[style as keyof typeof FILE_HEADINGS];

@@ -267,13 +267,13 @@ test("مُنتقي الطوابع: المقترح لنوع النشاط أوّل
 
   const section = page.locator("section").filter({ has: page.getByRole("heading", { name: "طابع منيوك" }) });
   const first = section.locator(".grid > div").first();
-  await expect(first.getByText("محمصة", { exact: true })).toBeVisible();
+  await expect(first.getByText("سبّورة", { exact: true })).toBeVisible();
   await expect(first.getByText("يناسب نوع نشاطك")).toBeVisible();
   await expect(section.getByText("يناسب نوع نشاطك")).toHaveCount(1);
 
-  // «شعبي» يعيد الترتيب ولا يحفظ: «نجدي» أوّلاً.
+  // «شعبي» يعيد الترتيب ولا يحفظ: «قائمة زمان» أوّلاً (١٥/١١، طوابع التوقيع).
   await section.getByRole("button", { name: "شعبي", exact: true }).click();
-  await expect(section.locator(".grid > div").first().getByText("نجدي", { exact: true })).toBeVisible();
+  await expect(section.locator(".grid > div").first().getByText("قائمة زمان", { exact: true })).toBeVisible();
 
   await page.waitForTimeout(800);
   expect(writes, "المُنتقي كتب طابعاً بلا ضغطة").toEqual([]);
