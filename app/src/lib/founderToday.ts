@@ -57,7 +57,7 @@ export function buildQueue(input: {
       id: "health",
       n: health.filter((h) => h.severity === "high").length,
       text: "مشكلة تشغيل خطيرة",
-      to: "/founder/site",
+      to: "/founder/tech",
       tone: "bad",
     });
   }
@@ -67,7 +67,7 @@ export function buildQueue(input: {
       id: "errors",
       n: errors.filter((e) => now - new Date(e.last_seen).getTime() < DAY).length,
       text: "خطأ ظهر لزوّار الموقع آخر ٢٤ ساعة",
-      to: "/founder/site",
+      to: "/founder/tech",
       tone: "warn",
     });
   }

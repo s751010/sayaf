@@ -4,8 +4,18 @@ import tailwindcss from "@tailwindcss/vite";
 import { fileURLToPath } from "node:url";
 
 // الناتج يُبنى في deploy/ بجذر المستودع — وهو المجلد الذي يُسحب إلى Netlify.
+/**
+ * نسخة البناء — تظهر في «لوحتي ⇐ الفنّي» لتعرف أيّ نسخة على الموقع الآن.
+ * Netlify يضع `COMMIT_REF`، وGitHub Actions `GITHUB_SHA`، ومحلّياً «local».
+ */
+const BUILD_SHA = (process.env.COMMIT_REF ?? process.env.GITHUB_SHA ?? "local").slice(0, 7);
+
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  define: {
+    __BUILD_SHA__: JSON.stringify(BUILD_SHA),
+    __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
+  },
   resolve: {
     alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
   },
