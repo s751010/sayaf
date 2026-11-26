@@ -203,9 +203,8 @@ export default function Comms() {
 
   return (
     <div>
-      <h1 className="font-display text-2xl font-black text-ink">التواصل مع التجّار</h1>
-
-      <div className="mt-4 flex gap-2">
+      {/* العنوان في «الدعم» فوق التبويبات — هذه الصفحة تُرسم داخلها. */}
+      <div className="flex gap-2">
         {(
           [
             ["ann", "📣 الإعلانات"],
