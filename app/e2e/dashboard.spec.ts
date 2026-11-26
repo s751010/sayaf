@@ -486,3 +486,72 @@ test("`?theme=` على رابطٍ عامّ بلا جلسة المالك لا ي�
   await expect(page.getByText("لاتيه").first()).toBeVisible();
   await expect(page.locator(".m-skin-juice")).toHaveCount(0);
 });
+
+/* ── جولة التاجر (٢٠٢٦/١١/٢٦): شريط سفلي · صفوف مرصوصة · «صوّر أطباقك» ── */
+
+const PNG_1PX = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+  "base64"
+);
+
+test("الجوال: أربعة أقسام في الأسفل و«المزيد» يفتح الباقي", async ({ page }, info) => {
+  test.skip(info.project.name !== "mobile");
+  const { crashes } = watch(page);
+  await signedIn(page);
+  await page.goto("/dashboard");
+
+  const bar = page.getByRole("navigation", { name: "أقسام اللوحة" });
+  for (const label of ["الرئيسية", "منيوي", "التصميم", "الطباعة"]) {
+    await expect(bar.getByRole("link", { name: label })).toBeInViewport();
+  }
+  await bar.getByRole("button", { name: "المزيد" }).click();
+  const sheet = page.getByRole("dialog", { name: "كل الأقسام" });
+  for (const label of ["الامتثال", "التحليلات", "الإعدادات", "الاشتراك"]) {
+    await expect(sheet.getByRole("link", { name: label })).toBeVisible();
+  }
+  await sheet.getByRole("link", { name: "الإعدادات" }).click();
+  await expect(page).toHaveURL(/\/dashboard\/settings$/);
+  await expect(sheet).toHaveCount(0);
+
+  expect(crashes, crashes.join("\n")).toEqual([]);
+});
+
+test("قائمة الأطباق: صفٌّ واحد لكل طبق على الجوال، والأسهم في وضع «رتّب» وحده", async ({ page }, info) => {
+  test.skip(info.project.name !== "mobile");
+  await signedIn(page);
+  await page.goto("/dashboard/dishes");
+
+  const name = page.getByRole("button", { name: /^كرواسون/ });
+  await expect(name).toBeVisible();
+  const row = name.locator("xpath=ancestor::div[contains(@class,'rounded-xl')][1]");
+  const h = (await row.boundingBox())!.height;
+  expect(h, "ارتفاع صفّ الطبق").toBeLessThan(80);
+
+  await expect(page.getByRole("button", { name: "حرّك لأعلى" }).first()).toBeHidden();
+  await page.getByRole("button", { name: "رتّب" }).click();
+  await expect(page.getByRole("button", { name: "حرّك لأعلى" }).first()).toBeVisible();
+});
+
+test("«صوّر أطباقك»: طبقٌ طبق — الصورة تُحفظ وينتقل للتالي", async ({ page }) => {
+  const { crashes } = watch(page);
+  await signedIn(page);
+  const patched: string[] = [];
+  page.on("request", (r) => {
+    if (r.method() === "PATCH" && /\/dishes\?id=eq\./.test(r.url())) patched.push(r.postData() ?? "");
+  });
+  await page.goto("/dashboard/dishes");
+
+  await page.getByRole("button", { name: "صوّر أطباقك" }).click();
+  const dialog = page.getByRole("dialog", { name: "صوّر أطباقك" });
+  await expect(dialog.getByText("1 من 3")).toBeVisible();
+
+  await dialog.locator('input[type="file"][capture]').setInputFiles({ name: "dish.png", mimeType: "image/png", buffer: PNG_1PX });
+  await expect(dialog.getByText("2 من 3")).toBeVisible();
+  expect(patched.some((b) => b.includes("dish-images"))).toBe(true);
+
+  await dialog.getByRole("button", { name: /تخطّ/ }).click();
+  await dialog.getByRole("button", { name: /تخطّ/ }).click();
+  await expect(dialog.getByText("1 صورة انضافت")).toBeVisible();
+
+  expect(crashes, crashes.join("\n")).toEqual([]);
+});

@@ -128,6 +128,7 @@ app/src/
     LayoutOptions.tsx   خيارات شكل عرض الأطباق ورسمها — لصفحتَي التصميم والقوائم معاً
     ImageUploader.tsx   رفع صورة واحدة (يستورد الضغط من lib/image)
     BulkImages.tsx      رفع صور متعدد + ربط كل صورة بطبقها
+    PhotoRun.tsx        «صوّر أطباقك»: طبقٌ طبق بالكاميرا (`capture`)، كلّ صورة تُحفظ فور رفعها، والطابور الأهمّ فالأهمّ (`lib/photoRun.ts`)
     DishImport.tsx      استيراد أصناف (لصق نص أو CSV) + جدول مراجعة
     StarterMenu.tsx     قائمة بداية جاهزة حسب نوع المطعم
     CategoryManager.tsx ترتيب التصنيفات + إعادة التسمية والدمج
@@ -196,7 +197,8 @@ app/src/
     printMotifs.ts      «حافّة» كلّ طابع على الورق (دفتر جلد · فاتورة · نيون · شُرفات نجدية…) — في حزامٍ لا يبلغه نصّ
     qr.ts               توليد كود QR (مشترك بين الاستوديو وصفحة الأكواد)
     facts.ts            أرقام المنتج المعروضة (طوابع · قياسات · DPI)
-    nav.ts              عناصر قائمة اللوحة
+    nav.ts              عناصر قائمة اللوحة — وعلى الجوال شريطٌ سفلي بأربعة + «المزيد» (`splitMobileNav`: لا يُسقط عنصراً، وشارة المخفيّ على «المزيد»)
+    chunkReload.ts      بعد كل نشر: قطعةٌ قديمة ⇐ تحديثٌ واحد للصفحة لا «حدث خطأ» (`vite:preloadError` + `ErrorBoundary`، حارس دقيقة في `cm2_chunk_reload`)
     seo.ts · ogImage.ts وسوم الصفحات وصورة المشاركة
     routeSeo.ts         عناوين الصفحات الثابتة وأوصافها — **مصدر واحد** للصفحة وللتوليد المسبق
     prerender.ts        التوليد المسبق: `<المسار>.html` لكل صفحة عامّة بوسومها ونصّها (`scripts/prerender.ts` بعد البناء)؛ `index.html` لا يُمسّ
@@ -448,6 +450,7 @@ cd app && npm run typecheck
 | `cm2_session` | localStorage | الجلسة (GoTrue) |
 | `cm2_theme` | localStorage | الوضع — `dark` وحدها تُغيّر شيئاً (الفاتح أساس) |
 | `cm_fsecret` | sessionStorage | سر المؤسس الاحتياطي — **لا يُضمَّن في الكود أبداً** (§10) |
+| `cm2_chunk_reload` | sessionStorage | وقت آخر تحديثٍ تلقائيّ بعد قطعةٍ قديمة — يمنع حلقة تحديث (`lib/chunkReload.ts`) |
 | `cm_table` | sessionStorage | رقم الطاولة من `?table=` |
 | `cm_staff` | sessionStorage | رمز الكاشير + slug مطعمه (لا يبقى على جهاز مشترك) |
 | `cm2_loyalty_<id>` | localStorage | بطاقة ولاء الزبون محلياً |

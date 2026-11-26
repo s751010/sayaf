@@ -25,6 +25,7 @@ import {
 import { PreviewMenuButton } from "@/components/site";
 import { DishImport } from "@/components/DishImport";
 import { BulkImages } from "@/components/BulkImages";
+import { PhotoRun } from "@/components/PhotoRun";
 import { ImageUploader } from "@/components/ImageUploader";
 import { OptionsEditor } from "@/components/OptionsEditor";
 import { AllergenPicker } from "@/components/AllergenPicker";
@@ -246,21 +247,27 @@ function DishRow({
     /* على الجوال ينزل شريط الأدوات سطراً ثانياً: الصف يحمل مقبض سحب وصورة
        واسماً وسعراً ومفتاحاً وثلاثة أزرار، وحشرُها في سطر واحد على ٣٩٠px كان
        يترك لاسم الطبق ٢٩ بكسل — أي يمحوه. الاسم أهمّ من توفير سطر. */
-    <Card
+    /* ⚠️ سطرٌ واحد على الجوال (٢٠٢٦/١١/٢٦): كان الصفّ يلتفّ سطرين أو ثلاثة
+       (~١٢٤px)، فمطعمٌ بـ٤١ طبقاً = خمسة آلاف بكسل تمرير. الآن: الاسم نفسه زرّ
+       التعديل، والأفعال رموزٌ ٣٦px، والتكرار على الحاسوب وحده. والاسم يُقصّ
+       بنقاط ولا يُمحى — يبقى له ما بعد الصورة والمفتاح والرمزين. */
+    /* `div` لا `Card`: حشوة `Card` (p-5) كانت تغلب `p-0` الممرَّرة — `cn` يضمّ
+       ولا يدمج — فيُضاف ٤٠px لكل صفّ. والإطار يرسمه `ReorderList` أصلاً. */
+    <div
       className={cn(
-        "flex flex-wrap items-center gap-y-1.5 gap-x-2 border-transparent bg-transparent p-0 shadow-none sm:flex-nowrap sm:gap-x-3",
+        "flex items-center gap-2 sm:gap-3",
         d.available === false && "opacity-55"
       )}
     >
       <SafeImage
         src={d.image}
         alt=""
-        className="h-12 w-12 rounded-xl object-cover"
-        wrapperClassName="h-12 w-12 shrink-0 rounded-xl bg-panel2 text-2xl"
-        fallback={<DishGlyph value={d.emoji} size={24} className="text-dim" />}
+        className="h-11 w-11 rounded-xl object-cover sm:h-12 sm:w-12"
+        wrapperClassName="h-11 w-11 shrink-0 rounded-xl bg-panel2 text-2xl sm:h-12 sm:w-12"
+        fallback={<DishGlyph value={d.emoji} size={22} className="text-dim" />}
       />
-      <div className="min-w-0 flex-1 basis-[55%] sm:basis-auto">
-        <p className="truncate font-bold text-ink">
+      <div className="min-w-0 flex-1">
+        <button type="button" onClick={onEdit} className="block w-full truncate text-start font-bold text-ink hover:underline">
           {d.name} {d.featured && <span className="text-gold">★</span>}
           {/* «نفد» شارة لا مجرّد شفافية: التاجر يمرّ على القائمة سريعاً، والحالة
               التي تُغيّر ما يراه زبونه يجب أن تُقرأ لا تُستنتج. */}
@@ -269,26 +276,25 @@ function DishRow({
               نفد
             </span>
           )}
-        </p>
-        {/* السعر تحت الاسم لا بجانبه: الصف يحمل ثمانية عناصر على عرض ٣٩٠px،
-            ووضعُه أفقياً كان يسحق اسم الطبق حتى يختفي. وهنا يبقى **ظاهراً على
-            الجوال** — كان `hidden sm:block`، أي أن أهمّ حقل غائب عن الشاشة التي
-            يعمل عليها التاجر فعلاً. */}
+        </button>
+        {/* السعر تحت الاسم، ظاهرٌ على الجوال ويُعدَّل بضغطة (`PriceCell`). */}
         <p className="flex items-center gap-2 text-xs text-faint">
           <PriceCell dish={d} onSave={onPrice} />
-          <span>
+          <span className="truncate">
             {showCategory && `${d.category ?? "بدون تصنيف"} · `}<Icon name="eye" size={12} className="inline-block align-[-1px]" /> {d.views ?? 0}
           </span>
         </p>
       </div>
       <Switch checked={d.available ?? true} onChange={onToggle} label="متاح" />
-      {/* أفعال الصف: ٣٦px (محور `sm` في `ui.tsx`) لا ٣٠ — ورموز مرسومة لا
-          إيموجي، فترث لون الصف وتتطابق بين الأجهزة (§20). */}
+      {/* أفعال الصف: ٣٦px ورموز مرسومة لا إيموجي (§20). «تعديل» نصٌّ على
+          الحاسوب ورمزٌ على الجوال — والاسم نفسه يفتح التعديل أيضاً. */}
       <button
         onClick={onEdit}
-        className="inline-flex min-h-9 items-center rounded-lg px-2.5 py-1.5 text-sm font-bold text-dim hover:bg-ink/6 hover:text-ink"
+        aria-label="تعديل"
+        className="inline-flex min-h-9 min-w-9 shrink-0 items-center justify-center rounded-lg px-2 py-1.5 text-sm font-bold text-dim hover:bg-ink/6 hover:text-ink"
       >
-        تعديل
+        <Icon name="edit" size={15} className="sm:hidden" />
+        <span className="max-sm:hidden">تعديل</span>
       </button>
       <button
         onClick={onDuplicate}
@@ -301,15 +307,17 @@ function DishRow({
       <button
         onClick={onRemove}
         aria-label="حذف"
-        className="inline-flex min-h-9 min-w-9 items-center justify-center rounded-lg px-2 py-1.5 text-bad hover:bg-bad/10"
+        className="inline-flex min-h-9 min-w-9 shrink-0 items-center justify-center rounded-lg px-2 py-1.5 text-bad hover:bg-bad/10"
       >
         <Icon name="trash" size={15} />
       </button>
-    </Card>
+    </div>
   );
 }
 
 export default function Dishes() {
+  /** وضع الترتيب على الجوال — الأسهم تظهر فيه وحده (`ReorderList.mobileHandles`). */
+  const [reordering, setReordering] = useState(false);
   const { user, restaurant, setRestaurant, menus, refreshMenus, ent } = useDashboard();
   const toast = useToast();
   const [dishes, setDishes] = useState<Dish[] | null>(null);
@@ -322,6 +330,8 @@ export default function Dishes() {
   const [editing, setEditing] = useState<Dish | "new" | null>(null);
   const [importing, setImporting] = useState(false);
   const [bulkImages, setBulkImages] = useState(false);
+  /** «صوّر أطباقك» — طبقٌ طبق بالكاميرا (`PhotoRun`). */
+  const [photoRun, setPhotoRun] = useState(false);
   const [managingCats, setManagingCats] = useState(false);
   // `?starter=1` يأتي من الأونبوردنغ مباشرةً بعد إنشاء المطعم.
   const [params] = useSearchParams();
@@ -657,10 +667,19 @@ export default function Dishes() {
               📷 {missingImages.length} من أطباقك بلا صورة
             </p>
             <p className="mt-0.5 text-xs text-faint">
-              ارفعها دفعة واحدة واسحب كل صورة على طبقها — دقيقتان لكل منيوك.
+              صوّرها من جوالك طبقاً طبقاً، أو ارفع صوراً جاهزة دفعة واحدة.
             </p>
           </div>
-          <Button onClick={() => setBulkImages(true)}>ارفع الصور الآن</Button>
+          {/* الكاميرا أوّلاً: أغلب التجّار لم يصوّروا بعد، والرفع الدفعي يفترض
+              صوراً جاهزة في الجوال. */}
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={() => setPhotoRun(true)}>
+              <Icon name="image" size={16} /> صوّر أطباقك
+            </Button>
+            <Button variant="outline" onClick={() => setBulkImages(true)}>
+              عندي صور جاهزة
+            </Button>
+          </div>
         </Card>
       )}
 
@@ -763,21 +782,37 @@ export default function Dishes() {
         /* أثناء البحث: قائمة مسطّحة بلا سحب — الترتيب بلا معنى على نتائج مفلترة. */
         <div className="mt-5 flex flex-col gap-2.5">
           {filtered.map((d) => (
-            <DishRow
-              key={d.id}
-              dish={d}
-              showCategory
-              onToggle={() => toggle(d)}
-              onEdit={() => openEdit(d)}
-              onRemove={() => remove(d)}
-              onPrice={(p) => setPrice(d, p)}
-              onDuplicate={() => duplicate(d)}
-            />
+            /* نفس إطار صفّ الترتيب (`ReorderList`) — الصفّ نفسه بلا إطار. */
+            <div key={d.id} className="rounded-xl border border-line bg-panel px-2 py-1.5">
+              <DishRow
+                dish={d}
+                showCategory
+                onToggle={() => toggle(d)}
+                onEdit={() => openEdit(d)}
+                onRemove={() => remove(d)}
+                onPrice={(p) => setPrice(d, p)}
+                onDuplicate={() => duplicate(d)}
+              />
+            </div>
           ))}
         </div>
       ) : (
         /* بلا بحث: نفس تجميع المنيو وترتيبه بالضبط — ما تراه هنا يراه الزبون. */
         <div className="mt-5 flex flex-col gap-6">
+          {/* الترتيب على الجوال وضعٌ يُفتح لا أسهمٌ دائمة على كل صفّ. */}
+          <div className="-mb-3 flex justify-end sm:hidden">
+            <button
+              type="button"
+              onClick={() => setReordering((v) => !v)}
+              aria-pressed={reordering}
+              className={cn(
+                "inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3 text-xs font-bold",
+                reordering ? "border-gold bg-gold/12 text-gold" : "border-line text-dim"
+              )}
+            >
+              <Icon name="drag" size={14} /> {reordering ? "تمّ الترتيب" : "رتّب"}
+            </button>
+          </div>
           {groups.map((g) => (
             <section key={g.name}>
               <h2 className="mb-2 flex items-center gap-2 text-sm font-bold text-dim">
@@ -785,6 +820,7 @@ export default function Dishes() {
                 <span className="font-normal text-faint">· {g.dishes.length}</span>
               </h2>
               <ReorderList
+                mobileHandles={reordering}
                 items={g.dishes}
                 keyOf={(d) => d.id}
                 onReorder={(from, to) => reorder(g.name, from, to)}
@@ -1065,6 +1101,14 @@ export default function Dishes() {
           ent.maxDishes === null ? null : Math.max(0, ent.maxDishes - (dishes?.length ?? 0))
         }
         onImport={importRows}
+      />
+
+      <PhotoRun
+        open={photoRun}
+        onClose={() => setPhotoRun(false)}
+        dishes={dishes ?? []}
+        restaurantId={restaurant.id}
+        onSaved={(id, url) => setDishes((ds) => ds?.map((d) => (d.id === id ? { ...d, image: url } : d)) ?? null)}
       />
 
       <BulkImages

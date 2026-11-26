@@ -28,7 +28,6 @@ import {
   ErrorNote,
   Field,
   Input,
-  ScrollRow,
   Select,
   Spinner,
   ThemeToggle,
@@ -54,7 +53,7 @@ import {
 import { menuUrl, slugError, urlAffixes } from "@/lib/menuUrl";
 import { getRestaurantById, logAudit } from "@/lib/founder";
 import { STARTER_TYPES } from "@/lib/starterMenus";
-import { buildDashboardNav, isNavActive } from "@/lib/nav";
+import { buildDashboardNav, isNavActive, splitMobileNav, type NavItem } from "@/lib/nav";
 import { badgeText } from "@/lib/orderAlerts";
 import { cn } from "@/lib/utils";
 import type { Menu, Restaurant } from "@/lib/types";
@@ -372,6 +371,8 @@ function planShortLabel(ent: Entitlements): string {
 function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode }) {
   const { logout } = useAuth();
   const { pathname } = useLocation();
+  /** «إعداد منيوك»: مسارٌ واحد بشريط أفعالٍ مثبّت في الأسفل — بلا الشريط السفلي. */
+  const focusMode = pathname.startsWith("/dashboard/setup");
   const navigate = useNavigate();
   const { unseen } = useOrderAlerts();
   /**
@@ -529,13 +530,9 @@ function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode
               </button>
             </div>
           </div>
-          {/* ستّة عناصر تسع ٣٩٠px بلا تمرير (مقيسة — انظر `links`)، وما زاد
-              عليها («الطلبات» لمن ربط بوّابة · «لوحة المؤسّس» بعد التحقّق)
-              يفيض فيمرّر. والتدرّج يقول «خلفي المزيد» **عند وجوده فعلاً**،
-              وعلى حافة النهاية حيث يختبئ المحتوى. */}
-          <ScrollRow className="gap-1 px-3 pb-2" itemCount={nav.length}>
-            {links(true)}
-          </ScrollRow>
+          {/* الأقسام انتقلت إلى الشريط السفلي (٢٠٢٦/١١/٢٦) — أربعةٌ في متناول
+              الإبهام و«المزيد» للباقي (`splitMobileNav`). كانت هنا صفّاً من سبع
+              أيقونات صغيرة بـ٩px في أعلى الشاشة. */}
           {/* ⚠️ الشارة وحدها لا تكفي الجوال: على ٣٢٠–٣٨٩ «الطلبات» خارج الشريط
               الظاهر (يمرَّر إليها)، فشارتها لا تُرى أصلاً. فشريطٌ بعرض الترويسة
               — لا زرٌّ في سطرها المقيس — يظهر ما دام هناك طلبٌ لم يُرَ، ويختفي
@@ -552,7 +549,13 @@ function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode
           )}
         </header>
 
-        <main className="dash-main mx-auto w-full max-w-4xl flex-1 px-4 py-7 sm:px-6">
+        <main
+          className={cn(
+            "dash-main mx-auto w-full max-w-4xl flex-1 px-4 py-7 sm:px-6",
+            // مساحة الشريط السفلي على الجوال — إلا في «إعداد منيوك» (بلا شريط).
+            !focusMode && "pb-28 lg:pb-7"
+          )}
+        >
           {/* إعلانات المؤسس — تصل التاجر هنا بلا بريد ولا واتساب.
               `ent.loading` تُستثنى: لا نصنّف الجمهور قبل أن تُحسم حالة الاشتراك.
               وفي وضع الانتحال لا تُعرض: إعلاناتك موجّهة للتجّار لا لك. */}
@@ -578,6 +581,118 @@ function Shell({ ctx, children }: { ctx: DashboardCtx; children: React.ReactNode
         </main>
       </div>
       </div>
+
+      {/* الشريط السفلي (جوال) — يُخفى في «إعداد منيوك»: له شريط أفعاله المثبّت
+          في الأسفل، والإعداد مسارٌ واحد لا تنقّل فيه. */}
+      {!focusMode && (
+        <MobileNav nav={nav} pathname={pathname} billingLabel={planLabel(ctx.ent)} />
+      )}
+    </>
+  );
+}
+
+/**
+ * الشريط السفلي على الجوال: أربعة + «المزيد».
+ *
+ * «المزيد» صفحةٌ تنزلق من الأسفل فيها كل ما لم يدخل الأربعة، والاشتراك. وشارة
+ * عنصرٍ مخفيّ تنتقل إلى زرّه (`splitMobileNav`) — فلا يختبئ طلبٌ جديد.
+ */
+function MobileNav({ nav, pathname, billingLabel }: { nav: NavItem[]; pathname: string; billingLabel: string }) {
+  const [open, setOpen] = useState(false);
+  const { primary, more, moreBadge } = splitMobileNav(nav);
+  const moreActive = more.some((n) => isNavActive(n, pathname)) || pathname.startsWith("/dashboard/billing");
+
+  // «المزيد» يُغلق مع أيّ تنقّل.
+  useEffect(() => setOpen(false), [pathname]);
+
+  // ما يُمرَّر إليه (تركيز لوحة المفاتيح، رابط #، `scrollIntoView`) يقف فوق
+  // الشريط لا تحته — وإلا وقع حقلٌ أو زرّ خلفه ولمسته تذهب للشريط.
+  useEffect(() => {
+    const root = document.documentElement;
+    root.style.scrollPaddingBottom = "5.5rem";
+    return () => {
+      root.style.scrollPaddingBottom = "";
+    };
+  }, []);
+
+  const item = (n: NavItem) => (
+    <NavLink
+      key={n.to}
+      to={n.to}
+      end={n.end}
+      className={cn(
+        "press relative flex min-h-14 flex-col items-center justify-center gap-0.5 text-[11px] font-bold",
+        isNavActive(n, pathname) && !open ? "text-gold" : "text-dim"
+      )}
+    >
+      <Icon name={n.icon} size={21} />
+      {n.label}
+      {n.badge && (
+        <span className="absolute end-[18%] top-1.5 min-w-[18px] rounded-full bg-bad px-1 text-center text-[10px] font-black leading-[18px] text-page tabular-nums">
+          <span aria-hidden="true">{n.badge}</span>
+          <span className="sr-only">{`، ${n.badge} طلب جديد`}</span>
+        </span>
+      )}
+    </NavLink>
+  );
+
+  return (
+    <>
+      {open && (
+        <div className="fixed inset-0 z-40 lg:hidden" onClick={() => setOpen(false)}>
+          <div className="absolute inset-0 bg-black/40" />
+          <div
+            role="dialog"
+            aria-label="كل الأقسام"
+            className="absolute inset-x-0 bottom-0 max-h-[80dvh] overflow-y-auto rounded-t-2xl border-t border-line bg-panel px-4 pb-[calc(5rem+env(safe-area-inset-bottom))] pt-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="grid grid-cols-2 gap-2">
+              {[...more, { to: "/dashboard/billing", label: "الاشتراك", icon: "card" as const }].map((n) => (
+                <NavLink
+                  key={n.to}
+                  to={n.to}
+                  className={cn(
+                    "relative flex min-h-12 items-center gap-2 rounded-xl border px-3 text-sm font-bold",
+                    isNavActive(n, pathname) ? "border-gold bg-gold/12 text-gold" : "border-line text-ink"
+                  )}
+                >
+                  <Icon name={n.icon} size={18} />
+                  <span className="flex-1">{n.label}</span>
+                  {"badge" in n && n.badge && (
+                    <span className="rounded-full bg-bad px-1.5 text-[10px] font-black leading-[18px] text-page">{n.badge}</span>
+                  )}
+                </NavLink>
+              ))}
+            </div>
+            <p className="mt-3 text-center text-[11px] text-faint">{billingLabel}</p>
+          </div>
+        </div>
+      )}
+      {/* z-[45]: فوق «المزيد» (٤٠) وتحت النوافذ (`Modal` ٥٠) — كان ٥٠ فغطّى أزرار
+          النافذة السفلية على الجوال. */}
+      <nav
+        aria-label="أقسام اللوحة"
+        className="fixed inset-x-0 bottom-0 z-[45] grid grid-cols-5 border-t border-line bg-panel/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-lg lg:hidden"
+      >
+        {primary.map(item)}
+        <button
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          className={cn(
+            "press relative flex min-h-14 flex-col items-center justify-center gap-0.5 text-[11px] font-bold",
+            open || moreActive ? "text-gold" : "text-dim"
+          )}
+        >
+          <Icon name="sliders" size={21} />
+          المزيد
+          {moreBadge && (
+            <span className="absolute end-[18%] top-1.5 min-w-[18px] rounded-full bg-bad px-1 text-center text-[10px] font-black leading-[18px] text-page">
+              {moreBadge}
+            </span>
+          )}
+        </button>
+      </nav>
     </>
   );
 }

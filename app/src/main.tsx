@@ -17,8 +17,11 @@ import "@fontsource/almarai/800.css";
 import "./styles/global.css";
 import App from "./App";
 import { applyStoredTheme } from "./components/ui";
+import { installChunkReload } from "./lib/chunkReload";
 
 applyStoredTheme();
+// بعد كل نشر: قطعةٌ قديمة ⇐ تحديثٌ واحد بدل شاشة خطأ (`lib/chunkReload.ts`).
+installChunkReload();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

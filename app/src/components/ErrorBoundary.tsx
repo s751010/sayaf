@@ -7,18 +7,26 @@
  */
 import { Component, type ErrorInfo, type ReactNode } from "react";
 import { reportClientError } from "@/lib/data";
+import { isChunkLoadError, mayReload, reloadOnce } from "@/lib/chunkReload";
+import { K, getItem } from "@/lib/storage";
 
 type Props = { children: ReactNode; fallback?: ReactNode };
-type State = { error: Error | null };
+/** `reloading`: قطعةٌ قديمة والتحديث مسموح — نعرض «نحدّث» لا «حدث خطأ». */
+type State = { error: Error | null; reloading?: boolean };
 
 export class ErrorBoundary extends Component<Props, State> {
   state: State = { error: null };
 
   static getDerivedStateFromError(error: Error): State {
-    return { error };
+    return {
+      error,
+      reloading: isChunkLoadError(error) && mayReload(getItem(K.CHUNK_RELOAD, true)),
+    };
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
+    // قطعةٌ قديمة بعد نشر: تحديثٌ واحد يكفي — لا انهيار ولا بلاغ (`lib/chunkReload.ts`).
+    if (isChunkLoadError(error) && reloadOnce()) return;
     /**
      * ⚠️ كان هنا `console.error` وحده، وتعليقٌ يقول «خرائط المصدر مفعّلة في
      * البناء فالأثر قابل للقراءة» — و§23 أطفأها (`sourcemap: false`). فكان
@@ -32,10 +40,18 @@ export class ErrorBoundary extends Component<Props, State> {
     reportClientError(error, info.componentStack);
   }
 
-  private reset = () => this.setState({ error: null });
+  private reset = () => this.setState({ error: null, reloading: false });
 
   render() {
     if (!this.state.error) return this.props.children;
+    // التحديث جارٍ (`componentDidCatch`) — لا نُري «حدث خطأ» لحظةً قبله.
+    if (this.state.reloading) {
+      return (
+        <div className="flex min-h-dvh items-center justify-center px-6 text-center text-sm text-dim">
+          نحدّث الصفحة لأحدث نسخة…
+        </div>
+      );
+    }
     if (this.props.fallback) return this.props.fallback;
 
     return (
