@@ -89,9 +89,10 @@ app/src/
                         Setup + setup/ («إعداد منيوك» `/dashboard/setup` بعد إنشاء المطعم:
                         أصناف ⇐ طابع ⇐ شعار ⇐ نشر — المنطق خالص في `lib/setup.ts`)
                         Nutrition (الامتثال، §26) · PrintMenu (المنيو المطبوع A4 + CSV، §26)
-    founder/            «لوحتي» (أُعيدت ٢٠٢٦/١١/٢٦، §10–١١): Founder (قشرة + بوّابة `is_founder()`
-                        لا `founder-admin`) · Today · Merchants MerchantDetail · Money
-                        (+BillingConsole، §21) · Support (التذاكر + Comms) · Health («الموقع») · Tasks («مهامي»)
+    founder/            «لوحتي» (v2 ٢٠٢٦/١١/٢٦، §10–١١): Founder (قشرة + بوّابة `is_founder()` لا
+                        `founder-admin` + تنقّل بأربع مجموعات) · Today · Tasks · Merchants MerchantDetail ·
+                        Subscriptions · Orders · Support · Money (+BillingConsole، §21) · Marketing (+Comms) ·
+                        Tech (+Health) · parts/ (Bars · Funnel · PromoCodes · MerchantSearch)
   components/
     ui.tsx              نظام التصميم: Button Card Badge Field Input Modal Toast…
     site.tsx            Logo / Navbar / Footer / PreviewMenuButton
@@ -181,6 +182,7 @@ app/src/
     founder.ts          استعلامات لوحة المؤسس + سجل التدقيق (rest() لا founderAdmin)
     founderGate.ts      بوّابة لوحة المؤسّس: تصنيف فشل الدخول · `checkFounder` · سطور SQL لتغيير إيميل المؤسّس
     founderToday.ts     «ينتظرك» في «اليوم» — دالّة خالصة · ownerTasks.ts «مهامي» (المنجز في `site_settings.founder_todo`)
+    founderInsights.ts  لوحتي v2: أيام الرياض · شرائح التسويق ورسائل واتساب · حالة الاشتراك · ملخّص الطلبات · «آخر ما حصل» — خالص
     storage.ts          مفاتيح localStorage/sessionStorage الموحّدة (K)
     pixels.ts           حقن بكسلات التتبّع في صفحة المنيو (§15)
     apiKeys.ts          توليد مفاتيح API في المتصفح + هاشها (§14)

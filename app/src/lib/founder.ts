@@ -614,3 +614,116 @@ export async function setBillingFlags(next: BillingFlags): Promise<void> {
    */
   clearBillingCache();
 }
+
+/* ── لوحتي v2: قراءات للتسويق والطلبات والفنّي ─────────────────────── */
+
+/**
+ * ⚠️ كلّها قراءات بحدٍّ أعلى (`limit`) وبأعمدة مسمّاة: الحجم اليوم صغير (ثلاثة
+ * مطاعم)، والحدّ يمنع لوحةً تجلب جدولاً كاملاً يوم يكبر. ويوم تضيق تصير
+ * دالّة مجمّعة في القاعدة كـ`founder_overview`.
+ */
+
+const daysAgoIso = (d: number) => new Date(Date.now() - d * 86_400_000).toISOString();
+
+/** تواريخ تسجيل المطاعم — لمنحنى النمو. */
+export async function getSignupDates(days = 60): Promise<string[]> {
+  const rows = await rest<{ created_at: string }[]>(
+    `restaurants?select=created_at&created_at=gte.${daysAgoIso(days)}&order=created_at.asc&limit=5000`
+  );
+  return rows.map((r) => r.created_at);
+}
+
+export interface ViewRow {
+  date: string;
+  views: number;
+  menu_id: string | null;
+}
+
+/** فتحات المنيو بالساعة (`analytics`) — تُجمع يوماً يوماً في الواجهة. */
+export async function getViewsSince(days = 30): Promise<ViewRow[]> {
+  const since = daysAgoIso(days).slice(0, 10);
+  return rest<ViewRow[]>(
+    `analytics?select=date,views,menu_id&date=gte.${since}&dish_id=is.null&limit=20000`
+  );
+}
+
+/**
+ * الطلبات — **بلا اسم الزبون ولا جواله** (قرار المالك: زبائن التاجر ليسوا
+ * زبائن المنصّة). الأعمدة مسمّاة كي لا يتسرّب عمودٌ جديد.
+ */
+export interface PlatformOrder {
+  id: string;
+  restaurant_id: string;
+  status: string;
+  total: number | null;
+  created_at: string;
+  paid_at: string | null;
+}
+export async function getOrdersSince(days = 30): Promise<PlatformOrder[]> {
+  return rest<PlatformOrder[]>(
+    `orders?select=id,restaurant_id,status,total,created_at,paid_at&created_at=gte.${daysAgoIso(days)}&order=created_at.desc&limit=5000`
+  );
+}
+
+export async function getAllSubscriptions(): Promise<Subscription[]> {
+  return rest<Subscription[]>("subscriptions?select=*&order=end_date.desc&limit=1000");
+}
+
+/** أرقام التواصل مع التاجر نفسه (لا زبائنه) — لحملات واتساب. */
+export interface MerchantContact {
+  id: string;
+  phone: string | null;
+  social_whatsapp: string | null;
+}
+export async function getMerchantContacts(): Promise<MerchantContact[]> {
+  return rest<MerchantContact[]>("restaurants?select=id,phone,social_whatsapp&limit=5000");
+}
+
+export interface RevenueRow {
+  id: string;
+  amount: number | null;
+  plan_name: string | null;
+  user_name: string | null;
+  action: string | null;
+  created_at: string;
+}
+export async function getRecentRevenue(limit = 20): Promise<RevenueRow[]> {
+  return rest<RevenueRow[]>(
+    `revenue_log?select=id,amount,plan_name,user_name,action,created_at&order=created_at.desc&limit=${limit}`
+  );
+}
+
+export interface TicketLite {
+  id: string;
+  subject: string | null;
+  restaurant_name: string | null;
+  created_at: string;
+}
+export async function getRecentTickets(limit = 20): Promise<TicketLite[]> {
+  return rest<TicketLite[]>(
+    `support_tickets?select=id,subject,restaurant_name,created_at&order=created_at.desc&limit=${limit}`
+  );
+}
+
+export interface WebhookEventLite {
+  id: string;
+  delivered_at: string | null;
+  last_error: string | null;
+  attempts: number | null;
+  created_at: string;
+}
+export async function getWebhookEvents(days = 7): Promise<WebhookEventLite[]> {
+  return rest<WebhookEventLite[]>(
+    `webhook_events?select=id,delivered_at,last_error,attempts,created_at&created_at=gte.${daysAgoIso(days)}&limit=5000`
+  );
+}
+
+export interface ApiKeyLite {
+  id: string;
+  restaurant_id: string;
+  last_used_at: string | null;
+  revoked_at: string | null;
+}
+export async function getApiKeys(): Promise<ApiKeyLite[]> {
+  return rest<ApiKeyLite[]>("api_keys?select=id,restaurant_id,last_used_at,revoked_at&limit=1000");
+}

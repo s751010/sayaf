@@ -8,21 +8,47 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Badge, Card, Skeleton } from "@/components/ui";
 import {
+  getAllSubscriptions,
+  getAudit,
   getClientErrors,
   getHealth,
   getMerchants,
+  getOrdersSince,
   getOverview,
+  getRecentRevenue,
+  getRecentTickets,
   getSiteSettings,
+  getViewsSince,
   type ClientErrorGroup,
   type FounderMerchant,
   type FounderOverview,
   type HealthItem,
 } from "@/lib/founder";
+import {
+  activityFeed,
+  ago,
+  dailyCounts,
+  dailySums,
+  total,
+  type Activity,
+  type ActivityKind,
+  type DayPoint,
+} from "@/lib/founderInsights";
+import { Bars } from "./parts/Bars";
 import { buildQueue, greeting, type QueueTone } from "@/lib/founderToday";
 import { TODO_SETTING_KEY, parseTodoState, remainingCount } from "@/lib/ownerTasks";
 import { SITE_URL } from "@/lib/config";
-import { Icon } from "@/lib/icons";
+import { Icon, type IconName } from "@/lib/icons";
 import { cn, formatDate, formatMoney } from "@/lib/utils";
+
+const KIND_ICON: Record<ActivityKind, IconName> = {
+  signup: "store",
+  subscription: "star",
+  payment: "money",
+  ticket: "chat",
+  audit: "shield",
+  order: "bag",
+};
 
 const TONE: Record<QueueTone, string> = {
   bad: "bg-bad text-white",
@@ -36,6 +62,9 @@ export default function Today() {
   const [errors, setErrors] = useState<ClientErrorGroup[] | null>(null);
   const [tasksLeft, setTasksLeft] = useState<number | null>(null);
   const [latest, setLatest] = useState<FounderMerchant[] | null>(null);
+  const [feed, setFeed] = useState<Activity[] | null>(null);
+  const [signups, setSignups] = useState<DayPoint[] | null>(null);
+  const [views, setViews] = useState<DayPoint[] | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
 
@@ -49,10 +78,34 @@ export default function Today() {
         if (e.status === "fulfilled") setErrors(e.value);
         if (s.status === "fulfilled")
           setTasksLeft(remainingCount(parseTodoState(s.value.find((x) => x.key === TODO_SETTING_KEY)?.value)));
-        if (m.status === "fulfilled")
+        if (m.status === "fulfilled") {
           setLatest([...m.value].sort((a, b) => b.created_at.localeCompare(a.created_at)).slice(0, 5));
+          setSignups(dailyCounts(m.value.map((x) => x.created_at), 14));
+        }
         setFailed(o.status === "rejected");
         setLoaded(true);
+
+        // الخيط والمنحنيات بعد الأساس — لا تؤخّر «ينتظرك».
+        const merchants = m.status === "fulfilled" ? m.value : [];
+        const val = <T,>(r: PromiseSettledResult<T>): T | null => (r.status === "fulfilled" ? r.value : null);
+        Promise.allSettled([
+          getAllSubscriptions(),
+          getRecentRevenue(15),
+          getRecentTickets(15),
+          getAudit(15),
+          getOrdersSince(7),
+          getViewsSince(14),
+        ]).then(([subs, rev, tix, aud, ord, vw]) => {
+          if (!alive) return;
+          setFeed(
+            activityFeed(
+              { merchants, subs: val(subs), revenue: val(rev), tickets: val(tix), audit: val(aud), orders: val(ord) },
+              10
+            )
+          );
+          const v = val(vw);
+          setViews(v ? dailySums(v.map((r) => ({ date: r.date, value: r.views })), 14) : []);
+        });
       }
     );
     return () => {
@@ -124,6 +177,47 @@ export default function Today() {
         ))}
       </section>
 
+      {/* منحنيان صغيران — التفصيل في «التسويق» */}
+      <section className="mt-4 grid gap-3 md:grid-cols-2">
+        <MiniSeries title="تسجيلات — ١٤ يوم" unit="مطعم" points={signups} />
+        <MiniSeries title="فتحات المنيو — ١٤ يوم" unit="فتحة" points={views} />
+      </section>
+
+      {/* آخر ما حصل */}
+      <section className="mt-8">
+        <h2 className="mb-3 font-display text-lg font-extrabold text-ink">آخر ما حصل</h2>
+        {feed === null ? (
+          <Skeleton className="h-40" />
+        ) : feed.length === 0 ? (
+          <Card className="text-center text-sm text-dim">ما فيه نشاط بعد.</Card>
+        ) : (
+          <ul className="overflow-hidden rounded-[14px] border border-line bg-panel">
+            {feed.map((a, i) => {
+              const body = (
+                <>
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-ink/6 text-dim">
+                    <Icon name={KIND_ICON[a.kind]} size={15} />
+                  </span>
+                  <span className="min-w-0 flex-1 truncate text-sm text-ink">{a.text}</span>
+                  <span className="shrink-0 text-[11px] text-faint">{ago(a.at)}</span>
+                </>
+              );
+              return (
+                <li key={`${a.kind}-${a.at}-${i}`} className="border-b border-line last:border-0">
+                  {a.to ? (
+                    <Link to={a.to} className="flex min-h-12 items-center gap-3 px-4 py-2.5 hover:bg-ink/[.03]">
+                      {body}
+                    </Link>
+                  ) : (
+                    <div className="flex min-h-12 items-center gap-3 px-4 py-2.5">{body}</div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
+
       {/* آخر من سجّل */}
       <section className="mt-8">
         <div className="mb-3 flex items-center justify-between">
@@ -180,5 +274,17 @@ export default function Today() {
         </a>
       </section>
     </div>
+  );
+}
+
+function MiniSeries({ title, unit, points }: { title: string; unit: string; points: DayPoint[] | null }) {
+  return (
+    <Card className="p-4">
+      <div className="flex items-baseline justify-between">
+        <h2 className="text-xs font-bold text-dim">{title}</h2>
+        <span className="font-display text-base font-black text-ink">{points ? total(points) : "…"}</span>
+      </div>
+      {points === null ? <Skeleton className="mt-2 h-16" /> : <Bars points={points} unit={unit} height={56} />}
+    </Card>
   );
 }

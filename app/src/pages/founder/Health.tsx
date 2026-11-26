@@ -120,8 +120,7 @@ export default function Health() {
 
   return (
     <div>
-      <h1 className="font-display text-2xl font-black text-ink">الموقع</h1>
-      <p className="mt-1 text-sm text-dim">هل كل شي شغّال، وإعدادات المنصّة، وسجلّ ما سوّيته.</p>
+      {/* العنوان في «الفنّي» (`Tech.tsx`) — هذه الأقسام تُرسم تحته. */}
 
       {/* التنبيهات */}
       <section className="mt-6">

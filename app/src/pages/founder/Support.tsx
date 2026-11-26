@@ -1,16 +1,14 @@
 /**
- * «الدعم» — تذاكر التجّار، ثم الإعلانات والمدونة في تبويبٍ ثانٍ.
+ * «الدعم» — تذاكر التجّار. (الإعلانات والمدونة انتقلت إلى «التسويق».)
  *
  * كانت التذاكر في ذيل «نظرة عامة» والردّ بـ`window.prompt` (مربّع نظام بسطرٍ
  * واحد، يُغلق بلمسة خطأ على الجوال فيضيع الردّ). صار الردّ حقلاً تحت التذكرة.
  */
 import { useCallback, useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
 import { Badge, Button, Card, ErrorNote, Skeleton, Textarea, useToast } from "@/components/ui";
 import { rest } from "@/lib/api";
 import { logAudit } from "@/lib/founder";
 import { formatDate, cn } from "@/lib/utils";
-import Comms from "./Comms";
 
 type Ticket = {
   id: string;
@@ -24,38 +22,16 @@ type Ticket = {
   created_at: string;
 };
 
-type Tab = "tickets" | "comms";
 type Filter = "open" | "all";
 
 export default function Support() {
-  const [params, setParams] = useSearchParams();
-  const tab: Tab = params.get("tab") === "comms" ? "comms" : "tickets";
-
   return (
     <div>
-      <h1 className="font-display text-2xl font-black text-ink">الدعم والتواصل</h1>
-      <div role="tablist" className="mt-4 inline-flex rounded-xl border border-line bg-panel p-1">
-        {(
-          [
-            ["tickets", "التذاكر"],
-            ["comms", "الإعلانات والمدونة"],
-          ] as const
-        ).map(([id, label]) => (
-          <button
-            key={id}
-            role="tab"
-            aria-selected={tab === id}
-            onClick={() => setParams(id === "tickets" ? {} : { tab: id }, { replace: true })}
-            className={cn(
-              "min-h-10 rounded-lg px-4 text-sm font-bold transition-colors",
-              tab === id ? "bg-gold/12 text-gold" : "text-dim hover:text-ink"
-            )}
-          >
-            {label}
-          </button>
-        ))}
+      <h1 className="font-display text-2xl font-black text-ink">الدعم</h1>
+      <p className="mt-1 text-sm text-dim">تذاكر التجّار — ردّك يظهر لهم في لوحتهم.</p>
+      <div className="mt-6">
+        <Tickets />
       </div>
-      <div className="mt-6">{tab === "tickets" ? <Tickets /> : <Comms />}</div>
     </div>
   );
 }
