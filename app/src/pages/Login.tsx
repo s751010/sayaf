@@ -18,7 +18,11 @@ export default function Login() {
   const { user, loading, login, signup, resetPassword } = useAuth();
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const [mode, setMode] = useState<Mode>(params.get("mode") === "signup" ? "signup" : "login");
+  // `?mode=forgot` يفتح الاستعادة مباشرة — رابط «نسيت كلمة المرور؟» في لوحة المؤسّس.
+  const [mode, setMode] = useState<Mode>(() => {
+    const m = params.get("mode");
+    return m === "signup" || m === "forgot" ? m : "login";
+  });
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

@@ -144,7 +144,7 @@ export default function Money() {
 
   return (
     <div>
-      <h1 className="font-display text-2xl font-black text-ink">المال والنمو</h1>
+      <h1 className="font-display text-2xl font-black text-ink">الفلوس</h1>
 
       {/* ⚠️ الاستلام **قبل** النمو: عرض قمع تحويل فوق بوّابة مقطوعة يُطمئن
           كذباً — لا معنى لتحسين التحويل إن كان الدفع لا يصل أصلاً. */}

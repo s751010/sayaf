@@ -89,9 +89,9 @@ app/src/
                         Setup + setup/ («إعداد منيوك» `/dashboard/setup` بعد إنشاء المطعم:
                         أصناف ⇐ طابع ⇐ شعار ⇐ نشر — المنطق خالص في `lib/setup.ts`)
                         Nutrition (الامتثال، §26) · PrintMenu (المنيو المطبوع A4 + CSV، §26)
-    founder/            Founder(shell+بوابة) Overview Merchants MerchantDetail
-                        BillingConsole (وحدة الاستلام، §21)
-                        Money Comms Health
+    founder/            «لوحتي» (أُعيدت ٢٠٢٦/١١/٢٦، §10–١١): Founder (قشرة + بوّابة `is_founder()`
+                        لا `founder-admin`) · Today · Merchants MerchantDetail · Money
+                        (+BillingConsole، §21) · Support (التذاكر + Comms) · Health («الموقع») · Tasks («مهامي»)
   components/
     ui.tsx              نظام التصميم: Button Card Badge Field Input Modal Toast…
     site.tsx            Logo / Navbar / Footer / PreviewMenuButton
@@ -179,6 +179,8 @@ app/src/
     chime.ts            الرنّة بلا ملفّ صوت — سياق صوت واحد يفتحه زرّ «شغّل صوت الطلبات»
     starterMenus.ts     قوائم البداية حسب نوع المطعم
     founder.ts          استعلامات لوحة المؤسس + سجل التدقيق (rest() لا founderAdmin)
+    founderGate.ts      بوّابة لوحة المؤسّس: تصنيف فشل الدخول · `checkFounder` · سطور SQL لتغيير إيميل المؤسّس
+    founderToday.ts     «ينتظرك» في «اليوم» — دالّة خالصة · ownerTasks.ts «مهامي» (المنجز في `site_settings.founder_todo`)
     storage.ts          مفاتيح localStorage/sessionStorage الموحّدة (K)
     pixels.ts           حقن بكسلات التتبّع في صفحة المنيو (§15)
     apiKeys.ts          توليد مفاتيح API في المتصفح + هاشها (§14)
