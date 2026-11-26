@@ -112,3 +112,44 @@ export function isNavActive(item: NavItem, pathname: string): boolean {
   if (item.end ? pathname === item.to : under(item.to)) return true;
   return (item.also ?? []).some(under);
 }
+
+/* ── الجوال: شريطٌ سفلي بأربعة + «المزيد» (٢٠٢٦/١١/٢٦) ─────────────── */
+
+/**
+ * ترتيب الأولوية على الشريط السفلي. «الطلبات» ثالثة **حين تظهر**: من ربط
+ * بوّابة دفع يعيش فيها وقت الذروة، وشارتها يجب أن تُرى بلا فتح «المزيد».
+ */
+const MOBILE_PRIORITY = [
+  "/dashboard",
+  "/dashboard/dishes",
+  "/dashboard/orders",
+  "/dashboard/design",
+  "/dashboard/cards",
+] as const;
+
+export const MOBILE_SLOTS = 4;
+
+/**
+ * يقسم الشريط: أربعة في الأسفل، والباقي في «المزيد».
+ *
+ * ⚠️ **لا يُسقط عنصراً**: كلّ ما لم يدخل الأربعة في «المزيد» — نفس قاعدة
+ * «تفعيل ميزة يزيد ولا ينقص» (`dashboard-nav.test.ts`). وشارة عنصرٍ مخفيّ
+ * تنتقل إلى زرّ «المزيد» كي لا يختبئ طلبٌ جديد.
+ */
+export function splitMobileNav(nav: readonly NavItem[]): {
+  primary: NavItem[];
+  more: NavItem[];
+  moreBadge?: string;
+} {
+  const rank = (n: NavItem) => {
+    const i = (MOBILE_PRIORITY as readonly string[]).indexOf(n.to);
+    return i === -1 ? Infinity : i;
+  };
+  const primary = [...nav]
+    .filter((n) => rank(n) !== Infinity)
+    .sort((a, b) => rank(a) - rank(b))
+    .slice(0, MOBILE_SLOTS);
+  const keep = new Set(primary.map((n) => n.to));
+  const more = nav.filter((n) => !keep.has(n.to));
+  return { primary, more, moreBadge: more.find((n) => n.badge)?.badge };
+}

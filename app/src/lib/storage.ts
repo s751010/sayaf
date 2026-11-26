@@ -9,6 +9,11 @@ export const K = {
   THEME: "cm2_theme",
   /** سر المؤسس — sessionStorage فقط (نفس سلوك النسخة الأصلية). */
   FSECRET: "cm_fsecret",
+  /**
+   * وقت آخر تحديثٍ تلقائيّ بعد قطعةٍ قديمة (`lib/chunkReload.ts`) —
+   * sessionStorage، يمنع حلقة تحديث.
+   */
+  CHUNK_RELOAD: "cm2_chunk_reload",
   /** رقم الطاولة من ?table= — sessionStorage (يخص الزيارة الحالية). */
   TABLE: "cm_table",
   /**

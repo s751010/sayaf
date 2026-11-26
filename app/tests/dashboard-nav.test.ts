@@ -24,6 +24,8 @@ import {
   ORDERS_ITEM,
   buildDashboardNav,
   isNavActive,
+  MOBILE_SLOTS,
+  splitMobileNav,
 } from "@/lib/nav";
 
 const paths = (ordersOn: boolean, founder: boolean | null = false) =>
@@ -143,5 +145,43 @@ describe("isNavActive — أبواب الأقسام", () => {
     expect(isNavActive(item("/dashboard"), "/dashboard")).toBe(true);
     expect(isNavActive(item("/dashboard"), "/dashboard/dishes")).toBe(false);
     expect(isNavActive(item("/dashboard/cards"), "/dashboard/printer")).toBe(false);
+  });
+});
+
+describe("الجوال: أربعة في الأسفل + «المزيد»", () => {
+  const all = (ordersOn: boolean, founder = false, newOrders = 0) =>
+    buildDashboardNav({ ordersOn, founder, newOrders });
+
+  it("لا يضيع عنصر: الأسفل + «المزيد» = الشريط كلّه", () => {
+    for (const on of [false, true]) {
+      for (const f of [false, true]) {
+        const nav = all(on, f);
+        const { primary, more } = splitMobileNav(nav);
+        expect(primary).toHaveLength(MOBILE_SLOTS);
+        expect([...primary, ...more].map((n) => n.to).sort()).toEqual(nav.map((n) => n.to).sort());
+      }
+    }
+  });
+
+  it("الرئيسية ومنيوي دائماً في الأسفل، والطلبات معهما حين تظهر", () => {
+    expect(splitMobileNav(all(false)).primary.map((n) => n.to)).toEqual([
+      "/dashboard",
+      "/dashboard/dishes",
+      "/dashboard/design",
+      "/dashboard/cards",
+    ]);
+    expect(splitMobileNav(all(true)).primary.map((n) => n.to)).toEqual([
+      "/dashboard",
+      "/dashboard/dishes",
+      "/dashboard/orders",
+      "/dashboard/design",
+    ]);
+  });
+
+  it("شارة عنصرٍ في «المزيد» تظهر على زرّه", () => {
+    // الطلبات في الأسفل حين تظهر — فلا شارة على «المزيد»
+    expect(splitMobileNav(all(true, false, 3)).moreBadge).toBeUndefined();
+    const fake = [...all(false), { to: "/x", label: "س", icon: "home" as const, badge: "2" }];
+    expect(splitMobileNav(fake).moreBadge).toBe("2");
   });
 });

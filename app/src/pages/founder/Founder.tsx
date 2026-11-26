@@ -500,9 +500,11 @@ function Shell() {
       )}
 
       {/* الشريط السفلي — جوال */}
+      {/* z-[45]: فوق «المزيد» (٤٠) وتحت النوافذ (`Modal` ٥٠) — كان ٥٠ فغطّى أزرار
+          النافذة السفلية على الجوال. */}
       <nav
         aria-label="أقسام لوحتي"
-        className="fixed inset-x-0 bottom-0 z-50 grid grid-cols-5 border-t border-line bg-panel/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-lg lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-[45] grid grid-cols-5 border-t border-line bg-panel/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-lg lg:hidden"
       >
         {BOTTOM.map((n) => (
           <NavLink

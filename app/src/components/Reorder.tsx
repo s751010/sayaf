@@ -14,12 +14,19 @@ export function ReorderList<T>({
   onReorder,
   render,
   className,
+  mobileHandles = true,
 }: {
   items: T[];
   keyOf: (item: T) => string;
   onReorder: (from: number, to: number) => void;
   render: (item: T, index: number) => ReactNode;
   className?: string;
+  /**
+   * `false` يُخفي مقبض السحب وأسهم ▲▼ **على الجوال وحده** — قائمة أطباق
+   * المطعم تُقرأ أكثر مما تُرتَّب، وسهمان على كل صفّ كانا يطيلانه. والصفحة
+   * تعيدهما بزرّ «رتّب» (`Dishes.tsx`). على الحاسوب يبقيان دائماً.
+   */
+  mobileHandles?: boolean;
 }) {
   const [dragging, setDragging] = useState<number | null>(null);
   const [over, setOver] = useState<number | null>(null);
@@ -58,14 +65,17 @@ export function ReorderList<T>({
         >
           <span
             aria-hidden="true"
-            className="cursor-grab select-none px-1 text-faint active:cursor-grabbing"
+            className={cn(
+              "cursor-grab select-none px-1 text-faint active:cursor-grabbing",
+              !mobileHandles && "max-sm:hidden"
+            )}
             title="اسحب لإعادة الترتيب"
           >
             ⠿
           </span>
           <div className="min-w-0 flex-1">{render(item, i)}</div>
           {/* المسار الذي يعمل على الجوال وبلوحة المفاتيح. */}
-          <div className="flex shrink-0 flex-col">
+          <div className={cn("flex shrink-0 flex-col", !mobileHandles && "max-sm:hidden")}>
             <button
               type="button"
               onClick={() => move(i, i - 1)}
